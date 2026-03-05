@@ -1,4 +1,4 @@
-defmodule FamilyWeb.CoreComponents do
+defmodule Web.CoreComponents do
   @moduledoc """
   Provides core UI components.
 
@@ -27,7 +27,7 @@ defmodule FamilyWeb.CoreComponents do
 
   """
   use Phoenix.Component
-  use Gettext, backend: FamilyWeb.Gettext
+  use Gettext, backend: Web.Gettext
 
   alias Phoenix.LiveView.JS
 
@@ -483,9 +483,9 @@ defmodule FamilyWeb.CoreComponents do
     # with our gettext backend as first argument. Translations are
     # available in the errors.po file (as we use the "errors" domain).
     if count = opts[:count] do
-      Gettext.dngettext(FamilyWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Web.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(FamilyWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Web.Gettext, "errors", msg, opts)
     end
   end
 

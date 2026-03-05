@@ -16,7 +16,7 @@ config :family, Family.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :family, FamilyWeb.Endpoint,
+config :family, Web.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],
@@ -53,7 +53,7 @@ config :family, FamilyWeb.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
-config :family, FamilyWeb.Endpoint,
+config :family, Web.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
@@ -62,8 +62,8 @@ config :family, FamilyWeb.Endpoint,
       # Gettext translations
       ~r"priv/gettext/.*\.po$",
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/family_web/router\.ex$",
-      ~r"lib/family_web/(controllers|live|components)/.*\.(ex|heex)$"
+      ~r"lib/web/router\.ex$",
+      ~r"lib/web/(controllers|live|components)/.*\.(ex|heex)$"
     ]
   ]
 

@@ -12,11 +12,11 @@ config :family,
   generators: [timestamp_type: :utc_datetime]
 
 # Configure the endpoint
-config :family, FamilyWeb.Endpoint,
+config :family, Web.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: FamilyWeb.ErrorHTML, json: FamilyWeb.ErrorJSON],
+    formats: [html: Web.ErrorHTML, json: Web.ErrorJSON],
     layout: false
   ],
   pubsub_server: Family.PubSub,

@@ -1,12 +1,12 @@
-defmodule FamilyWeb do
+defmodule Web do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, components, channels, and so on.
 
   This can be used in your application as:
 
-      use FamilyWeb, :controller
-      use FamilyWeb, :html
+      use Web, :controller
+      use Web, :html
 
   The definitions below will be executed for every controller,
   component, etc, so keep them short and clean, focused
@@ -40,7 +40,7 @@ defmodule FamilyWeb do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
 
-      use Gettext, backend: FamilyWeb.Gettext
+      use Gettext, backend: Web.Gettext
 
       import Plug.Conn
 
@@ -80,16 +80,16 @@ defmodule FamilyWeb do
   defp html_helpers do
     quote do
       # Translation
-      use Gettext, backend: FamilyWeb.Gettext
+      use Gettext, backend: Web.Gettext
 
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import FamilyWeb.CoreComponents
+      import Web.CoreComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
-      alias FamilyWeb.Layouts
+      alias Web.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())
@@ -99,9 +99,9 @@ defmodule FamilyWeb do
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
-        endpoint: FamilyWeb.Endpoint,
-        router: FamilyWeb.Router,
-        statics: FamilyWeb.static_paths()
+        endpoint: Web.Endpoint,
+        router: Web.Router,
+        statics: Web.static_paths()
     end
   end
 

@@ -1,5 +1,5 @@
-defmodule FamilyWeb.PageControllerTest do
-  use FamilyWeb.ConnCase
+defmodule Web.PageControllerTest do
+  use Web.ConnCase
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")

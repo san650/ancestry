@@ -8,14 +8,14 @@ defmodule Family.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      FamilyWeb.Telemetry,
+      Web.Telemetry,
       Family.Repo,
       {DNSCluster, query: Application.get_env(:family, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Family.PubSub},
       # Start a worker by calling: Family.Worker.start_link(arg)
       # {Family.Worker, arg},
       # Start to serve requests, typically the last entry
-      FamilyWeb.Endpoint
+      Web.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -28,7 +28,7 @@ defmodule Family.Application do
   # whenever the application is updated.
   @impl true
   def config_change(changed, _new, removed) do
-    FamilyWeb.Endpoint.config_change(changed, removed)
+    Web.Endpoint.config_change(changed, removed)
     :ok
   end
 end
