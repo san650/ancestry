@@ -47,7 +47,7 @@ defmodule Family.Galleries do
 
   def update_photo_processed(%Photo{} = photo, filename) do
     photo
-    |> Photo.processed_changeset(%{image: filename, status: "processed"})
+    |> Ecto.Changeset.change(image: %{file_name: filename, updated_at: nil}, status: "processed")
     |> Repo.update()
   end
 
