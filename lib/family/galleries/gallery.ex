@@ -4,6 +4,7 @@ defmodule Family.Galleries.Gallery do
 
   schema "galleries" do
     field :name, :string
+    has_many :photos, Family.Galleries.Photo, on_delete: :delete_all
     timestamps()
   end
 

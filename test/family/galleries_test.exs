@@ -37,6 +37,85 @@ defmodule Family.GalleriesTest do
     end
   end
 
+  describe "photos" do
+    setup do
+      {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
+      %{gallery: gallery}
+    end
+
+    test "list_photos/1 returns photos ordered by inserted_at asc", %{gallery: gallery} do
+      {:ok, p1} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/a.jpg",
+          original_filename: "a.jpg",
+          content_type: "image/jpeg"
+        })
+
+      {:ok, p2} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/b.jpg",
+          original_filename: "b.jpg",
+          content_type: "image/jpeg"
+        })
+
+      assert Galleries.list_photos(gallery.id) == [p1, p2]
+    end
+
+    test "create_photo/1 creates a pending photo", %{gallery: gallery} do
+      assert {:ok, photo} =
+               Galleries.create_photo(%{
+                 gallery_id: gallery.id,
+                 original_path: "/tmp/test.jpg",
+                 original_filename: "test.jpg",
+                 content_type: "image/jpeg"
+               })
+
+      assert photo.status == "pending"
+      assert photo.gallery_id == gallery.id
+    end
+
+    test "delete_photo/1 deletes the photo", %{gallery: gallery} do
+      {:ok, photo} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test.jpg",
+          original_filename: "test.jpg",
+          content_type: "image/jpeg"
+        })
+
+      assert {:ok, _} = Galleries.delete_photo(photo)
+      assert Galleries.list_photos(gallery.id) == []
+    end
+
+    test "update_photo_processed/2 sets status to processed", %{gallery: gallery} do
+      {:ok, photo} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test.jpg",
+          original_filename: "test.jpg",
+          content_type: "image/jpeg"
+        })
+
+      assert {:ok, updated} = Galleries.update_photo_processed(photo, "original.jpg")
+      assert updated.status == "processed"
+    end
+
+    test "update_photo_failed/1 sets status to failed", %{gallery: gallery} do
+      {:ok, photo} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test.jpg",
+          original_filename: "test.jpg",
+          content_type: "image/jpeg"
+        })
+
+      assert {:ok, updated} = Galleries.update_photo_failed(photo)
+      assert updated.status == "failed"
+    end
+  end
+
   def gallery_fixture(attrs \\ %{}) do
     {:ok, gallery} =
       attrs
