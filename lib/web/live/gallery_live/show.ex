@@ -112,7 +112,7 @@ defmodule Web.GalleryLive.Show do
   end
 
   def handle_event("open_lightbox", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(String.to_integer(id)))}
+    {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(id))}
   end
 
   def handle_event("close_lightbox", _, socket) do
