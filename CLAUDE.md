@@ -43,6 +43,9 @@ custom classes must fully style the input
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
 
+### Git usage
+
+- **Never** add Co-Authored-By in commit messages
 
 <!-- usage-rules-start -->
 
