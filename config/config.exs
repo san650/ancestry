@@ -31,6 +31,15 @@ config :family, Web.Endpoint,
 # at the `config/runtime.exs`.
 config :family, Family.Mailer, adapter: Swoosh.Adapters.Local
 
+config :waffle,
+  storage: Waffle.Storage.Local,
+  storage_dir_prefix: "priv/static"
+
+config :family, Oban,
+  engine: Oban.Engines.Basic,
+  repo: Family.Repo,
+  queues: [photos: 5]
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

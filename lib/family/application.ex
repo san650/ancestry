@@ -14,6 +14,7 @@ defmodule Family.Application do
       {Phoenix.PubSub, name: Family.PubSub},
       # Start a worker by calling: Family.Worker.start_link(arg)
       # {Family.Worker, arg},
+      {Oban, Application.fetch_env!(:family, Oban)},
       # Start to serve requests, typically the last entry
       Web.Endpoint
     ]
