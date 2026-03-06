@@ -17,6 +17,11 @@ defmodule Web.Router do
   scope "/", Web do
     pipe_through :browser
 
+    live_session :default do
+      live "/galleries", GalleryLive.Index, :index
+      live "/galleries/:id", GalleryLive.Show, :show
+    end
+
     get "/", PageController, :home
   end
 

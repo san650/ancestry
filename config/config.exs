@@ -40,6 +40,11 @@ config :family, Oban,
   repo: Family.Repo,
   queues: [photos: 5]
 
+config :mime, :types, %{
+  "image/x-adobe-dng" => ["dng"],
+  "image/x-nikon-nef" => ["nef"]
+}
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
