@@ -1,4 +1,50 @@
-This is a web application written using the Phoenix web framework.
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+This is a family photo gallery web application built with Phoenix LiveView.
+
+## Commands
+
+- `mix setup` — install deps, create/migrate DB, build assets
+- `mix test` — run all tests (auto-creates/migrates test DB)
+- `mix test test/path/to_test.exs` — run a single test file
+- `mix test --failed` — re-run only previously failed tests
+- `mix precommit` — compile (warnings-as-errors), remove unused deps, format, and run tests. **Run before finishing any task.**
+- `iex -S mix phx.server` — start dev server
+
+## Architecture
+
+**Module naming:** The web layer uses `Web` (not `FamilyWeb`) as the module namespace. Business logic lives under `Family.*`.
+
+```
+lib/
+  family/           # Business logic (contexts, schemas, workers)
+    galleries.ex    # Galleries context — primary public API for photos and galleries
+    galleries/
+      gallery.ex    # Gallery schema
+      photo.ex      # Photo schema (uses Waffle.Ecto for file attachments)
+    uploaders/
+      photo.ex      # Waffle uploader — produces :original, :large, :thumbnail versions via ImageMagick
+    workers/
+      process_photo_job.ex  # Oban job that runs ImageMagick and broadcasts via PubSub
+  web/              # Phoenix web layer
+    live/
+      gallery_live/ # GalleryLive.Index and GalleryLive.Show
+    router.ex
+```
+
+**Photo processing flow:**
+1. User uploads via LiveView `allow_upload` (up to 10 files, 300MB each)
+2. `upload_photos` event copies temp file to `priv/static/uploads/originals/{uuid}/photo.ext`
+3. An `Oban.Job` (`ProcessPhotoJob`, queue: `:photos`) is inserted
+4. The job runs Waffle/ImageMagick to produce `:original`, `:large`, `:thumbnail` versions stored at `priv/static/uploads/photos/{gallery_id}/{photo_id}/`
+5. On completion/failure, the job broadcasts `{:photo_processed, photo}` or `{:photo_failed, photo}` over PubSub topic `"gallery:{id}"`
+6. The `GalleryLive.Show` LiveView subscribes to this topic and updates the stream
+
+**Photo statuses:** `"pending"` → `"processed"` or `"failed"`
+
+**Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), Phoenix PubSub (real-time updates)
 
 ## Project guidelines
 
