@@ -19,11 +19,15 @@ defmodule Web.GalleryLive.Show do
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_photos, false)
      |> assign(:selected_photo, nil)
+     |> assign(:upload_modal, nil)
+     |> assign(:upload_queue, [])
+     |> assign(:upload_cancel_confirm, false)
      |> stream(:photos, Galleries.list_photos(id))
      |> allow_upload(:photos,
        accept: ~w(.jpg .jpeg .png .webp .gif .dng .nef .tiff .tif),
        max_entries: 10,
-       max_file_size: 300 * 1_048_576
+       max_file_size: 300 * 1_048_576,
+       auto_upload: true
      )}
   end
 
@@ -32,6 +36,19 @@ defmodule Web.GalleryLive.Show do
 
   @impl true
   def handle_event("validate", _params, socket), do: {:noreply, socket}
+
+  def handle_event("queue_files", %{"files" => files}, socket) do
+    upload_queue =
+      Enum.map(files, fn %{"name" => name, "size" => size} ->
+        %{name: name, size: size, status: :pending, error: nil}
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:upload_modal, :uploading)
+     |> assign(:upload_queue, upload_queue)
+     |> assign(:upload_cancel_confirm, false)}
+  end
 
   def handle_event("toggle_layout", _, socket) do
     new_layout = if socket.assigns.grid_layout == :masonry, do: :uniform, else: :masonry
@@ -59,7 +76,7 @@ defmodule Web.GalleryLive.Show do
   def handle_event("upload_photos", _params, socket) do
     gallery = socket.assigns.gallery
 
-    uploaded =
+    {uploaded, errored} =
       consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
         uuid = Ecto.UUID.generate()
         ext = ext_from_content_type(entry.client_type)
@@ -68,20 +85,84 @@ defmodule Web.GalleryLive.Show do
         dest_path = Path.join(dest_dir, "photo#{ext}")
         File.cp!(tmp_path, dest_path)
 
-        {:ok, photo} =
-          Galleries.create_photo(%{
-            gallery_id: gallery.id,
-            original_path: dest_path,
-            original_filename: entry.client_name,
-            content_type: entry.client_type
-          })
-
-        Oban.insert!(Family.Workers.ProcessPhotoJob.new(%{photo_id: photo.id}))
-        {:ok, photo}
+        case Galleries.create_photo(%{
+               gallery_id: gallery.id,
+               original_path: dest_path,
+               original_filename: entry.client_name,
+               content_type: entry.client_type
+             }) do
+          {:ok, photo} -> {:ok, {:ok, photo}}
+          {:error, _} -> {:ok, {:error, entry.client_name}}
+        end
+      end)
+      |> Enum.split_with(fn
+        {:ok, _} -> true
+        {:error, _} -> false
       end)
 
-    socket = Enum.reduce(uploaded, socket, &stream_insert(&2, :photos, &1))
+    uploaded_photos = Enum.map(uploaded, fn {:ok, photo} -> photo end)
+    errored_names = Enum.map(errored, fn {:error, name} -> name end)
+
+    upload_queue =
+      Enum.map(socket.assigns.upload_queue, fn file ->
+        cond do
+          Enum.any?(uploaded_photos, &(&1.original_filename == file.name)) ->
+            %{file | status: :done}
+
+          file.name in errored_names ->
+            %{file | status: :error, error: "Upload failed"}
+
+          true ->
+            file
+        end
+      end)
+
+    all_done? = Enum.all?(upload_queue, &(&1.status in [:done, :error]))
+    upload_modal = if all_done?, do: :done, else: :uploading
+
+    socket =
+      socket
+      |> assign(:upload_queue, upload_queue)
+      |> assign(:upload_modal, upload_modal)
+      |> push_event("batch_complete", %{})
+
+    socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
     {:noreply, socket}
+  end
+
+  def handle_event("close_upload_modal", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:upload_modal, nil)
+     |> assign(:upload_queue, [])
+     |> assign(:upload_cancel_confirm, false)}
+  end
+
+  def handle_event("cancel_upload_modal", _, socket) do
+    pending_count =
+      Enum.count(socket.assigns.upload_queue, &(&1.status == :pending))
+
+    if pending_count > 0 do
+      {:noreply, assign(socket, :upload_cancel_confirm, true)}
+    else
+      {:noreply,
+       socket
+       |> assign(:upload_modal, nil)
+       |> assign(:upload_queue, [])
+       |> assign(:upload_cancel_confirm, false)}
+    end
+  end
+
+  def handle_event("confirm_cancel_upload", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:upload_modal, nil)
+     |> assign(:upload_queue, [])
+     |> assign(:upload_cancel_confirm, false)}
+  end
+
+  def handle_event("dismiss_cancel_confirm", _, socket) do
+    {:noreply, assign(socket, :upload_cancel_confirm, false)}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do

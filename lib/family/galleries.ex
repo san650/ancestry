@@ -35,9 +35,10 @@ defmodule Family.Galleries do
   def get_photo!(id), do: Repo.get!(Photo, id)
 
   def create_photo(attrs \\ %{}) do
-    %Photo{}
-    |> Photo.changeset(attrs)
-    |> Repo.insert()
+    with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
+         {:ok, _job} <- Oban.insert(Family.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
+      {:ok, photo}
+    end
   end
 
   def delete_photo(%Photo{} = photo) do

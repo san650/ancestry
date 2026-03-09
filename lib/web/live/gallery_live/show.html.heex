@@ -1,5 +1,28 @@
 <Layouts.app flash={@flash}>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <%!-- Hidden form required by LiveView for file uploads --%>
+  <form id="upload-form" phx-change="validate" phx-submit="upload_photos" class="hidden">
+    <.live_file_input upload={@uploads.photos} id="photo-file-input" />
+  </form>
+
+  <%!-- Drag & drop overlay (shown by JS hook on dragenter) --%>
+  <div
+    id="drag-overlay"
+    class="hidden fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
+  >
+    <div class="absolute inset-4 rounded-3xl border-4 border-dashed border-primary/60 bg-primary/10 backdrop-blur-sm">
+    </div>
+    <div class="relative z-10 text-center">
+      <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-primary mx-auto mb-3" />
+      <p class="text-2xl font-bold text-primary" data-drag-count>Drop to upload photos</p>
+    </div>
+  </div>
+
+  <div
+    id="gallery-wrapper"
+    phx-hook="UploadQueue"
+    phx-drop-target={@uploads.photos.ref}
+    class="max-w-7xl mx-auto px-4 sm:px-6 py-8"
+  >
     <%!-- Header --%>
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-3">
@@ -12,6 +35,15 @@
         <h1 class="text-2xl font-bold text-base-content">{@gallery.name}</h1>
       </div>
       <div class="flex items-center gap-2">
+        <%!-- Upload button --%>
+        <button
+          id="upload-btn"
+          type="button"
+          onclick="document.getElementById('photo-file-input').click()"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-content hover:bg-primary/90 text-sm font-medium transition-colors"
+        >
+          <.icon name="hero-cloud-arrow-up" class="w-4 h-4" /> Upload
+        </button>
         <button
           id="layout-toggle"
           phx-click="toggle_layout"
@@ -59,66 +91,6 @@
       </div>
     <% end %>
 
-    <%!-- Upload area --%>
-    <form id="upload-form" phx-submit="upload_photos" phx-change="validate" class="mb-8">
-      <div
-        id="upload-area"
-        phx-drop-target={@uploads.photos.ref}
-        class="border-2 border-dashed border-base-300 hover:border-primary/50 rounded-2xl p-10 text-center transition-colors group"
-      >
-        <.live_file_input upload={@uploads.photos} class="hidden" />
-        <.icon
-          name="hero-cloud-arrow-up"
-          class="w-14 h-14 text-base-content/20 group-hover:text-primary/40 mx-auto mb-3 transition-colors"
-        />
-        <p class="text-base-content/60 font-medium">Drag & drop photos here</p>
-        <p class="text-base-content/30 text-sm my-2">or</p>
-        <label
-          for={@uploads.photos.ref}
-          class="inline-block cursor-pointer px-4 py-2 bg-primary text-primary-content rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
-        >
-          Select Files
-        </label>
-        <p class="text-base-content/30 text-xs mt-4">
-          JPEG, PNG, WebP, GIF, DNG, NEF · Up to 300MB each · Max 10 at a time
-        </p>
-      </div>
-
-      <%!-- Staged upload entries --%>
-      <%= if @uploads.photos.entries != [] do %>
-        <div class="mt-3 space-y-2">
-          <%= for entry <- @uploads.photos.entries do %>
-            <div class="flex items-center gap-3 bg-base-100 rounded-xl border border-base-200 px-4 py-3">
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-base-content truncate">{entry.client_name}</p>
-                <div class="mt-1.5 h-1.5 bg-base-200 rounded-full overflow-hidden">
-                  <div
-                    class="h-full bg-primary rounded-full transition-all duration-300"
-                    style={"width: #{entry.progress}%"}
-                  >
-                  </div>
-                </div>
-                <%= for err <- upload_errors(@uploads.photos, entry) do %>
-                  <p class="text-xs text-error mt-1">{upload_error_to_string(err)}</p>
-                <% end %>
-              </div>
-              <button
-                type="button"
-                phx-click="cancel_upload"
-                phx-value-ref={entry.ref}
-                class="p-1.5 rounded-lg text-base-content/30 hover:text-base-content hover:bg-base-200 transition-colors"
-              >
-                <.icon name="hero-x-mark" class="w-4 h-4" />
-              </button>
-            </div>
-          <% end %>
-          <button type="submit" class="w-full btn btn-primary">
-            Upload {length(@uploads.photos.entries)} photo(s)
-          </button>
-        </div>
-      <% end %>
-    </form>
-
     <%!-- Photo grid --%>
     <div
       id="photo-grid"
@@ -151,8 +123,12 @@
       >
         <%= cond do %>
           <% photo.status == "pending" -> %>
-            <div class="aspect-square flex items-center justify-center animate-pulse">
-              <.icon name="hero-photo" class="w-8 h-8 text-base-content/20" />
+            <div class="aspect-square flex flex-col items-center justify-center gap-2">
+              <.icon
+                name="hero-photo"
+                class="w-8 h-8 text-base-content/20 animate__animated animate__pulse animate__infinite"
+              />
+              <p class="text-xs text-base-content/30 font-medium">Processing</p>
             </div>
           <% photo.status == "failed" -> %>
             <div class="aspect-square flex flex-col items-center justify-center gap-2 bg-error/5">
@@ -190,6 +166,161 @@
       </div>
     </div>
   </div>
+
+  <%!-- Upload progress modal --%>
+  <%= if @upload_modal do %>
+    <div
+      id="upload-modal"
+      class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+      <div class="relative bg-base-100 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
+        <%!-- Modal header --%>
+        <div class="flex items-center justify-between px-6 py-4 border-b border-base-200 shrink-0">
+          <%= if @upload_modal == :done do %>
+            <h2 class="text-lg font-semibold text-base-content">
+              <%= if Enum.any?(@upload_queue, &(&1.status == :error)) do %>
+                Upload complete with errors
+              <% else %>
+                Upload complete
+              <% end %>
+            </h2>
+          <% else %>
+            <h2 class="text-lg font-semibold text-base-content">
+              Uploading photos ({Enum.count(@upload_queue, &(&1.status == :done))} of {length(
+                @upload_queue
+              )})
+            </h2>
+          <% end %>
+          <button
+            phx-click={
+              if @upload_modal == :done, do: "close_upload_modal", else: "cancel_upload_modal"
+            }
+            class="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          >
+            <.icon name="hero-x-mark" class="w-5 h-5" />
+          </button>
+        </div>
+
+        <%!-- Cancel confirmation --%>
+        <%= if @upload_cancel_confirm do %>
+          <div
+            id="upload-cancel-confirm"
+            class="px-6 py-4 bg-warning/10 border-b border-warning/20 shrink-0"
+          >
+            <p class="text-sm font-medium text-base-content mb-3">
+              {Enum.count(@upload_queue, &(&1.status == :pending))} files haven't uploaded yet. Cancel anyway?
+            </p>
+            <div class="flex gap-2">
+              <button
+                phx-click="confirm_cancel_upload"
+                class="px-3 py-1.5 bg-error text-white rounded-lg text-sm font-medium hover:bg-error/90 transition-colors"
+              >
+                Yes, cancel
+              </button>
+              <button
+                phx-click="dismiss_cancel_confirm"
+                class="px-3 py-1.5 bg-base-200 text-base-content rounded-lg text-sm font-medium hover:bg-base-300 transition-colors"
+              >
+                Keep uploading
+              </button>
+            </div>
+          </div>
+        <% end %>
+
+        <%!-- File list --%>
+        <div class="overflow-y-auto flex-1 px-6 py-4 space-y-2">
+          <%= if @upload_modal == :done do %>
+            <%= for file <- Enum.filter(@upload_queue, &(&1.status == :error)) do %>
+              <div class="flex items-center gap-3 bg-error/5 border border-error/20 rounded-xl px-4 py-3">
+                <.icon name="hero-x-circle" class="w-5 h-5 text-error shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-base-content truncate">{file.name}</p>
+                  <p class="text-xs text-error mt-0.5">{file.error || "Upload failed"}</p>
+                </div>
+              </div>
+            <% end %>
+            <%= for file <- Enum.filter(@upload_queue, &(&1.status == :done)) do %>
+              <div class="flex items-center gap-3 bg-success/5 border border-success/20 rounded-xl px-4 py-3">
+                <.icon name="hero-check-circle" class="w-5 h-5 text-success shrink-0" />
+                <p class="text-sm font-medium text-base-content truncate flex-1">{file.name}</p>
+              </div>
+            <% end %>
+          <% else %>
+            <%= for file <- @upload_queue do %>
+              <% entry = Enum.find(@uploads.photos.entries, &(&1.client_name == file.name)) %>
+              <div
+                data-upload-entry
+                data-progress={
+                  if entry, do: entry.progress, else: if(file.status == :done, do: 100, else: 0)
+                }
+                data-error={
+                  if entry != nil && upload_errors(@uploads.photos, entry) != [],
+                    do: "true",
+                    else: "false"
+                }
+                class="flex items-center gap-3 bg-base-100 rounded-xl border border-base-200 px-4 py-3"
+              >
+                <%= cond do %>
+                  <% file.status == :done -> %>
+                    <.icon name="hero-check-circle" class="w-5 h-5 text-success shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-base-content truncate">{file.name}</p>
+                    </div>
+                  <% file.status == :error -> %>
+                    <.icon name="hero-x-circle" class="w-5 h-5 text-error shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-base-content truncate">{file.name}</p>
+                      <p class="text-xs text-error mt-0.5">{file.error || "Failed"}</p>
+                    </div>
+                  <% entry != nil -> %>
+                    <.icon name="hero-arrow-up-tray" class="w-5 h-5 text-primary shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-base-content truncate">{file.name}</p>
+                      <div class="mt-1.5 h-1.5 bg-base-200 rounded-full overflow-hidden">
+                        <div
+                          class="h-full bg-primary rounded-full transition-all duration-300"
+                          style={"width: #{entry.progress}%"}
+                        >
+                        </div>
+                      </div>
+                      <%= for err <- upload_errors(@uploads.photos, entry) do %>
+                        <p class="text-xs text-error mt-1">{upload_error_to_string(err)}</p>
+                      <% end %>
+                    </div>
+                  <% true -> %>
+                    <.icon name="hero-clock" class="w-5 h-5 text-base-content/30 shrink-0" />
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-base-content/50 truncate">{file.name}</p>
+                      <p class="text-xs text-base-content/30 mt-0.5">Waiting…</p>
+                    </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+
+        <%!-- Modal footer --%>
+        <div class="px-6 py-4 border-t border-base-200 shrink-0">
+          <%= if @upload_modal == :done do %>
+            <button
+              phx-click="close_upload_modal"
+              class="w-full px-4 py-2 bg-primary text-primary-content rounded-xl font-medium hover:bg-primary/90 transition-colors"
+            >
+              Done
+            </button>
+          <% else %>
+            <button
+              phx-click="cancel_upload_modal"
+              class="w-full px-4 py-2 bg-base-200 text-base-content rounded-xl font-medium hover:bg-base-300 transition-colors"
+            >
+              Cancel
+            </button>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
   <%!-- Lightbox --%>
   <%= if @selected_photo do %>
