@@ -41,6 +41,7 @@ defmodule Family.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:claude, "~> 0.5", only: [:dev], runtime: false},
       {:tidewave, "~> 0.5", only: :dev},
       {:igniter, "~> 0.7", only: [:dev]},
       {:usage_rules, "~> 1.0", only: [:dev]},
@@ -102,7 +103,7 @@ defmodule Family.MixProject do
   defp usage_rules do
     [
       file: "CLAUDE.md",
-      usage_rules: ["usage_rules:all"],
+      usage_rules: :all,
       skills: [
         location: ".claude/skills",
         build: [
