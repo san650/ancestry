@@ -24,6 +24,18 @@ defmodule Web.Layouts do
         <h1>Content</h1>
       </Layouts.app>
 
+  Use the `:toolbar` slot to render page-specific actions below the navbar:
+
+      <Layouts.app flash={@flash}>
+        <:toolbar>
+          <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+            <h1>Page Title</h1>
+            <button>Action</button>
+          </div>
+        </:toolbar>
+        <div>page content</div>
+      </Layouts.app>
+
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
 
@@ -32,6 +44,7 @@ defmodule Web.Layouts do
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
   slot :inner_block, required: true
+  slot :toolbar, doc: "optional toolbar rendered below the navbar"
 
   def app(assigns) do
     ~H"""
@@ -51,10 +64,14 @@ defmodule Web.Layouts do
       </div>
     </header>
 
-    <main class="px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl space-y-4">
-        {render_slot(@inner_block)}
+    <%= if @toolbar != [] do %>
+      <div id="toolbar" class="px-4 sm:px-6 lg:px-8 border-b border-base-200">
+        {render_slot(@toolbar)}
       </div>
+    <% end %>
+
+    <main class="px-4 sm:px-6 lg:px-8 pt-8">
+      {render_slot(@inner_block)}
     </main>
 
     <.flash_group flash={@flash} />

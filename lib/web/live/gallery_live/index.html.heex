@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash}>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-    <div class="flex items-center justify-between mb-8">
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <h1 class="text-3xl font-bold tracking-tight text-base-content">Photo Galleries</h1>
       <button
         id="open-new-gallery-btn"
@@ -10,7 +10,9 @@
         New Gallery
       </button>
     </div>
+  </:toolbar>
 
+  <div id="gallery-index-root" class="max-w-7xl mx-auto">
     <div
       id="galleries"
       phx-update="stream"
