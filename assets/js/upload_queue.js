@@ -8,31 +8,46 @@ const UploadQueue = {
 
     this.fileInput = document.querySelector('#upload-form [type=file]')
 
-    // File input change: user selected files via OS picker
+    // File input change: user selected files via OS picker.
+    // LiveView's live_file_input handler already registered and started
+    // uploading these files — we must NOT call feedNextBatch here, because
+    // that would set fileInput.files again and dispatch a second change
+    // event, making LiveView create duplicate entries and breaking the
+    // entries.length === currentBatch.length check in updated().
     this.fileInput.addEventListener("change", (e) => {
       if (this.feedingBatch) return
       const files = Array.from(e.target.files)
-      if (files.length > 0) this.queueFiles(files)
+      if (files.length === 0) return
+
+      this.queue = [...files]
+      this.currentBatch = this.queue.splice(0, 10)
+      this.awaitingBatchComplete = false
+
+      this.pushEvent("queue_files", {
+        files: files.map((f) => ({ name: f.name, size: f.size })),
+      })
     })
 
-    // Drag events on the gallery wrapper
-    this.el.addEventListener("dragenter", (e) => {
+    // Drag events on document so the overlay covers the entire page,
+    // including the toolbar and any other area outside #gallery-show-root.
+    // Store bound references so we can remove them in destroyed().
+    this._onDragEnter = (e) => {
       e.preventDefault()
       this.dragCounter++
       if (this.dragCounter === 1) this.showDragOverlay(e)
-    })
+    }
 
-    this.el.addEventListener("dragleave", (e) => {
+    this._onDragLeave = (e) => {
       e.preventDefault()
       this.dragCounter--
       if (this.dragCounter === 0) this.hideDragOverlay()
-    })
+    }
 
-    this.el.addEventListener("dragover", (e) => {
+    this._onDragOver = (e) => {
       e.preventDefault()
-    })
+    }
 
-    this.el.addEventListener("drop", (e) => {
+    this._onDrop = (e) => {
       e.preventDefault()
       this.dragCounter = 0
       this.hideDragOverlay()
@@ -41,12 +56,19 @@ const UploadQueue = {
         (f) => f.type.startsWith("image/") || f.name.match(/\.(dng|nef|tiff?|raw)$/i)
       )
       if (files.length > 0) this.queueFiles(files)
-    })
+    }
 
-    // Server signals current batch is fully consumed — feed next
+    document.addEventListener("dragenter", this._onDragEnter)
+    document.addEventListener("dragleave", this._onDragLeave)
+    document.addEventListener("dragover", this._onDragOver)
+    document.addEventListener("drop", this._onDrop)
+
+    // Server signals current batch is fully consumed — feed next.
+    // Use requestAnimationFrame to let LiveView finish clearing consumed
+    // entries from the DOM before we set new files on the input.
     this.handleEvent("batch_complete", () => {
       this.awaitingBatchComplete = false
-      this.feedNextBatch()
+      requestAnimationFrame(() => this.feedNextBatch())
     })
 
     // Server signals upload was cancelled — reset all hook state
@@ -57,22 +79,19 @@ const UploadQueue = {
     })
   },
 
-  updated() {
-    if (this.awaitingBatchComplete || this.currentBatch.length === 0) return
-
-    const entries = document.querySelectorAll("[data-upload-entry]")
-    if (entries.length !== this.currentBatch.length) return
-
-    const allSettled = Array.from(entries).every(
-      (e) => parseInt(e.dataset.progress || "0") === 100 || e.dataset.error === "true"
-    )
-
-    if (allSettled) {
-      this.awaitingBatchComplete = true
-      this.pushEvent("upload_photos", {})
-    }
+  destroyed() {
+    document.removeEventListener("dragenter", this._onDragEnter)
+    document.removeEventListener("dragleave", this._onDragLeave)
+    document.removeEventListener("dragover", this._onDragOver)
+    document.removeEventListener("drop", this._onDrop)
   },
 
+  // Upload completion is now detected server-side via handle_progress.
+  updated() {},
+
+  // Called only for drag-and-drop uploads (not upload button).
+  // Sends queue_files metadata, then feeds files to the file input via
+  // feedNextBatch so LiveView's auto-upload picks them up.
   queueFiles(files) {
     this.queue = [...files]
 

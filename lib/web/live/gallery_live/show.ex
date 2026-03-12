@@ -27,12 +27,39 @@ defmodule Web.GalleryLive.Show do
        accept: ~w(.jpg .jpeg .png .webp .gif .dng .nef .tiff .tif),
        max_entries: 10,
        max_file_size: 300 * 1_048_576,
-       auto_upload: true
+       auto_upload: true,
+       progress: &handle_progress/3
      )}
   end
 
   @impl true
   def handle_params(_params, _url, socket), do: {:noreply, socket}
+
+  defp handle_progress(:photos, _entry, socket) do
+    entries = socket.assigns.uploads.photos.entries
+    all_done? = entries != [] and Enum.all?(entries, & &1.done?)
+
+    if all_done? do
+      # Open modal if not already open (e.g. files added without JS hook)
+      socket =
+        if socket.assigns.upload_modal == nil do
+          queue =
+            Enum.map(entries, fn e ->
+              %{name: e.client_name, size: e.client_size, status: :pending, error: nil}
+            end)
+
+          socket
+          |> assign(:upload_modal, :uploading)
+          |> assign(:upload_queue, queue)
+        else
+          socket
+        end
+
+      process_uploads(socket)
+    else
+      {:noreply, socket}
+    end
+  end
 
   @impl true
   def handle_event("validate", _params, socket), do: {:noreply, socket}
@@ -74,60 +101,7 @@ defmodule Web.GalleryLive.Show do
   end
 
   def handle_event("upload_photos", _params, socket) do
-    gallery = socket.assigns.gallery
-
-    {uploaded, errored} =
-      consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
-        uuid = Ecto.UUID.generate()
-        ext = ext_from_content_type(entry.client_type)
-        dest_dir = Path.join(["priv", "static", "uploads", "originals", uuid])
-        File.mkdir_p!(dest_dir)
-        dest_path = Path.join(dest_dir, "photo#{ext}")
-        File.cp!(tmp_path, dest_path)
-
-        case Galleries.create_photo(%{
-               gallery_id: gallery.id,
-               original_path: dest_path,
-               original_filename: entry.client_name,
-               content_type: entry.client_type
-             }) do
-          {:ok, photo} -> {:ok, {:ok, photo}}
-          {:error, _} -> {:ok, {:error, entry.client_name}}
-        end
-      end)
-      |> Enum.split_with(fn
-        {:ok, _} -> true
-        {:error, _} -> false
-      end)
-
-    uploaded_photos = Enum.map(uploaded, fn {:ok, photo} -> photo end)
-    errored_names = Enum.map(errored, fn {:error, name} -> name end)
-
-    upload_queue =
-      Enum.map(socket.assigns.upload_queue, fn file ->
-        cond do
-          Enum.any?(uploaded_photos, &(&1.original_filename == file.name)) ->
-            %{file | status: :done}
-
-          file.name in errored_names ->
-            %{file | status: :error, error: "Upload failed"}
-
-          true ->
-            file
-        end
-      end)
-
-    all_done? = Enum.all?(upload_queue, &(&1.status in [:done, :error]))
-    upload_modal = if all_done?, do: :done, else: :uploading
-
-    socket =
-      socket
-      |> assign(:upload_queue, upload_queue)
-      |> assign(:upload_modal, upload_modal)
-      |> push_event("batch_complete", %{})
-
-    socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
-    {:noreply, socket}
+    process_uploads(socket)
   end
 
   def handle_event("close_upload_modal", _, socket) do
@@ -226,6 +200,66 @@ defmodule Web.GalleryLive.Show do
 
   def handle_info({:photo_failed, photo}, socket) do
     {:noreply, stream_insert(socket, :photos, photo)}
+  end
+
+  # LiveView traps exits; upload writer tasks send :EXIT on completion
+  def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
+
+  defp process_uploads(socket) do
+    gallery = socket.assigns.gallery
+
+    {uploaded, errored} =
+      consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
+        uuid = Ecto.UUID.generate()
+        ext = ext_from_content_type(entry.client_type)
+        dest_dir = Path.join(["priv", "static", "uploads", "originals", uuid])
+        File.mkdir_p!(dest_dir)
+        dest_path = Path.join(dest_dir, "photo#{ext}")
+        File.cp!(tmp_path, dest_path)
+
+        case Galleries.create_photo(%{
+               gallery_id: gallery.id,
+               original_path: dest_path,
+               original_filename: entry.client_name,
+               content_type: entry.client_type
+             }) do
+          {:ok, photo} -> {:ok, {:ok, photo}}
+          {:error, _} -> {:ok, {:error, entry.client_name}}
+        end
+      end)
+      |> Enum.split_with(fn
+        {:ok, _} -> true
+        {:error, _} -> false
+      end)
+
+    uploaded_photos = Enum.map(uploaded, fn {:ok, photo} -> photo end)
+    errored_names = Enum.map(errored, fn {:error, name} -> name end)
+
+    upload_queue =
+      Enum.map(socket.assigns.upload_queue, fn file ->
+        cond do
+          Enum.any?(uploaded_photos, &(&1.original_filename == file.name)) ->
+            %{file | status: :done}
+
+          file.name in errored_names ->
+            %{file | status: :error, error: "Upload failed"}
+
+          true ->
+            file
+        end
+      end)
+
+    all_done? = Enum.all?(upload_queue, &(&1.status in [:done, :error]))
+    upload_modal = if all_done?, do: :done, else: :uploading
+
+    socket =
+      socket
+      |> assign(:upload_queue, upload_queue)
+      |> assign(:upload_modal, upload_modal)
+      |> push_event("batch_complete", %{})
+
+    socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
+    {:noreply, socket}
   end
 
   defp navigate_lightbox(socket, direction) do
