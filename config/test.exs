@@ -18,7 +18,7 @@ config :family, Family.Repo,
 config :family, Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "C82bSF82J/bVMdgD/sgoFYTJMLJreTusSGB+ZQuZObZVdUqsDfI3v40cKZ7qNqyI",
-  server: false
+  server: true
 
 # In test we don't send emails
 config :family, Family.Mailer, adapter: Swoosh.Adapters.Test
@@ -45,3 +45,5 @@ config :waffle,
   storage_dir_prefix: "tmp/test_uploads"
 
 config :family, Oban, testing: :inline
+
+config :phoenix_test, otp_app: :family
