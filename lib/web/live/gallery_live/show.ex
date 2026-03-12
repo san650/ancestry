@@ -55,10 +55,6 @@ defmodule Web.GalleryLive.Show do
   @impl true
   def handle_event("validate", _params, socket), do: {:noreply, socket}
 
-  # No-op: the old UploadQueue JS hook still sends this event on drop.
-  # Safe to remove once the hook is replaced (Task 4).
-  def handle_event("queue_files", _params, socket), do: {:noreply, socket}
-
   def handle_event("toggle_layout", _, socket) do
     new_layout = if socket.assigns.grid_layout == :masonry, do: :uniform, else: :masonry
     {:noreply, assign(socket, :grid_layout, new_layout)}
