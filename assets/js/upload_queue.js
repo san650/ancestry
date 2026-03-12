@@ -60,7 +60,7 @@ const UploadQueue = {
   updated() {
     if (this.awaitingBatchComplete || this.currentBatch.length === 0) return
 
-    const entries = this.el.querySelectorAll("[data-upload-entry]")
+    const entries = document.querySelectorAll("[data-upload-entry]")
     if (entries.length !== this.currentBatch.length) return
 
     const allSettled = Array.from(entries).every(
