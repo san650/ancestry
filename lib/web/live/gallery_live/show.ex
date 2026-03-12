@@ -158,7 +158,8 @@ defmodule Web.GalleryLive.Show do
      socket
      |> assign(:upload_modal, nil)
      |> assign(:upload_queue, [])
-     |> assign(:upload_cancel_confirm, false)}
+     |> assign(:upload_cancel_confirm, false)
+     |> push_event("reset_queue", %{})}
   end
 
   def handle_event("dismiss_cancel_confirm", _, socket) do

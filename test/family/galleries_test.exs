@@ -60,7 +60,7 @@ defmodule Family.GalleriesTest do
           content_type: "image/jpeg"
         })
 
-      assert Galleries.list_photos(gallery.id) == [p1, p2]
+      assert Enum.map(Galleries.list_photos(gallery.id), & &1.id) == [p1.id, p2.id]
     end
 
     test "create_photo/1 creates a pending photo", %{gallery: gallery} do

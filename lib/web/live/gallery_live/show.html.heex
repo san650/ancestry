@@ -209,7 +209,7 @@
             class="px-6 py-4 bg-warning/10 border-b border-warning/20 shrink-0"
           >
             <p class="text-sm font-medium text-base-content mb-3">
-              {Enum.count(@upload_queue, &(&1.status == :pending))} files haven't uploaded yet. Cancel anyway?
+              {Enum.count(@upload_queue, &(&1.status not in [:done, :error]))} files haven't been saved yet. Cancel anyway?
             </p>
             <div class="flex gap-2">
               <button

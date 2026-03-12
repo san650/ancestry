@@ -48,6 +48,13 @@ const UploadQueue = {
       this.awaitingBatchComplete = false
       this.feedNextBatch()
     })
+
+    // Server signals upload was cancelled — reset all hook state
+    this.handleEvent("reset_queue", () => {
+      this.queue = []
+      this.currentBatch = []
+      this.awaitingBatchComplete = false
+    })
   },
 
   updated() {

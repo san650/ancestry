@@ -44,4 +44,4 @@ config :waffle,
   storage: Waffle.Storage.Local,
   storage_dir_prefix: "tmp/test_uploads"
 
-config :family, Oban, testing: :manual
+config :family, Oban, testing: :inline
