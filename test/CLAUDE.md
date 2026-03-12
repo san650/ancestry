@@ -7,6 +7,7 @@
 | Context / schema / Oban worker tests | `use Family.DataCase, async: true` |
 | LiveView / controller tests | `use Web.ConnCase, async: true` + `import Phoenix.LiveViewTest` |
 | Oban worker tests | also add `use Oban.Testing, repo: Family.Repo` |
+| End to end tests | `use Web.E2ECase` |
 
 Use `async: false` only when the test touches shared global state (e.g. the filesystem, real Waffle storage, or PubSub across processes that would race).
 

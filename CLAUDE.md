@@ -634,3 +634,72 @@ mix usage_rules.search_docs "Enum.zip" --query-by title
 
 <!-- usage_rules:otp-end -->
 <!-- usage-rules-end -->
+
+## Tidewave Phoenix
+
+This project exposes Tidewave Phoenix MCP tools. Prefer Tidewave tools over guessing, raw grep, or manual inspection whenever possible.
+
+### Use these Tidewave tools first
+
+- `mcp__tidewave__get_docs`
+  - Use for Elixir/Phoenix/Ecto/LiveView docs for modules, functions, and dependencies actually installed in this project.
+  - Prefer this over general web search for library usage inside the app.
+
+- `mcp__tidewave__get_source_location`
+  - Use to locate the source of modules/functions/macros quickly.
+  - Prefer this before broad codebase searches when trying to find where something is defined.
+
+- `mcp__tidewave__get_models`
+  - Use to discover application modules and where they live.
+  - Start here when exploring an unfamiliar codebase.
+
+- `mcp__tidewave__get_ecto_schemas`
+  - Use when working with Ecto schemas, associations, fields, or database-backed domain modeling.
+  - Prefer this before inferring schema structure from scattered files.
+  - Only available when the project uses Ecto.
+
+- `mcp__tidewave__get_ash_resources`
+  - Use when working with Ash resources, actions, attributes, relationships, or policies.
+  - Only available when the project uses Ash.
+
+- `mcp__tidewave__execute_sql_query`
+  - Use to inspect development database state, validate assumptions, and confirm the effect of changes.
+  - Prefer read queries unless the task explicitly requires writes.
+
+- `mcp__tidewave__project_eval`
+  - Use to evaluate Elixir code inside the running application context.
+  - Prefer this for checking runtime behavior, inspecting modules, testing expressions, calling app functions, and validating business logic.
+  - Use this instead of guessing how macros, config, or runtime wiring behave.
+
+- `mcp__tidewave__get_logs`
+  - Use to inspect server logs after requests, LiveView interactions, background jobs, or runtime failures.
+  - Always check logs when behavior differs from expectations.
+
+- `mcp__tidewave__search_package_docs`
+  - Use to search HexDocs constrained to the exact dependencies in this project.
+  - Prefer this over broad documentation search when looking for dependency APIs.
+
+### Expected workflow
+
+When implementing or debugging features in this Phoenix app, prefer this order:
+
+1. Discover relevant modules with `get_models`, `get_ecto_schemas`, or `get_ash_resources`.
+2. Read dependency or framework docs with `get_docs` or `search_package_docs`.
+3. Find definitions with `get_source_location`.
+4. Validate runtime assumptions with `project_eval`.
+5. Inspect persisted data with `execute_sql_query`.
+6. Check `get_logs` after running flows that hit the server.
+
+### Phoenix-specific guidance
+
+- For routes, controllers, LiveViews, components, contexts, schemas, and changesets, use Tidewave before making assumptions.
+- For Ecto queries, schema fields, and associations, validate with `get_ecto_schemas`, `project_eval`, and `execute_sql_query`.
+- For LiveView or request issues, inspect `get_logs` after reproducing the flow.
+- For dependency usage, prefer `get_docs` and `search_package_docs` over memory.
+
+### Rules
+
+- Do not invent module APIs, schema fields, routes, assigns, or database columns when Tidewave can verify them.
+- Do not assume runtime configuration or macro expansion details; verify with `project_eval`.
+- Do not assume database contents; verify with `execute_sql_query`.
+- If a Tidewave tool can answer the question, use it before falling back to generic search.
