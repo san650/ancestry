@@ -47,3 +47,5 @@ config :waffle,
 config :family, Oban, testing: :inline
 
 config :phoenix_test, otp_app: :family
+
+config :family, :sql_sandbox, true

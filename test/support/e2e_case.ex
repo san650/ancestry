@@ -4,6 +4,7 @@ defmodule Web.E2ECase do
   using do
     quote do
       use PhoenixTest.Playwright.Case, async: true
+      use Web, :verified_routes
       @moduletag :e2e
       import Web.E2ECase
     end
