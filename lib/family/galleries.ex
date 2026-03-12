@@ -28,7 +28,7 @@ defmodule Family.Galleries do
     Repo.all(
       from p in Photo,
         where: p.gallery_id == ^gallery_id,
-        order_by: [asc: p.inserted_at]
+        order_by: [asc: p.inserted_at, asc: p.id]
     )
   end
 
