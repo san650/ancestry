@@ -41,6 +41,7 @@ defmodule Family.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:phoenix_test_playwright, "~> 0.13", only: :test, runtime: false},
       {:claude, "~> 0.5", only: [:dev], runtime: false},
       {:tidewave, "~> 0.5", only: :dev},
       {:igniter, "~> 0.7", only: [:dev]},
@@ -52,7 +53,7 @@ defmodule Family.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
-      {:lazy_html, ">= 0.1.0", only: :test},
+      {:lazy_html, ">= 0.1.0"},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
