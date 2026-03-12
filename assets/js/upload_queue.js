@@ -6,7 +6,7 @@ const UploadQueue = {
     this.feedingBatch = false
     this.dragCounter = 0
 
-    this.fileInput = document.getElementById("photo-file-input")
+    this.fileInput = document.querySelector('#upload-form [type=file]')
 
     // File input change: user selected files via OS picker
     this.fileInput.addEventListener("change", (e) => {

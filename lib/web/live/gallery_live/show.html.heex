@@ -14,7 +14,7 @@
         <button
           id="upload-btn"
           type="button"
-          onclick="document.getElementById('photo-file-input').click()"
+          onclick="document.querySelector('#upload-form [type=file]').click()"
           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-content hover:bg-primary/90 text-sm font-medium transition-colors"
         >
           <.icon name="hero-cloud-arrow-up" class="w-4 h-4" /> Upload
@@ -52,7 +52,7 @@
 
   <%!-- Hidden form required by LiveView for file uploads --%>
   <form id="upload-form" phx-change="validate" phx-submit="upload_photos" class="hidden">
-    <.live_file_input upload={@uploads.photos} id="photo-file-input" />
+    <.live_file_input upload={@uploads.photos} />
   </form>
 
   <%!-- Drag & drop overlay (shown by JS hook on dragenter) --%>
