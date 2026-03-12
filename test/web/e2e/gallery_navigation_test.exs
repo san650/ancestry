@@ -11,7 +11,7 @@ defmodule Web.E2E.GalleryNavigationTest do
     # Insert a processed photo directly — bypasses Oban job since no real
     # image processing is needed; status: "processed" makes it render as a
     # clickable img card rather than a pending placeholder.
-    {:ok, photo} =
+    {:ok, _photo} =
       %Photo{}
       |> Photo.changeset(%{
         gallery_id: gallery.id,
@@ -22,7 +22,7 @@ defmodule Web.E2E.GalleryNavigationTest do
       })
       |> Repo.insert()
 
-    %{gallery: gallery, photo: photo}
+    %{gallery: gallery}
   end
 
   test "navigate from gallery list to a gallery and open a photo", %{conn: conn, gallery: gallery} do
