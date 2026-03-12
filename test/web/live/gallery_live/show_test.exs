@@ -53,71 +53,47 @@ defmodule Web.GalleryLive.ShowTest do
   end
 
   describe "upload modal" do
-    test "queue_files event opens upload modal with file list", %{conn: conn, gallery: gallery} do
+    test "uploading a file opens the modal and shows progress", %{conn: conn, gallery: gallery} do
       {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
 
       refute has_element?(view, "#upload-modal")
 
-      render_hook(view, "queue_files", %{
-        "files" => [
-          %{"name" => "photo1.jpg", "size" => 1024},
-          %{"name" => "photo2.jpg", "size" => 2048}
-        ]
-      })
+      # Simulate uploading a file via LiveView test helpers
+      photo =
+        file_input(view, "#upload-form", :photos, [
+          %{
+            name: "photo1.jpg",
+            content: File.read!("test/fixtures/test_image.jpg"),
+            type: "image/jpeg"
+          }
+        ])
+
+      render_upload(photo, "photo1.jpg")
+
+      # Modal should open showing progress
+      assert has_element?(view, "#upload-modal")
+    end
+
+    test "close_upload_modal closes the modal", %{conn: conn, gallery: gallery} do
+      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+
+      # Upload a file to open modal
+      photo =
+        file_input(view, "#upload-form", :photos, [
+          %{
+            name: "photo1.jpg",
+            content: File.read!("test/fixtures/test_image.jpg"),
+            type: "image/jpeg"
+          }
+        ])
+
+      render_upload(photo, "photo1.jpg")
 
       assert has_element?(view, "#upload-modal")
-      assert has_element?(view, "#upload-modal", "photo1.jpg")
-      assert has_element?(view, "#upload-modal", "photo2.jpg")
-    end
 
-    test "close_upload_modal closes the modal when status is done", %{
-      conn: conn,
-      gallery: gallery
-    } do
-      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
-
-      render_hook(view, "queue_files", %{
-        "files" => [%{"name" => "photo1.jpg", "size" => 1024}]
-      })
-
-      assert has_element?(view, "#upload-modal")
-
-      # Simulate done state by calling close (in production this fires after all done)
-      render_hook(view, "close_upload_modal", %{})
+      view |> element("#upload-modal-close") |> render_click()
 
       refute has_element?(view, "#upload-modal")
-    end
-
-    test "cancel_upload_modal shows confirmation when files are pending", %{
-      conn: conn,
-      gallery: gallery
-    } do
-      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
-
-      render_hook(view, "queue_files", %{
-        "files" => [
-          %{"name" => "photo1.jpg", "size" => 1024},
-          %{"name" => "photo2.jpg", "size" => 2048}
-        ]
-      })
-
-      render_hook(view, "cancel_upload_modal", %{})
-
-      assert has_element?(view, "#upload-cancel-confirm")
-    end
-
-    test "confirm_cancel_upload closes modal and clears queue", %{conn: conn, gallery: gallery} do
-      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
-
-      render_hook(view, "queue_files", %{
-        "files" => [%{"name" => "photo1.jpg", "size" => 1024}]
-      })
-
-      render_hook(view, "cancel_upload_modal", %{})
-      render_hook(view, "confirm_cancel_upload", %{})
-
-      refute has_element?(view, "#upload-modal")
-      refute has_element?(view, "#upload-cancel-confirm")
     end
   end
 end

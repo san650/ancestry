@@ -19,13 +19,12 @@ defmodule Web.GalleryLive.Show do
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_photos, false)
      |> assign(:selected_photo, nil)
-     |> assign(:upload_modal, nil)
-     |> assign(:upload_queue, [])
-     |> assign(:upload_cancel_confirm, false)
+     |> assign(:show_upload_modal, false)
+     |> assign(:upload_results, [])
      |> stream(:photos, Galleries.list_photos(id))
      |> allow_upload(:photos,
        accept: ~w(.jpg .jpeg .png .webp .gif .dng .nef .tiff .tif),
-       max_entries: 10,
+       max_entries: 50,
        max_file_size: 300 * 1_048_576,
        auto_upload: true,
        progress: &handle_progress/3
@@ -39,22 +38,14 @@ defmodule Web.GalleryLive.Show do
     entries = socket.assigns.uploads.photos.entries
     all_done? = entries != [] and Enum.all?(entries, & &1.done?)
 
+    socket =
+      if not socket.assigns.show_upload_modal and entries != [] do
+        assign(socket, :show_upload_modal, true)
+      else
+        socket
+      end
+
     if all_done? do
-      # Open modal if not already open (e.g. files added without JS hook)
-      socket =
-        if socket.assigns.upload_modal == nil do
-          queue =
-            Enum.map(entries, fn e ->
-              %{name: e.client_name, size: e.client_size, status: :pending, error: nil}
-            end)
-
-          socket
-          |> assign(:upload_modal, :uploading)
-          |> assign(:upload_queue, queue)
-        else
-          socket
-        end
-
       process_uploads(socket)
     else
       {:noreply, socket}
@@ -64,18 +55,9 @@ defmodule Web.GalleryLive.Show do
   @impl true
   def handle_event("validate", _params, socket), do: {:noreply, socket}
 
-  def handle_event("queue_files", %{"files" => files}, socket) do
-    upload_queue =
-      Enum.map(files, fn %{"name" => name, "size" => size} ->
-        %{name: name, size: size, status: :pending, error: nil}
-      end)
-
-    {:noreply,
-     socket
-     |> assign(:upload_modal, :uploading)
-     |> assign(:upload_queue, upload_queue)
-     |> assign(:upload_cancel_confirm, false)}
-  end
+  # No-op: the old UploadQueue JS hook still sends this event on drop.
+  # Safe to remove once the hook is replaced (Task 4).
+  def handle_event("queue_files", _params, socket), do: {:noreply, socket}
 
   def handle_event("toggle_layout", _, socket) do
     new_layout = if socket.assigns.grid_layout == :masonry, do: :uniform, else: :masonry
@@ -107,41 +89,8 @@ defmodule Web.GalleryLive.Show do
   def handle_event("close_upload_modal", _, socket) do
     {:noreply,
      socket
-     |> assign(:upload_modal, nil)
-     |> assign(:upload_queue, [])
-     |> assign(:upload_cancel_confirm, false)}
-  end
-
-  def handle_event("cancel_upload_modal", _, socket) do
-    pending_count =
-      Enum.count(socket.assigns.upload_queue, &(&1.status == :pending))
-
-    if pending_count > 0 do
-      {:noreply, assign(socket, :upload_cancel_confirm, true)}
-    else
-      {:noreply,
-       socket
-       |> assign(:upload_modal, nil)
-       |> assign(:upload_queue, [])
-       |> assign(:upload_cancel_confirm, false)}
-    end
-  end
-
-  def handle_event("confirm_cancel_upload", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:upload_modal, nil)
-     |> assign(:upload_queue, [])
-     |> assign(:upload_cancel_confirm, false)
-     |> push_event("reset_queue", %{})}
-  end
-
-  def handle_event("dismiss_cancel_confirm", _, socket) do
-    {:noreply, assign(socket, :upload_cancel_confirm, false)}
-  end
-
-  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :photos, ref)}
+     |> assign(:show_upload_modal, false)
+     |> assign(:upload_results, [])}
   end
 
   def handle_event("request_delete_photos", _, socket) do
@@ -208,7 +157,7 @@ defmodule Web.GalleryLive.Show do
   defp process_uploads(socket) do
     gallery = socket.assigns.gallery
 
-    {uploaded, errored} =
+    results =
       consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
         uuid = Ecto.UUID.generate()
         ext = ext_from_content_type(entry.client_type)
@@ -227,36 +176,27 @@ defmodule Web.GalleryLive.Show do
           {:error, _} -> {:ok, {:error, entry.client_name}}
         end
       end)
-      |> Enum.split_with(fn
+
+    {uploaded, errored} =
+      Enum.split_with(results, fn
         {:ok, _} -> true
         {:error, _} -> false
       end)
 
     uploaded_photos = Enum.map(uploaded, fn {:ok, photo} -> photo end)
-    errored_names = Enum.map(errored, fn {:error, name} -> name end)
 
-    upload_queue =
-      Enum.map(socket.assigns.upload_queue, fn file ->
-        cond do
-          Enum.any?(uploaded_photos, &(&1.original_filename == file.name)) ->
-            %{file | status: :done}
-
-          file.name in errored_names ->
-            %{file | status: :error, error: "Upload failed"}
-
-          true ->
-            file
-        end
-      end)
-
-    all_done? = Enum.all?(upload_queue, &(&1.status in [:done, :error]))
-    upload_modal = if all_done?, do: :done, else: :uploading
+    upload_results =
+      Enum.map(uploaded_photos, fn photo ->
+        %{name: photo.original_filename, status: :ok}
+      end) ++
+        Enum.map(errored, fn {:error, name} ->
+          %{name: name, status: :error, error: "Upload failed"}
+        end)
 
     socket =
       socket
-      |> assign(:upload_queue, upload_queue)
-      |> assign(:upload_modal, upload_modal)
-      |> push_event("batch_complete", %{})
+      |> assign(:upload_results, upload_results)
+      |> assign(:show_upload_modal, true)
 
     socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
     {:noreply, socket}
@@ -288,6 +228,6 @@ defmodule Web.GalleryLive.Show do
 
   defp upload_error_to_string(:too_large), do: "File too large (max 300MB)"
   defp upload_error_to_string(:not_accepted), do: "File type not supported"
-  defp upload_error_to_string(:too_many_files), do: "Too many files (max 10)"
+  defp upload_error_to_string(:too_many_files), do: "Too many files (max 50)"
   defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
 end
