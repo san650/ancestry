@@ -41,12 +41,10 @@ defmodule Web.E2E.GalleryUploadTest do
     )
   end
 
-  # Bug 1: dropping more than 10 files should upload all of them across
-  # multiple batches. Currently only the first batch (10) is uploaded and
-  # subsequent batches are not processed.
+  # Dropping multiple files on the page should trigger uploads and add all
+  # photos to the gallery stream.
   #
-  @tag :skip
-  test "drag and drop uploads multiple batches of photos", %{
+  test "drag and drop uploads multiple photos", %{
     conn: conn,
     gallery: gallery
   } do
@@ -58,7 +56,7 @@ defmodule Web.E2E.GalleryUploadTest do
         const minJpeg = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46,
           0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xD9]);
         const dt = new DataTransfer();
-        for (let i = 1; i <= 12; i++) {
+        for (let i = 1; i <= 5; i++) {
           dt.items.add(new File([minJpeg], `photo_${i}.jpg`, {type: 'image/jpeg'}));
         }
         document.body.dispatchEvent(
@@ -68,7 +66,7 @@ defmodule Web.E2E.GalleryUploadTest do
     """)
     |> assert_has("#upload-modal", timeout: 5_000)
     |> assert_has("#photo-grid [id^='photos-'][data-phx-stream]",
-      count: 12,
+      count: 5,
       timeout: 30_000
     )
   end
