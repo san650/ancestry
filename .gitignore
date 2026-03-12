@@ -37,3 +37,4 @@ npm-debug.log
 
 /priv/static/uploads/
 /.expert/
+/.hex-docs/
