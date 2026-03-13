@@ -40,7 +40,9 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
     assert updated.status == "processed"
     assert updated.image != nil
 
-    assert_receive {:photo_processed, ^updated}
+    assert_receive {:photo_processed, received_photo}
+    assert received_photo.id == updated.id
+    assert received_photo.status == "processed"
   end
 
   test "marks photo as failed and broadcasts :photo_failed when original_path is missing", %{

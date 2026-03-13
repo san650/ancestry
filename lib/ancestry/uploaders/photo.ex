@@ -33,8 +33,8 @@ defmodule Ancestry.Uploaders.Photo do
 
   def filename(version, _), do: "#{version}.jpg"
 
-  # Files stored at priv/static/uploads/photos/{gallery_id}/{photo_id}/
+  # Files stored at priv/static/uploads/photos/{family_id}/{gallery_id}/{photo_id}/
   def storage_dir(_version, {_file, scope}) do
-    "uploads/photos/#{scope.gallery_id}/#{scope.id}"
+    "uploads/photos/#{scope.gallery.family_id}/#{scope.gallery_id}/#{scope.id}"
   end
 end

@@ -6,7 +6,7 @@ defmodule Ancestry.Workers.ProcessPhotoJob do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"photo_id" => photo_id}}) do
-    photo = Galleries.get_photo!(photo_id)
+    photo = Galleries.get_photo!(photo_id) |> Ancestry.Repo.preload(:gallery)
 
     case process_photo(photo) do
       {:ok, updated_photo} ->

@@ -28,16 +28,17 @@ defmodule Ancestry.Galleries do
     Repo.all(
       from p in Photo,
         where: p.gallery_id == ^gallery_id,
-        order_by: [asc: p.inserted_at, asc: p.id]
+        order_by: [asc: p.inserted_at, asc: p.id],
+        preload: [:gallery]
     )
   end
 
-  def get_photo!(id), do: Repo.get!(Photo, id)
+  def get_photo!(id), do: Repo.get!(Photo, id) |> Repo.preload(:gallery)
 
   def create_photo(attrs \\ %{}) do
     with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
          {:ok, _job} <- Oban.insert(Ancestry.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
-      {:ok, photo}
+      {:ok, Repo.preload(photo, :gallery)}
     end
   end
 
@@ -50,11 +51,19 @@ defmodule Ancestry.Galleries do
     photo
     |> Ecto.Changeset.change(image: %{file_name: filename, updated_at: nil}, status: "processed")
     |> Repo.update()
+    |> case do
+      {:ok, photo} -> {:ok, Repo.preload(photo, :gallery)}
+      error -> error
+    end
   end
 
   def update_photo_failed(%Photo{} = photo) do
     photo
     |> Ecto.Changeset.change(%{status: "failed"})
     |> Repo.update()
+    |> case do
+      {:ok, photo} -> {:ok, Repo.preload(photo, :gallery)}
+      error -> error
+    end
   end
 end

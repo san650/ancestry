@@ -43,6 +43,18 @@ defmodule Ancestry.Families do
     )
   end
 
+  def update_cover_processed(%Family{} = family) do
+    family
+    |> Ecto.Changeset.change(%{cover_status: "processed"})
+    |> Repo.update()
+  end
+
+  def update_cover_failed(%Family{} = family) do
+    family
+    |> Ecto.Changeset.change(%{cover_status: "failed"})
+    |> Repo.update()
+  end
+
   defp cleanup_family_files(family) do
     cover_dir = Path.join(["priv", "static", "uploads", "families", "#{family.id}"])
     File.rm_rf(cover_dir)
