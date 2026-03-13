@@ -38,7 +38,7 @@ defmodule Ancestry.Workers.ProcessFamilyCoverJob do
     }
 
     case Uploaders.FamilyCover.store({waffle_file, family}) do
-      {:ok, _filename} -> Families.update_cover_processed(family)
+      {:ok, filename} -> Families.update_cover_processed(family, filename)
       {:error, reason} -> {:error, reason}
     end
   end

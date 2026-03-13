@@ -28,6 +28,7 @@ defmodule Ancestry.Workers.ProcessFamilyCoverJobTest do
 
     updated = Families.get_family!(family.id)
     assert updated.cover_status == "processed"
+    assert updated.cover
   end
 
   test "marks cover as failed when original_path is missing", %{family: family} do

@@ -43,9 +43,12 @@ defmodule Ancestry.Families do
     )
   end
 
-  def update_cover_processed(%Family{} = family) do
+  def update_cover_processed(%Family{} = family, filename) do
     family
-    |> Ecto.Changeset.change(%{cover_status: "processed"})
+    |> Ecto.Changeset.change(%{
+      cover: %{file_name: filename, updated_at: nil},
+      cover_status: "processed"
+    })
     |> Repo.update()
   end
 

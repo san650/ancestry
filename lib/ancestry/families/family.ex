@@ -1,10 +1,11 @@
 defmodule Ancestry.Families.Family do
   use Ecto.Schema
+  use Waffle.Ecto.Schema
   import Ecto.Changeset
 
   schema "families" do
     field :name, :string
-    field :cover, :string
+    field :cover, Ancestry.Uploaders.FamilyCover.Type
     field :cover_status, :string
     has_many :galleries, Ancestry.Galleries.Gallery, on_delete: :delete_all
     timestamps()
