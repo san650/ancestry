@@ -10,7 +10,7 @@ defmodule Web.FamilyLive.New do
      socket
      |> assign(:form, to_form(Families.change_family(%Family{})))
      |> allow_upload(:cover,
-       accept: ~w(.jpg .jpeg .png .webp),
+       accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
        max_entries: 1,
        max_file_size: 20 * 1_048_576
      )}
