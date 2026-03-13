@@ -1,15 +1,15 @@
-defmodule Family.Galleries.Photo do
+defmodule Ancestry.Galleries.Photo do
   use Ecto.Schema
   use Waffle.Ecto.Schema
   import Ecto.Changeset
 
   schema "photos" do
-    field :image, Family.Uploaders.Photo.Type
+    field :image, Ancestry.Uploaders.Photo.Type
     field :original_path, :string
     field :original_filename, :string
     field :content_type, :string
     field :status, :string, default: "pending"
-    belongs_to :gallery, Family.Galleries.Gallery
+    belongs_to :gallery, Ancestry.Galleries.Gallery
     timestamps(updated_at: false)
   end
 

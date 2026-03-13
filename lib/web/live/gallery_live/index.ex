@@ -1,8 +1,8 @@
 defmodule Web.GalleryLive.Index do
   use Web, :live_view
 
-  alias Family.Galleries
-  alias Family.Galleries.Gallery
+  alias Ancestry.Galleries
+  alias Ancestry.Galleries.Gallery
 
   @impl true
   def mount(_params, _session, socket) do

@@ -1,8 +1,8 @@
-defmodule Family.GalleriesTest do
-  use Family.DataCase, async: true
+defmodule Ancestry.GalleriesTest do
+  use Ancestry.DataCase, async: true
 
-  alias Family.Galleries
-  alias Family.Galleries.Gallery
+  alias Ancestry.Galleries
+  alias Ancestry.Galleries.Gallery
 
   describe "galleries" do
     test "list_galleries/0 returns all galleries ordered by inserted_at" do

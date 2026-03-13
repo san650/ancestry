@@ -1,14 +1,14 @@
 defmodule Web.GalleryLive.Show do
   use Web, :live_view
 
-  alias Family.Galleries
+  alias Ancestry.Galleries
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
     gallery = Galleries.get_gallery!(id)
 
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(Family.PubSub, "gallery:#{id}")
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{id}")
     end
 
     {:ok,

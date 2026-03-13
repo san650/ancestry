@@ -1,6 +1,6 @@
-defmodule Family do
+defmodule Ancestry do
   @moduledoc """
-  Family keeps the contexts that define your domain
+  Ancestry keeps the contexts that define your domain
   and business logic.
 
   Contexts are also responsible for managing your data, regardless

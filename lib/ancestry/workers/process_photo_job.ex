@@ -1,8 +1,8 @@
-defmodule Family.Workers.ProcessPhotoJob do
+defmodule Ancestry.Workers.ProcessPhotoJob do
   use Oban.Worker, queue: :photos, max_attempts: 3
 
-  alias Family.Galleries
-  alias Family.Uploaders
+  alias Ancestry.Galleries
+  alias Ancestry.Uploaders
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"photo_id" => photo_id}}) do
@@ -11,7 +11,7 @@ defmodule Family.Workers.ProcessPhotoJob do
     case process_photo(photo) do
       {:ok, updated_photo} ->
         Phoenix.PubSub.broadcast(
-          Family.PubSub,
+          Ancestry.PubSub,
           "gallery:#{photo.gallery_id}",
           {:photo_processed, updated_photo}
         )
@@ -22,7 +22,7 @@ defmodule Family.Workers.ProcessPhotoJob do
         {:ok, _} = Galleries.update_photo_failed(photo)
 
         Phoenix.PubSub.broadcast(
-          Family.PubSub,
+          Ancestry.PubSub,
           "gallery:#{photo.gallery_id}",
           {:photo_failed, photo}
         )

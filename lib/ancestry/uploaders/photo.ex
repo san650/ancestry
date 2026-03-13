@@ -1,4 +1,4 @@
-defmodule Family.Uploaders.Photo do
+defmodule Ancestry.Uploaders.Photo do
   use Waffle.Definition
   use Waffle.Ecto.Definition
 

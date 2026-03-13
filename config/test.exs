@@ -5,23 +5,23 @@ import Config
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :family, Family.Repo,
+config :ancestry, Ancestry.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "family_test#{System.get_env("MIX_TEST_PARTITION")}",
+  database: "ancestry_test#{System.get_env("MIX_TEST_PARTITION")}",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :family, Web.Endpoint,
+config :ancestry, Web.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "C82bSF82J/bVMdgD/sgoFYTJMLJreTusSGB+ZQuZObZVdUqsDfI3v40cKZ7qNqyI",
   server: true
 
 # In test we don't send emails
-config :family, Family.Mailer, adapter: Swoosh.Adapters.Test
+config :ancestry, Ancestry.Mailer, adapter: Swoosh.Adapters.Test
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
@@ -44,8 +44,8 @@ config :waffle,
   storage: Waffle.Storage.Local,
   storage_dir_prefix: "tmp/test_uploads"
 
-config :family, Oban, testing: :inline
+config :ancestry, Oban, testing: :inline
 
-config :phoenix_test, otp_app: :family
+config :phoenix_test, otp_app: :ancestry
 
-config :family, :sql_sandbox, true
+config :ancestry, :sql_sandbox, true

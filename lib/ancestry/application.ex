@@ -1,4 +1,4 @@
-defmodule Family.Application do
+defmodule Ancestry.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   @moduledoc false
@@ -9,19 +9,19 @@ defmodule Family.Application do
   def start(_type, _args) do
     children = [
       Web.Telemetry,
-      Family.Repo,
-      {DNSCluster, query: Application.get_env(:family, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: Family.PubSub},
-      # Start a worker by calling: Family.Worker.start_link(arg)
-      # {Family.Worker, arg},
-      {Oban, Application.fetch_env!(:family, Oban)},
+      Ancestry.Repo,
+      {DNSCluster, query: Application.get_env(:ancestry, :dns_cluster_query) || :ignore},
+      {Phoenix.PubSub, name: Ancestry.PubSub},
+      # Start a worker by calling: Ancestry.Worker.start_link(arg)
+      # {Ancestry.Worker, arg},
+      {Oban, Application.fetch_env!(:ancestry, Oban)},
       # Start to serve requests, typically the last entry
       Web.Endpoint
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Family.Supervisor]
+    opts = [strategy: :one_for_one, name: Ancestry.Supervisor]
     Supervisor.start_link(children, opts)
   end
 

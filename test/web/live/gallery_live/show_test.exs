@@ -1,7 +1,7 @@
 defmodule Web.GalleryLive.ShowTest do
   use Web.ConnCase, async: true
   import Phoenix.LiveViewTest
-  alias Family.Galleries
+  alias Ancestry.Galleries
 
   setup do
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery"})

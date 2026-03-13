@@ -32,7 +32,7 @@ defmodule Web.ConnCase do
   end
 
   setup tags do
-    Family.DataCase.setup_sandbox(tags)
+    Ancestry.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end

@@ -1,11 +1,11 @@
 import Config
 
 # Configure your database
-config :family, Family.Repo,
+config :ancestry, Ancestry.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "family_dev",
+  database: "ancestry_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -16,7 +16,7 @@ config :family, Family.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :family, Web.Endpoint,
+config :ancestry, Web.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}],
@@ -25,8 +25,8 @@ config :family, Web.Endpoint,
   debug_errors: true,
   secret_key_base: "+6hVNGgIT2Sl0cg48SCythHN/XZhC/RgP7mVCSIl54Oev/uUtKEeZYcjbVi8s5F7",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:family, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:family, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:ancestry, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:ancestry, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -53,7 +53,7 @@ config :family, Web.Endpoint,
 # different ports.
 
 # Reload browser tabs when matching files change.
-config :family, Web.Endpoint,
+config :ancestry, Web.Endpoint,
   live_reload: [
     web_console_logger: true,
     patterns: [
@@ -68,7 +68,7 @@ config :family, Web.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :family, dev_routes: true
+config :ancestry, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"

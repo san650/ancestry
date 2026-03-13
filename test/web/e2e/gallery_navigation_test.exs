@@ -1,9 +1,9 @@
 defmodule Web.E2E.GalleryNavigationTest do
   use Web.E2ECase
 
-  alias Family.Galleries
-  alias Family.Galleries.Photo
-  alias Family.Repo
+  alias Ancestry.Galleries
+  alias Ancestry.Galleries.Photo
+  alias Ancestry.Repo
 
   setup do
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery"})

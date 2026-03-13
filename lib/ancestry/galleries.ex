@@ -1,8 +1,8 @@
-defmodule Family.Galleries do
+defmodule Ancestry.Galleries do
   import Ecto.Query
-  alias Family.Repo
-  alias Family.Galleries.Gallery
-  alias Family.Galleries.Photo
+  alias Ancestry.Repo
+  alias Ancestry.Galleries.Gallery
+  alias Ancestry.Galleries.Photo
 
   def list_galleries do
     Repo.all(from g in Gallery, order_by: [asc: g.inserted_at])
@@ -36,13 +36,13 @@ defmodule Family.Galleries do
 
   def create_photo(attrs \\ %{}) do
     with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
-         {:ok, _job} <- Oban.insert(Family.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
+         {:ok, _job} <- Oban.insert(Ancestry.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
       {:ok, photo}
     end
   end
 
   def delete_photo(%Photo{} = photo) do
-    if photo.image, do: Family.Uploaders.Photo.delete({photo.image, photo})
+    if photo.image, do: Ancestry.Uploaders.Photo.delete({photo.image, photo})
     Repo.delete(photo)
   end
 

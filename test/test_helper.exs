@@ -1,4 +1,4 @@
 {:ok, _} = PhoenixTest.Playwright.Supervisor.start_link()
 Application.put_env(:phoenix_test, :base_url, Web.Endpoint.url())
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(Family.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Ancestry.Repo, :manual)

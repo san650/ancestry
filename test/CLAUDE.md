@@ -4,9 +4,9 @@
 
 | Scenario | Use |
 |---|---|
-| Context / schema / Oban worker tests | `use Family.DataCase, async: true` |
+| Context / schema / Oban worker tests | `use Ancestry.DataCase, async: true` |
 | LiveView / controller tests | `use Web.ConnCase, async: true` + `import Phoenix.LiveViewTest` |
-| Oban worker tests | also add `use Oban.Testing, repo: Family.Repo` |
+| Oban worker tests | also add `use Oban.Testing, repo: Ancestry.Repo` |
 | End to end tests | `use Web.E2ECase` |
 
 Use `async: false` only when the test touches shared global state (e.g. the filesystem, real Waffle storage, or PubSub across processes that would race).
@@ -78,7 +78,7 @@ Raw HTML (`html =~ "..."`) is acceptable only when asserting on text content tha
 Subscribe before triggering the action, then use `assert_receive`:
 
 ```elixir
-Phoenix.PubSub.subscribe(Family.PubSub, "gallery:#{gallery.id}")
+Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{gallery.id}")
 # ... trigger action ...
 assert_receive {:photo_processed, ^updated}
 ```
@@ -102,7 +102,7 @@ assert {:error, _reason} = ProcessPhotoJob.perform(%Oban.Job{args: %{"photo_id" 
 
 ## Changeset error assertions
 
-Use `errors_on/1` from `Family.DataCase` (available automatically) to get a readable map of errors:
+Use `errors_on/1` from `Ancestry.DataCase` (available automatically) to get a readable map of errors:
 
 ```elixir
 assert "can't be blank" in errors_on(changeset).name

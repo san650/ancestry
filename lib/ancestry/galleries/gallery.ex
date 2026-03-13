@@ -1,10 +1,10 @@
-defmodule Family.Galleries.Gallery do
+defmodule Ancestry.Galleries.Gallery do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "galleries" do
     field :name, :string
-    has_many :photos, Family.Galleries.Photo, on_delete: :delete_all
+    has_many :photos, Ancestry.Galleries.Photo, on_delete: :delete_all
     timestamps()
   end
 

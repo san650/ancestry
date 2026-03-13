@@ -52,7 +52,7 @@ defmodule Web.Layouts do
       <div class="flex-1">
         <a href="/" class="flex-1 flex w-fit items-center gap-2">
           <img src={~p"/images/logo.png"} width="36" />
-          <span class="text-sm font-semibold">Family</span>
+          <span class="text-sm font-semibold">Ancestry</span>
         </a>
       </div>
       <div class="flex-none">

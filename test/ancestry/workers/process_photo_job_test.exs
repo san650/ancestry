@@ -1,9 +1,9 @@
-defmodule Family.Workers.ProcessPhotoJobTest do
-  use Family.DataCase, async: false
-  use Oban.Testing, repo: Family.Repo
+defmodule Ancestry.Workers.ProcessPhotoJobTest do
+  use Ancestry.DataCase, async: false
+  use Oban.Testing, repo: Ancestry.Repo
 
-  alias Family.Workers.ProcessPhotoJob
-  alias Family.Galleries
+  alias Ancestry.Workers.ProcessPhotoJob
+  alias Ancestry.Galleries
 
   setup do
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
@@ -30,7 +30,7 @@ defmodule Family.Workers.ProcessPhotoJobTest do
     photo: photo,
     gallery: gallery
   } do
-    Phoenix.PubSub.subscribe(Family.PubSub, "gallery:#{gallery.id}")
+    Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{gallery.id}")
 
     assert :ok = perform_job(ProcessPhotoJob, %{photo_id: photo.id})
 
@@ -45,7 +45,7 @@ defmodule Family.Workers.ProcessPhotoJobTest do
     photo: photo,
     gallery: gallery
   } do
-    Phoenix.PubSub.subscribe(Family.PubSub, "gallery:#{gallery.id}")
+    Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{gallery.id}")
 
     # Delete the file so the job will fail to process it
     File.rm!(photo.original_path)
