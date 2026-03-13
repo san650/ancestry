@@ -4,7 +4,8 @@ defmodule Web.GalleryLive.Show do
   alias Ancestry.Galleries
 
   @impl true
-  def mount(%{"id" => id}, _session, socket) do
+  def mount(%{"family_id" => family_id, "id" => id}, _session, socket) do
+    family = Ancestry.Families.get_family!(family_id)
     gallery = Galleries.get_gallery!(id)
 
     if connected?(socket) do
@@ -13,6 +14,7 @@ defmodule Web.GalleryLive.Show do
 
     {:ok,
      socket
+     |> assign(:family, family)
      |> assign(:gallery, gallery)
      |> assign(:grid_layout, :masonry)
      |> assign(:selection_mode, false)

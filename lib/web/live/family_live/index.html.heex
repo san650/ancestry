@@ -1,0 +1,74 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+      <h1 class="text-3xl font-bold tracking-tight text-base-content">Families</h1>
+      <.link
+        id="new-family-btn"
+        navigate={~p"/families/new"}
+        class="btn btn-primary"
+      >
+        New Family
+      </.link>
+    </div>
+  </:toolbar>
+
+  <div id="family-index-root" class="max-w-7xl mx-auto">
+    <div
+      id="families"
+      phx-update="stream"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
+    >
+      <div
+        id="families-empty"
+        class="hidden only:block col-span-full text-center py-20 text-base-content/40"
+      >
+        No families yet
+      </div>
+      <div
+        :for={{id, family} <- @streams.families}
+        id={id}
+        class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
+      >
+        <.link navigate={~p"/families/#{family.id}/galleries"} class="block p-6">
+          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+            <.icon name="hero-users" class="w-6 h-6 text-primary" />
+          </div>
+          <h2 data-family-name class="text-lg font-semibold text-base-content truncate">
+            {family.name}
+          </h2>
+          <p class="text-sm text-base-content/50 mt-1">
+            {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
+          </p>
+        </.link>
+        <button
+          id={"delete-family-#{family.id}"}
+          phx-click="request_delete"
+          phx-value-id={family.id}
+          class="absolute top-3 right-3 p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-all"
+        >
+          <.icon name="hero-trash" class="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%!-- Delete Confirmation Modal --%>
+  <%= if @confirm_delete_family do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
+      <div
+        id="confirm-delete-family-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-2">Delete Family</h2>
+        <p class="text-base-content/60 mb-6">
+          Delete <span class="font-semibold">"{@confirm_delete_family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
+          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</Layouts.app>

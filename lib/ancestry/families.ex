@@ -30,6 +30,19 @@ defmodule Ancestry.Families do
     Family.changeset(family, attrs)
   end
 
+  def update_cover_pending(%Family{} = family, original_path) do
+    family
+    |> Ecto.Changeset.change(%{cover_status: "pending"})
+    |> Repo.update!()
+
+    Oban.insert(
+      Ancestry.Workers.ProcessFamilyCoverJob.new(%{
+        family_id: family.id,
+        original_path: original_path
+      })
+    )
+  end
+
   defp cleanup_family_files(family) do
     cover_dir = Path.join(["priv", "static", "uploads", "families", "#{family.id}"])
     File.rm_rf(cover_dir)

@@ -5,10 +5,9 @@ defmodule Web.GalleryLive.Index do
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
 
-  # TODO: Replace with proper family scoping from route params (Task 10)
   @impl true
-  def mount(_params, _session, socket) do
-    family = hd(Families.list_families())
+  def mount(%{"family_id" => family_id}, _session, socket) do
+    family = Families.get_family!(family_id)
 
     {:ok,
      socket
@@ -16,7 +15,7 @@ defmodule Web.GalleryLive.Index do
      |> assign(:show_new_modal, false)
      |> assign(:confirm_delete_gallery, nil)
      |> assign(:form, to_form(Galleries.change_gallery(%Gallery{})))
-     |> stream(:galleries, Galleries.list_galleries(family.id))}
+     |> stream(:galleries, Galleries.list_galleries(family_id))}
   end
 
   @impl true

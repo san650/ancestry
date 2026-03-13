@@ -18,25 +18,16 @@ defmodule Web.Router do
     pipe_through :browser
 
     live_session :default do
-      live "/galleries", GalleryLive.Index, :index
-      live "/galleries/:id", GalleryLive.Show, :show
+      live "/", FamilyLive.Index, :index
+      live "/families/new", FamilyLive.New, :new
+      live "/families/:family_id", FamilyLive.Show, :show
+      live "/families/:family_id/galleries", GalleryLive.Index, :index
+      live "/families/:family_id/galleries/:id", GalleryLive.Show, :show
     end
-
-    get "/", PageController, :home
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", Web do
-  #   pipe_through :api
-  # end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:ancestry, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

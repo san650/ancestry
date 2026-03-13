@@ -14,16 +14,17 @@ defmodule Web.E2E.GalleryUploadTest do
     {:ok, gallery} =
       Galleries.create_gallery(%{name: "Upload Test Gallery", family_id: family.id})
 
-    %{gallery: gallery}
+    %{gallery: gallery, family: family}
   end
 
   test "upload button opens progress modal and adds photo to gallery", %{
     conn: conn,
-    gallery: gallery
+    gallery: gallery,
+    family: family
   } do
     conn =
       conn
-      |> visit(~p"/galleries/#{gallery.id}")
+      |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
       |> wait_liveview()
 
     conn
@@ -40,9 +41,9 @@ defmodule Web.E2E.GalleryUploadTest do
     )
   end
 
-  test "drag and drop uploads photos", %{conn: conn, gallery: gallery} do
+  test "drag and drop uploads photos", %{conn: conn, gallery: gallery, family: family} do
     conn
-    |> visit(~p"/galleries/#{gallery.id}")
+    |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()
     |> evaluate("""
       (function() {
@@ -68,10 +69,11 @@ defmodule Web.E2E.GalleryUploadTest do
   # should still show the full-page drop overlay.
   test "dragging over the page header shows the full-page drop overlay", %{
     conn: conn,
-    gallery: gallery
+    gallery: gallery,
+    family: family
   } do
     conn
-    |> visit(~p"/galleries/#{gallery.id}")
+    |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()
     |> evaluate("""
       const file = new File([''], 'photo.jpg', {type: 'image/jpeg'});

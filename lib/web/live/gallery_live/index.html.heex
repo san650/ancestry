@@ -1,7 +1,15 @@
 <Layouts.app flash={@flash}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
-      <h1 class="text-3xl font-bold tracking-tight text-base-content">Photo Galleries</h1>
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/"}
+          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-2xl font-bold text-base-content">{@family.name} — Galleries</h1>
+      </div>
       <button
         id="open-new-gallery-btn"
         phx-click="open_new_modal"
@@ -30,7 +38,7 @@
         data-gallery-id={gallery.id}
         class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
       >
-        <.link navigate={~p"/galleries/#{gallery.id}"} class="block p-6">
+        <.link navigate={~p"/families/#{@family.id}/galleries/#{gallery.id}"} class="block p-6">
           <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
             <.icon name="hero-photo" class="w-6 h-6 text-primary" />
           </div>

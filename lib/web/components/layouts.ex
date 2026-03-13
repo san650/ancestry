@@ -58,7 +58,7 @@ defmodule Web.Layouts do
       <div class="flex-none">
         <ul class="flex flex-column px-1 space-x-4 items-center">
           <li>
-            <.link href={~p"/galleries"}>Galleries</.link>
+            <.link href={~p"/"}>Families</.link>
           </li>
         </ul>
       </div>

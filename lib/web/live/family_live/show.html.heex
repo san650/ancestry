@@ -1,0 +1,97 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/"}
+          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-2xl font-bold text-base-content">{@family.name}</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          id="edit-family-btn"
+          phx-click="edit"
+          class="btn btn-ghost btn-sm"
+        >
+          <.icon name="hero-pencil" class="w-4 h-4" /> Edit
+        </button>
+        <button
+          id="delete-family-btn"
+          phx-click="request_delete"
+          class="btn btn-ghost btn-sm text-error"
+        >
+          <.icon name="hero-trash" class="w-4 h-4" /> Delete
+        </button>
+      </div>
+    </div>
+  </:toolbar>
+
+  <div class="max-w-7xl mx-auto">
+    <%!-- Cover photo --%>
+    <div class="mb-8 rounded-2xl overflow-hidden bg-base-200 h-48 flex items-center justify-center">
+      <%= if @family.cover do %>
+        <img src={@family.cover} alt={@family.name} class="w-full h-full object-cover" />
+      <% else %>
+        <.icon name="hero-users" class="w-16 h-16 text-base-content/20" />
+      <% end %>
+    </div>
+
+    <.link
+      navigate={~p"/families/#{@family.id}/galleries"}
+      class="btn btn-primary"
+    >
+      <.icon name="hero-photo" class="w-5 h-5" /> View Galleries
+    </.link>
+  </div>
+
+  <%!-- Edit Modal --%>
+  <%= if @editing do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
+      <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
+        <h2 class="text-xl font-bold text-base-content mb-6">Edit Family</h2>
+        <.form
+          for={@form}
+          id="edit-family-form"
+          phx-submit="save"
+          phx-change="validate"
+        >
+          <.input
+            field={@form[:name]}
+            label="Family name"
+            autofocus
+          />
+          <div class="flex gap-3 mt-6">
+            <button type="submit" class="btn btn-primary flex-1">Save</button>
+            <button type="button" phx-click="cancel_edit" class="btn btn-ghost flex-1">
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Delete Confirmation Modal --%>
+  <%= if @confirm_delete do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
+      <div
+        id="confirm-delete-family-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-2">Delete Family</h2>
+        <p class="text-base-content/60 mb-6">
+          Delete <span class="font-semibold">"{@family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
+          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</Layouts.app>

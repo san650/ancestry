@@ -7,29 +7,29 @@ defmodule Web.GalleryLive.ShowTest do
   setup do
     {:ok, family} = Families.create_family(%{name: "Test Family"})
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
-    %{gallery: gallery}
+    %{gallery: gallery, family: family}
   end
 
-  test "shows gallery name and upload button", %{conn: conn, gallery: gallery} do
-    {:ok, _view, html} = live(conn, ~p"/galleries/#{gallery.id}")
+  test "shows gallery name and upload button", %{conn: conn, gallery: gallery, family: family} do
+    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
     assert html =~ gallery.name
     assert html =~ "upload-btn"
   end
 
-  test "shows empty state when no photos", %{conn: conn, gallery: gallery} do
-    {:ok, _view, html} = live(conn, ~p"/galleries/#{gallery.id}")
+  test "shows empty state when no photos", %{conn: conn, gallery: gallery, family: family} do
+    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
     assert html =~ "No photos yet"
   end
 
-  test "toggles between masonry and uniform grid", %{conn: conn, gallery: gallery} do
-    {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+  test "toggles between masonry and uniform grid", %{conn: conn, gallery: gallery, family: family} do
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
     assert has_element?(view, "#photo-grid.masonry-grid")
     view |> element("#layout-toggle") |> render_click()
     assert has_element?(view, "#photo-grid.uniform-grid")
   end
 
-  test "activates and cancels selection mode", %{conn: conn, gallery: gallery} do
-    {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+  test "activates and cancels selection mode", %{conn: conn, gallery: gallery, family: family} do
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
     refute has_element?(view, "#selection-bar")
     view |> element("#select-btn") |> render_click()
     assert has_element?(view, "#selection-bar")
@@ -37,7 +37,11 @@ defmodule Web.GalleryLive.ShowTest do
     refute has_element?(view, "#selection-bar")
   end
 
-  test "shows photo_processed message updates photo in grid", %{conn: conn, gallery: gallery} do
+  test "shows photo_processed message updates photo in grid", %{
+    conn: conn,
+    gallery: gallery,
+    family: family
+  } do
     {:ok, photo} =
       Galleries.create_photo(%{
         gallery_id: gallery.id,
@@ -46,7 +50,7 @@ defmodule Web.GalleryLive.ShowTest do
         content_type: "image/jpeg"
       })
 
-    {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
     assert has_element?(view, "#photos-#{photo.id}")
 
     {:ok, updated} = Galleries.update_photo_processed(photo, "original.jpg")
@@ -55,12 +59,15 @@ defmodule Web.GalleryLive.ShowTest do
   end
 
   describe "upload modal" do
-    test "uploading a file opens the modal and shows progress", %{conn: conn, gallery: gallery} do
-      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+    test "uploading a file opens the modal and shows progress", %{
+      conn: conn,
+      gallery: gallery,
+      family: family
+    } do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       refute has_element?(view, "#upload-modal")
 
-      # Simulate uploading a file via LiveView test helpers
       photo =
         file_input(view, "#upload-form", :photos, [
           %{
@@ -72,14 +79,16 @@ defmodule Web.GalleryLive.ShowTest do
 
       render_upload(photo, "photo1.jpg")
 
-      # Modal should open showing progress
       assert has_element?(view, "#upload-modal")
     end
 
-    test "close_upload_modal closes the modal", %{conn: conn, gallery: gallery} do
-      {:ok, view, _html} = live(conn, ~p"/galleries/#{gallery.id}")
+    test "close_upload_modal closes the modal", %{
+      conn: conn,
+      gallery: gallery,
+      family: family
+    } do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
-      # Upload a file to open modal
       photo =
         file_input(view, "#upload-form", :photos, [
           %{

@@ -24,12 +24,16 @@ defmodule Web.E2E.GalleryNavigationTest do
       })
       |> Repo.insert()
 
-    %{gallery: gallery}
+    %{gallery: gallery, family: family}
   end
 
-  test "navigate from gallery list to a gallery and open a photo", %{conn: conn, gallery: gallery} do
+  test "navigate from gallery list to a gallery and open a photo", %{
+    conn: conn,
+    gallery: gallery,
+    family: family
+  } do
     conn
-    |> visit(~p"/galleries")
+    |> visit(~p"/families/#{family.id}/galleries")
     |> wait_liveview()
     |> click_link(gallery.name)
     |> wait_liveview()
