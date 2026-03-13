@@ -79,7 +79,7 @@ defmodule Web.PersonLive.Show do
     family = socket.assigns.family
     person = socket.assigns.person
     {:ok, _} = People.remove_from_family(person, family)
-    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/members")}
+    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
   end
 
   def handle_event("request_delete", _, socket) do
@@ -93,7 +93,7 @@ defmodule Web.PersonLive.Show do
   def handle_event("confirm_delete", _, socket) do
     family = socket.assigns.family
     {:ok, _} = People.delete_person(socket.assigns.person)
-    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/members")}
+    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
   end
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do

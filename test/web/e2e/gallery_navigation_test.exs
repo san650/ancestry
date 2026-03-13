@@ -33,7 +33,7 @@ defmodule Web.E2E.GalleryNavigationTest do
     family: family
   } do
     conn
-    |> visit(~p"/families/#{family.id}/galleries")
+    |> visit(~p"/families/#{family.id}")
     |> wait_liveview()
     |> click_link(gallery.name)
     |> wait_liveview()

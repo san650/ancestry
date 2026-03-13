@@ -40,7 +40,7 @@ defmodule Web.PersonLive.New do
     case People.create_person(family, params) do
       {:ok, person} ->
         socket = maybe_process_photo(socket, person)
-        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/members")}
+        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

@@ -21,10 +21,8 @@ defmodule Web.Router do
       live "/", FamilyLive.Index, :index
       live "/families/new", FamilyLive.New, :new
       live "/families/:family_id", FamilyLive.Show, :show
-      live "/families/:family_id/galleries", GalleryLive.Index, :index
       live "/families/:family_id/galleries/:id", GalleryLive.Show, :show
 
-      live "/families/:family_id/members", PersonLive.Index, :index
       live "/families/:family_id/members/new", PersonLive.New, :new
       live "/families/:family_id/members/:id", PersonLive.Show, :show
     end

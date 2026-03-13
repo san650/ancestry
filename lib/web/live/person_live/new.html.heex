@@ -3,7 +3,7 @@
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/families/#{@family.id}/members"}
+          navigate={~p"/families/#{@family.id}"}
           class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
@@ -133,7 +133,7 @@
 
       <div class="flex gap-3 mt-8">
         <button type="submit" class="btn btn-primary flex-1">Create</button>
-        <.link navigate={~p"/families/#{@family.id}/members"} class="btn btn-ghost flex-1">
+        <.link navigate={~p"/families/#{@family.id}"} class="btn btn-ghost flex-1">
           Cancel
         </.link>
       </div>

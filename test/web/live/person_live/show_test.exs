@@ -40,7 +40,7 @@ defmodule Web.PersonLive.ShowTest do
     {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
     view |> element("#remove-from-family-btn") |> render_click()
     view |> element("#confirm-remove-btn") |> render_click()
-    assert_redirect(view, ~p"/families/#{family.id}/members")
+    assert_redirect(view, ~p"/families/#{family.id}")
   end
 
   test "deletes person permanently", %{conn: conn, family: family, person: person} do
@@ -49,7 +49,7 @@ defmodule Web.PersonLive.ShowTest do
     assert has_element?(view, "#confirm-delete-person-modal")
 
     view |> element("#confirm-delete-btn") |> render_click()
-    assert_redirect(view, ~p"/families/#{family.id}/members")
+    assert_redirect(view, ~p"/families/#{family.id}")
 
     assert_raise Ecto.NoResultsError, fn -> People.get_person!(person.id) end
   end

@@ -32,7 +32,7 @@ defmodule Web.PersonLive.Index do
      |> assign(:search_query, "")}
   end
 
-  def handle_event("search", %{"query" => query}, socket) do
+  def handle_event("search", %{"value" => query}, socket) do
     results =
       if String.length(String.trim(query)) >= 2 do
         People.search_people(query, socket.assigns.family.id)

@@ -35,7 +35,7 @@ defmodule Web.FamilyLive.New do
         socket =
           maybe_process_cover(socket, family)
 
-        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/galleries")}
+        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

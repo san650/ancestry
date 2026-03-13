@@ -47,12 +47,22 @@
     <div class="mb-10">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-base-content">Members</h2>
-        <.link
-          navigate={~p"/families/#{@family.id}/members"}
-          class="btn btn-ghost btn-sm"
-        >
-          View All <.icon name="hero-arrow-right" class="w-4 h-4" />
-        </.link>
+        <div class="flex items-center gap-2">
+          <button
+            id="link-existing-btn"
+            phx-click="open_search"
+            class="btn btn-ghost btn-sm"
+          >
+            <.icon name="hero-magnifying-glass" class="w-4 h-4" /> Link Existing
+          </button>
+          <.link
+            id="add-member-btn"
+            navigate={~p"/families/#{@family.id}/members/new"}
+            class="btn btn-primary btn-sm"
+          >
+            <.icon name="hero-plus" class="w-4 h-4" /> Add Member
+          </.link>
+        </div>
       </div>
       <div
         id="members"
@@ -110,12 +120,13 @@
     <div class="mb-10">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold text-base-content">Galleries</h2>
-        <.link
-          navigate={~p"/families/#{@family.id}/galleries"}
-          class="btn btn-ghost btn-sm"
+        <button
+          id="open-new-gallery-btn"
+          phx-click="open_new_gallery_modal"
+          class="btn btn-primary btn-sm"
         >
-          View All <.icon name="hero-arrow-right" class="w-4 h-4" />
-        </.link>
+          <.icon name="hero-plus" class="w-4 h-4" /> New Gallery
+        </button>
       </div>
       <div
         id="galleries"
@@ -126,32 +137,39 @@
           id="galleries-empty"
           class="hidden only:block col-span-full text-center py-12 text-base-content/40"
         >
-          No galleries yet.
-          <.link navigate={~p"/families/#{@family.id}/galleries"} class="link link-primary">
-            Create your first gallery
-          </.link>
+          No galleries yet. Create your first one.
         </div>
-        <.link
+        <div
           :for={{id, gallery} <- @streams.galleries}
           id={id}
-          navigate={~p"/families/#{@family.id}/galleries/#{gallery.id}"}
-          class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
+          data-gallery-id={gallery.id}
+          class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
         >
-          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <.icon name="hero-photo" class="w-6 h-6 text-primary" />
-          </div>
-          <h3 class="text-lg font-semibold text-base-content truncate">
-            {gallery.name}
-          </h3>
-          <p class="text-sm text-base-content/50 mt-1">
-            {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
-          </p>
-        </.link>
+          <.link navigate={~p"/families/#{@family.id}/galleries/#{gallery.id}"} class="block p-6">
+            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+              <.icon name="hero-photo" class="w-6 h-6 text-primary" />
+            </div>
+            <h3 data-gallery-name class="text-lg font-semibold text-base-content truncate">
+              {gallery.name}
+            </h3>
+            <p class="text-sm text-base-content/50 mt-1">
+              {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
+            </p>
+          </.link>
+          <button
+            id={"delete-gallery-#{gallery.id}"}
+            phx-click="request_delete_gallery"
+            phx-value-id={gallery.id}
+            class="absolute top-3 right-3 p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-all"
+          >
+            <.icon name="hero-trash" class="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <%!-- Edit Modal --%>
+  <%!-- Edit Family Modal --%>
   <%= if @editing do %>
     <div class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
@@ -179,7 +197,7 @@
     </div>
   <% end %>
 
-  <%!-- Delete Confirmation Modal --%>
+  <%!-- Delete Family Confirmation Modal --%>
   <%= if @confirm_delete do %>
     <div class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
@@ -195,6 +213,123 @@
           <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
           <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
         </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- New Gallery Modal --%>
+  <%= if @show_new_gallery_modal do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="close_new_gallery_modal"
+      >
+      </div>
+      <div
+        id="new-gallery-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-6">New Gallery</h2>
+        <.form
+          for={@gallery_form}
+          id="new-gallery-form"
+          phx-submit="save_gallery"
+          phx-change="validate_gallery"
+        >
+          <.input
+            field={@gallery_form[:name]}
+            label="Gallery name"
+            placeholder="e.g. Summer 2025"
+            autofocus
+          />
+          <div class="flex gap-3 mt-6">
+            <button type="submit" class="btn btn-primary flex-1">Create</button>
+            <button type="button" phx-click="close_new_gallery_modal" class="btn btn-ghost flex-1">
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Delete Gallery Confirmation Modal --%>
+  <%= if @confirm_delete_gallery do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_gallery">
+      </div>
+      <div
+        id="confirm-delete-gallery-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-2">Delete Gallery</h2>
+        <p class="text-base-content/60 mb-6">
+          Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? All photos will be permanently removed. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button phx-click="confirm_delete_gallery" class="btn btn-error flex-1">Delete</button>
+          <button phx-click="cancel_delete_gallery" class="btn btn-ghost flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Search/Link Existing Person Modal --%>
+  <%= if @search_mode do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
+      <div
+        id="link-person-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
+        <input
+          id="person-search-input"
+          type="text"
+          name="query"
+          value={@search_query}
+          placeholder="Search by name..."
+          phx-keyup="search"
+          phx-debounce="300"
+          autofocus
+          class="input input-bordered w-full mb-4"
+        />
+        <div class="max-h-64 overflow-y-auto space-y-2">
+          <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
+            <p class="text-base-content/40 text-sm text-center py-4">No results found</p>
+          <% end %>
+          <%= for person <- @search_results do %>
+            <button
+              id={"link-person-#{person.id}"}
+              phx-click="link_person"
+              phx-value-id={person.id}
+              class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+            >
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <%= if person.photo && person.photo_status == "processed" do %>
+                  <img
+                    src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                    alt={Ancestry.People.Person.display_name(person)}
+                    class="w-full h-full object-cover"
+                  />
+                <% else %>
+                  <.icon name="hero-user" class="w-5 h-5 text-primary" />
+                <% end %>
+              </div>
+              <div class="min-w-0">
+                <p class="font-medium text-base-content truncate">
+                  {Ancestry.People.Person.display_name(person)}
+                </p>
+                <%= if person.families != [] do %>
+                  <p class="text-xs text-base-content/40 truncate">
+                    {Enum.map_join(person.families, ", ", & &1.name)}
+                  </p>
+                <% end %>
+              </div>
+            </button>
+          <% end %>
+        </div>
+        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">Cancel</button>
       </div>
     </div>
   <% end %>

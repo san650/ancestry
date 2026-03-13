@@ -21,7 +21,7 @@ defmodule Web.PersonLive.NewTest do
     |> form("#new-person-form", person: %{given_name: "Jane", surname: "Doe", gender: "female"})
     |> render_submit()
 
-    assert_redirect(view, ~p"/families/#{family.id}/members")
+    assert_redirect(view, ~p"/families/#{family.id}")
   end
 
   test "validates form on change", %{conn: conn, family: family} do
