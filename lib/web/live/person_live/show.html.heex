@@ -23,6 +23,13 @@
         >
           <.icon name="hero-user-minus" class="w-4 h-4" /> Remove
         </button>
+        <button
+          id="delete-person-btn"
+          phx-click="request_delete"
+          class="btn btn-ghost btn-sm text-error"
+        >
+          <.icon name="hero-trash" class="w-4 h-4" /> Delete
+        </button>
       </div>
     </div>
   </:toolbar>
@@ -299,6 +306,29 @@
             Remove
           </button>
           <button phx-click="cancel_remove" class="btn btn-ghost flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Delete Confirmation Modal --%>
+  <%= if @confirm_delete do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
+      <div
+        id="confirm-delete-person-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-2">Delete Person</h2>
+        <p class="text-base-content/60 mb-6">
+          Permanently delete <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>?
+          This will remove them from all families. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button id="confirm-delete-btn" phx-click="confirm_delete" class="btn btn-error flex-1">
+            Delete
+          </button>
+          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
         </div>
       </div>
     </div>

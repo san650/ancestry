@@ -18,6 +18,7 @@ defmodule Web.PersonLive.Show do
      |> assign(:person, person)
      |> assign(:editing, false)
      |> assign(:confirm_remove, false)
+     |> assign(:confirm_delete, false)
      |> assign(:form, to_form(People.change_person(person)))
      |> allow_upload(:photo,
        accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
@@ -78,6 +79,20 @@ defmodule Web.PersonLive.Show do
     family = socket.assigns.family
     person = socket.assigns.person
     {:ok, _} = People.remove_from_family(person, family)
+    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/members")}
+  end
+
+  def handle_event("request_delete", _, socket) do
+    {:noreply, assign(socket, :confirm_delete, true)}
+  end
+
+  def handle_event("cancel_delete", _, socket) do
+    {:noreply, assign(socket, :confirm_delete, false)}
+  end
+
+  def handle_event("confirm_delete", _, socket) do
+    family = socket.assigns.family
+    {:ok, _} = People.delete_person(socket.assigns.person)
     {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}/members")}
   end
 
