@@ -87,10 +87,8 @@ defmodule Ancestry.People do
     |> Ecto.Changeset.change(%{photo_status: "pending"})
     |> Repo.update!()
 
-    job_module = Module.concat(Ancestry.Workers, ProcessPersonPhotoJob)
-
     Oban.insert(
-      job_module.new(%{
+      Ancestry.Workers.ProcessPersonPhotoJob.new(%{
         person_id: person.id,
         original_path: original_path
       })
