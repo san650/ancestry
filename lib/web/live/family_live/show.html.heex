@@ -43,12 +43,20 @@
       <% end %>
     </div>
 
-    <.link
-      navigate={~p"/families/#{@family.id}/galleries"}
-      class="btn btn-primary"
-    >
-      <.icon name="hero-photo" class="w-5 h-5" /> View Galleries
-    </.link>
+    <div class="flex gap-3">
+      <.link
+        navigate={~p"/families/#{@family.id}/galleries"}
+        class="btn btn-primary"
+      >
+        <.icon name="hero-photo" class="w-5 h-5" /> View Galleries
+      </.link>
+      <.link
+        navigate={~p"/families/#{@family.id}/members"}
+        class="btn btn-primary"
+      >
+        <.icon name="hero-users" class="w-5 h-5" /> View Members
+      </.link>
+    </div>
   </div>
 
   <%!-- Edit Modal --%>

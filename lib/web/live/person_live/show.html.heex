@@ -12,10 +12,247 @@
           {Ancestry.People.Person.display_name(@person)}
         </h1>
       </div>
+      <div class="flex items-center gap-2">
+        <button id="edit-person-btn" phx-click="edit" class="btn btn-ghost btn-sm">
+          <.icon name="hero-pencil" class="w-4 h-4" /> Edit
+        </button>
+        <button
+          id="remove-from-family-btn"
+          phx-click="request_remove"
+          class="btn btn-ghost btn-sm text-error"
+        >
+          <.icon name="hero-user-minus" class="w-4 h-4" /> Remove
+        </button>
+      </div>
     </div>
   </:toolbar>
 
-  <div class="max-w-2xl mx-auto mt-8">
-    <p class="text-base-content/60">Member details coming soon.</p>
+  <div class="max-w-4xl mx-auto">
+    <div class="flex flex-col md:flex-row gap-8">
+      <%!-- Photo --%>
+      <div class="flex-shrink-0">
+        <div class="w-48 h-48 rounded-2xl bg-base-200 flex items-center justify-center overflow-hidden">
+          <%= if @person.photo && @person.photo_status == "processed" do %>
+            <img
+              src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
+              alt={Ancestry.People.Person.display_name(@person)}
+              class="w-full h-full object-cover"
+            />
+          <% else %>
+            <.icon name="hero-user" class="w-16 h-16 text-base-content/20" />
+          <% end %>
+        </div>
+      </div>
+
+      <%!-- Details --%>
+      <div class="flex-1 space-y-6">
+        <div>
+          <h2 class="text-sm font-medium text-base-content/50 uppercase tracking-wide mb-2">
+            Name
+          </h2>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-base-content">
+            <%= if @person.title do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Title:</span> {@person.title}
+              </div>
+            <% end %>
+            <%= if @person.given_name do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Given name:</span> {@person.given_name}
+              </div>
+            <% end %>
+            <%= if @person.surname do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Surname:</span> {@person.surname}
+              </div>
+            <% end %>
+            <%= if @person.nickname do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Nickname:</span> {@person.nickname}
+              </div>
+            <% end %>
+            <%= if @person.suffix do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Suffix:</span> {@person.suffix}
+              </div>
+            <% end %>
+            <%= if @person.given_name_at_birth do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Given name at birth:</span>
+                {@person.given_name_at_birth}
+              </div>
+            <% end %>
+            <%= if @person.surname_at_birth do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Surname at birth:</span>
+                {@person.surname_at_birth}
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%= if @person.alternate_names != [] do %>
+          <div>
+            <h2 class="text-sm font-medium text-base-content/50 uppercase tracking-wide mb-2">
+              Also Known As
+            </h2>
+            <div class="flex flex-wrap gap-2">
+              <%= for name <- @person.alternate_names do %>
+                <span class="badge badge-outline">{name}</span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+
+        <div>
+          <h2 class="text-sm font-medium text-base-content/50 uppercase tracking-wide mb-2">
+            Details
+          </h2>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-base-content">
+            <%= if @person.birth_year || @person.birth_month || @person.birth_day do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Born:</span>
+                {format_partial_date(@person.birth_day, @person.birth_month, @person.birth_year)}
+              </div>
+            <% end %>
+            <%= if @person.death_year || @person.death_month || @person.death_day do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Died:</span>
+                {format_partial_date(@person.death_day, @person.death_month, @person.death_year)}
+              </div>
+            <% end %>
+            <div>
+              <span class="text-base-content/50 text-sm">Living:</span>
+              {String.capitalize(@person.living)}
+            </div>
+            <%= if @person.gender do %>
+              <div>
+                <span class="text-base-content/50 text-sm">Gender:</span>
+                {String.capitalize(@person.gender)}
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <%!-- Edit Modal --%>
+  <%= if @editing do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
+      <div class="relative card bg-base-100 shadow-2xl w-full max-w-2xl mx-4 my-8 p-8">
+        <h2 class="text-xl font-bold text-base-content mb-6">Edit Member</h2>
+        <.form for={@form} id="edit-person-form" phx-submit="save" phx-change="validate" multipart>
+          <div class="space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <.input field={@form[:title]} label="Title" />
+              <.input field={@form[:given_name]} label="Given name" />
+              <.input field={@form[:nickname]} label="Nickname" />
+              <.input field={@form[:surname]} label="Surname" />
+              <.input field={@form[:suffix]} label="Suffix" />
+              <.input field={@form[:given_name_at_birth]} label="Given name at birth" />
+              <.input field={@form[:surname_at_birth]} label="Surname at birth" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-2">
+                Alternate names (one per line)
+              </label>
+              <textarea
+                name="person[alternate_names_text]"
+                id="edit-person-alternate-names"
+                rows="3"
+                class="textarea textarea-bordered w-full"
+                phx-debounce="300"
+              >{Enum.join(@person.alternate_names, "\n")}</textarea>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <.input field={@form[:birth_day]} type="number" label="Birth day" />
+              <.input field={@form[:birth_month]} type="number" label="Birth month" />
+              <.input field={@form[:birth_year]} type="number" label="Birth year" />
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <.input field={@form[:death_day]} type="number" label="Death day" />
+              <.input field={@form[:death_month]} type="number" label="Death month" />
+              <.input field={@form[:death_year]} type="number" label="Death year" />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <.input
+                field={@form[:living]}
+                type="select"
+                label="Living"
+                options={[{"Yes", "yes"}, {"No", "no"}, {"Unknown", "unknown"}]}
+              />
+              <.input
+                field={@form[:gender]}
+                type="select"
+                label="Gender"
+                prompt="Select..."
+                options={[{"Female", "female"}, {"Male", "male"}, {"Other", "other"}]}
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-2">Photo</label>
+              <.live_file_input
+                upload={@uploads.photo}
+                class="file-input file-input-bordered w-full"
+              />
+
+              <%= for entry <- @uploads.photo.entries do %>
+                <div class="mt-3 flex items-center gap-3">
+                  <.live_img_preview entry={entry} class="w-16 h-16 rounded-lg object-cover" />
+                  <p class="text-sm truncate flex-1">{entry.client_name}</p>
+                  <button
+                    type="button"
+                    phx-click="cancel_upload"
+                    phx-value-ref={entry.ref}
+                    class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+                  >
+                    <.icon name="hero-x-mark" class="w-4 h-4" />
+                  </button>
+                </div>
+              <% end %>
+
+              <%= for err <- upload_errors(@uploads.photo) do %>
+                <p class="text-error text-sm mt-2">{upload_error_to_string(err)}</p>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button type="submit" class="btn btn-primary flex-1">Save</button>
+            <button type="button" phx-click="cancel_edit" class="btn btn-ghost flex-1">
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Remove Confirmation Modal --%>
+  <%= if @confirm_remove do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
+      <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
+        <h2 class="text-xl font-bold text-base-content mb-2">Remove from Family</h2>
+        <p class="text-base-content/60 mb-6">
+          Remove <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>
+          from <span class="font-semibold">{@family.name}</span>?
+          The person will still exist and can be linked to other families.
+        </p>
+        <div class="flex gap-3">
+          <button id="confirm-remove-btn" phx-click="confirm_remove" class="btn btn-error flex-1">
+            Remove
+          </button>
+          <button phx-click="cancel_remove" class="btn btn-ghost flex-1">Cancel</button>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </Layouts.app>
