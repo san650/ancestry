@@ -29,16 +29,28 @@
         id={id}
         class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
       >
-        <.link navigate={~p"/families/#{family.id}/galleries"} class="block p-6">
-          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <.icon name="hero-users" class="w-6 h-6 text-primary" />
+        <.link navigate={~p"/families/#{family.id}/galleries"} class="block">
+          <%= if family.cover do %>
+            <div class="h-32 overflow-hidden">
+              <img
+                src={Ancestry.Uploaders.FamilyCover.url({family.cover, family}, :cover)}
+                alt={family.name}
+                class="w-full h-full object-cover"
+              />
+            </div>
+          <% else %>
+            <div class="h-32 bg-base-200 flex items-center justify-center">
+              <.icon name="hero-users" class="w-8 h-8 text-base-content/20" />
+            </div>
+          <% end %>
+          <div class="p-4">
+            <h2 data-family-name class="text-lg font-semibold text-base-content truncate">
+              {family.name}
+            </h2>
+            <p class="text-sm text-base-content/50 mt-1">
+              {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
+            </p>
           </div>
-          <h2 data-family-name class="text-lg font-semibold text-base-content truncate">
-            {family.name}
-          </h2>
-          <p class="text-sm text-base-content/50 mt-1">
-            {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
-          </p>
         </.link>
         <button
           id={"delete-family-#{family.id}"}
