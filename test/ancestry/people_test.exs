@@ -159,6 +159,25 @@ defmodule Ancestry.PeopleTest do
       assert length(People.search_people("bob", family.id)) == 0
     end
 
+    test "searches by alternate_names" do
+      family1 = family_fixture(%{name: "Family One"})
+      family2 = family_fixture(%{name: "Family Two"})
+
+      {:ok, _} =
+        People.create_person(family1, %{
+          given_name: "Robert",
+          surname: "Smith",
+          alternate_names: ["Bobby", "Rob"]
+        })
+
+      results = People.search_people("Bobby", family2.id)
+      assert length(results) == 1
+      assert hd(results).given_name == "Robert"
+
+      results = People.search_people("Rob", family2.id)
+      assert length(results) == 1
+    end
+
     test "excludes people already in the family" do
       family1 = family_fixture(%{name: "Family One"})
       family2 = family_fixture(%{name: "Family Two"})

@@ -62,7 +62,13 @@ defmodule Ancestry.People do
   end
 
   def search_people(query, exclude_family_id) do
-    like = "%#{query}%"
+    escaped =
+      query
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
+    like = "%#{escaped}%"
 
     Repo.all(
       from p in Person,
