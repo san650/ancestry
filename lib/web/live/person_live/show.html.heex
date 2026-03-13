@@ -1,0 +1,21 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/families/#{@family.id}/members"}
+          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-2xl font-bold text-base-content">
+          {Ancestry.People.Person.display_name(@person)}
+        </h1>
+      </div>
+    </div>
+  </:toolbar>
+
+  <div class="max-w-2xl mx-auto mt-8">
+    <p class="text-base-content/60">Member details coming soon.</p>
+  </div>
+</Layouts.app>

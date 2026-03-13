@@ -1,0 +1,138 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/families/#{@family.id}/members"}
+          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-2xl font-bold text-base-content">New Member</h1>
+      </div>
+    </div>
+  </:toolbar>
+
+  <div class="max-w-2xl mx-auto mt-8">
+    <.form
+      for={@form}
+      id="new-person-form"
+      phx-submit="save"
+      phx-change="validate"
+      multipart
+    >
+      <div class="space-y-8">
+        <%!-- Name section --%>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content mb-4">Name</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <.input field={@form[:title]} label="Title" placeholder="e.g. Dr., Sir" />
+            <.input field={@form[:given_name]} label="Given name" />
+            <.input field={@form[:nickname]} label="Nickname" />
+            <.input field={@form[:surname]} label="Surname" />
+            <.input field={@form[:suffix]} label="Suffix" placeholder="e.g. Jr., III" />
+            <.input field={@form[:given_name_at_birth]} label="Given name at birth" />
+            <.input field={@form[:surname_at_birth]} label="Surname at birth" />
+          </div>
+        </div>
+
+        <%!-- Alternate names --%>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content mb-4">Alternate Names</h2>
+          <p class="text-sm text-base-content/50 mb-3">Also known as (one per line)</p>
+          <textarea
+            name="person[alternate_names_text]"
+            id="person-alternate-names"
+            rows="3"
+            class="textarea textarea-bordered w-full"
+            phx-debounce="300"
+          ></textarea>
+        </div>
+
+        <%!-- Dates section --%>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content mb-4">Dates</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-2">Date of birth</label>
+              <div class="grid grid-cols-3 gap-3">
+                <.input field={@form[:birth_day]} type="number" placeholder="Day" />
+                <.input field={@form[:birth_month]} type="number" placeholder="Month" />
+                <.input field={@form[:birth_year]} type="number" placeholder="Year" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-base-content mb-2">Date of death</label>
+              <div class="grid grid-cols-3 gap-3">
+                <.input field={@form[:death_day]} type="number" placeholder="Day" />
+                <.input field={@form[:death_month]} type="number" placeholder="Month" />
+                <.input field={@form[:death_year]} type="number" placeholder="Year" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <%!-- Status section --%>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content mb-4">Details</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <.input
+              field={@form[:living]}
+              type="select"
+              label="Living"
+              options={[{"Yes", "yes"}, {"No", "no"}, {"Unknown", "unknown"}]}
+            />
+            <.input
+              field={@form[:gender]}
+              type="select"
+              label="Gender"
+              prompt="Select..."
+              options={[{"Female", "female"}, {"Male", "male"}, {"Other", "other"}]}
+            />
+          </div>
+        </div>
+
+        <%!-- Photo section --%>
+        <div>
+          <h2 class="text-lg font-semibold text-base-content mb-4">Photo</h2>
+          <.live_file_input upload={@uploads.photo} class="file-input file-input-bordered w-full" />
+
+          <%= for entry <- @uploads.photo.entries do %>
+            <div class="mt-3 flex items-center gap-3">
+              <.live_img_preview entry={entry} class="w-20 h-20 rounded-lg object-cover" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-base-content truncate">{entry.client_name}</p>
+                <div class="mt-1 h-1.5 bg-base-200 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-primary rounded-full transition-all duration-300"
+                    style={"width: #{entry.progress}%"}
+                  >
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                phx-click="cancel_upload"
+                phx-value-ref={entry.ref}
+                class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+              >
+                <.icon name="hero-x-mark" class="w-4 h-4" />
+              </button>
+            </div>
+          <% end %>
+
+          <%= for err <- upload_errors(@uploads.photo) do %>
+            <p class="text-error text-sm mt-2">{upload_error_to_string(err)}</p>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-8">
+        <button type="submit" class="btn btn-primary flex-1">Create</button>
+        <.link navigate={~p"/families/#{@family.id}/members"} class="btn btn-ghost flex-1">
+          Cancel
+        </.link>
+      </div>
+    </.form>
+  </div>
+</Layouts.app>
