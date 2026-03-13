@@ -29,7 +29,7 @@
         id={id}
         class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
       >
-        <.link navigate={~p"/families/#{family.id}/galleries"} class="block">
+        <.link navigate={~p"/families/#{family.id}"} class="block">
           <%= if family.cover do %>
             <div class="h-32 overflow-hidden">
               <img
