@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a family photo gallery web application built with Phoenix LiveView.
 
+**OTP app:** `:ancestry`
+
 ## Commands
 
-- `mix setup` — install deps, create/migrate DB, build assets
+- `mix setup` — install deps, create/migrate DB, seed default family, build assets
 - `mix test` — run all tests (auto-creates/migrates test DB)
 - `mix test test/path/to_test.exs` — run a single test file
 - `mix test --failed` — re-run only previously failed tests
@@ -15,24 +17,39 @@ This is a family photo gallery web application built with Phoenix LiveView.
 
 ## Architecture
 
-**Module naming:** The web layer uses `Web` (not `FamilyWeb`) as the module namespace. Business logic lives under `Family.*`.
+**Module naming:** The web layer uses `Web` (not `AncestryWeb`) as the module namespace. Business logic lives under `Ancestry.*`.
 
 ```
 lib/
-  family/           # Business logic (contexts, schemas, workers)
-    galleries.ex    # Galleries context — primary public API for photos and galleries
+  ancestry/           # Business logic (contexts, schemas, workers)
+    families.ex       # Families context — CRUD for families + cover photos
+    families/
+      family.ex       # Family schema (tenant entity, has_many galleries)
+    galleries.ex      # Galleries context — primary public API for photos and galleries
     galleries/
-      gallery.ex    # Gallery schema
-      photo.ex      # Photo schema (uses Waffle.Ecto for file attachments)
+      gallery.ex      # Gallery schema (belongs_to family)
+      photo.ex        # Photo schema (uses Waffle.Ecto for file attachments)
     uploaders/
-      photo.ex      # Waffle uploader — produces :original, :large, :thumbnail versions via ImageMagick
+      family_cover.ex # Waffle uploader — produces :original, :thumbnail for family cover photos
+      photo.ex        # Waffle uploader — produces :original, :large, :thumbnail versions via ImageMagick
     workers/
-      process_photo_job.ex  # Oban job that runs ImageMagick and broadcasts via PubSub
-  web/              # Phoenix web layer
+      process_family_cover_job.ex  # Oban job for family cover image processing
+      process_photo_job.ex         # Oban job that runs ImageMagick and broadcasts via PubSub
+  web/                # Phoenix web layer
     live/
-      gallery_live/ # GalleryLive.Index and GalleryLive.Show
+      family_live/    # FamilyLive.Index, FamilyLive.New, FamilyLive.Show
+      gallery_live/   # GalleryLive.Index and GalleryLive.Show
     router.ex
 ```
+
+**URL structure:** All routes are nested under families:
+- `/` — family index (homepage)
+- `/families/new` — create a new family
+- `/families/:family_id` — family detail page
+- `/families/:family_id/galleries` — galleries for a family
+- `/families/:family_id/galleries/:id` — gallery detail with photos
+
+**Family as tenant:** Family is the top-level entity. Galleries belong to a family, and photos belong to a gallery. All gallery routes are scoped under `/families/:family_id/`.
 
 **Photo processing flow:**
 1. User uploads via LiveView `allow_upload` (up to 10 files, 300MB each)
@@ -41,6 +58,8 @@ lib/
 4. The job runs Waffle/ImageMagick to produce `:original`, `:large`, `:thumbnail` versions stored at `priv/static/uploads/photos/{gallery_id}/{photo_id}/`
 5. On completion/failure, the job broadcasts `{:photo_processed, photo}` or `{:photo_failed, photo}` over PubSub topic `"gallery:{id}"`
 6. The `GalleryLive.Show` LiveView subscribes to this topic and updates the stream
+
+**Family cover processing flow:** Parallel to photo processing — uploading a cover image on `FamilyLive.Show` inserts a `ProcessFamilyCoverJob` (queue: `:photos`). On completion/failure, it broadcasts `{:cover_processed, family}` or `{:cover_failed, family}` over PubSub topic `"family:{id}"`.
 
 **Photo statuses:** `"pending"` → `"processed"` or `"failed"`
 
