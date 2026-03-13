@@ -1,6 +1,7 @@
 defmodule Ancestry.PeopleTest do
   use Ancestry.DataCase, async: true
 
+  alias Ancestry.People
   alias Ancestry.People.Person
 
   describe "person changeset" do
@@ -52,5 +53,139 @@ defmodule Ancestry.PeopleTest do
       person = %Person{given_name: "John", surname: nil}
       assert Person.display_name(person) == "John"
     end
+  end
+
+  describe "create_person/2" do
+    test "creates a person and adds to family" do
+      family = family_fixture()
+
+      assert {:ok, %Person{} = person} =
+               People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+
+      assert person.given_name == "Jane"
+      assert person.surname == "Doe"
+
+      people = People.list_people_for_family(family.id)
+      assert length(people) == 1
+      assert hd(people).id == person.id
+    end
+
+    test "returns error changeset with invalid living value" do
+      family = family_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               People.create_person(family, %{given_name: "J", surname: "D", living: "maybe"})
+    end
+  end
+
+  describe "list_people_for_family/1" do
+    test "returns only people in the given family" do
+      family1 = family_fixture(%{name: "Family One"})
+      family2 = family_fixture(%{name: "Family Two"})
+      {:ok, person1} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
+      {:ok, _person2} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
+
+      people = People.list_people_for_family(family1.id)
+      assert length(people) == 1
+      assert hd(people).id == person1.id
+    end
+  end
+
+  describe "get_person!/1" do
+    test "returns the person" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+      fetched = People.get_person!(person.id)
+      assert fetched.id == person.id
+    end
+  end
+
+  describe "update_person/2" do
+    test "updates person fields" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+      assert {:ok, updated} = People.update_person(person, %{given_name: "Janet"})
+      assert updated.given_name == "Janet"
+    end
+  end
+
+  describe "delete_person/1" do
+    test "deletes the person" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+      assert {:ok, _} = People.delete_person(person)
+      assert_raise Ecto.NoResultsError, fn -> People.get_person!(person.id) end
+    end
+  end
+
+  describe "add_to_family/2 and remove_from_family/2" do
+    test "adds an existing person to another family" do
+      family1 = family_fixture(%{name: "Family One"})
+      family2 = family_fixture(%{name: "Family Two"})
+      {:ok, person} = People.create_person(family1, %{given_name: "Jane", surname: "Doe"})
+
+      assert {:ok, _} = People.add_to_family(person, family2)
+      assert length(People.list_people_for_family(family2.id)) == 1
+    end
+
+    test "add_to_family returns error for duplicate membership" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+      assert {:error, _} = People.add_to_family(person, family)
+    end
+
+    test "removes a person from a family" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+      assert {:ok, _} = People.remove_from_family(person, family)
+      assert People.list_people_for_family(family.id) == []
+    end
+  end
+
+  describe "search_people/2" do
+    test "searches by given_name, surname, nickname" do
+      family = family_fixture()
+
+      {:ok, _} =
+        People.create_person(family, %{
+          given_name: "Alice",
+          surname: "Wonderland",
+          nickname: "Ali"
+        })
+
+      {:ok, _} = People.create_person(family, %{given_name: "Bob", surname: "Builder"})
+
+      assert length(People.search_people("alice", family.id)) == 0
+      assert length(People.search_people("bob", family.id)) == 0
+    end
+
+    test "excludes people already in the family" do
+      family1 = family_fixture(%{name: "Family One"})
+      family2 = family_fixture(%{name: "Family Two"})
+      {:ok, _} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
+      {:ok, _} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
+
+      results = People.search_people("Bob", family1.id)
+      assert length(results) == 1
+      assert hd(results).given_name == "Bob"
+
+      results = People.search_people("Bob", family2.id)
+      assert length(results) == 0
+    end
+  end
+
+  describe "change_person/2" do
+    test "returns a changeset" do
+      assert %Ecto.Changeset{} = People.change_person(%Person{})
+    end
+  end
+
+  defp family_fixture(attrs \\ %{}) do
+    {:ok, family} =
+      attrs
+      |> Enum.into(%{name: "Test Family"})
+      |> Ancestry.Families.create_family()
+
+    family
   end
 end
