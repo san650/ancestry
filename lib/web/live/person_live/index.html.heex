@@ -8,20 +8,114 @@
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">Members</h1>
+        <h1 class="text-2xl font-bold text-base-content">{@family.name} — Members</h1>
       </div>
-      <.link
-        navigate={~p"/families/#{@family.id}/members/new"}
-        class="btn btn-primary btn-sm"
-      >
-        Add Member
-      </.link>
+      <div class="flex items-center gap-2">
+        <button
+          id="link-existing-btn"
+          phx-click="open_search"
+          class="btn btn-ghost btn-sm"
+        >
+          <.icon name="hero-magnifying-glass" class="w-4 h-4" /> Link Existing
+        </button>
+        <.link
+          id="add-member-btn"
+          navigate={~p"/families/#{@family.id}/members/new"}
+          class="btn btn-primary btn-sm"
+        >
+          <.icon name="hero-plus" class="w-4 h-4" /> Add Member
+        </.link>
+      </div>
     </div>
   </:toolbar>
 
-  <div id="people" phx-update="stream" class="max-w-7xl mx-auto mt-8 space-y-2">
-    <div :for={{id, person} <- @streams.people} id={id} class="p-4 bg-base-100 rounded-lg shadow-sm">
-      {Ancestry.People.Person.display_name(person)}
+  <div class="max-w-7xl mx-auto">
+    <div
+      id="members"
+      phx-update="stream"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
+    >
+      <div
+        id="members-empty"
+        class="hidden only:block col-span-full text-center py-20 text-base-content/40"
+      >
+        No members yet. Add your first family member.
+      </div>
+      <.link
+        :for={{id, person} <- @streams.members}
+        id={id}
+        navigate={~p"/families/#{@family.id}/members/#{person.id}"}
+        class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <%= if person.photo && person.photo_status == "processed" do %>
+              <img
+                src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                alt={Ancestry.People.Person.display_name(person)}
+                class="w-full h-full object-cover"
+              />
+            <% else %>
+              <.icon name="hero-user" class="w-7 h-7 text-primary" />
+            <% end %>
+          </div>
+          <div class="min-w-0">
+            <h2 class="text-lg font-semibold text-base-content truncate">
+              {Ancestry.People.Person.display_name(person)}
+            </h2>
+            <%= if person.birth_year do %>
+              <p class="text-sm text-base-content/50">b. {person.birth_year}</p>
+            <% end %>
+          </div>
+        </div>
+      </.link>
     </div>
   </div>
+
+  <%!-- Search/Link Existing Modal --%>
+  <%= if @search_mode do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
+      <div
+        id="link-person-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
+        <input
+          id="person-search-input"
+          type="text"
+          name="query"
+          value={@search_query}
+          placeholder="Search by name..."
+          phx-keyup="search"
+          phx-debounce="300"
+          autofocus
+          class="input input-bordered w-full mb-4"
+        />
+        <div class="max-h-64 overflow-y-auto space-y-2">
+          <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
+            <p class="text-base-content/40 text-sm text-center py-4">No results found</p>
+          <% end %>
+          <%= for person <- @search_results do %>
+            <button
+              id={"link-person-#{person.id}"}
+              phx-click="link_person"
+              phx-value-id={person.id}
+              class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+            >
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <.icon name="hero-user" class="w-5 h-5 text-primary" />
+              </div>
+              <div class="min-w-0">
+                <p class="font-medium text-base-content truncate">
+                  {Ancestry.People.Person.display_name(person)}
+                </p>
+              </div>
+            </button>
+          <% end %>
+        </div>
+        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">Cancel</button>
+      </div>
+    </div>
+  <% end %>
 </Layouts.app>
