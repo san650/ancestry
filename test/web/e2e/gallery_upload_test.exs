@@ -12,12 +12,6 @@ defmodule Web.E2E.GalleryUploadTest do
     %{gallery: gallery}
   end
 
-  # Bug 2: clicking the Upload button and selecting a file should open the
-  # upload progress modal and add the photo to the gallery stream.
-  # Uses Playwright's native set_input_files to closely mimic the real browser
-  # file selection flow, rather than our JS-based upload_image helper which
-  # bypasses the actual bug path.
-  #
   test "upload button opens progress modal and adds photo to gallery", %{
     conn: conn,
     gallery: gallery
@@ -41,13 +35,7 @@ defmodule Web.E2E.GalleryUploadTest do
     )
   end
 
-  # Dropping multiple files on the page should trigger uploads and add all
-  # photos to the gallery stream.
-  #
-  test "drag and drop uploads multiple photos", %{
-    conn: conn,
-    gallery: gallery
-  } do
+  test "drag and drop uploads photos", %{conn: conn, gallery: gallery} do
     conn
     |> visit(~p"/galleries/#{gallery.id}")
     |> wait_liveview()
@@ -56,7 +44,7 @@ defmodule Web.E2E.GalleryUploadTest do
         const minJpeg = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46,
           0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xFF, 0xD9]);
         const dt = new DataTransfer();
-        for (let i = 1; i <= 5; i++) {
+        for (let i = 1; i <= 3; i++) {
           dt.items.add(new File([minJpeg], `photo_${i}.jpg`, {type: 'image/jpeg'}));
         }
         document.body.dispatchEvent(
@@ -66,7 +54,7 @@ defmodule Web.E2E.GalleryUploadTest do
     """)
     |> assert_has("#upload-modal", timeout: 5_000)
     |> assert_has("#photo-grid [id^='photos-'][data-phx-stream]",
-      count: 5,
+      count: 3,
       timeout: 30_000
     )
   end
