@@ -114,8 +114,12 @@ defmodule Web.GalleryLive.Show do
      |> assign(:confirm_delete_photos, false)}
   end
 
-  def handle_event("open_lightbox", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(id))}
+  def handle_event("photo_clicked", %{"id" => id}, socket) do
+    if socket.assigns.selection_mode do
+      handle_event("toggle_photo_select", %{"id" => to_string(id)}, socket)
+    else
+      {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(id))}
+    end
   end
 
   def handle_event("close_lightbox", _, socket) do

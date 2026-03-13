@@ -58,6 +58,97 @@ defmodule Web.GalleryLive.ShowTest do
     assert has_element?(view, "#photos-#{photo.id}")
   end
 
+  describe "photo selection and deletion" do
+    setup %{gallery: gallery} do
+      photos =
+        for i <- 1..3 do
+          {:ok, photo} =
+            Galleries.create_photo(%{
+              gallery_id: gallery.id,
+              original_path: "/tmp/photo#{i}.jpg",
+              original_filename: "photo#{i}.jpg",
+              content_type: "image/jpeg"
+            })
+
+          photo
+        end
+
+      %{photos: photos}
+    end
+
+    test "clicking a photo in select mode toggles selection instead of opening lightbox",
+         %{conn: conn, gallery: gallery, family: family, photos: [p1 | _]} do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+
+      # Enter select mode
+      view |> element("#select-btn") |> render_click()
+      assert has_element?(view, "#selection-bar")
+
+      # Click a photo — should select it, not open lightbox
+      view |> element("#photos-#{p1.id}") |> render_click()
+      assert has_element?(view, "#selection-bar", "1 selected")
+      refute has_element?(view, "#lightbox")
+    end
+
+    test "selecting and deselecting a photo toggles the count",
+         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2 | _]} do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      view |> element("#select-btn") |> render_click()
+
+      # Select two photos
+      view |> element("#photos-#{p1.id}") |> render_click()
+      view |> element("#photos-#{p2.id}") |> render_click()
+      assert has_element?(view, "#selection-bar", "2 selected")
+
+      # Deselect one
+      view |> element("#photos-#{p1.id}") |> render_click()
+      assert has_element?(view, "#selection-bar", "1 selected")
+    end
+
+    test "deleting selected photos removes only those photos",
+         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2, p3]} do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+
+      # Enter select mode, select p1 and p3 only
+      view |> element("#select-btn") |> render_click()
+      view |> element("#photos-#{p1.id}") |> render_click()
+      view |> element("#photos-#{p3.id}") |> render_click()
+      assert has_element?(view, "#selection-bar", "2 selected")
+
+      # Request deletion — confirmation modal should appear
+      view |> element("button", "Delete") |> render_click()
+      assert has_element?(view, "p", "This cannot be undone")
+
+      # Confirm deletion
+      view |> element("button.btn-error", "Delete") |> render_click()
+
+      # Selected photos are gone, unselected photo remains
+      refute has_element?(view, "#photos-#{p1.id}")
+      refute has_element?(view, "#photos-#{p3.id}")
+      assert has_element?(view, "#photos-#{p2.id}")
+
+      # Selection mode is exited
+      refute has_element?(view, "#selection-bar")
+    end
+
+    test "cancelling delete keeps all photos",
+         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2, p3]} do
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+
+      view |> element("#select-btn") |> render_click()
+      view |> element("#photos-#{p1.id}") |> render_click()
+
+      # Request then cancel deletion
+      view |> element("button", "Delete") |> render_click()
+      view |> element("button.btn-ghost", "Cancel") |> render_click()
+
+      # All photos still present
+      assert has_element?(view, "#photos-#{p1.id}")
+      assert has_element?(view, "#photos-#{p2.id}")
+      assert has_element?(view, "#photos-#{p3.id}")
+    end
+  end
+
   describe "upload modal" do
     test "uploading a file opens the modal and shows progress", %{
       conn: conn,
