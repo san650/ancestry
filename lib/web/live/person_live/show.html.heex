@@ -116,6 +116,16 @@
           <%!-- Photo section --%>
           <div>
             <h2 class="text-lg font-semibold text-base-content mb-4">Photo</h2>
+            <%= if @person.photo && @person.photo_status == "processed" && @uploads.photo.entries == [] do %>
+              <div class="mb-4 flex items-center gap-4">
+                <img
+                  src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
+                  alt="Current photo"
+                  class="w-20 h-20 rounded-lg object-cover"
+                />
+                <p class="text-sm text-base-content/50">Current photo</p>
+              </div>
+            <% end %>
             <.live_file_input
               upload={@uploads.photo}
               class="file-input file-input-bordered w-full"
