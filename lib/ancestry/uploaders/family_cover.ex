@@ -3,7 +3,7 @@ defmodule Ancestry.Uploaders.FamilyCover do
   use Waffle.Ecto.Definition
 
   @versions [:cover]
-  @valid_extensions ~w(.jpg .jpeg .png .webp)
+  @valid_extensions ~w(.jpg .jpeg .png .webp .tif .tiff)
 
   def validate({file, _}) do
     file.file_name
