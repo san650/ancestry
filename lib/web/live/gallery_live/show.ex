@@ -66,7 +66,8 @@ defmodule Web.GalleryLive.Show do
     {:noreply,
      socket
      |> assign(:selection_mode, !socket.assigns.selection_mode)
-     |> assign(:selected_ids, MapSet.new())}
+     |> assign(:selected_ids, MapSet.new())
+     |> stream(:photos, Galleries.list_photos(socket.assigns.gallery.id), reset: true)}
   end
 
   def handle_event("toggle_photo_select", %{"id" => id}, socket) do
@@ -77,7 +78,12 @@ defmodule Web.GalleryLive.Show do
         do: MapSet.delete(socket.assigns.selected_ids, id),
         else: MapSet.put(socket.assigns.selected_ids, id)
 
-    {:noreply, assign(socket, :selected_ids, selected)}
+    photo = Galleries.get_photo!(id)
+
+    {:noreply,
+     socket
+     |> assign(:selected_ids, selected)
+     |> stream_insert(:photos, photo)}
   end
 
   def handle_event("upload_photos", _params, socket) do
@@ -111,7 +117,8 @@ defmodule Web.GalleryLive.Show do
      socket
      |> assign(:selection_mode, false)
      |> assign(:selected_ids, MapSet.new())
-     |> assign(:confirm_delete_photos, false)}
+     |> assign(:confirm_delete_photos, false)
+     |> stream(:photos, Galleries.list_photos(socket.assigns.gallery.id), reset: true)}
   end
 
   def handle_event("photo_clicked", %{"id" => id}, socket) do

@@ -112,7 +112,11 @@
         id={id}
         class={[
           "relative group rounded-xl overflow-hidden bg-base-200 cursor-pointer",
-          @grid_layout == :masonry && "mb-2 break-inside-avoid"
+          @grid_layout == :masonry && "mb-2 break-inside-avoid",
+          if(@selection_mode && MapSet.member?(@selected_ids, photo.id),
+            do: "outline outline-3 outline-primary outline-offset-2",
+            else: "outline outline-3 outline-transparent outline-offset-2"
+          )
         ]}
         phx-click={JS.push("photo_clicked", value: %{id: photo.id})}
       >
