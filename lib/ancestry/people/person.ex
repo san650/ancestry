@@ -50,6 +50,7 @@ defmodule Ancestry.People.Person do
   def changeset(person, attrs) do
     person
     |> cast(attrs, @cast_fields)
+    |> default_birth_names()
     |> validate_inclusion(:living, ~w(yes no unknown))
     |> validate_inclusion(:gender, ~w(female male other))
     |> validate_number(:birth_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
@@ -58,6 +59,20 @@ defmodule Ancestry.People.Person do
     |> validate_number(:death_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
     |> validate_number(:death_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)
     |> validate_number(:death_year, greater_than_or_equal_to: 1, less_than_or_equal_to: 9999)
+  end
+
+  defp default_birth_names(changeset) do
+    changeset
+    |> maybe_default(:given_name_at_birth, :given_name)
+    |> maybe_default(:surname_at_birth, :surname)
+  end
+
+  defp maybe_default(changeset, birth_field, source_field) do
+    if get_field(changeset, birth_field) do
+      changeset
+    else
+      put_change(changeset, birth_field, get_field(changeset, source_field))
+    end
   end
 
   def photo_changeset(person, attrs) do

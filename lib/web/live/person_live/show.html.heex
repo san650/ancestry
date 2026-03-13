@@ -205,13 +205,13 @@
                   <span class="text-base-content/50 text-sm">Suffix:</span> {@person.suffix}
                 </div>
               <% end %>
-              <%= if @person.given_name_at_birth do %>
+              <%= if @person.given_name_at_birth && @person.given_name_at_birth != @person.given_name do %>
                 <div>
                   <span class="text-base-content/50 text-sm">Given name at birth:</span>
                   {@person.given_name_at_birth}
                 </div>
               <% end %>
-              <%= if @person.surname_at_birth do %>
+              <%= if @person.surname_at_birth && @person.surname_at_birth != @person.surname do %>
                 <div>
                   <span class="text-base-content/50 text-sm">Surname at birth:</span>
                   {@person.surname_at_birth}
