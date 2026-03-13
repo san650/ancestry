@@ -43,19 +43,111 @@
       <% end %>
     </div>
 
-    <div class="flex gap-3">
-      <.link
-        navigate={~p"/families/#{@family.id}/galleries"}
-        class="btn btn-primary"
+    <%!-- Members section --%>
+    <div class="mb-10">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-base-content">Members</h2>
+        <.link
+          navigate={~p"/families/#{@family.id}/members"}
+          class="btn btn-ghost btn-sm"
+        >
+          View All <.icon name="hero-arrow-right" class="w-4 h-4" />
+        </.link>
+      </div>
+      <div
+        id="members"
+        phx-update="stream"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
       >
-        <.icon name="hero-photo" class="w-5 h-5" /> View Galleries
-      </.link>
-      <.link
-        navigate={~p"/families/#{@family.id}/members"}
-        class="btn btn-primary"
+        <div
+          id="members-empty"
+          class="hidden only:block col-span-full text-center py-12 text-base-content/40"
+        >
+          No members yet.
+          <.link navigate={~p"/families/#{@family.id}/members/new"} class="link link-primary">
+            Add your first member
+          </.link>
+        </div>
+        <.link
+          :for={{id, person} <- @streams.members}
+          id={id}
+          navigate={~p"/families/#{@family.id}/members/#{person.id}"}
+          class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-5"
+        >
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <%= if person.photo && person.photo_status == "processed" do %>
+                <img
+                  src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                  alt={Ancestry.People.Person.display_name(person)}
+                  class="w-full h-full object-cover"
+                />
+              <% else %>
+                <.icon name="hero-user" class="w-7 h-7 text-primary" />
+              <% end %>
+            </div>
+            <div class="min-w-0">
+              <h3 class="font-semibold text-base-content truncate">
+                {Ancestry.People.Person.display_name(person)}
+              </h3>
+              <%= if person.birth_year || person.birth_month || person.birth_day do %>
+                <p class="text-sm text-base-content/50">
+                  b. {format_partial_date(person.birth_day, person.birth_month, person.birth_year)}
+                </p>
+              <% end %>
+              <%= if person.death_year || person.death_month || person.death_day do %>
+                <p class="text-sm text-base-content/50">
+                  d. {format_partial_date(person.death_day, person.death_month, person.death_year)}
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </.link>
+      </div>
+    </div>
+
+    <%!-- Galleries section --%>
+    <div class="mb-10">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-base-content">Galleries</h2>
+        <.link
+          navigate={~p"/families/#{@family.id}/galleries"}
+          class="btn btn-ghost btn-sm"
+        >
+          View All <.icon name="hero-arrow-right" class="w-4 h-4" />
+        </.link>
+      </div>
+      <div
+        id="galleries"
+        phx-update="stream"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
       >
-        <.icon name="hero-users" class="w-5 h-5" /> View Members
-      </.link>
+        <div
+          id="galleries-empty"
+          class="hidden only:block col-span-full text-center py-12 text-base-content/40"
+        >
+          No galleries yet.
+          <.link navigate={~p"/families/#{@family.id}/galleries"} class="link link-primary">
+            Create your first gallery
+          </.link>
+        </div>
+        <.link
+          :for={{id, gallery} <- @streams.galleries}
+          id={id}
+          navigate={~p"/families/#{@family.id}/galleries/#{gallery.id}"}
+          class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
+        >
+          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+            <.icon name="hero-photo" class="w-6 h-6 text-primary" />
+          </div>
+          <h3 class="text-lg font-semibold text-base-content truncate">
+            {gallery.name}
+          </h3>
+          <p class="text-sm text-base-content/50 mt-1">
+            {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
+          </p>
+        </.link>
+      </div>
     </div>
   </div>
 

@@ -2,6 +2,9 @@ defmodule Web.FamilyLive.Show do
   use Web, :live_view
 
   alias Ancestry.Families
+  alias Ancestry.Galleries
+  alias Ancestry.People
+
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
@@ -15,7 +18,9 @@ defmodule Web.FamilyLive.Show do
      |> assign(:family, family)
      |> assign(:editing, false)
      |> assign(:confirm_delete, false)
-     |> assign(:form, to_form(Families.change_family(family)))}
+     |> assign(:form, to_form(Families.change_family(family)))
+     |> stream(:galleries, Galleries.list_galleries(family_id))
+     |> stream(:members, People.list_people_for_family(family_id))}
   end
 
   @impl true
@@ -74,5 +79,14 @@ defmodule Web.FamilyLive.Show do
 
   def handle_info({:cover_failed, family}, socket) do
     {:noreply, assign(socket, :family, family)}
+  end
+
+  defp format_partial_date(day, month, year) do
+    [day, month, year]
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> ""
+      parts -> Enum.join(parts, "/")
+    end
   end
 end
