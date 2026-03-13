@@ -3,10 +3,12 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
   use Oban.Testing, repo: Ancestry.Repo
 
   alias Ancestry.Workers.ProcessPhotoJob
+  alias Ancestry.Families
   alias Ancestry.Galleries
 
   setup do
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
+    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
 
     tmp_dir = Path.join(System.tmp_dir!(), "photo_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(tmp_dir)

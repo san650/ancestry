@@ -1,45 +1,56 @@
 defmodule Ancestry.GalleriesTest do
   use Ancestry.DataCase, async: true
 
+  alias Ancestry.Families
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
 
+  setup do
+    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    %{family: family}
+  end
+
   describe "galleries" do
-    test "list_galleries/0 returns all galleries ordered by inserted_at" do
-      g1 = gallery_fixture(%{name: "Alpha"})
-      g2 = gallery_fixture(%{name: "Beta"})
-      assert Galleries.list_galleries() == [g1, g2]
+    test "list_galleries/1 returns all galleries for a family ordered by inserted_at", %{
+      family: family
+    } do
+      g1 = gallery_fixture(%{name: "Alpha", family_id: family.id})
+      g2 = gallery_fixture(%{name: "Beta", family_id: family.id})
+      assert Galleries.list_galleries(family.id) == [g1, g2]
     end
 
-    test "get_gallery!/1 returns the gallery with given id" do
-      gallery = gallery_fixture()
+    test "get_gallery!/1 returns the gallery with given id", %{family: family} do
+      gallery = gallery_fixture(%{family_id: family.id})
       assert Galleries.get_gallery!(gallery.id) == gallery
     end
 
-    test "create_gallery/1 with valid data creates a gallery" do
-      assert {:ok, %Gallery{} = gallery} = Galleries.create_gallery(%{name: "Vacation 2025"})
+    test "create_gallery/1 with valid data creates a gallery", %{family: family} do
+      assert {:ok, %Gallery{} = gallery} =
+               Galleries.create_gallery(%{name: "Vacation 2025", family_id: family.id})
+
       assert gallery.name == "Vacation 2025"
     end
 
-    test "create_gallery/1 with blank name returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Galleries.create_gallery(%{name: ""})
+    test "create_gallery/1 with blank name returns error changeset", %{family: family} do
+      assert {:error, %Ecto.Changeset{}} =
+               Galleries.create_gallery(%{name: "", family_id: family.id})
     end
 
-    test "delete_gallery/1 deletes the gallery" do
-      gallery = gallery_fixture()
+    test "delete_gallery/1 deletes the gallery", %{family: family} do
+      gallery = gallery_fixture(%{family_id: family.id})
       assert {:ok, %Gallery{}} = Galleries.delete_gallery(gallery)
       assert_raise Ecto.NoResultsError, fn -> Galleries.get_gallery!(gallery.id) end
     end
 
-    test "change_gallery/2 returns a gallery changeset" do
-      gallery = gallery_fixture()
+    test "change_gallery/2 returns a gallery changeset", %{family: family} do
+      gallery = gallery_fixture(%{family_id: family.id})
       assert %Ecto.Changeset{} = Galleries.change_gallery(gallery)
     end
   end
 
   describe "photos" do
-    setup do
-      {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
+    setup %{family: family} do
+      {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
       %{gallery: gallery}
     end
 

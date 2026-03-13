@@ -1,17 +1,22 @@
 defmodule Web.GalleryLive.Index do
   use Web, :live_view
 
+  alias Ancestry.Families
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
 
+  # TODO: Replace with proper family scoping from route params (Task 10)
   @impl true
   def mount(_params, _session, socket) do
+    family = hd(Families.list_families())
+
     {:ok,
      socket
+     |> assign(:family, family)
      |> assign(:show_new_modal, false)
      |> assign(:confirm_delete_gallery, nil)
      |> assign(:form, to_form(Galleries.change_gallery(%Gallery{})))
-     |> stream(:galleries, Galleries.list_galleries())}
+     |> stream(:galleries, Galleries.list_galleries(family.id))}
   end
 
   @impl true
@@ -39,6 +44,8 @@ defmodule Web.GalleryLive.Index do
   end
 
   def handle_event("save_gallery", %{"gallery" => params}, socket) do
+    params = Map.put(params, "family_id", socket.assigns.family.id)
+
     case Galleries.create_gallery(params) do
       {:ok, gallery} ->
         {:noreply,

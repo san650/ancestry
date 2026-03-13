@@ -1,6 +1,7 @@
 defmodule Web.E2E.GalleryUploadTest do
   use Web.E2ECase
 
+  alias Ancestry.Families
   alias Ancestry.Galleries
 
   # Allow extra time for LiveView processes to finish DB calls before the
@@ -8,7 +9,11 @@ defmodule Web.E2E.GalleryUploadTest do
   @moduletag ecto_sandbox_stop_owner_delay: 200
 
   setup do
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Upload Test Gallery"})
+    {:ok, family} = Families.create_family(%{name: "Test Family"})
+
+    {:ok, gallery} =
+      Galleries.create_gallery(%{name: "Upload Test Gallery", family_id: family.id})
+
     %{gallery: gallery}
   end
 

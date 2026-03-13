@@ -1,11 +1,13 @@
 defmodule Web.GalleryLive.IndexTest do
   use Web.ConnCase, async: true
   import Phoenix.LiveViewTest
+  alias Ancestry.Families
   alias Ancestry.Galleries
 
   setup do
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Summer 2025"})
-    %{gallery: gallery}
+    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, gallery} = Galleries.create_gallery(%{name: "Summer 2025", family_id: family.id})
+    %{gallery: gallery, family: family}
   end
 
   test "lists all galleries", %{conn: conn, gallery: gallery} do

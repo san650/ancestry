@@ -4,8 +4,13 @@ defmodule Ancestry.Galleries do
   alias Ancestry.Galleries.Gallery
   alias Ancestry.Galleries.Photo
 
+  # TODO: Remove once GalleryLive.Index is updated to pass family_id (Task 10)
   def list_galleries do
     Repo.all(from g in Gallery, order_by: [asc: g.inserted_at])
+  end
+
+  def list_galleries(family_id) do
+    Repo.all(from g in Gallery, where: g.family_id == ^family_id, order_by: [asc: g.inserted_at])
   end
 
   def get_gallery!(id), do: Repo.get!(Gallery, id)

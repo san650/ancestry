@@ -9,3 +9,9 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+alias Ancestry.Repo
+alias Ancestry.Families.Family
+
+%Family{name: "My Family"}
+|> Repo.insert!(on_conflict: :nothing)
