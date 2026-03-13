@@ -15,7 +15,7 @@ defmodule Ancestry.People do
     )
   end
 
-  def get_person!(id), do: Repo.get!(Person, id)
+  def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
 
   def create_person(family, attrs) do
     Repo.transaction(fn ->
@@ -72,9 +72,15 @@ defmodule Ancestry.People do
         where:
           ilike(p.given_name, ^like) or
             ilike(p.surname, ^like) or
-            ilike(p.nickname, ^like),
+            ilike(p.nickname, ^like) or
+            fragment(
+              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE name ILIKE ?)",
+              p.alternate_names,
+              ^like
+            ),
         order_by: [asc: p.surname, asc: p.given_name],
-        limit: 20
+        limit: 20,
+        preload: [:families]
     )
   end
 

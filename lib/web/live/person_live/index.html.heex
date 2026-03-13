@@ -103,13 +103,26 @@
               phx-value-id={person.id}
               class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
             >
-              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <.icon name="hero-user" class="w-5 h-5 text-primary" />
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <%= if person.photo && person.photo_status == "processed" do %>
+                  <img
+                    src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                    alt={Ancestry.People.Person.display_name(person)}
+                    class="w-full h-full object-cover"
+                  />
+                <% else %>
+                  <.icon name="hero-user" class="w-5 h-5 text-primary" />
+                <% end %>
               </div>
               <div class="min-w-0">
                 <p class="font-medium text-base-content truncate">
                   {Ancestry.People.Person.display_name(person)}
                 </p>
+                <%= if person.families != [] do %>
+                  <p class="text-xs text-base-content/40 truncate">
+                    {Enum.map_join(person.families, ", ", & &1.name)}
+                  </p>
+                <% end %>
               </div>
             </button>
           <% end %>
