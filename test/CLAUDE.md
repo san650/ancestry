@@ -73,6 +73,36 @@ refute has_element?(view, "#gallery-#{gallery.id}")
 
 Raw HTML (`html =~ "..."`) is acceptable only when asserting on text content that has no stable DOM ID to target.
 
+### File Upload tests
+
+This is an example of a file upload test, use the `file_input/3` helper and then submit the form and check for what should happen after the form is submitted successfully.
+
+```
+test "happy path", %{conn: conn} do
+  {:ok, view, _html} = live(conn, ~p"/families/new")
+
+  cover =
+    file_input(view, "#new-family-form", :cover, [
+      %{
+        name: "cover.jpg",
+        content: Path.absname("test/fixtures/test_image.jpg"),
+        type: "image/jpeg"
+      }
+    ])
+
+  assert render_upload(cover, "cover.jpg") =~ "100%"
+
+  result =
+    view
+    |> form("#new-family-form", family: %{name: "The Johnsons"})
+    |> render_submit()
+
+  {:ok, show_view, _html} = follow_redirect(result, conn)
+
+  assert has_element?(show_view, "div", "The Johnsons")
+end
+```
+
 ## Testing PubSub / real-time updates
 
 Subscribe before triggering the action, then use `assert_receive`:

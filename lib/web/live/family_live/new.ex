@@ -53,11 +53,12 @@ defmodule Web.FamilyLive.New do
 
   defp maybe_process_cover(socket, family) do
     uploaded =
-      consume_uploaded_entries(socket, :cover, fn %{path: tmp_path}, _entry ->
+      consume_uploaded_entries(socket, :cover, fn %{path: tmp_path}, entry ->
         uuid = Ecto.UUID.generate()
+        ext = Path.extname(entry.client_name)
         dest_dir = Path.join(["priv", "static", "uploads", "originals", uuid])
         File.mkdir_p!(dest_dir)
-        dest_path = Path.join(dest_dir, "cover#{Path.extname(tmp_path)}")
+        dest_path = Path.join(dest_dir, "cover#{ext}")
         File.cp!(tmp_path, dest_path)
         {:ok, dest_path}
       end)
