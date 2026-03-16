@@ -181,4 +181,36 @@ defmodule Web.PersonLive.RelationshipsTest do
     assert html =~ "2010"
     assert html =~ "2015"
   end
+
+  test "selects a parent from search results and creates relationship", %{
+    conn: conn,
+    family: family,
+    person: person
+  } do
+    {:ok, candidate} =
+      People.create_person(family, %{given_name: "Alice", surname: "Smith", gender: "female"})
+
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+
+    # Open add parent modal
+    view |> element("#add-parent-btn") |> render_click()
+    assert has_element?(view, "#add-relationship-modal")
+
+    # Search for candidate
+    view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
+    assert has_element?(view, "#search-result-#{candidate.id}")
+
+    # Click the search result — should select, not navigate
+    view |> element("#search-result-#{candidate.id}") |> render_click()
+
+    # Should still be on the same page with the selected person shown
+    assert has_element?(view, "#add-relationship-modal")
+
+    # Submit the relationship form (role is auto-set to "mother" for female)
+    view |> form("#add-parent-form") |> render_submit()
+
+    # Relationship created — modal closed, parent shown
+    refute has_element?(view, "#add-relationship-modal")
+    assert has_element?(view, "#parents-section")
+  end
 end
