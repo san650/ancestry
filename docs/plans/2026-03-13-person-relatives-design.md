@@ -2,19 +2,21 @@
 
 ## Overview
 
-Add family tree relationships between persons. Relationships are stored as directed edges in a graph, with polymorphic metadata per relationship type using `polymorphic_embed`. Includes cascading logic (adding a parent auto-creates sibling links) and a family-scoped tree visualization using d3 + dagre.
+Add family relationships between persons. Only three relationship types are stored: parent, partner, and ex_partner. All other relationships (children, siblings, half-siblings) are inferred at query time from parent links.
 
-## Relationship Types
+## Stored Relationship Types
 
-| Type | Cardinality | Direction (A → B) |
-|------|-------------|-------------------|
-| `partner` | Max 1 per person | A is partner of B |
-| `ex_partner` | 0+ | A is ex-partner of B |
-| `sibling` | 0+ | A is sibling of B |
-| `half_sibling` | 0+ | A is half-sibling of B |
-| `child` | 0+ | A is child of B |
-| `parent` | Max 1 mother, max 1 father | A is parent of B |
-| `second_parent` | 0+ | A is second parent of B |
+| Type | Semantics | Storage |
+|------|-----------|---------|
+| `parent` | A is parent of B | Directional: `person_a_id` = parent, `person_b_id` = child |
+| `partner` | A and B are partners | Symmetric: `person_a_id < person_b_id` |
+| `ex_partner` | A and B are ex-partners | Symmetric: `person_a_id < person_b_id` |
+
+## Inferred Relationships (query-time, not stored)
+
+- **Children** — inverse of parent: if A is parent of B, then B is a child of A
+- **Siblings** — two people who share both parents
+- **Half-siblings** — two people who share exactly one parent
 
 ## Data Model
 
@@ -23,29 +25,24 @@ Add family tree relationships between persons. Relationships are stored as direc
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | `bigint` (auto PK) | |
-| `person_a_id` | `references :persons` | Source person |
-| `person_b_id` | `references :persons` | Target person |
-| `type` | `text` | Relationship type |
-| `metadata` | `map` (jsonb) | Polymorphic embed |
+| `person_a_id` | `references :persons` | Parent (for parent type) or lower ID (for partner/ex_partner) |
+| `person_b_id` | `references :persons` | Child (for parent type) or higher ID (for partner/ex_partner) |
+| `type` | `text` | `"parent"`, `"partner"`, `"ex_partner"` |
+| `metadata` | `map` (jsonb) | Polymorphic embed per type |
 | `timestamps` | | |
 
 **Indexes:**
 - `unique_index([:person_a_id, :person_b_id, :type])` — no duplicate edges
 
-**Cardinality constraints (changeset + context layer):**
-- Max 1 current partner per person
-- Max 1 mother (parent with role=mother) per person
-- Max 1 father (parent with role=father) per person
+**Constraints (changeset/context):**
+- Max 2 parents per child (regardless of role)
+- `person_a_id < person_b_id` enforced in changeset for partner/ex_partner types
 
-### Polymorphic metadata structs (via `polymorphic_embed`)
+### Polymorphic metadata (via `polymorphic_embed`)
 
-- **`PartnerMetadata`** — `marriage_day`, `marriage_month`, `marriage_year`, `marriage_location` (all optional, partial-date pattern)
-- **`ExPartnerMetadata`** — same as Partner + `divorce_day`, `divorce_month`, `divorce_year`
-- **`ParentMetadata`** — `role`: `"father"` or `"mother"`
-- **`SecondParentMetadata`** — `role`: `"father"` or `"mother"`
-- **`SiblingMetadata`** — empty struct (placeholder)
-- **`HalfSiblingMetadata`** — empty struct (placeholder)
-- **`ChildMetadata`** — empty struct (placeholder)
+- **`PartnerMetadata`** — `marriage_day`, `marriage_month`, `marriage_year` (integers, optional), `marriage_location` (string, optional)
+- **`ExPartnerMetadata`** — all of PartnerMetadata + `divorce_day`, `divorce_month`, `divorce_year` (integers, optional)
+- **`ParentMetadata`** — `role`: `"father"` | `"mother"`
 
 ## Module Structure
 
@@ -55,15 +52,11 @@ Add family tree relationships between persons. Relationships are stored as direc
 lib/ancestry/
   relationships.ex                          # Relationships context
   relationships/
-    relationship.ex                         # Relationship schema (directed edge)
+    relationship.ex                         # Relationship schema
     metadata/
-      partner_metadata.ex                   # Polymorphic embed for partner
-      ex_partner_metadata.ex                # Polymorphic embed for ex-partner
-      parent_metadata.ex                    # Polymorphic embed for parent
-      second_parent_metadata.ex             # Polymorphic embed for second parent
-      sibling_metadata.ex                   # Embedded schema (empty)
-      half_sibling_metadata.ex              # Embedded schema (empty)
-      child_metadata.ex                     # Embedded schema (empty)
+      partner_metadata.ex                   # marriage_day/month/year, marriage_location
+      ex_partner_metadata.ex                # partner fields + divorce_day/month/year
+      parent_metadata.ex                    # role (father/mother)
 ```
 
 ### Web layer
@@ -72,106 +65,86 @@ lib/ancestry/
 lib/web/
   live/
     person_live/
-      show.ex                               # Extended: relationships section + add relationship inline form
-    family_live/
-      tree.ex                               # Family tree visualization page
+      show.ex                               # Extended: relationships section below person details
 ```
 
-### Assets
-
-```
-assets/js/
-  family_tree_hook.js                       # JS hook for d3/dagre tree rendering
-```
+No new LiveView files — relationships are managed inline on the existing Person Show page.
 
 ## Context API (`Ancestry.Relationships`)
 
 ### Core CRUD
 
-- `create_relationship(person_a, person_b, type, metadata_attrs)` — create a single directed edge
-- `delete_relationship(relationship)` — remove a relationship
+- `create_relationship(person_a, person_b, type, metadata_attrs)` — handles ID ordering for partner/ex_partner
 - `update_relationship(relationship, attrs)` — update metadata
+- `delete_relationship(relationship)` — remove a relationship
+- `convert_to_ex_partner(relationship, divorce_attrs)` — carries marriage metadata over, adds divorce fields
+- `change_relationship(relationship, attrs)` — changeset for forms
 
 ### Queries
 
 - `list_relationships_for_person(person_id)` — all relationships (both directions)
 - `get_parents(person_id)` — parents of a person
-- `get_children(person_id)` — children of a person
-- `get_partner(person_id)` — current partner
-- `get_siblings(person_id)` — siblings + half-siblings
-- `get_family_graph(family_id)` — all persons in family + all relationships between them (for tree view)
+- `get_children(person_id)` — children of a person (inverse of parent)
+- `get_partners(person_id)` — current partners
+- `get_ex_partners(person_id)` — ex-partners
+- `get_siblings(person_id)` — inferred from shared parents, returns:
+  - `{person, parent_a_id, parent_b_id}` — full sibling (shares both parents)
+  - `{person, parent_id}` — half-sibling (shares one parent)
 
-### Cascading logic (`create_relationship_with_cascades`)
+## UI Design — Person Show Page
 
-- `create_relationship_with_cascades(person_a, person_b, type, metadata_attrs)` — creates the relationship and triggers cascading updates
+Two-column layout on desktop, stacked vertically on mobile (spouses first, then parents).
 
-**When adding a parent to person B:**
-1. Find all other children of that parent
-2. For each other child, check if they share both parents with B → create `sibling` edge
-3. If they share only one parent → create `half_sibling` edge
+### Left column: "Spouses and Children"
 
-**When adding a sibling:**
-1. Copy parent links — the new sibling gets the same parents as the existing person
+- **Current person** highlighted at the top (photo, name, dates)
+- **For each partner/ex_partner:**
+  - Person card (photo thumbnail, name, birth_year–death_year)
+  - Marriage info below (date, location) with edit pencil icon
+  - If ex_partner: also shows divorce date, visually distinguished
+  - Collapsible **"Children (N)"** section — children shared between current person and this partner
+    - Each child: person card with photo, name, dates, edit pencil
+    - "+ Add Child" button at the bottom
+- **"+ Add Spouse"** button after all partner sections
+- **"+ Add Child with Unknown Parent"** — for children with only one known parent
 
-**When converting partner to ex_partner:**
-1. Remove the `partner` edges
-2. Create `ex_partner` edges with existing marriage metadata + new divorce fields
+### Right column: "Parents and Siblings"
 
-### Changeset helper
+- **Father** — person card (if assigned), or empty state
+- **Mother** — person card (if assigned), or empty state
+- **Parents' marriage info** — if both parents exist and are partners, show their marriage metadata with edit pencil
+- Collapsible **"Siblings (N)"** section — inferred from shared parents
+  - Current person highlighted in the list
+  - Each sibling: person card with photo, name, dates
+  - Half-siblings labeled as such
+- **"+ Add Parent"** button (hidden if 2 parents already assigned)
 
-- `change_relationship(relationship, attrs)` — return changeset for forms
+### Person cards
 
-## Routes
+- Photo thumbnail (or gendered placeholder silhouette)
+- Full name
+- Birth year – death year (or just birth year if living)
+- Gender-colored left border (blue for male, pink for female)
+- Clicking the card navigates to that person's show page
+- Edit pencil icon for editing the relationship metadata
 
-```
-/families/:family_id/tree                   # FamilyLive.Tree — family tree visualization
-```
+### "Add" flows
 
-Relationship management happens on `PersonLive.Show` (already routed at `/families/:family_id/members/:id`).
-
-## UI/UX
-
-### Person Show page — Relationships section
-
-Below existing person details, grouped by type:
-
-- **Parents** — listed with role (Father/Mother), photo thumbnail, name. "Add Parent" button.
-- **Partner** — current partner with marriage info. "Add Partner" button (hidden if one exists).
-- **Ex Partners** — list with marriage/divorce dates. "Add Ex Partner" button.
-- **Siblings** — list with sibling/half-sibling label. "Add Sibling" button.
-- **Children** — list of children. "Add Child" button.
-- **Second Parents** — list with role. "Add Second Parent" button.
-
-Each "Add" button expands an **inline form** with two modes:
-1. **Search existing** — search family members by name, click to select, then fill relationship metadata
-2. **Create new** — inline person creation form (name, dates, gender, photo) + relationship metadata
-
-### Family Tree page (`/families/:family_id/tree`)
-
-- Accessible from "Family Tree" link on `FamilyLive.Show`
-- Uses d3 + dagre for layout, rendered via `phx-hook` with `phx-update="ignore"`
-- Server pushes graph data (nodes + edges) via `push_event`
-- Layout rules:
-  - Parents appear above their children
-  - Partners appear side-by-side, connected with a horizontal line
-  - Children of the same parents are grouped horizontally below
-  - Siblings connected via shared parent lines
-  - Detached persons (no relationships) appear in a separate area
-- Clicking a node navigates to that person's show page
-- Each node shows: photo thumbnail, display name, birth year
+All "add" buttons open a search dropdown to find an existing family member:
+- Type-ahead search by name within the family
+- Select a person, then fill relationship-specific metadata (role for parent, marriage fields for partner)
 
 ## Dependencies
 
 - `polymorphic_embed ~> 5.0` — polymorphic embedded schemas for relationship metadata
-- `d3` (npm) — SVG rendering for tree visualization
-- `dagre` (npm) — directed graph layout algorithm
 
 ## Design Decisions
 
-- **Directed edges** — one row per relationship, type encodes direction (A is X to B)
-- **Polymorphic embed** for metadata — type-safe per relationship, extensible without migrations
-- **Partial dates** for marriage/divorce — consistent with existing birth/death date pattern
-- **Cascading sibling creation** — adding a parent auto-links siblings based on shared parents
-- **Family-scoped tree** — tree rendered per family, not per person
-- **d3 + dagre** — proven library combination for hierarchical graph layout
-- **Inline add-relationship form** — stays in context on Person Show page
+- **Only 3 stored types** — parent, partner, ex_partner. Children, siblings, half-siblings are inferred from parent links. Simpler data model, no cascading logic needed.
+- **Mixed storage semantics** — directional for parent (parent_id → child_id), symmetric for partner/ex_partner (lower_id, higher_id). Avoids redundant metadata.
+- **Polymorphic embed** for metadata — type-safe per relationship, extensible without migrations.
+- **Partial dates** for marriage/divorce — day/month/year as separate integers, consistent with existing birth/death date pattern on Person.
+- **Convert partner to ex** — dedicated action carries marriage metadata over and prompts for divorce fields.
+- **Search existing members** — "Add" flows search existing family members rather than creating new persons inline.
+- **Max 2 parents** — role-agnostic cap of 2 parents per person, roles are father/mother.
+- **Responsive layout** — two columns on desktop, stacked on mobile.
