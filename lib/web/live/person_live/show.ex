@@ -537,14 +537,10 @@ defmodule Web.PersonLive.Show do
 
   defp person_card(assigns) do
     ~H"""
-    <.link
-      navigate={~p"/families/#{@family.id}/members/#{@person.id}"}
-      class={[
-        "flex items-center gap-3 p-2 rounded-lg transition-colors",
-        @highlighted && "bg-primary/10 border border-primary/20",
-        !@highlighted && "hover:bg-base-200"
-      ]}
-    >
+    <div class={[
+      "flex items-center gap-3 p-2 rounded-lg",
+      @highlighted && "bg-primary/10 border border-primary/20"
+    ]}>
       <div class={[
         "w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-l-4",
         @person.gender == "male" && "border-l-blue-400 bg-blue-50",
@@ -574,7 +570,7 @@ defmodule Web.PersonLive.Show do
           <% end %>
         </p>
       </div>
-    </.link>
+    </div>
     """
   end
 

@@ -316,13 +316,16 @@
               class="rounded-xl border border-base-300 p-4 space-y-3"
             >
               <%!-- Current person (highlighted) --%>
-              <.person_card person={@person} family={@family} highlighted={true} />
+              <.person_card person={@person} highlighted={true} />
 
               <%!-- Partner card with relationship info --%>
               <div class="flex items-center gap-2">
-                <div class="flex-1">
-                  <.person_card person={partner} family={@family} highlighted={false} />
-                </div>
+                <.link
+                  navigate={~p"/families/#{@family.id}/members/#{partner.id}"}
+                  class="flex-1 rounded-lg transition-colors hover:bg-base-200"
+                >
+                  <.person_card person={partner} highlighted={false} />
+                </.link>
                 <div class="flex items-center gap-1">
                   <button
                     id={"edit-rel-#{rel.id}"}
@@ -393,7 +396,12 @@
                     Children
                   </p>
                   <%= for child <- children do %>
-                    <.person_card person={child} family={@family} highlighted={false} />
+                    <.link
+                      navigate={~p"/families/#{@family.id}/members/#{child.id}"}
+                      class="rounded-lg transition-colors hover:bg-base-200"
+                    >
+                      <.person_card person={child} highlighted={false} />
+                    </.link>
                   <% end %>
                 </div>
               <% end %>
@@ -420,7 +428,12 @@
                 Children (other parent unknown)
               </p>
               <%= for child <- @solo_children do %>
-                <.person_card person={child} family={@family} highlighted={false} />
+                <.link
+                  navigate={~p"/families/#{@family.id}/members/#{child.id}"}
+                  class="rounded-lg transition-colors hover:bg-base-200"
+                >
+                  <.person_card person={child} highlighted={false} />
+                </.link>
               <% end %>
             </div>
           <% end %>
@@ -456,9 +469,12 @@
           <div id="parents-section" class="space-y-3">
             <%= for {parent, rel} <- @parents do %>
               <div class="flex items-center gap-2">
-                <div class="flex-1">
-                  <.person_card person={parent} family={@family} highlighted={false} />
-                </div>
+                <.link
+                  navigate={~p"/families/#{@family.id}/members/#{parent.id}"}
+                  class="flex-1 rounded-lg transition-colors hover:bg-base-200"
+                >
+                  <.person_card person={parent} highlighted={false} />
+                </.link>
                 <div class="flex items-center gap-1">
                   <%= if rel.metadata && rel.metadata.role do %>
                     <span class={[
@@ -521,16 +537,15 @@
                 Siblings
               </p>
               <%!-- Current person highlighted --%>
-              <.person_card person={@person} family={@family} highlighted={true} />
+              <.person_card person={@person} highlighted={true} />
               <%= for sib <- @siblings do %>
                 <div class="flex items-center gap-2">
-                  <div class="flex-1">
-                    <.person_card
-                      person={sibling_person(sib)}
-                      family={@family}
-                      highlighted={false}
-                    />
-                  </div>
+                  <.link
+                    navigate={~p"/families/#{@family.id}/members/#{sibling_person(sib).id}"}
+                    class="flex-1 rounded-lg transition-colors hover:bg-base-200"
+                  >
+                    <.person_card person={sibling_person(sib)} highlighted={false} />
+                  </.link>
                   <%= if sibling_type(sib) == :half do %>
                     <span class="text-xs text-base-content/40 bg-base-200 px-2 py-0.5 rounded-full">
                       Half
@@ -637,9 +652,9 @@
                     id={"search-result-#{result.id}"}
                     phx-click="select_person"
                     phx-value-id={result.id}
-                    class="w-full text-left"
+                    class="w-full text-left rounded-lg transition-colors hover:bg-base-200"
                   >
-                    <.person_card person={result} family={@family} highlighted={false} />
+                    <.person_card person={result} highlighted={false} />
                   </button>
                 <% end %>
               </div>
@@ -655,7 +670,7 @@
           <%!-- Step 2: Metadata form after selection --%>
           <div class="space-y-4">
             <div class="rounded-lg bg-base-200/50 p-3">
-              <.person_card person={@selected_person} family={@family} highlighted={true} />
+              <.person_card person={@selected_person} highlighted={true} />
             </div>
 
             <%= cond do %>
