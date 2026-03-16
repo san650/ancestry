@@ -209,8 +209,9 @@ defmodule Web.PersonLive.RelationshipsTest do
     # Submit the relationship form (role is auto-set to "mother" for female)
     view |> form("#add-parent-form") |> render_submit()
 
-    # Relationship created — modal closed, parent shown
+    # Relationship created — modal closed, parent shown on page
     refute has_element?(view, "#add-relationship-modal")
     assert has_element?(view, "#parents-section")
+    assert render(view) =~ "Alice"
   end
 end
