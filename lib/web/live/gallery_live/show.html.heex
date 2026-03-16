@@ -365,6 +365,20 @@
             <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download original
           </a>
           <button
+            id="toggle-comments-btn"
+            phx-click="toggle_comments"
+            class={[
+              "p-2 rounded-lg transition-colors",
+              if(@comments_open,
+                do: "text-primary bg-white/10",
+                else: "text-white/50 hover:text-white hover:bg-white/10"
+              )
+            ]}
+            title="Toggle comments"
+          >
+            <.icon name="hero-chat-bubble-left-right" class="w-5 h-5" />
+          </button>
+          <button
             phx-click="close_lightbox"
             class="p-2 text-white/50 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
@@ -373,27 +387,42 @@
         </div>
       </div>
 
-      <%!-- Main image area --%>
-      <div class="flex-1 flex items-center justify-center relative min-h-0 px-16">
-        <button
-          phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowLeft"})}
-          class="absolute left-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
-        >
-          <.icon name="hero-chevron-left" class="w-7 h-7" />
-        </button>
+      <%!-- Main image area + comments panel --%>
+      <div class="flex-1 flex min-h-0">
+        <div class={[
+          "flex-1 flex items-center justify-center relative min-h-0 px-16",
+          @comments_open && "lg:flex-[2]"
+        ]}>
+          <button
+            phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowLeft"})}
+            class="absolute left-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+          >
+            <.icon name="hero-chevron-left" class="w-7 h-7" />
+          </button>
 
-        <img
-          src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
-          alt={@selected_photo.original_filename}
-          class="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-        />
+          <img
+            src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
+            alt={@selected_photo.original_filename}
+            class="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
+          />
 
-        <button
-          phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowRight"})}
-          class="absolute right-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
-        >
-          <.icon name="hero-chevron-right" class="w-7 h-7" />
-        </button>
+          <button
+            phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowRight"})}
+            class="absolute right-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+          >
+            <.icon name="hero-chevron-right" class="w-7 h-7" />
+          </button>
+        </div>
+
+        <%= if @comments_open do %>
+          <div class="hidden lg:flex w-80 shrink-0 border-l border-white/10">
+            <.live_component
+              module={Web.Comments.PhotoCommentsComponent}
+              id="photo-comments"
+              photo_id={@selected_photo.id}
+            />
+          </div>
+        <% end %>
       </div>
 
       <%!-- Thumbnail strip --%>

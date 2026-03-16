@@ -2,6 +2,7 @@ defmodule Web.GalleryLive.Show do
   use Web, :live_view
 
   alias Ancestry.Galleries
+  alias Web.Comments.PhotoCommentsComponent
 
   @impl true
   def mount(%{"family_id" => family_id, "id" => id}, _session, socket) do
@@ -21,6 +22,8 @@ defmodule Web.GalleryLive.Show do
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_photos, false)
      |> assign(:selected_photo, nil)
+     |> assign(:comments_open, false)
+     |> assign(:comments_topic, nil)
      |> assign(:show_upload_modal, false)
      |> assign(:upload_results, [])
      |> stream(:photos, Galleries.list_photos(id))
@@ -129,12 +132,39 @@ defmodule Web.GalleryLive.Show do
     end
   end
 
+  def handle_event("toggle_comments", _, socket) do
+    opening = not socket.assigns.comments_open
+
+    socket =
+      if opening do
+        topic = "photo_comments:#{socket.assigns.selected_photo.id}"
+
+        if connected?(socket) do
+          Phoenix.PubSub.subscribe(Ancestry.PubSub, topic)
+        end
+
+        socket
+        |> assign(:comments_open, true)
+        |> assign(:comments_topic, topic)
+      else
+        cleanup_comments_subscription(socket)
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("close_lightbox", _, socket) do
-    {:noreply, assign(socket, :selected_photo, nil)}
+    {:noreply,
+     socket
+     |> cleanup_comments_subscription()
+     |> assign(:selected_photo, nil)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "Escape"}, socket) do
-    {:noreply, assign(socket, :selected_photo, nil)}
+    {:noreply,
+     socket
+     |> cleanup_comments_subscription()
+     |> assign(:selected_photo, nil)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "ArrowRight"}, socket) do
@@ -148,7 +178,9 @@ defmodule Web.GalleryLive.Show do
   def handle_event("lightbox_keydown", _, socket), do: {:noreply, socket}
 
   def handle_event("lightbox_select", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(String.to_integer(id)))}
+    new_photo = Galleries.get_photo!(String.to_integer(id))
+    socket = assign(socket, :selected_photo, new_photo)
+    {:noreply, resubscribe_comments(socket, new_photo)}
   end
 
   @impl true
@@ -158,6 +190,37 @@ defmodule Web.GalleryLive.Show do
 
   def handle_info({:photo_failed, photo}, socket) do
     {:noreply, stream_insert(socket, :photos, photo)}
+  end
+
+  def handle_info({:comment_created, comment}, socket) do
+    send_update(PhotoCommentsComponent,
+      id: "photo-comments",
+      comment_created: comment
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:comment_updated, comment}, socket) do
+    send_update(PhotoCommentsComponent,
+      id: "photo-comments",
+      comment_updated: comment
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:comment_deleted, comment}, socket) do
+    send_update(PhotoCommentsComponent,
+      id: "photo-comments",
+      comment_deleted: comment
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:close_comments}, socket) do
+    {:noreply, cleanup_comments_subscription(socket)}
   end
 
   # LiveView traps exits; upload writer tasks send :EXIT on completion
@@ -222,7 +285,40 @@ defmodule Web.GalleryLive.Show do
         :prev -> max(idx - 1, 0)
       end
 
-    assign(socket, :selected_photo, Enum.at(photos, next_idx))
+    new_photo = Enum.at(photos, next_idx)
+
+    socket
+    |> assign(:selected_photo, new_photo)
+    |> resubscribe_comments(new_photo)
+  end
+
+  defp cleanup_comments_subscription(socket) do
+    if socket.assigns.comments_topic && connected?(socket) do
+      Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
+    end
+
+    socket
+    |> assign(:comments_open, false)
+    |> assign(:comments_topic, nil)
+  end
+
+  defp resubscribe_comments(socket, new_photo) do
+    if socket.assigns.comments_open and connected?(socket) do
+      old_topic = socket.assigns.comments_topic
+      new_topic = "photo_comments:#{new_photo.id}"
+
+      if old_topic && old_topic != new_topic do
+        Phoenix.PubSub.unsubscribe(Ancestry.PubSub, old_topic)
+      end
+
+      if old_topic != new_topic do
+        Phoenix.PubSub.subscribe(Ancestry.PubSub, new_topic)
+      end
+
+      assign(socket, :comments_topic, new_topic)
+    else
+      socket
+    end
   end
 
   defp ext_from_content_type("image/jpeg"), do: ".jpg"
