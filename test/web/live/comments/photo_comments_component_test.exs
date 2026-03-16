@@ -190,15 +190,36 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       view |> element("#photos-#{photo1.id}") |> render_click()
       view |> element("#toggle-comments-btn") |> render_click()
 
-      # Photo 1's comment is shown in the panel
       assert has_element?(view, "#photo-comments-panel", "Comment on photo 1")
+      refute has_element?(view, "#photo-comments-panel", "Comment on photo 2")
 
       view
       |> element("[phx-click='lightbox_select'][phx-value-id='#{photo2.id}']")
       |> render_click()
 
-      # The new component (for photo2) is mounted and shows photo2's comment
       assert has_element?(view, "#photo-comments-panel", "Comment on photo 2")
+      refute has_element?(view, "#photo-comments-panel", "Comment on photo 1")
+    end
+
+    test "navigating to photo with no comments shows empty state", %{conn: conn} do
+      {family, gallery, photo1} = setup_gallery_with_photo()
+      photo2 = photo_fixture(gallery)
+
+      {:ok, _} = Comments.create_photo_comment(%{text: "Only on photo 1", photo_id: photo1.id})
+
+      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+
+      view |> element("#photos-#{photo1.id}") |> render_click()
+      view |> element("#toggle-comments-btn") |> render_click()
+
+      assert has_element?(view, "#photo-comments-panel", "Only on photo 1")
+
+      view
+      |> element("[phx-click='lightbox_select'][phx-value-id='#{photo2.id}']")
+      |> render_click()
+
+      refute has_element?(view, "#photo-comments-panel", "Only on photo 1")
+      assert has_element?(view, "#comments-empty")
     end
   end
 

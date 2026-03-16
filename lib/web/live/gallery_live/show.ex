@@ -194,7 +194,7 @@ defmodule Web.GalleryLive.Show do
 
   def handle_info({:comment_created, comment}, socket) do
     send_update(PhotoCommentsComponent,
-      id: "photo-comments-#{socket.assigns.selected_photo.id}",
+      id: "photo-comments",
       comment_created: comment
     )
 
@@ -203,7 +203,7 @@ defmodule Web.GalleryLive.Show do
 
   def handle_info({:comment_updated, comment}, socket) do
     send_update(PhotoCommentsComponent,
-      id: "photo-comments-#{socket.assigns.selected_photo.id}",
+      id: "photo-comments",
       comment_updated: comment
     )
 
@@ -212,7 +212,7 @@ defmodule Web.GalleryLive.Show do
 
   def handle_info({:comment_deleted, comment}, socket) do
     send_update(PhotoCommentsComponent,
-      id: "photo-comments-#{socket.assigns.selected_photo.id}",
+      id: "photo-comments",
       comment_deleted: comment
     )
 
