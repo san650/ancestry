@@ -193,6 +193,33 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "search_family_members/3" do
+    test "searches people within a family by name, excluding a specific person" do
+      family = family_fixture()
+      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "Wonderland"})
+      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "Builder"})
+
+      # Alice should not appear when excluding herself
+      results = People.search_family_members("ali", family.id, alice.id)
+      assert results == []
+
+      # Bob should appear when excluding Alice
+      results = People.search_family_members("bob", family.id, alice.id)
+      assert length(results) == 1
+      assert hd(results).id == bob.id
+    end
+
+    test "does not return people from other families" do
+      family1 = family_fixture(%{name: "Family One"})
+      family2 = family_fixture(%{name: "Family Two"})
+      {:ok, alice} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
+      {:ok, _bob} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
+
+      results = People.search_family_members("bob", family1.id, alice.id)
+      assert results == []
+    end
+  end
+
   describe "change_person/2" do
     test "returns a changeset" do
       assert %Ecto.Changeset{} = People.change_person(%Person{})

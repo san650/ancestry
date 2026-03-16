@@ -90,6 +90,30 @@ defmodule Ancestry.People do
     )
   end
 
+  def search_family_members(query, family_id, exclude_person_id) do
+    escaped =
+      query
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
+    like = "%#{escaped}%"
+
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id,
+        where: fm.family_id == ^family_id,
+        where: p.id != ^exclude_person_id,
+        where:
+          ilike(p.given_name, ^like) or
+            ilike(p.surname, ^like) or
+            ilike(p.nickname, ^like),
+        order_by: [asc: p.surname, asc: p.given_name],
+        limit: 20
+    )
+  end
+
   def change_person(%Person{} = person, attrs \\ %{}) do
     Person.changeset(person, attrs)
   end
