@@ -147,48 +147,24 @@ defmodule Web.GalleryLive.Show do
         |> assign(:comments_open, true)
         |> assign(:comments_topic, topic)
       else
-        if socket.assigns.comments_topic && connected?(socket) do
-          Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
-        end
-
-        socket
-        |> assign(:comments_open, false)
-        |> assign(:comments_topic, nil)
+        cleanup_comments_subscription(socket)
       end
 
     {:noreply, socket}
   end
 
   def handle_event("close_lightbox", _, socket) do
-    socket =
-      if socket.assigns.comments_topic && connected?(socket) do
-        Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
-        socket
-      else
-        socket
-      end
-
     {:noreply,
      socket
-     |> assign(:selected_photo, nil)
-     |> assign(:comments_open, false)
-     |> assign(:comments_topic, nil)}
+     |> cleanup_comments_subscription()
+     |> assign(:selected_photo, nil)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "Escape"}, socket) do
-    socket =
-      if socket.assigns.comments_topic && connected?(socket) do
-        Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
-        socket
-      else
-        socket
-      end
-
     {:noreply,
      socket
-     |> assign(:selected_photo, nil)
-     |> assign(:comments_open, false)
-     |> assign(:comments_topic, nil)}
+     |> cleanup_comments_subscription()
+     |> assign(:selected_photo, nil)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "ArrowRight"}, socket) do
@@ -244,18 +220,7 @@ defmodule Web.GalleryLive.Show do
   end
 
   def handle_info({:close_comments}, socket) do
-    socket =
-      if socket.assigns.comments_topic && connected?(socket) do
-        Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
-        socket
-      else
-        socket
-      end
-
-    {:noreply,
-     socket
-     |> assign(:comments_open, false)
-     |> assign(:comments_topic, nil)}
+    {:noreply, cleanup_comments_subscription(socket)}
   end
 
   # LiveView traps exits; upload writer tasks send :EXIT on completion
@@ -325,6 +290,16 @@ defmodule Web.GalleryLive.Show do
     socket
     |> assign(:selected_photo, new_photo)
     |> resubscribe_comments(new_photo)
+  end
+
+  defp cleanup_comments_subscription(socket) do
+    if socket.assigns.comments_topic && connected?(socket) do
+      Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
+    end
+
+    socket
+    |> assign(:comments_open, false)
+    |> assign(:comments_topic, nil)
   end
 
   defp resubscribe_comments(socket, new_photo) do

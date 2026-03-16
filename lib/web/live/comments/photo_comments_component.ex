@@ -19,31 +19,12 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   def update(assigns, socket) do
     photo_id = assigns.photo_id
-    old_topic = socket.assigns[:subscribed_topic]
-    new_topic = "photo_comments:#{photo_id}"
-
-    socket =
-      if connected?(socket) do
-        if old_topic && old_topic != new_topic do
-          Phoenix.PubSub.unsubscribe(Ancestry.PubSub, old_topic)
-        end
-
-        if old_topic != new_topic do
-          Phoenix.PubSub.subscribe(Ancestry.PubSub, new_topic)
-        end
-
-        socket
-      else
-        socket
-      end
-
     comments = Comments.list_photo_comments(photo_id)
     changeset = Comments.change_photo_comment(%PhotoComment{})
 
     {:ok,
      socket
      |> assign(:photo_id, photo_id)
-     |> assign(:subscribed_topic, new_topic)
      |> assign(:editing_comment_id, nil)
      |> assign(:edit_form, nil)
      |> assign(:form, to_form(changeset, as: :comment))
@@ -51,10 +32,8 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   @impl true
-  def handle_event("save_comment", %{"comment" => comment_params}, socket) do
-    attrs = Map.put(comment_params, "photo_id", socket.assigns.photo_id)
-
-    case Comments.create_photo_comment(%{photo_id: socket.assigns.photo_id, text: attrs["text"]}) do
+  def handle_event("save_comment", %{"comment" => %{"text" => text}}, socket) do
+    case Comments.create_photo_comment(%{photo_id: socket.assigns.photo_id, text: text}) do
       {:ok, _comment} ->
         changeset = Comments.change_photo_comment(%PhotoComment{})
         {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
