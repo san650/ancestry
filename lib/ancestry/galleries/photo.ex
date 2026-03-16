@@ -10,6 +10,7 @@ defmodule Ancestry.Galleries.Photo do
     field :content_type, :string
     field :status, :string, default: "pending"
     belongs_to :gallery, Ancestry.Galleries.Gallery
+    has_many :photo_comments, Ancestry.Comments.PhotoComment
     timestamps(updated_at: false)
   end
 
