@@ -19,6 +19,9 @@ Split `person_card` into a pure presentation component (no click behavior). Each
 
 Remove the `<.link navigate>` wrapper. The component renders a `<div>` with avatar, name, dates, and styling. The `highlighted` attr stays for visual emphasis.
 
+- Drop the `family` attr from the component — it was only used to build the navigation URL. Call site wrappers use `@family` from the LiveView scope directly.
+- Remove `hover:bg-base-200` and `transition-colors` from the component. Each interactive wrapper (`<.link navigate>` or `<button>`) carries its own hover/transition classes. Display-only usages (current person, selected person confirmation) get no hover state.
+
 ### Call site updates
 
 | Location | Context | Wrapper |
@@ -35,4 +38,11 @@ Remove the `<.link navigate>` wrapper. The component renders a `<div>` with avat
 
 ### Testing
 
-Existing relationship tests must continue to pass. Verify that clicking a search result in the modal triggers `select_person` and does not navigate away.
+Existing relationship tests must continue to pass. Additionally, add a new test that exercises the full modal selection flow:
+
+1. Open the add-parent modal
+2. Search for a candidate
+3. Click the search result (`#search-result-{id}`)
+4. Assert the selected person confirmation appears (no navigation occurred)
+5. Submit the relationship form
+6. Assert the relationship was created and shows on the page
