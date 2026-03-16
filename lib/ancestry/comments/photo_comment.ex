@@ -13,7 +13,7 @@ defmodule Ancestry.Comments.PhotoComment do
     comment
     |> cast(attrs, [:text])
     |> validate_required([:text])
-    |> validate_length(:text, min: 1)
+    |> validate_length(:text, max: 5000)
     |> foreign_key_constraint(:photo_id)
   end
 end

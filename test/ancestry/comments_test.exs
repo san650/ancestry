@@ -150,6 +150,7 @@ defmodule Ancestry.CommentsTest do
   defp photo_fixture(gallery) do
     tmp_dir = Path.join(System.tmp_dir!(), "comment_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(tmp_dir)
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
     dest = Path.join(tmp_dir, "photo.jpg")
     File.cp!("test/fixtures/test_image.jpg", dest)
 
