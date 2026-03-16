@@ -298,6 +298,241 @@
         </div>
       </div>
     </div>
+
+    <%!-- Relationships Section --%>
+    <div id="relationships-section" class="max-w-5xl mx-auto mt-12">
+      <h2 class="text-xl font-bold text-base-content mb-6">Relationships</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <%!-- Left Column: Spouses and Children --%>
+        <div class="space-y-6">
+          <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wide">
+            Spouses &amp; Children
+          </h3>
+
+          <%!-- Partner groups --%>
+          <%= for {partner, rel, children} <- @partner_children do %>
+            <div
+              id={"partner-group-#{partner.id}"}
+              class="rounded-xl border border-base-300 p-4 space-y-3"
+            >
+              <%!-- Current person (highlighted) --%>
+              <.person_card person={@person} family={@family} highlighted={true} />
+
+              <%!-- Partner card with relationship info --%>
+              <div class="flex items-center gap-2">
+                <div class="flex-1">
+                  <.person_card person={partner} family={@family} highlighted={false} />
+                </div>
+                <div class="flex items-center gap-1">
+                  <button
+                    id={"edit-rel-#{rel.id}"}
+                    phx-click="edit_relationship"
+                    phx-value-id={rel.id}
+                    class="p-1.5 rounded-lg text-base-content/30 hover:text-primary hover:bg-primary/10 transition-all"
+                    title="Edit relationship"
+                  >
+                    <.icon name="hero-pencil" class="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    id={"delete-rel-#{rel.id}"}
+                    phx-click="delete_relationship"
+                    phx-value-id={rel.id}
+                    data-confirm="Remove this relationship?"
+                    class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+                    title="Remove relationship"
+                  >
+                    <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              <%!-- Marriage info --%>
+              <%= if rel.metadata do %>
+                <% info = format_marriage_info(rel.metadata) %>
+                <%= if info do %>
+                  <p class="text-xs text-base-content/40 px-2 flex items-center gap-1">
+                    <.icon name="hero-heart" class="w-3 h-3" />
+                    <%= if rel.type == "ex_partner" do %>
+                      Married: {info}
+                    <% else %>
+                      {info}
+                    <% end %>
+                  </p>
+                <% end %>
+                <%= if rel.type == "ex_partner" && rel.metadata do %>
+                  <% divorce_info =
+                    format_partial_date(
+                      rel.metadata.divorce_day,
+                      rel.metadata.divorce_month,
+                      rel.metadata.divorce_year
+                    ) %>
+                  <%= if divorce_info != "" do %>
+                    <p class="text-xs text-error/60 px-2 flex items-center gap-1">
+                      <.icon name="hero-arrow-path" class="w-3 h-3" /> Divorced: {divorce_info}
+                    </p>
+                  <% end %>
+                <% end %>
+              <% end %>
+
+              <%!-- Convert to ex button for current partners --%>
+              <%= if rel.type == "partner" do %>
+                <button
+                  id={"convert-ex-#{rel.id}"}
+                  phx-click="convert_to_ex"
+                  phx-value-id={rel.id}
+                  class="text-xs text-base-content/40 hover:text-warning px-2 py-1 rounded transition-colors"
+                >
+                  Mark as ex-partner
+                </button>
+              <% end %>
+
+              <%!-- Children of this pair --%>
+              <%= if children != [] do %>
+                <div class="pl-4 border-l-2 border-base-200 space-y-1 mt-2">
+                  <p class="text-xs font-medium text-base-content/40 uppercase tracking-wide mb-1">
+                    Children
+                  </p>
+                  <%= for child <- children do %>
+                    <.person_card person={child} family={@family} highlighted={false} />
+                  <% end %>
+                </div>
+              <% end %>
+
+              <%!-- Add child for this pair --%>
+              <button
+                id={"add-child-partner-#{partner.id}"}
+                phx-click="add_child_for_partner"
+                phx-value-partner-id={partner.id}
+                class="flex items-center gap-1.5 text-xs text-primary/60 hover:text-primary px-2 py-1 rounded transition-colors"
+              >
+                <.icon name="hero-plus" class="w-3 h-3" /> Add Child
+              </button>
+            </div>
+          <% end %>
+
+          <%!-- Solo children (unknown other parent) --%>
+          <%= if @solo_children != [] do %>
+            <div
+              id="solo-children-section"
+              class="rounded-xl border border-base-300 p-4 space-y-3"
+            >
+              <p class="text-xs font-medium text-base-content/40 uppercase tracking-wide">
+                Children (other parent unknown)
+              </p>
+              <%= for child <- @solo_children do %>
+                <.person_card person={child} family={@family} highlighted={false} />
+              <% end %>
+            </div>
+          <% end %>
+
+          <%!-- Action buttons --%>
+          <div class="flex flex-wrap gap-2">
+            <button
+              id="add-partner-btn"
+              phx-click="add_relationship"
+              phx-value-type="partner"
+              class="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary border border-dashed border-primary/30 hover:border-primary/60 rounded-lg px-3 py-2 transition-all"
+            >
+              <.icon name="hero-plus" class="w-4 h-4" /> Add Spouse
+            </button>
+            <button
+              id="add-child-solo-btn"
+              phx-click="add_relationship"
+              phx-value-type="child_solo"
+              class="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary border border-dashed border-primary/30 hover:border-primary/60 rounded-lg px-3 py-2 transition-all"
+            >
+              <.icon name="hero-plus" class="w-4 h-4" /> Add Child
+            </button>
+          </div>
+        </div>
+
+        <%!-- Right Column: Parents and Siblings --%>
+        <div class="space-y-6">
+          <h3 class="text-sm font-semibold text-base-content/60 uppercase tracking-wide">
+            Parents &amp; Siblings
+          </h3>
+
+          <%!-- Parents --%>
+          <div id="parents-section" class="space-y-3">
+            <%= for {parent, rel} <- @parents do %>
+              <div class="flex items-center gap-2">
+                <div class="flex-1">
+                  <.person_card person={parent} family={@family} highlighted={false} />
+                </div>
+                <div class="flex items-center gap-1">
+                  <%= if rel.metadata && rel.metadata.role do %>
+                    <span class={[
+                      "text-xs px-2 py-0.5 rounded-full",
+                      rel.metadata.role == "father" && "bg-blue-100 text-blue-700",
+                      rel.metadata.role == "mother" && "bg-pink-100 text-pink-700"
+                    ]}>
+                      {String.capitalize(rel.metadata.role)}
+                    </span>
+                  <% end %>
+                  <button
+                    id={"edit-parent-rel-#{rel.id}"}
+                    phx-click="edit_relationship"
+                    phx-value-id={rel.id}
+                    class="p-1.5 rounded-lg text-base-content/30 hover:text-primary hover:bg-primary/10 transition-all"
+                    title="Edit"
+                  >
+                    <.icon name="hero-pencil" class="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    id={"delete-parent-rel-#{rel.id}"}
+                    phx-click="delete_relationship"
+                    phx-value-id={rel.id}
+                    data-confirm="Remove this parent relationship?"
+                    class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+                    title="Remove"
+                  >
+                    <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            <% end %>
+
+            <%= if length(@parents) < 2 do %>
+              <button
+                id="add-parent-btn"
+                phx-click="add_relationship"
+                phx-value-type="parent"
+                class="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary border border-dashed border-primary/30 hover:border-primary/60 rounded-lg px-3 py-2 transition-all"
+              >
+                <.icon name="hero-plus" class="w-4 h-4" /> Add Parent
+              </button>
+            <% end %>
+          </div>
+
+          <%!-- Siblings --%>
+          <%= if @siblings != [] do %>
+            <div id="siblings-section" class="rounded-xl border border-base-300 p-4 space-y-3">
+              <p class="text-xs font-medium text-base-content/40 uppercase tracking-wide">
+                Siblings
+              </p>
+              <%!-- Current person highlighted --%>
+              <.person_card person={@person} family={@family} highlighted={true} />
+              <%= for sib <- @siblings do %>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1">
+                    <.person_card
+                      person={sibling_person(sib)}
+                      family={@family}
+                      highlighted={false}
+                    />
+                  </div>
+                  <%= if sibling_type(sib) == :half do %>
+                    <span class="text-xs text-base-content/40 bg-base-200 px-2 py-0.5 rounded-full">
+                      Half
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
   <% end %>
 
   <%!-- Remove Confirmation Modal --%>
@@ -340,6 +575,322 @@
           </button>
           <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
         </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Add Relationship Modal --%>
+  <%= if @adding_relationship do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_add_relationship"
+      >
+      </div>
+      <div
+        id="add-relationship-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+      >
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-bold text-base-content">
+            {add_relationship_title(@adding_relationship)}
+          </h2>
+          <button
+            phx-click="cancel_add_relationship"
+            class="p-2 rounded-lg text-base-content/30 hover:text-base-content hover:bg-base-200 transition-all"
+          >
+            <.icon name="hero-x-mark" class="w-5 h-5" />
+          </button>
+        </div>
+
+        <%= if @selected_person == nil do %>
+          <%!-- Step 1: Search for a person --%>
+          <div class="space-y-4">
+            <p class="text-sm text-base-content/60">
+              Search for an existing family member to add as a relationship.
+            </p>
+            <input
+              id="relationship-search-input"
+              type="text"
+              placeholder="Type a name to search..."
+              value={@search_query}
+              phx-keyup="search_members"
+              phx-debounce="300"
+              class="input input-bordered w-full"
+              autocomplete="off"
+            />
+
+            <%= if @search_results != [] do %>
+              <div class="space-y-1 max-h-60 overflow-y-auto">
+                <%= for result <- @search_results do %>
+                  <button
+                    id={"search-result-#{result.id}"}
+                    phx-click="select_person"
+                    phx-value-id={result.id}
+                    class="w-full text-left"
+                  >
+                    <.person_card person={result} family={@family} highlighted={false} />
+                  </button>
+                <% end %>
+              </div>
+            <% else %>
+              <%= if String.length(@search_query) >= 2 do %>
+                <p class="text-sm text-base-content/40 text-center py-4">
+                  No results found
+                </p>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <%!-- Step 2: Metadata form after selection --%>
+          <div class="space-y-4">
+            <div class="rounded-lg bg-base-200/50 p-3">
+              <.person_card person={@selected_person} family={@family} highlighted={true} />
+            </div>
+
+            <%= cond do %>
+              <% @adding_relationship == "parent" && @relationship_form -> %>
+                <.form
+                  for={@relationship_form}
+                  id="add-parent-form"
+                  phx-submit="save_relationship"
+                >
+                  <div class="space-y-4">
+                    <.input
+                      field={@relationship_form[:role]}
+                      type="select"
+                      label="Role"
+                      options={[{"Father", "father"}, {"Mother", "mother"}]}
+                    />
+                    <button type="submit" class="btn btn-primary w-full">Add Parent</button>
+                  </div>
+                </.form>
+              <% @adding_relationship == "partner" && @relationship_form -> %>
+                <.form
+                  for={@relationship_form}
+                  id="add-partner-form"
+                  phx-submit="save_relationship"
+                >
+                  <div class="space-y-4">
+                    <p class="text-sm font-medium text-base-content/60">
+                      Marriage Details (optional)
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                      <.input
+                        field={@relationship_form[:marriage_day]}
+                        type="number"
+                        placeholder="Day"
+                        label="Day"
+                      />
+                      <.input
+                        field={@relationship_form[:marriage_month]}
+                        type="number"
+                        placeholder="Month"
+                        label="Month"
+                      />
+                      <.input
+                        field={@relationship_form[:marriage_year]}
+                        type="number"
+                        placeholder="Year"
+                        label="Year"
+                      />
+                    </div>
+                    <.input
+                      field={@relationship_form[:marriage_location]}
+                      type="text"
+                      label="Location"
+                      placeholder="e.g. London, UK"
+                    />
+                    <button type="submit" class="btn btn-primary w-full">Add Spouse</button>
+                  </div>
+                </.form>
+              <% @adding_relationship in ["child", "child_solo"] -> %>
+                <.form for={%{}} as={:metadata} id="add-child-form" phx-submit="save_relationship">
+                  <button type="submit" class="btn btn-primary w-full">Add Child</button>
+                </.form>
+              <% true -> %>
+                <p class="text-sm text-base-content/40">Unknown relationship type.</p>
+            <% end %>
+
+            <button
+              phx-click="cancel_add_relationship"
+              class="btn btn-ghost w-full"
+            >
+              Cancel
+            </button>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Convert to Ex-Partner Modal --%>
+  <%= if @converting_to_ex do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_convert_to_ex"
+      >
+      </div>
+      <div
+        id="convert-to-ex-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-4">Mark as Ex-Partner</h2>
+        <p class="text-sm text-base-content/60 mb-4">
+          Enter the divorce date (optional).
+        </p>
+        <.form for={@ex_form} id="convert-to-ex-form" phx-submit="save_convert_to_ex">
+          <div class="space-y-4">
+            <div class="grid grid-cols-3 gap-3">
+              <.input field={@ex_form[:divorce_day]} type="number" placeholder="Day" label="Day" />
+              <.input
+                field={@ex_form[:divorce_month]}
+                type="number"
+                placeholder="Month"
+                label="Month"
+              />
+              <.input
+                field={@ex_form[:divorce_year]}
+                type="number"
+                placeholder="Year"
+                label="Year"
+              />
+            </div>
+            <div class="flex gap-3">
+              <button type="submit" class="btn btn-warning flex-1">Confirm</button>
+              <button type="button" phx-click="cancel_convert_to_ex" class="btn btn-ghost flex-1">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Edit Relationship Modal --%>
+  <%= if @editing_relationship do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_edit_relationship"
+      >
+      </div>
+      <div
+        id="edit-relationship-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-bold text-base-content mb-4">Edit Relationship</h2>
+        <.form
+          for={@edit_relationship_form}
+          id="edit-relationship-form"
+          phx-submit="save_edit_relationship"
+        >
+          <div class="space-y-4">
+            <%= cond do %>
+              <% @editing_relationship.type == "parent" -> %>
+                <.input
+                  field={@edit_relationship_form[:role]}
+                  type="select"
+                  label="Role"
+                  options={[{"Father", "father"}, {"Mother", "mother"}]}
+                />
+              <% @editing_relationship.type == "partner" -> %>
+                <p class="text-sm font-medium text-base-content/60">Marriage Details</p>
+                <div class="grid grid-cols-3 gap-3">
+                  <.input
+                    field={@edit_relationship_form[:marriage_day]}
+                    type="number"
+                    placeholder="Day"
+                    label="Day"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:marriage_month]}
+                    type="number"
+                    placeholder="Month"
+                    label="Month"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:marriage_year]}
+                    type="number"
+                    placeholder="Year"
+                    label="Year"
+                  />
+                </div>
+                <.input
+                  field={@edit_relationship_form[:marriage_location]}
+                  type="text"
+                  label="Location"
+                  placeholder="e.g. London, UK"
+                />
+              <% @editing_relationship.type == "ex_partner" -> %>
+                <p class="text-sm font-medium text-base-content/60">Marriage Details</p>
+                <div class="grid grid-cols-3 gap-3">
+                  <.input
+                    field={@edit_relationship_form[:marriage_day]}
+                    type="number"
+                    placeholder="Day"
+                    label="Day"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:marriage_month]}
+                    type="number"
+                    placeholder="Month"
+                    label="Month"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:marriage_year]}
+                    type="number"
+                    placeholder="Year"
+                    label="Year"
+                  />
+                </div>
+                <.input
+                  field={@edit_relationship_form[:marriage_location]}
+                  type="text"
+                  label="Location"
+                  placeholder="e.g. London, UK"
+                />
+                <p class="text-sm font-medium text-base-content/60 mt-4">Divorce Details</p>
+                <div class="grid grid-cols-3 gap-3">
+                  <.input
+                    field={@edit_relationship_form[:divorce_day]}
+                    type="number"
+                    placeholder="Day"
+                    label="Day"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:divorce_month]}
+                    type="number"
+                    placeholder="Month"
+                    label="Month"
+                  />
+                  <.input
+                    field={@edit_relationship_form[:divorce_year]}
+                    type="number"
+                    placeholder="Year"
+                    label="Year"
+                  />
+                </div>
+              <% true -> %>
+                <p class="text-sm text-base-content/40">
+                  No editable fields for this relationship type.
+                </p>
+            <% end %>
+
+            <div class="flex gap-3 mt-4">
+              <button type="submit" class="btn btn-primary flex-1">Save</button>
+              <button
+                type="button"
+                phx-click="cancel_edit_relationship"
+                class="btn btn-ghost flex-1"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </.form>
       </div>
     </div>
   <% end %>
