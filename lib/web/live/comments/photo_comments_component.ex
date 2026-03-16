@@ -70,10 +70,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   def handle_event("cancel_edit", _, socket) do
+    comment = Comments.get_photo_comment!(socket.assigns.editing_comment_id)
+
     {:noreply,
      socket
      |> assign(:editing_comment_id, nil)
-     |> assign(:edit_form, nil)}
+     |> assign(:edit_form, nil)
+     |> stream_insert(:comments, comment)}
   end
 
   def handle_event("delete_comment", %{"id" => id}, socket) do
