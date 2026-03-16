@@ -46,14 +46,13 @@ end
 
 Returns `[{child, coparent | nil}]` — every child of the person, with their other parent if one exists.
 
-### Remove Replaced Queries
+### Remove Replaced Calls
 
-Remove calls to:
-- `get_children_of_pair/2` (the per-partner N+1 loop)
+Remove the following calls from `load_relationships/2`:
+- `get_children_of_pair/2` (the per-partner N+1 loop in the `Enum.map` over partners)
 - `get_solo_children/1`
-- `get_children/1` (unused but now fully superseded)
 
-The function definitions can remain in the context module for now (they may be used elsewhere or in tests). Only the calls from `load_relationships/2` are removed.
+Note: `get_children/1` is not called in `load_relationships/2` — it is already unused there. The function definitions for all three can remain in the context module (they may be used elsewhere or in tests).
 
 ### Grouping in `load_relationships/2`
 
@@ -94,11 +93,14 @@ The "Spouses & Children" column in the show template gets a new section between 
 <% end %>
 ```
 
+The coparent_children section intentionally does not include an "Add Child" button (unlike partner groups). Adding children with an unlinked co-parent is an uncommon flow — users can use the existing "Add Child" solo button and then add the second parent separately.
+
 ### Testing
 
-1. Test `get_children_with_coparents/1` returns `{child, coparent}` when both parents exist and `{child, nil}` when only one parent exists
-2. Test `load_relationships/2` grouping: child with partnered co-parent appears in partner_children, child with unlinked co-parent appears in coparent_children, child with no co-parent appears in solo_children
-3. LiveView test: add two unlinked parents to a child, visit each parent's page, assert child is visible
+1. **Query test** — `get_children_with_coparents/1` returns `{child, coparent}` when both parents exist and `{child, nil}` when only one parent exists
+2. **Bucket boundary test** — when parent B and co-parent C are linked as partners, child A (with both B and C as parents) must appear in `partner_children` under the B-C group and must NOT also appear in `coparent_children`
+3. **Unlinked co-parent bucket test** — when parent B and co-parent C are NOT linked as partners, child A must appear in `coparent_children` grouped under the co-parent, not in `partner_children` or `solo_children`
+4. **LiveView integration test** — add two unlinked parents to a child, visit each parent's page, assert the child is visible within the coparent section specifically (e.g., by checking for the "Children with" heading and the child's name within that DOM section)
 
 ### Files Modified
 
