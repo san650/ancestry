@@ -51,12 +51,23 @@ defmodule Ancestry.Relationships do
             type: "ex_partner",
             metadata: ex_metadata
           })
-          |> Repo.insert!()
+          |> Repo.insert()
+          |> case do
+            {:ok, ex_rel} -> ex_rel
+            {:error, changeset} -> Repo.rollback(changeset)
+          end
 
         {:error, changeset} ->
           Repo.rollback(changeset)
       end
     end)
+  end
+
+  def list_relationships_for_person(person_id) do
+    Repo.all(
+      from r in Relationship,
+        where: r.person_a_id == ^person_id or r.person_b_id == ^person_id
+    )
   end
 
   def change_relationship(%Relationship{} = rel, attrs \\ %{}) do

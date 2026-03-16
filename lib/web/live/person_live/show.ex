@@ -213,9 +213,12 @@ defmodule Web.PersonLive.Show do
                 partner = People.get_person!(partner_id)
                 partner_role = if partner.gender == "male", do: "father", else: "mother"
 
-                Relationships.create_relationship(partner, selected, "parent", %{
-                  role: partner_role
-                })
+                case Relationships.create_relationship(partner, selected, "parent", %{
+                       role: partner_role
+                     }) do
+                  {:ok, _} -> :ok
+                  {:error, _} -> :ok
+                end
               end
 
               ok
@@ -384,8 +387,25 @@ defmodule Web.PersonLive.Show do
         {partner, rel, children}
       end)
 
+    parents = Relationships.get_parents(person.id)
+
+    parents_marriage =
+      case parents do
+        [{p1, _}, {p2, _}] ->
+          case Relationships.get_partners(p1.id) do
+            partners ->
+              Enum.find_value(partners, fn {partner, rel} ->
+                if partner.id == p2.id, do: rel
+              end)
+          end
+
+        _ ->
+          nil
+      end
+
     socket
-    |> assign(:parents, Relationships.get_parents(person.id))
+    |> assign(:parents, parents)
+    |> assign(:parents_marriage, parents_marriage)
     |> assign(:partner_children, partner_children)
     |> assign(:siblings, Relationships.get_siblings(person.id))
     |> assign(:solo_children, Relationships.get_solo_children(person.id))
