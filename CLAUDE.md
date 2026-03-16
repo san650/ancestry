@@ -69,6 +69,7 @@ lib/
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
+- Read the document @doc/learnings.md file to gather previous information about recurrent issues
 
 ### Phoenix v1.8 guidelines
 
@@ -108,9 +109,6 @@ custom classes must fully style the input
 - Ensure **clean typography, spacing, and layout balance** for a refined, premium look
 - Focus on **delightful details** like hover effects, loading states, and smooth page transitions
 
-### Git usage
-
-- **Never** add Co-Authored-By in commit messages
 
 <!-- usage-rules-start -->
 <!-- phoenix:ecto-start -->
@@ -660,49 +658,59 @@ This project exposes Tidewave Phoenix MCP tools. Prefer Tidewave tools over gues
 
 ### Use these Tidewave tools first
 
-- `mcp__tidewave__get_docs`
+- `get_docs`
   - Use for Elixir/Phoenix/Ecto/LiveView docs for modules, functions, and dependencies actually installed in this project.
   - Prefer this over general web search for library usage inside the app.
+  - Examples
+    - `get_docs Oban.Job.new/1` get package documentation for the function
+    - `get_docs Ecto.Schema` get package documentation for the module
 
-- `mcp__tidewave__get_source_location`
+- `get_source_location`
   - Use to locate the source of modules/functions/macros quickly.
   - Prefer this before broad codebase searches when trying to find where something is defined.
+  - Examples
+    - `get_source_location Ancestry.People` get the exact file and line number where the module is defined
+    - `get_source_location Ancestry.People.Person.changeset/2` get the exact file and line number where the function is defined
 
-- `mcp__tidewave__get_models`
-  - Use to discover application modules and where they live.
-  - Start here when exploring an unfamiliar codebase.
 
-- `mcp__tidewave__get_ecto_schemas`
+- `get_ecto_schemas`
   - Use when working with Ecto schemas, associations, fields, or database-backed domain modeling.
   - Prefer this before inferring schema structure from scattered files.
   - Only available when the project uses Ecto.
+  - Examples
+    - `get_ecto_schemas` list all schemas defined in the project
 
-- `mcp__tidewave__get_ash_resources`
-  - Use when working with Ash resources, actions, attributes, relationships, or policies.
-  - Only available when the project uses Ash.
-
-- `mcp__tidewave__execute_sql_query`
+- `execute_sql_query`
   - Use to inspect development database state, validate assumptions, and confirm the effect of changes.
   - Prefer read queries unless the task explicitly requires writes.
+  - Examples
+    -`execute_sql_query "SELECT * FROM persons"` execute the SQL query in the development database
 
-- `mcp__tidewave__project_eval`
+- `project_eval`
   - Use to evaluate Elixir code inside the running application context.
   - Prefer this for checking runtime behavior, inspecting modules, testing expressions, calling app functions, and validating business logic.
   - Use this instead of guessing how macros, config, or runtime wiring behave.
+  - Examples 
+    - `project_evel "Ancestry.Repo.all(Ancestry.People.Person)"` get all the people structs from the db
 
-- `mcp__tidewave__get_logs`
+- `get_logs`
   - Use to inspect server logs after requests, LiveView interactions, background jobs, or runtime failures.
   - Always check logs when behavior differs from expectations.
+  - Examples
+    - `get_logs level: DEBUG, tail: 10` get the last 10 logs with DEBUG level or higher
+    - `get_logs tail: 10, grep: QUERY` get the last 10 logs containing the word "QUERY"
 
-- `mcp__tidewave__search_package_docs`
+- `search_package_docs`
   - Use to search HexDocs constrained to the exact dependencies in this project.
   - Prefer this over broad documentation search when looking for dependency APIs.
+  - Examples
+    - `search_package_docs insert!/3` search documentation for insert/3 function across all project dependencies
 
 ### Expected workflow
 
 When implementing or debugging features in this Phoenix app, prefer this order:
 
-1. Discover relevant modules with `get_models`, `get_ecto_schemas`, or `get_ash_resources`.
+1. Discover relevant modules with `get_ecto_schemas`
 2. Read dependency or framework docs with `get_docs` or `search_package_docs`.
 3. Find definitions with `get_source_location`.
 4. Validate runtime assumptions with `project_eval`.
