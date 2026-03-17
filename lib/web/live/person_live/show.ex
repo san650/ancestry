@@ -571,12 +571,7 @@ defmodule Web.PersonLive.Show do
       "flex items-center gap-3 p-2 rounded-lg",
       @highlighted && "bg-primary/10 border border-primary/20"
     ]}>
-      <div class={[
-        "w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden border-l-4",
-        @person.gender == "male" && "border-l-blue-400 bg-blue-50",
-        @person.gender == "female" && "border-l-pink-400 bg-pink-50",
-        @person.gender not in ["male", "female"] && "border-l-gray-300 bg-base-200"
-      ]}>
+      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-base-200">
         <%= if @person.photo && @person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
