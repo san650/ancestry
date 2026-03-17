@@ -58,24 +58,16 @@ defmodule Ancestry.Import.CSV do
   end
 
   defp parse_csv(path) do
-    content = File.read!(path)
-    [header_line | _] = String.split(content, "\n", parts: 2)
-
-    headers =
-      header_line
+    [headers | data_rows] =
+      path
+      |> File.read!()
       |> CSVParser.parse_string(skip_headers: false)
-      |> hd()
-      |> Enum.reject(&(&1 == ""))
 
+    headers = Enum.reject(headers, &(&1 == ""))
     header_count = length(headers)
-
-    data_rows =
-      content
-      |> CSVParser.parse_string(skip_headers: true)
 
     rows =
       Enum.map(data_rows, fn row ->
-        # Pad or trim row to match header count for consistent zipping
         padded = Enum.take(row ++ List.duplicate("", header_count), header_count)
         Enum.zip(headers, padded) |> Map.new()
       end)
@@ -120,18 +112,26 @@ defmodule Ancestry.Import.CSV do
     |> Enum.reduce(%{created: 0, skipped: 0, errors: []}, fn {type, source_eid, target_eid,
                                                               metadata},
                                                              acc ->
-      with %Person{} = source <- Repo.get_by(Person, external_id: source_eid),
-           %Person{} = target <- Repo.get_by(Person, external_id: target_eid) do
-        case Relationships.create_relationship(source, target, Atom.to_string(type), metadata) do
-          {:ok, _rel} ->
-            %{acc | created: acc.created + 1}
+      source = Repo.get_by(Person, external_id: source_eid)
+      target = Repo.get_by(Person, external_id: target_eid)
 
-          {:error, _reason} ->
-            %{acc | skipped: acc.skipped + 1}
-        end
-      else
-        nil ->
-          %{acc | skipped: acc.skipped + 1}
+      cond do
+        is_nil(source) ->
+          error = "#{type}: person \"#{source_eid}\" not found"
+          %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+
+        is_nil(target) ->
+          error = "#{type}: person \"#{target_eid}\" not found"
+          %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+
+        true ->
+          case Relationships.create_relationship(source, target, Atom.to_string(type), metadata) do
+            {:ok, _rel} ->
+              %{acc | created: acc.created + 1}
+
+            {:error, _reason} ->
+              %{acc | skipped: acc.skipped + 1}
+          end
       end
     end)
     |> then(fn result -> %{result | errors: Enum.reverse(result.errors)} end)

@@ -90,8 +90,14 @@ defmodule Ancestry.Import.CSV.FamilyEcho do
 
   defp parse_integer(value) when is_binary(value) do
     case String.trim(value) do
-      "" -> nil
-      trimmed -> String.to_integer(trimmed)
+      "" ->
+        nil
+
+      trimmed ->
+        case Integer.parse(trimmed) do
+          {n, _} -> n
+          :error -> nil
+        end
     end
   end
 

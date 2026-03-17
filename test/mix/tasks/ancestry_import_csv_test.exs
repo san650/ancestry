@@ -120,7 +120,7 @@ defmodule Mix.Tasks.Ancestry.ImportCsvTest do
 
     test "prints error for unknown adapter" do
       output =
-        capture_io(fn ->
+        capture_io(:stderr, fn ->
           Mix.Tasks.Ancestry.ImportCsv.run(["nonexistent", "Family", "file.csv"])
         end)
 
@@ -130,7 +130,7 @@ defmodule Mix.Tasks.Ancestry.ImportCsvTest do
 
     test "prints error when file not found" do
       output =
-        capture_io(fn ->
+        capture_io(:stderr, fn ->
           Mix.Tasks.Ancestry.ImportCsv.run(["family_echo", "Family", "/no/such/file.csv"])
         end)
 

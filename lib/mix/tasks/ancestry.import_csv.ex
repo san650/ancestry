@@ -9,14 +9,19 @@ defmodule Mix.Tasks.Ancestry.ImportCsv do
 
     case args do
       [adapter_name, family_name, csv_path] ->
-        adapter = String.to_atom(adapter_name)
+        adapter =
+          try do
+            String.to_existing_atom(adapter_name)
+          rescue
+            ArgumentError -> String.to_atom(adapter_name)
+          end
 
         case Ancestry.Import.import_from_csv(adapter, family_name, csv_path) do
           {:ok, summary} ->
             print_summary(summary)
 
           {:error, reason} ->
-            Mix.shell().info("Error: #{reason}")
+            Mix.shell().error("Error: #{reason}")
         end
 
       _ ->
