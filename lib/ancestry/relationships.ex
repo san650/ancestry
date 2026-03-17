@@ -101,6 +101,23 @@ defmodule Ancestry.Relationships do
   end
 
   @doc """
+  Returns all children of person_id with their co-parent (if any).
+  Returns `[{child, coparent | nil}]`.
+  """
+  def get_children_with_coparents(person_id) do
+    from(child in Person,
+      join: r1 in Relationship,
+      on: r1.person_b_id == child.id and r1.person_a_id == ^person_id and r1.type == "parent",
+      left_join: r2 in Relationship,
+      on: r2.person_b_id == child.id and r2.type == "parent" and r2.person_a_id != ^person_id,
+      left_join: coparent in Person,
+      on: coparent.id == r2.person_a_id,
+      select: {child, coparent}
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Returns list of `{person, relationship}` tuples for current partners of the given person_id.
   """
   def get_partners(person_id) do

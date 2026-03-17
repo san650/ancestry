@@ -366,6 +366,66 @@ defmodule Ancestry.RelationshipsTest do
     end
   end
 
+  describe "get_children_with_coparents/1" do
+    test "returns {child, coparent} when child has two parents" do
+      family = family_fixture()
+      {:ok, father} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, mother} = People.create_person(family, %{given_name: "Mom", surname: "D"})
+      {:ok, child} = People.create_person(family, %{given_name: "Kid", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(father, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother, child, "parent", %{role: "mother"})
+
+      results = Relationships.get_children_with_coparents(father.id)
+      assert [{returned_child, returned_coparent}] = results
+      assert returned_child.id == child.id
+      assert returned_coparent.id == mother.id
+    end
+
+    test "returns {child, nil} when child has only one parent" do
+      family = family_fixture()
+      {:ok, parent} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, child} = People.create_person(family, %{given_name: "Solo", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      results = Relationships.get_children_with_coparents(parent.id)
+      assert [{returned_child, nil}] = results
+      assert returned_child.id == child.id
+    end
+
+    test "returns multiple children with different co-parents" do
+      family = family_fixture()
+      {:ok, father} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, mother1} = People.create_person(family, %{given_name: "Mom1", surname: "D"})
+      {:ok, mother2} = People.create_person(family, %{given_name: "Mom2", surname: "D"})
+      {:ok, child1} = People.create_person(family, %{given_name: "Kid1", surname: "D"})
+      {:ok, child2} = People.create_person(family, %{given_name: "Kid2", surname: "D"})
+      {:ok, solo} = People.create_person(family, %{given_name: "Solo", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(father, child1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother1, child1, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(father, child2, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother2, child2, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(father, solo, "parent", %{role: "father"})
+
+      results = Relationships.get_children_with_coparents(father.id)
+      assert length(results) == 3
+
+      result_map = Map.new(results, fn {child, coparent} -> {child.id, coparent} end)
+      assert result_map[child1.id].id == mother1.id
+      assert result_map[child2.id].id == mother2.id
+      assert result_map[solo.id] == nil
+    end
+
+    test "returns empty list when person has no children" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Lonely", surname: "D"})
+
+      assert Relationships.get_children_with_coparents(person.id) == []
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, family} =
       attrs
