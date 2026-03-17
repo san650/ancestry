@@ -44,31 +44,33 @@ defmodule Mix.Tasks.Ancestry.ImportCsv do
 
     Family: #{summary.family.name}
 
-    People created:         #{summary.people_created}
-    People skipped:         #{summary.people_skipped}
-    Relationships created:  #{summary.relationships_created}
+    People created:          #{summary.people_created}
+    People updated:          #{summary.people_updated}
+    People unchanged:        #{summary.people_unchanged}
+    People skipped:          #{summary.people_skipped}
+    Relationships created:   #{summary.relationships_created}
     Duplicate relationships: #{summary.relationships_duplicates}
-    Relationship errors:    #{length(summary.relationships_errors)}
+    Relationship errors:     #{length(summary.relationships_errors)}
     """)
 
-    if summary.people_errors != [] do
-      Mix.shell().info("Skipped people:")
+    print_list("Unchanged people:", summary.people_unchanged_names, fn name ->
+      "#{name} already exists"
+    end)
 
-      Enum.each(summary.people_errors, fn error ->
-        Mix.shell().info("  - #{error}")
-      end)
+    print_list("Updated people:", summary.people_updated_names, & &1)
+    print_list("Skipped people:", summary.people_errors, & &1)
+    print_list("Skipped relationships:", summary.relationships_errors, & &1)
+  end
 
-      Mix.shell().info("")
-    end
+  defp print_list(_header, [], _formatter), do: :ok
 
-    if summary.relationships_errors != [] do
-      Mix.shell().info("Skipped relationships:")
+  defp print_list(header, items, formatter) do
+    Mix.shell().info(header)
 
-      Enum.each(summary.relationships_errors, fn error ->
-        Mix.shell().info("  - #{error}")
-      end)
+    Enum.each(items, fn item ->
+      Mix.shell().info("  - #{formatter.(item)}")
+    end)
 
-      Mix.shell().info("")
-    end
+    Mix.shell().info("")
   end
 end

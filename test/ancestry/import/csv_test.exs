@@ -269,6 +269,63 @@ defmodule Ancestry.Import.CSVTest do
     end
   end
 
+  describe "re-import" do
+    test "reuses existing family by name" do
+      rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, first} = CSV.import(FamilyEcho, "Doe Family", path)
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path)
+
+      assert first.family.id == second.family.id
+    end
+
+    test "reports unchanged people on re-import" do
+      rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path)
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path)
+
+      assert second.people_created == 0
+      assert second.people_unchanged == 1
+      assert "John Doe" in second.people_unchanged_names
+    end
+
+    test "updates changed people on re-import" do
+      rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "John",
+          "Surname now" => "Doe",
+          "Birth year" => "1990"
+        })
+      ]
+
+      path = write_tmp_csv(build_csv(rows))
+      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path)
+
+      updated_rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "John",
+          "Surname now" => "Doe",
+          "Birth year" => "1991"
+        })
+      ]
+
+      updated_path = write_tmp_csv(build_csv(updated_rows))
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", updated_path)
+
+      assert second.people_created == 0
+      assert second.people_updated == 1
+      assert Enum.any?(second.people_updated_names, &(&1 =~ "birth_year changed"))
+
+      person = Repo.get_by!(Person, external_id: "family_echo_P1")
+      assert person.birth_year == 1991
+    end
+  end
+
   describe "import/3 with real FamilyEcho CSV" do
     test "imports the full family.csv file" do
       csv_path = Path.absname("family.csv")

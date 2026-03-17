@@ -23,3 +23,9 @@ When displaying related records by splitting them across multiple specialized qu
 When a batch import (e.g., CSV import) skips records, printing only aggregate counts like "Relationships skipped: 143" makes it impossible to diagnose what went wrong. Different skip reasons (duplicates, missing references, constraint violations) require different responses — duplicates are expected and harmless, while missing references indicate data problems.
 
 **Fix:** Categorize failures into expected skips (e.g., duplicate symmetric relationships) and real errors (missing references, constraint violations). Print expected skips as a single summary count and real errors as individual lines with enough context to identify the affected records (e.g., external IDs, relationship type).
+
+## Batch imports must handle re-runs gracefully
+
+When a batch import uses a unique external ID to track imported records, re-running the import will crash with a constraint error if the changeset doesn't declare `unique_constraint/3`. Even with the constraint declared, the import logic should check for existing records before attempting insertion to provide meaningful feedback ("already exists" vs a cryptic changeset error).
+
+**Fix:** Always add `unique_constraint` to changesets for fields with unique DB indexes. For idempotent imports, look up by external ID first: if the record exists and data matches, report it as unchanged; if data differs, update it and report what changed; if it doesn't exist, create it. For the parent entity (e.g., family), use find-or-create by name.

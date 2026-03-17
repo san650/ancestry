@@ -21,17 +21,21 @@ defmodule Ancestry.Import.CSV do
   Returns `{:ok, summary}` on success or `{:error, reason}` on failure.
 
   The summary map contains:
-  - `:family` - the created Family struct
-  - `:people_created` - count of people created
-  - `:people_skipped` - count of rows skipped
-  - `:people_errors` - list of `{row_number, error}` tuples
+  - `:family` - the created or found Family struct
+  - `:people_created` - count of new people created
+  - `:people_updated` - count of existing people updated with changed data
+  - `:people_unchanged` - count of existing people with no changes
+  - `:people_skipped` - count of rows skipped due to errors
+  - `:people_errors` - list of error descriptions
+  - `:people_unchanged_names` - list of display names for unchanged people
+  - `:people_updated_names` - list of descriptions for updated people
   - `:relationships_created` - count of relationships created
   - `:relationships_duplicates` - count of duplicate relationships skipped
   - `:relationships_errors` - list of error descriptions for real failures
   """
   def import(adapter_module, family_name, csv_path) do
     with :ok <- validate_file(csv_path),
-         {:ok, family} <- Families.create_family(%{name: family_name}),
+         {:ok, family} <- find_or_create_family(family_name),
          {:ok, rows} <- parse_csv(csv_path) do
       people_result = import_people(adapter_module, family, rows)
       relationships_result = import_relationships(adapter_module, rows)
@@ -40,12 +44,23 @@ defmodule Ancestry.Import.CSV do
        %{
          family: family,
          people_created: people_result.created,
+         people_updated: people_result.updated,
+         people_unchanged: people_result.unchanged,
          people_skipped: people_result.skipped,
          people_errors: people_result.errors,
+         people_unchanged_names: people_result.unchanged_names,
+         people_updated_names: people_result.updated_names,
          relationships_created: relationships_result.created,
          relationships_duplicates: relationships_result.duplicates,
          relationships_errors: relationships_result.errors
        }}
+    end
+  end
+
+  defp find_or_create_family(name) do
+    case Repo.get_by(Ancestry.Families.Family, name: name) do
+      %Ancestry.Families.Family{} = family -> {:ok, family}
+      nil -> Families.create_family(%{name: name})
     end
   end
 
@@ -75,27 +90,97 @@ defmodule Ancestry.Import.CSV do
     {:ok, rows}
   end
 
+  @import_fields [
+    :given_name,
+    :surname,
+    :given_name_at_birth,
+    :surname_at_birth,
+    :nickname,
+    :title,
+    :suffix,
+    :gender,
+    :living,
+    :birth_day,
+    :birth_month,
+    :birth_year,
+    :death_day,
+    :death_month,
+    :death_year
+  ]
+
   defp import_people(adapter_module, family, rows) do
+    initial = %{
+      created: 0,
+      updated: 0,
+      unchanged: 0,
+      skipped: 0,
+      errors: [],
+      unchanged_names: [],
+      updated_names: []
+    }
+
     rows
     |> Enum.with_index(2)
-    |> Enum.reduce(%{created: 0, skipped: 0, errors: []}, fn {row, row_num}, acc ->
+    |> Enum.reduce(initial, fn {row, row_num}, acc ->
       case adapter_module.parse_person(row) do
         {:ok, attrs} ->
-          case People.create_person(family, attrs) do
-            {:ok, _person} ->
-              %{acc | created: acc.created + 1}
-
-            {:error, changeset} ->
-              error = "Row #{row_num}: #{inspect(format_errors(changeset))}"
-              %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
-          end
+          import_or_update_person(family, attrs, row_num, acc)
 
         {:skip, reason} ->
           error = "Row #{row_num}: #{reason}"
           %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
       end
     end)
-    |> then(fn result -> %{result | errors: Enum.reverse(result.errors)} end)
+    |> then(fn result ->
+      %{
+        result
+        | errors: Enum.reverse(result.errors),
+          unchanged_names: Enum.reverse(result.unchanged_names),
+          updated_names: Enum.reverse(result.updated_names)
+      }
+    end)
+  end
+
+  defp import_or_update_person(family, attrs, row_num, acc) do
+    case Repo.get_by(Person, external_id: attrs.external_id) do
+      nil ->
+        case People.create_person(family, attrs) do
+          {:ok, _person} ->
+            %{acc | created: acc.created + 1}
+
+          {:error, changeset} ->
+            error = "Row #{row_num}: #{inspect(format_errors(changeset))}"
+            %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+        end
+
+      %Person{} = existing ->
+        name = Person.display_name(existing)
+        changed_fields = detect_changes(existing, attrs)
+
+        if changed_fields == [] do
+          %{acc | unchanged: acc.unchanged + 1, unchanged_names: [name | acc.unchanged_names]}
+        else
+          case People.update_person(existing, attrs) do
+            {:ok, _person} ->
+              desc = "#{name}: #{Enum.join(changed_fields, ", ")} changed"
+              %{acc | updated: acc.updated + 1, updated_names: [desc | acc.updated_names]}
+
+            {:error, changeset} ->
+              error =
+                "Row #{row_num}: update failed for #{name}: #{inspect(format_errors(changeset))}"
+
+              %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+          end
+        end
+    end
+  end
+
+  defp detect_changes(%Person{} = existing, attrs) do
+    Enum.filter(@import_fields, fn field ->
+      old_value = Map.get(existing, field)
+      new_value = Map.get(attrs, field)
+      new_value != nil and new_value != old_value
+    end)
   end
 
   defp format_errors(changeset) do
