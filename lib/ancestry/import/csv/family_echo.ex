@@ -27,7 +27,7 @@ defmodule Ancestry.Import.CSV.FamilyEcho do
          title: blank_to_nil(row["Title"]),
          suffix: blank_to_nil(row["Suffix"]),
          gender: parse_gender(row["Gender"]),
-         living: parse_living(row["Deceased"]),
+         deceased: parse_deceased(row["Deceased"]),
          birth_year: parse_integer(row["Birth year"]),
          birth_month: parse_integer(row["Birth month"]),
          birth_day: parse_integer(row["Birth day"]),
@@ -83,8 +83,8 @@ defmodule Ancestry.Import.CSV.FamilyEcho do
   defp parse_gender(value) when value in ["", nil], do: nil
   defp parse_gender(_other), do: "other"
 
-  defp parse_living("Y"), do: "no"
-  defp parse_living(_), do: "yes"
+  defp parse_deceased("Y"), do: true
+  defp parse_deceased(_), do: false
 
   defp parse_integer(nil), do: nil
 

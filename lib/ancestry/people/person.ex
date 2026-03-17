@@ -18,7 +18,7 @@ defmodule Ancestry.People.Person do
     field :death_day, :integer
     field :death_month, :integer
     field :death_year, :integer
-    field :living, :string, default: "yes"
+    field :deceased, :boolean, default: false
     field :gender, :string
     field :external_id, :string
     field :photo, Ancestry.Uploaders.PersonPhoto.Type
@@ -44,7 +44,7 @@ defmodule Ancestry.People.Person do
     :death_day,
     :death_month,
     :death_year,
-    :living,
+    :deceased,
     :gender,
     :external_id
   ]
@@ -53,7 +53,6 @@ defmodule Ancestry.People.Person do
     person
     |> cast(attrs, @cast_fields)
     |> default_birth_names()
-    |> validate_inclusion(:living, ~w(yes no unknown))
     |> validate_inclusion(:gender, ~w(female male other))
     |> validate_number(:birth_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
     |> validate_number(:birth_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)

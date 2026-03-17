@@ -10,16 +10,9 @@ defmodule Ancestry.PeopleTest do
       assert changeset.valid?
     end
 
-    test "defaults living to yes" do
+    test "defaults deceased to false" do
       changeset = Person.changeset(%Person{}, %{given_name: "John", surname: "Doe"})
-      assert Ecto.Changeset.get_field(changeset, :living) == "yes"
-    end
-
-    test "validates living is one of yes, no, unknown" do
-      changeset =
-        Person.changeset(%Person{}, %{given_name: "John", surname: "Doe", living: "maybe"})
-
-      assert "is invalid" in errors_on(changeset).living
+      assert Ecto.Changeset.get_field(changeset, :deceased) == false
     end
 
     test "validates gender is one of female, male, other" do
@@ -77,11 +70,13 @@ defmodule Ancestry.PeopleTest do
       assert hd(people).id == person.id
     end
 
-    test "returns error changeset with invalid living value" do
+    test "creates a deceased person" do
       family = family_fixture()
 
-      assert {:error, %Ecto.Changeset{}} =
-               People.create_person(family, %{given_name: "J", surname: "D", living: "maybe"})
+      assert {:ok, %Person{} = person} =
+               People.create_person(family, %{given_name: "J", surname: "D", deceased: true})
+
+      assert person.deceased == true
     end
   end
 

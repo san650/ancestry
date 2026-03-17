@@ -99,7 +99,7 @@ defmodule Ancestry.Import.CSV do
     :title,
     :suffix,
     :gender,
-    :living,
+    :deceased,
     :birth_day,
     :birth_month,
     :birth_year,

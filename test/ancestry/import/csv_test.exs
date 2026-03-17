@@ -259,7 +259,7 @@ defmodule Ancestry.Import.CSVTest do
       assert person.title == "Dr"
       assert person.suffix == "Jr"
       assert person.gender == "male"
-      assert person.living == "no"
+      assert person.deceased == true
       assert person.birth_year == 1985
       assert person.birth_month == 11
       assert person.birth_day == 9

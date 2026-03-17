@@ -33,7 +33,7 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
       assert attrs.title == "Dr"
       assert attrs.suffix == "Jr"
       assert attrs.gender == "male"
-      assert attrs.living == "yes"
+      assert attrs.deceased == false
       assert attrs.birth_year == 1985
       assert attrs.birth_month == 11
       assert attrs.birth_day == 9
@@ -53,7 +53,7 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
         })
 
       assert {:ok, attrs} = FamilyEcho.parse_person(row)
-      assert attrs.living == "no"
+      assert attrs.deceased == true
       assert attrs.gender == "female"
     end
 

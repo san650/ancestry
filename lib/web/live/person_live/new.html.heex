@@ -81,10 +81,10 @@
           <h2 class="text-lg font-semibold text-base-content mb-4">Details</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <.input
-              field={@form[:living]}
+              field={@form[:deceased]}
               type="select"
-              label="Living"
-              options={[{"Yes", "yes"}, {"No", "no"}, {"Unknown", "unknown"}]}
+              label="Deceased"
+              options={[{"No", "false"}, {"Yes", "true"}]}
             />
             <.input
               field={@form[:gender]}

@@ -626,6 +626,11 @@ defmodule Web.PersonLive.Show do
               –{@person.death_year}
             <% end %>
           <% end %>
+          <%= if @person.deceased do %>
+            <span title="This person is deceased.">
+              d.{if @person.death_year, do: " #{@person.death_year}", else: ""}
+            </span>
+          <% end %>
         </p>
       </div>
     </div>

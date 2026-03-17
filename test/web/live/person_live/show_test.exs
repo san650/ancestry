@@ -13,7 +13,7 @@ defmodule Web.PersonLive.ShowTest do
         given_name: "Jane",
         surname: "Doe",
         gender: "female",
-        living: "yes"
+        deceased: false
       })
 
     %{family: family, person: person}
@@ -34,6 +34,42 @@ defmodule Web.PersonLive.ShowTest do
     |> render_submit()
 
     assert render(view) =~ "Janet"
+  end
+
+  test "shows deceased status on detail page", %{conn: conn, family: family} do
+    {:ok, deceased_person} =
+      People.create_person(family, %{
+        given_name: "John",
+        surname: "Doe",
+        deceased: true,
+        death_year: 1994
+      })
+
+    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/members/#{deceased_person.id}")
+    assert html =~ "Deceased:"
+    assert html =~ "Yes"
+  end
+
+  test "shows deceased indicator on person card for related people", %{
+    conn: conn,
+    family: family,
+    person: person
+  } do
+    {:ok, deceased_parent} =
+      People.create_person(family, %{
+        given_name: "John",
+        surname: "Doe",
+        deceased: true,
+        death_year: 1994
+      })
+
+    Ancestry.Relationships.create_relationship(deceased_parent, person, "parent", %{
+      role: "father"
+    })
+
+    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    assert html =~ "d. 1994"
+    assert html =~ "This person is deceased."
   end
 
   test "removes person from family", %{conn: conn, family: family, person: person} do
