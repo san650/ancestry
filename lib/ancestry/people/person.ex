@@ -20,6 +20,7 @@ defmodule Ancestry.People.Person do
     field :death_year, :integer
     field :living, :string, default: "yes"
     field :gender, :string
+    field :external_id, :string
     field :photo, Ancestry.Uploaders.PersonPhoto.Type
     field :photo_status, :string
 
@@ -44,7 +45,8 @@ defmodule Ancestry.People.Person do
     :death_month,
     :death_year,
     :living,
-    :gender
+    :gender,
+    :external_id
   ]
 
   def changeset(person, attrs) do

@@ -44,6 +44,13 @@ defmodule Ancestry.PeopleTest do
       assert Person.display_name(person) == "John Doe"
     end
 
+    test "accepts external_id" do
+      changeset =
+        Person.changeset(%Person{}, %{given_name: "John", external_id: "family_echo_ABC"})
+
+      assert Ecto.Changeset.get_field(changeset, :external_id) == "family_echo_ABC"
+    end
+
     test "display_name/1 handles nil given_name" do
       person = %Person{given_name: nil, surname: "Doe"}
       assert Person.display_name(person) == "Doe"
