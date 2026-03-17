@@ -44,13 +44,31 @@ defmodule Mix.Tasks.Ancestry.ImportCsv do
 
     Family: #{summary.family.name}
 
-    People created: #{summary.people_created}
-    People skipped: #{summary.people_skipped}
-    People errors:  #{length(summary.people_errors)}
-
-    Relationships created: #{summary.relationships_created}
-    Relationships skipped: #{summary.relationships_skipped}
-    Relationships errors:  #{length(summary.relationships_errors)}
+    People created:         #{summary.people_created}
+    People skipped:         #{summary.people_skipped}
+    Relationships created:  #{summary.relationships_created}
+    Duplicate relationships: #{summary.relationships_duplicates}
+    Relationship errors:    #{length(summary.relationships_errors)}
     """)
+
+    if summary.people_errors != [] do
+      Mix.shell().info("Skipped people:")
+
+      Enum.each(summary.people_errors, fn error ->
+        Mix.shell().info("  - #{error}")
+      end)
+
+      Mix.shell().info("")
+    end
+
+    if summary.relationships_errors != [] do
+      Mix.shell().info("Skipped relationships:")
+
+      Enum.each(summary.relationships_errors, fn error ->
+        Mix.shell().info("  - #{error}")
+      end)
+
+      Mix.shell().info("")
+    end
   end
 end

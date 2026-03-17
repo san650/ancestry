@@ -143,7 +143,7 @@ defmodule Ancestry.Import.CSVTest do
       assert summary.people_errors == []
       # DAD1->MOM1 partner, KID1 has mother+father, KID2 has mother+father = 5
       assert summary.relationships_created == 5
-      assert summary.relationships_skipped == 0
+      assert summary.relationships_duplicates == 0
       assert summary.relationships_errors == []
       assert summary.family.name == "Smith Family"
     end
@@ -185,7 +185,7 @@ defmodule Ancestry.Import.CSVTest do
 
       assert summary.people_created == 1
       assert summary.relationships_created == 0
-      assert summary.relationships_skipped == 2
+      assert length(summary.relationships_errors) == 2
     end
 
     test "returns error for file not found" do
@@ -218,9 +218,9 @@ defmodule Ancestry.Import.CSVTest do
       assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path)
 
       assert summary.people_created == 2
-      # First partner creates successfully, second is a duplicate and gets skipped
+      # First partner creates successfully, second is a duplicate
       assert summary.relationships_created == 1
-      assert summary.relationships_skipped == 1
+      assert summary.relationships_duplicates == 1
     end
 
     test "creates people with correct attributes" do

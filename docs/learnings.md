@@ -17,3 +17,9 @@ When a component like `person_card` wraps its content in `<.link navigate={...}>
 When displaying related records by splitting them across multiple specialized queries (e.g., "children of this pair" + "children with no second parent"), any record that doesn't match *either* query becomes invisible. This is especially dangerous when the partitions rely on external state (e.g., whether two parents are linked as partners) — changing that state silently hides records that were previously visible.
 
 **Fix:** Use a single comprehensive query that returns all records, then group/partition in memory. This guarantees no record is missed regardless of external state. Each bucket's filter logic is explicit and testable in one place.
+
+## Batch import output should categorize failures, not just count them
+
+When a batch import (e.g., CSV import) skips records, printing only aggregate counts like "Relationships skipped: 143" makes it impossible to diagnose what went wrong. Different skip reasons (duplicates, missing references, constraint violations) require different responses — duplicates are expected and harmless, while missing references indicate data problems.
+
+**Fix:** Categorize failures into expected skips (e.g., duplicate symmetric relationships) and real errors (missing references, constraint violations). Print expected skips as a single summary count and real errors as individual lines with enough context to identify the affected records (e.g., external IDs, relationship type).

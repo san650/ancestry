@@ -26,8 +26,8 @@ defmodule Ancestry.Import.CSV do
   - `:people_skipped` - count of rows skipped
   - `:people_errors` - list of `{row_number, error}` tuples
   - `:relationships_created` - count of relationships created
-  - `:relationships_skipped` - count of relationships skipped
-  - `:relationships_errors` - list of error descriptions
+  - `:relationships_duplicates` - count of duplicate relationships skipped
+  - `:relationships_errors` - list of error descriptions for real failures
   """
   def import(adapter_module, family_name, csv_path) do
     with :ok <- validate_file(csv_path),
@@ -43,7 +43,7 @@ defmodule Ancestry.Import.CSV do
          people_skipped: people_result.skipped,
          people_errors: people_result.errors,
          relationships_created: relationships_result.created,
-         relationships_skipped: relationships_result.skipped,
+         relationships_duplicates: relationships_result.duplicates,
          relationships_errors: relationships_result.errors
        }}
     end
@@ -109,31 +109,48 @@ defmodule Ancestry.Import.CSV do
   defp import_relationships(adapter_module, rows) do
     rows
     |> Enum.flat_map(&adapter_module.parse_relationships/1)
-    |> Enum.reduce(%{created: 0, skipped: 0, errors: []}, fn {type, source_eid, target_eid,
-                                                              metadata},
-                                                             acc ->
+    |> Enum.reduce(%{created: 0, duplicates: 0, errors: []}, fn {type, source_eid, target_eid,
+                                                                 metadata},
+                                                                acc ->
       source = Repo.get_by(Person, external_id: source_eid)
       target = Repo.get_by(Person, external_id: target_eid)
 
       cond do
         is_nil(source) ->
           error = "#{type}: person \"#{source_eid}\" not found"
-          %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+          %{acc | errors: [error | acc.errors]}
 
         is_nil(target) ->
           error = "#{type}: person \"#{target_eid}\" not found"
-          %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
+          %{acc | errors: [error | acc.errors]}
 
         true ->
           case Relationships.create_relationship(source, target, Atom.to_string(type), metadata) do
             {:ok, _rel} ->
               %{acc | created: acc.created + 1}
 
-            {:error, _reason} ->
-              %{acc | skipped: acc.skipped + 1}
+            {:error, :max_parents_reached} ->
+              error = "#{type}: max 2 parents for \"#{target_eid}\""
+              %{acc | errors: [error | acc.errors]}
+
+            {:error, %Ecto.Changeset{} = changeset} ->
+              if duplicate_relationship?(changeset) do
+                %{acc | duplicates: acc.duplicates + 1}
+              else
+                error =
+                  "#{type} #{source_eid} -> #{target_eid}: #{inspect(format_errors(changeset))}"
+
+                %{acc | errors: [error | acc.errors]}
+              end
           end
       end
     end)
     |> then(fn result -> %{result | errors: Enum.reverse(result.errors)} end)
+  end
+
+  defp duplicate_relationship?(%Ecto.Changeset{} = changeset) do
+    changeset.errors
+    |> Keyword.get_values(:person_a_id)
+    |> Enum.any?(fn {msg, _} -> msg =~ "already exists" end)
   end
 end
