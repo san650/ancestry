@@ -657,43 +657,61 @@
         </div>
 
         <%= if @selected_person == nil do %>
-          <%!-- Step 1: Search for a person --%>
-          <div class="space-y-4">
-            <p class="text-sm text-base-content/60">
-              Search for an existing family member to add as a relationship.
-            </p>
-            <input
-              id="relationship-search-input"
-              type="text"
-              placeholder="Type a name to search..."
-              value={@search_query}
-              phx-keyup="search_members"
-              phx-debounce="300"
-              class="input input-bordered w-full"
-              autocomplete="off"
+          <%= if @quick_creating do %>
+            <.live_component
+              module={Web.PersonLive.QuickCreateComponent}
+              id="quick-create-person"
+              family={@family}
+              relationship_type={@adding_relationship}
             />
+          <% else %>
+            <%!-- Step 1: Search for a person --%>
+            <div class="space-y-4">
+              <p class="text-sm text-base-content/60">
+                Search for an existing family member to add as a relationship.
+              </p>
+              <input
+                id="relationship-search-input"
+                type="text"
+                placeholder="Type a name to search..."
+                value={@search_query}
+                phx-keyup="search_members"
+                phx-debounce="300"
+                class="input input-bordered w-full"
+                autocomplete="off"
+              />
 
-            <%= if @search_results != [] do %>
-              <div class="space-y-1 max-h-60 overflow-y-auto">
-                <%= for result <- @search_results do %>
-                  <button
-                    id={"search-result-#{result.id}"}
-                    phx-click="select_person"
-                    phx-value-id={result.id}
-                    class="w-full text-left rounded-lg transition-colors hover:bg-base-200"
-                  >
-                    <.person_card person={result} highlighted={false} />
-                  </button>
+              <%= if @search_results != [] do %>
+                <div class="space-y-1 max-h-60 overflow-y-auto">
+                  <%= for result <- @search_results do %>
+                    <button
+                      id={"search-result-#{result.id}"}
+                      phx-click="select_person"
+                      phx-value-id={result.id}
+                      class="w-full text-left rounded-lg transition-colors hover:bg-base-200"
+                    >
+                      <.person_card person={result} highlighted={false} />
+                    </button>
+                  <% end %>
+                </div>
+              <% else %>
+                <%= if String.length(@search_query) >= 2 do %>
+                  <p class="text-sm text-base-content/40 text-center py-4">
+                    No results found
+                  </p>
                 <% end %>
-              </div>
-            <% else %>
-              <%= if String.length(@search_query) >= 2 do %>
-                <p class="text-sm text-base-content/40 text-center py-4">
-                  No results found
-                </p>
               <% end %>
-            <% end %>
-          </div>
+
+              <%!-- Quick create link --%>
+              <button
+                id="start-quick-create-btn"
+                phx-click="start_quick_create"
+                class="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary w-full justify-center py-2 border-t border-base-200 mt-2 transition-colors"
+              >
+                <.icon name="hero-plus" class="w-4 h-4" /> Person not listed? Create new
+              </button>
+            </div>
+          <% end %>
         <% else %>
           <%!-- Step 2: Metadata form after selection --%>
           <div class="space-y-4">

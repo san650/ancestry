@@ -113,7 +113,8 @@ defmodule Web.PersonLive.Show do
      |> assign(:search_results, [])
      |> assign(:selected_person, nil)
      |> assign(:relationship_form, nil)
-     |> assign(:adding_partner_id, nil)}
+     |> assign(:adding_partner_id, nil)
+     |> assign(:quick_creating, false)}
   end
 
   def handle_event("add_child_for_partner", %{"partner-id" => partner_id}, socket) do
@@ -124,7 +125,8 @@ defmodule Web.PersonLive.Show do
      |> assign(:search_query, "")
      |> assign(:search_results, [])
      |> assign(:selected_person, nil)
-     |> assign(:relationship_form, nil)}
+     |> assign(:relationship_form, nil)
+     |> assign(:quick_creating, false)}
   end
 
   def handle_event("cancel_add_relationship", _, socket) do
@@ -135,7 +137,16 @@ defmodule Web.PersonLive.Show do
      |> assign(:search_results, [])
      |> assign(:selected_person, nil)
      |> assign(:relationship_form, nil)
-     |> assign(:adding_partner_id, nil)}
+     |> assign(:adding_partner_id, nil)
+     |> assign(:quick_creating, false)}
+  end
+
+  def handle_event("start_quick_create", _, socket) do
+    {:noreply, assign(socket, :quick_creating, true)}
+  end
+
+  def handle_event("cancel_quick_create", _, socket) do
+    {:noreply, assign(socket, :quick_creating, false)}
   end
 
   def handle_event("search_members", %{"value" => query}, socket) do
@@ -375,6 +386,27 @@ defmodule Web.PersonLive.Show do
     {:noreply, assign(socket, :person, person)}
   end
 
+  def handle_info({:person_created, person, type}, socket) do
+    relationship_form =
+      case type do
+        "parent" ->
+          role = if person.gender == "male", do: "father", else: "mother"
+          to_form(%{"role" => role}, as: :metadata)
+
+        "partner" ->
+          to_form(%{}, as: :metadata)
+
+        _ ->
+          nil
+      end
+
+    {:noreply,
+     socket
+     |> assign(:quick_creating, false)
+     |> assign(:selected_person, person)
+     |> assign(:relationship_form, relationship_form)}
+  end
+
   # --- Private helpers ---
 
   defp load_relationships(socket, person) do
@@ -449,6 +481,7 @@ defmodule Web.PersonLive.Show do
     |> assign(:editing_relationship, nil)
     |> assign(:edit_relationship_form, nil)
     |> assign(:adding_partner_id, nil)
+    |> assign(:quick_creating, false)
   end
 
   defp atomize_metadata(params) do
