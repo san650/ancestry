@@ -269,6 +269,19 @@ defmodule Ancestry.Import.CSVTest do
     end
   end
 
+  describe "import/3 with real FamilyEcho CSV" do
+    test "imports the full family.csv file" do
+      csv_path = Path.absname("family.csv")
+
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Ferreira Family", csv_path)
+
+      assert summary.family.name == "Ferreira Family"
+      assert summary.people_created > 0
+      assert summary.people_created + summary.people_skipped > 0
+      assert summary.relationships_created > 0
+    end
+  end
+
   defp build_csv(rows) do
     header_line = Enum.join(@headers, ",")
     [header_line | rows] |> Enum.join("\n")
