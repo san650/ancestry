@@ -182,6 +182,56 @@ defmodule Web.PersonLive.RelationshipsTest do
     assert html =~ "2015"
   end
 
+  test "displays children with unlinked co-parent", %{conn: conn, family: family} do
+    {:ok, father} =
+      People.create_person(family, %{given_name: "Dad", surname: "Doe", gender: "male"})
+
+    {:ok, mother} =
+      People.create_person(family, %{given_name: "Mom", surname: "Doe", gender: "female"})
+
+    {:ok, child} =
+      People.create_person(family, %{given_name: "Kid", surname: "Doe", gender: "male"})
+
+    # Both are parents of child, but NOT linked as partners
+    {:ok, _} = Relationships.create_relationship(father, child, "parent", %{role: "father"})
+    {:ok, _} = Relationships.create_relationship(mother, child, "parent", %{role: "mother"})
+
+    # Visit father's page — child should be visible in coparent section
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{father.id}")
+    assert has_element?(view, "#coparent-children-#{mother.id}")
+    assert render(view) =~ "Kid"
+
+    # Visit mother's page — child should also be visible
+    {:ok, view2, _html} = live(conn, ~p"/families/#{family.id}/members/#{mother.id}")
+    assert has_element?(view2, "#coparent-children-#{father.id}")
+    assert render(view2) =~ "Kid"
+  end
+
+  test "child with partnered parents appears under partner group not coparent section", %{
+    conn: conn,
+    family: family,
+    person: person
+  } do
+    {:ok, spouse} =
+      People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
+
+    {:ok, child} =
+      People.create_person(family, %{given_name: "Kid", surname: "Doe", gender: "male"})
+
+    {:ok, _} =
+      Relationships.create_relationship(person, spouse, "partner", %{marriage_year: 2020})
+
+    {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
+    {:ok, _} = Relationships.create_relationship(spouse, child, "parent", %{role: "mother"})
+
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+
+    # Child should be under partner group, NOT in coparent section
+    assert has_element?(view, "#partner-group-#{spouse.id}")
+    refute has_element?(view, "#coparent-children-#{spouse.id}")
+    assert render(view) =~ "Kid"
+  end
+
   test "selects a parent from search results and creates relationship", %{
     conn: conn,
     family: family,

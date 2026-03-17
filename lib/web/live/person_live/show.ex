@@ -380,12 +380,41 @@ defmodule Web.PersonLive.Show do
   defp load_relationships(socket, person) do
     partners = Relationships.get_partners(person.id)
     ex_partners = Relationships.get_ex_partners(person.id)
+    all_partner_rels = partners ++ ex_partners
 
+    children_with_coparents = Relationships.get_children_with_coparents(person.id)
+
+    partner_ids = MapSet.new(all_partner_rels, fn {p, _rel} -> p.id end)
+
+    # Group children into three buckets
+    {partner_child_map, coparent_map, solo_children} =
+      Enum.reduce(children_with_coparents, {%{}, %{}, []}, fn
+        {child, nil}, {pc, cp, solo} ->
+          {pc, cp, [child | solo]}
+
+        {child, coparent}, {pc, cp, solo} ->
+          if MapSet.member?(partner_ids, coparent.id) do
+            {Map.update(pc, coparent.id, [child], &[child | &1]), cp, solo}
+          else
+            {pc,
+             Map.update(cp, coparent.id, {coparent, [child]}, fn {cp_person, kids} ->
+               {cp_person, [child | kids]}
+             end), solo}
+          end
+      end)
+
+    # Attach children to partner tuples
     partner_children =
-      Enum.map(partners ++ ex_partners, fn {partner, rel} ->
-        children = Relationships.get_children_of_pair(person.id, partner.id)
+      Enum.map(all_partner_rels, fn {partner, rel} ->
+        children = Map.get(partner_child_map, partner.id, [])
         {partner, rel, children}
       end)
+
+    # Convert coparent map to list of {coparent, [children]}
+    coparent_children =
+      coparent_map
+      |> Map.values()
+      |> Enum.map(fn {coparent, children} -> {coparent, Enum.reverse(children)} end)
 
     parents = Relationships.get_parents(person.id)
 
@@ -407,8 +436,9 @@ defmodule Web.PersonLive.Show do
     |> assign(:parents, parents)
     |> assign(:parents_marriage, parents_marriage)
     |> assign(:partner_children, partner_children)
+    |> assign(:coparent_children, coparent_children)
     |> assign(:siblings, Relationships.get_siblings(person.id))
-    |> assign(:solo_children, Relationships.get_solo_children(person.id))
+    |> assign(:solo_children, Enum.reverse(solo_children))
     |> assign(:adding_relationship, nil)
     |> assign(:search_query, "")
     |> assign(:search_results, [])
