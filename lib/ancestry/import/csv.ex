@@ -94,14 +94,24 @@ defmodule Ancestry.Import.CSV do
               %{acc | created: acc.created + 1}
 
             {:error, changeset} ->
-              %{acc | errors: [{row_num, changeset} | acc.errors]}
+              error = "Row #{row_num}: #{inspect(format_errors(changeset))}"
+              %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
           end
 
-        {:skip, _reason} ->
-          %{acc | skipped: acc.skipped + 1}
+        {:skip, reason} ->
+          error = "Row #{row_num}: #{reason}"
+          %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
       end
     end)
     |> then(fn result -> %{result | errors: Enum.reverse(result.errors)} end)
+  end
+
+  defp format_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
+      Regex.replace(~r"%{(\w+)}", message, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
   end
 
   defp import_relationships(adapter_module, rows) do
