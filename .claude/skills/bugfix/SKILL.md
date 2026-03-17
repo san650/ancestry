@@ -24,7 +24,7 @@ You MUST create a task for each of these items and complete them in order:
 6. **Write design doc** — save to `docs/bugfix/specs/YYYY-MM-DD-<topic>-design.md` and commit
 7. **Spec review loop** — dispatch spec-document-reviewer subagent with precisely crafted review context (never your session history); fix issues and re-dispatch until approved (max 5 iterations, then surface to human)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. Write learning - try to understand and generalize the issue and the solution and persist it
+9. Write learnings - try to understand and generalize the issue and the solution and persist it
 
 ## Process Flow
 
@@ -115,8 +115,7 @@ Wait for the user's response. If they request changes, make them and re-run the 
 
 ## After the implementation
 
-Write a concise entry about the learnings above on what the issue was (a general description of the issue with LiveView views and LiveView Components) and what the
-solution was. Write the entry in @docs/learnings.md
+Write a concise entry about the learnings on what the issue was (a brief and general description of the issue) and what the solution is. Write the entry in `docs/learnings.md`
 
 ## Key Principles
 
