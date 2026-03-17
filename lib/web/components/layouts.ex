@@ -74,6 +74,10 @@ defmodule Web.Layouts do
       {render_slot(@inner_block)}
     </main>
 
+    <footer class="mt-6">
+      <div></div>
+    </footer>
+
     <.flash_group flash={@flash} />
     """
   end
