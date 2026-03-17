@@ -406,7 +406,7 @@ defmodule Web.PersonLive.Show do
     # Attach children to partner tuples
     partner_children =
       Enum.map(all_partner_rels, fn {partner, rel} ->
-        children = Map.get(partner_child_map, partner.id, [])
+        children = partner_child_map |> Map.get(partner.id, []) |> Enum.reverse()
         {partner, rel, children}
       end)
 
