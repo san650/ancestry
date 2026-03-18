@@ -9,11 +9,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
     ~H"""
     <aside
       id={@id}
-      class={[
-        "border-l border-base-200 bg-base-100 flex flex-col p-4 gap-6",
-        "w-72 lg:w-72",
-        "max-lg:w-full max-lg:border-l-0 max-lg:border-t"
-      ]}
+      class="bg-base-100 flex flex-col p-4 gap-6"
     >
       <.live_component
         module={GalleryListComponent}
