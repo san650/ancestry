@@ -136,7 +136,12 @@ defmodule Ancestry.People.PersonTree do
       parent_trees =
         [person_a, person_b]
         |> Enum.reject(&is_nil/1)
-        |> Enum.map(&build_ancestor_tree(&1.id, depth + 1))
+        |> Enum.map(fn person ->
+          case build_ancestor_tree(person.id, depth + 1) do
+            nil -> nil
+            tree -> %{tree: tree, for_person_id: person.id}
+          end
+        end)
         |> Enum.reject(&is_nil/1)
 
       %{

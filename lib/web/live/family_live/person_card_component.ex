@@ -12,13 +12,16 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   def person_card(assigns) do
     ~H"""
-    <div class={[
-      "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all",
-      "border border-base-content/10",
-      gender_border_class(@person.gender),
-      @focused && "ring-2 ring-primary",
-      @person.deceased && "opacity-75"
-    ]}>
+    <div
+      data-person-id={@person.id}
+      class={[
+        "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all",
+        "border border-base-content/10",
+        gender_border_class(@person.gender),
+        @focused && "ring-2 ring-primary",
+        @person.deceased && "opacity-75"
+      ]}
+    >
       <.link
         navigate={~p"/families/#{@family_id}/members/#{@person.id}"}
         class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10"
@@ -227,7 +230,11 @@ defmodule Web.FamilyLive.PersonCardComponent do
       </div>
       <div class="flex items-start gap-6" data-children-row>
         <%= for child <- @children do %>
-          <div class="flex flex-col items-center" data-child-column>
+          <div
+            class="flex flex-col items-center"
+            data-child-column
+            data-child-person-id={child_person_id(child)}
+          >
             <%= cond do %>
               <% Map.get(child, :has_more, false) -> %>
                 <.couple_card
@@ -277,10 +284,10 @@ defmodule Web.FamilyLive.PersonCardComponent do
     <div class="flex flex-col items-center">
       <%= if @node.parent_trees != [] do %>
         <div class="flex items-end justify-center gap-8" data-ancestor-parents-row>
-          <%= for parent_tree <- @node.parent_trees do %>
-            <div data-ancestor-parent-column>
+          <%= for entry <- @node.parent_trees do %>
+            <div data-ancestor-parent-column data-target-person-id={entry.for_person_id}>
               <.ancestor_subtree
-                node={parent_tree}
+                node={entry.tree}
                 family_id={@family_id}
                 focused_person_id={@focused_person_id}
               />
@@ -359,4 +366,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   defp placeholder_link(_type, _person_id, family_id) do
     ~p"/families/#{family_id}/members/new"
   end
+
+  defp child_person_id(%{person: person}), do: person.id
+  defp child_person_id(%{focus: person}), do: person.id
 end

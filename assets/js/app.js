@@ -68,11 +68,17 @@ const BranchConnector = {
       if (columns.length === 0) return
 
       const h = 20
+      // Find the actual child person by explicit ID on each column
       const centers = Array.from(columns).map(col => {
-        // Use the primary column or couple card center if available (handles nested family_subtrees with ex-partners)
-        const primary = col.querySelector("[data-primary-column] > [data-couple-card]") || col.querySelector("[data-couple-card]")
-        const target = primary || col
-        const r = target.getBoundingClientRect()
+        const childId = col.dataset.childPersonId
+        if (childId) {
+          const personEl = col.querySelector(`[data-person-id="${childId}"]`)
+          if (personEl) {
+            const r = personEl.getBoundingClientRect()
+            return r.left + r.width / 2 - containerRect.left
+          }
+        }
+        const r = col.getBoundingClientRect()
         return r.left + r.width / 2 - containerRect.left
       })
       const parentCx = containerRect.width / 2
@@ -111,26 +117,48 @@ const AncestorConnector = {
       if (parentColumns.length === 0) return
 
       const h = 20
+      // Source: center of bottom-most couple card in each parent column
       const parentCenters = Array.from(parentColumns).map(col => {
-        // Find the bottom-most couple card in this ancestor column
         const coupleCards = col.querySelectorAll("[data-couple-card]")
         const target = coupleCards.length > 0 ? coupleCards[coupleCards.length - 1] : col
         const r = target.getBoundingClientRect()
         return r.left + r.width / 2 - containerRect.left
       })
-      const childCx = containerRect.width / 2
+
+      // Target: specific person position within the couple card below
+      const coupleCardBelow = this.el.nextElementSibling
+      const childTargets = Array.from(parentColumns).map(col => {
+        const targetId = col.dataset.targetPersonId
+        if (targetId && coupleCardBelow) {
+          const personEl = coupleCardBelow.querySelector(`[data-person-id="${targetId}"]`)
+          if (personEl) {
+            const r = personEl.getBoundingClientRect()
+            return r.left + r.width / 2 - containerRect.left
+          }
+        }
+        return containerRect.width / 2
+      })
 
       while (svg.firstChild) svg.removeChild(svg.firstChild)
 
       if (parentCenters.length === 1) {
-        makeSvgLine(svg, parentCenters[0], 0, parentCenters[0], h, CONNECTOR_STROKE)
+        const px = parentCenters[0], cx = childTargets[0]
+        if (Math.abs(px - cx) < 2) {
+          makeSvgLine(svg, px, 0, px, h, CONNECTOR_STROKE)
+        } else {
+          const barY = h / 2
+          makeSvgLine(svg, px, 0, px, barY, CONNECTOR_STROKE)
+          makeSvgLine(svg, px, barY, cx, barY, CONNECTOR_STROKE)
+          makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE)
+        }
       } else {
-        const left = Math.min(...parentCenters)
-        const right = Math.max(...parentCenters)
         const barY = h / 2
+        const allX = [...parentCenters, ...childTargets]
+        const left = Math.min(...allX)
+        const right = Math.max(...allX)
         parentCenters.forEach(cx => makeSvgLine(svg, cx, 0, cx, barY, CONNECTOR_STROKE))
         makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
-        makeSvgLine(svg, childCx, barY, childCx, h, CONNECTOR_STROKE)
+        childTargets.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
       }
 
       svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
