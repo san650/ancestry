@@ -164,7 +164,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
             focused_person_id={@focused_person_id}
           />
           <%= if ex_group.children != [] do %>
-            <div class="w-px h-4 bg-base-content/20"></div>
+            <.vline />
             <.subtree_children
               children={ex_group.children}
               family_id={@family_id}
@@ -188,7 +188,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           person_for_placeholder={@unit.focus.id}
         />
         <%= if @all_children != [] do %>
-          <div class="w-px h-4 bg-base-content/20"></div>
+          <.vline />
           <.subtree_children
             children={@all_children}
             family_id={@family_id}
@@ -197,7 +197,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <% end %>
         <%!-- Add child placeholder --%>
         <%= if @is_root and not @has_children do %>
-          <div class="w-px h-4 bg-base-content/20"></div>
+          <.vline />
           <.placeholder_card type={:child} person_id={@unit.focus.id} family_id={@family_id} />
         <% end %>
       </div>
@@ -229,7 +229,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                   class="flex flex-col items-center mt-1 text-base-content/30"
                   title="Has more descendants"
                 >
-                  <div class="w-px h-2 bg-base-content/20"></div>
+                  <.vline height={8} />
                   <.icon name="hero-ellipsis-horizontal" class="w-4 h-4" />
                 </div>
               <% Map.has_key?(child, :partner_children) -> %>
@@ -250,6 +250,26 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <% end %>
       </div>
     </div>
+    """
+  end
+
+  # --- SVG Connectors ---
+
+  attr :height, :integer, default: 16
+
+  def vline(assigns) do
+    ~H"""
+    <svg width="2" height={@height} class="block mx-auto" viewBox={"0 0 2 #{@height}"}>
+      <line
+        x1="1"
+        y1="0"
+        x2="1"
+        y2={@height}
+        stroke="currentColor"
+        class="text-base-content/20"
+        stroke-width="1"
+      />
+    </svg>
     """
   end
 
