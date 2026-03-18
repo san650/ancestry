@@ -30,22 +30,14 @@
     <div id="tree-canvas" class="flex-1 overflow-auto p-6" phx-hook=".ScrollToFocus">
       <%= if @tree do %>
         <div class="inline-flex flex-col items-center gap-0 min-w-full">
-          <%!-- Ancestor Generations (top to bottom: great-grandparents → parents) --%>
-          <%= for {couples, _gen_idx} <- @tree.ancestors |> Enum.reverse() |> Enum.with_index() do %>
-            <div class="flex items-end justify-center gap-8">
-              <%= for couple <- couples do %>
-                <div class="flex flex-col items-center">
-                  <.couple_card
-                    person_a={couple.person_a}
-                    person_b={couple.person_b}
-                    family_id={@family.id}
-                    focused_person_id={@focus_person && @focus_person.id}
-                  />
-                  <%!-- Vertical connector down from this couple --%>
-                  <.vline height={24} />
-                </div>
-              <% end %>
-            </div>
+          <%!-- Ancestor Tree (recursive: great-grandparents → parents) --%>
+          <%= if @tree.ancestors do %>
+            <.ancestor_subtree
+              node={@tree.ancestors}
+              family_id={@family.id}
+              focused_person_id={@focus_person && @focus_person.id}
+            />
+            <.vline height={24} />
           <% end %>
 
           <%!-- Center Row + Descendants (recursive) --%>

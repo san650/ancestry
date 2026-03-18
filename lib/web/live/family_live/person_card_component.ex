@@ -99,7 +99,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   def couple_card(assigns) do
     ~H"""
-    <div class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1">
+    <div data-couple-card class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1">
       <%= cond do %>
         <% @person_a && @person_b -> %>
           <.person_card
@@ -164,7 +164,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
             focused_person_id={@focused_person_id}
           />
           <%= if ex_group.children != [] do %>
-            <.vline />
             <.subtree_children
               children={ex_group.children}
               family_id={@family_id}
@@ -178,6 +177,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       <div
         class={["flex flex-col items-center", @is_root && "scroll-mt-4"]}
         id={if(@is_root, do: "focus-person-card")}
+        data-primary-column
       >
         <.couple_card
           person_a={@unit.focus}
@@ -188,7 +188,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
           person_for_placeholder={@unit.focus.id}
         />
         <%= if @all_children != [] do %>
-          <.vline />
           <.subtree_children
             children={@all_children}
             family_id={@family_id}
@@ -261,6 +260,49 @@ defmodule Web.FamilyLive.PersonCardComponent do
           </div>
         <% end %>
       </div>
+    </div>
+    """
+  end
+
+  # --- Ancestor Subtree (recursive, renders parents above) ---
+
+  attr :node, :map, required: true
+  attr :family_id, :integer, required: true
+  attr :focused_person_id, :integer, default: nil
+
+  def ancestor_subtree(assigns) do
+    assigns = assign(assigns, :connector_id, "anc-#{System.unique_integer([:positive])}")
+
+    ~H"""
+    <div class="flex flex-col items-center">
+      <%= if @node.parent_trees != [] do %>
+        <div class="flex items-end justify-center gap-8" data-ancestor-parents-row>
+          <%= for parent_tree <- @node.parent_trees do %>
+            <div data-ancestor-parent-column>
+              <.ancestor_subtree
+                node={parent_tree}
+                family_id={@family_id}
+                focused_person_id={@focused_person_id}
+              />
+            </div>
+          <% end %>
+        </div>
+        <div
+          id={@connector_id}
+          phx-hook="AncestorConnector"
+          phx-update="ignore"
+          class="w-full"
+          style="height: 20px; position: relative;"
+        >
+          <svg class="absolute inset-0 w-full h-full overflow-visible"></svg>
+        </div>
+      <% end %>
+      <.couple_card
+        person_a={@node.couple.person_a}
+        person_b={@node.couple.person_b}
+        family_id={@family_id}
+        focused_person_id={@focused_person_id}
+      />
     </div>
     """
   end

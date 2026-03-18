@@ -22,11 +22,11 @@ defmodule Ancestry.People.PersonTree do
   """
   def build(%Person{} = focus_person) do
     center = build_center(focus_person)
-    ancestors = build_ancestors([focus_person.id], 0)
+    ancestor_tree = build_ancestor_tree(focus_person.id, 0)
 
     %__MODULE__{
       focus_person: focus_person,
-      ancestors: ancestors,
+      ancestors: ancestor_tree,
       center: center
     }
   end
@@ -115,41 +115,34 @@ defmodule Ancestry.People.PersonTree do
     end)
   end
 
-  # --- Ancestors ---
+  # --- Ancestors (recursive tree) ---
 
   @doc false
-  def build_ancestors(_person_ids, depth) when depth >= @max_depth, do: []
+  defp build_ancestor_tree(_person_id, depth) when depth >= @max_depth, do: nil
 
-  def build_ancestors([], _depth), do: []
+  defp build_ancestor_tree(person_id, depth) do
+    parents = Relationships.get_parents(person_id)
 
-  def build_ancestors(person_ids, depth) do
-    couples =
-      Enum.map(person_ids, fn person_id ->
-        parents = Relationships.get_parents(person_id)
+    {person_a, person_b} =
+      case parents do
+        [] -> {nil, nil}
+        [{p, _}] -> {p, nil}
+        [{p1, _}, {p2, _} | _] -> {p1, p2}
+      end
 
-        case parents do
-          [] ->
-            %{person_a: nil, person_b: nil}
-
-          [{parent, _rel}] ->
-            %{person_a: parent, person_b: nil}
-
-          [{p1, _r1}, {p2, _r2} | _] ->
-            %{person_a: p1, person_b: p2}
-        end
-      end)
-
-    if Enum.all?(couples, fn c -> is_nil(c.person_a) and is_nil(c.person_b) end) do
-      []
+    if is_nil(person_a) and is_nil(person_b) do
+      nil
     else
-      next_person_ids =
-        Enum.flat_map(couples, fn couple ->
-          [couple.person_a, couple.person_b]
-          |> Enum.reject(&is_nil/1)
-          |> Enum.map(& &1.id)
-        end)
+      parent_trees =
+        [person_a, person_b]
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(&build_ancestor_tree(&1.id, depth + 1))
+        |> Enum.reject(&is_nil/1)
 
-      [couples | build_ancestors(next_person_ids, depth + 1)]
+      %{
+        couple: %{person_a: person_a, person_b: person_b},
+        parent_trees: parent_trees
+      }
     end
   end
 end

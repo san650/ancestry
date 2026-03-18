@@ -44,6 +44,16 @@ const FuzzyFilter = {
   }
 }
 
+function makeSvgLine(svg, x1, y1, x2, y2, stroke) {
+  const l = document.createElementNS("http://www.w3.org/2000/svg", "line")
+  l.setAttribute("x1", x1); l.setAttribute("y1", y1)
+  l.setAttribute("x2", x2); l.setAttribute("y2", y2)
+  l.setAttribute("stroke", stroke); l.setAttribute("stroke-width", "1")
+  svg.appendChild(l)
+}
+
+const CONNECTOR_STROKE = "rgba(128,128,128,0.2)"
+
 const BranchConnector = {
   mounted() { this.draw() },
   updated() { this.draw() },
@@ -59,31 +69,68 @@ const BranchConnector = {
 
       const h = 20
       const centers = Array.from(columns).map(col => {
-        const r = col.getBoundingClientRect()
+        // Use the primary column or couple card center if available (handles nested family_subtrees with ex-partners)
+        const primary = col.querySelector("[data-primary-column] > [data-couple-card]") || col.querySelector("[data-couple-card]")
+        const target = primary || col
+        const r = target.getBoundingClientRect()
         return r.left + r.width / 2 - containerRect.left
       })
       const parentCx = containerRect.width / 2
-      const stroke = "rgba(128,128,128,0.2)"
 
       while (svg.firstChild) svg.removeChild(svg.firstChild)
 
-      const makeLine = (x1, y1, x2, y2) => {
-        const l = document.createElementNS("http://www.w3.org/2000/svg", "line")
-        l.setAttribute("x1", x1); l.setAttribute("y1", y1)
-        l.setAttribute("x2", x2); l.setAttribute("y2", y2)
-        l.setAttribute("stroke", stroke); l.setAttribute("stroke-width", "1")
-        svg.appendChild(l)
-      }
-
       if (centers.length === 1) {
-        makeLine(centers[0], 0, centers[0], h)
+        makeSvgLine(svg, centers[0], 0, centers[0], h, CONNECTOR_STROKE)
       } else {
         const left = Math.min(...centers)
         const right = Math.max(...centers)
         const barY = h / 2
-        makeLine(parentCx, 0, parentCx, barY)
-        makeLine(left, barY, right, barY)
-        centers.forEach(cx => makeLine(cx, barY, cx, h))
+        makeSvgLine(svg, parentCx, 0, parentCx, barY, CONNECTOR_STROKE)
+        makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
+        centers.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
+      }
+
+      svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
+      svg.style.width = containerRect.width + "px"
+      svg.style.height = h + "px"
+    })
+  }
+}
+
+const AncestorConnector = {
+  mounted() { this.draw() },
+  updated() { this.draw() },
+  draw() {
+    requestAnimationFrame(() => {
+      const svg = this.el.querySelector("svg")
+      if (!svg) return
+      const containerRect = this.el.getBoundingClientRect()
+      const parentsRow = this.el.previousElementSibling
+      if (!parentsRow) return
+      const parentColumns = parentsRow.querySelectorAll(":scope > [data-ancestor-parent-column]")
+      if (parentColumns.length === 0) return
+
+      const h = 20
+      const parentCenters = Array.from(parentColumns).map(col => {
+        // Find the bottom-most couple card in this ancestor column
+        const coupleCards = col.querySelectorAll("[data-couple-card]")
+        const target = coupleCards.length > 0 ? coupleCards[coupleCards.length - 1] : col
+        const r = target.getBoundingClientRect()
+        return r.left + r.width / 2 - containerRect.left
+      })
+      const childCx = containerRect.width / 2
+
+      while (svg.firstChild) svg.removeChild(svg.firstChild)
+
+      if (parentCenters.length === 1) {
+        makeSvgLine(svg, parentCenters[0], 0, parentCenters[0], h, CONNECTOR_STROKE)
+      } else {
+        const left = Math.min(...parentCenters)
+        const right = Math.max(...parentCenters)
+        const barY = h / 2
+        parentCenters.forEach(cx => makeSvgLine(svg, cx, 0, cx, barY, CONNECTOR_STROKE))
+        makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
+        makeSvgLine(svg, childCx, barY, childCx, h, CONNECTOR_STROKE)
       }
 
       svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
@@ -97,7 +144,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, FuzzyFilter, BranchConnector},
+  hooks: {...colocatedHooks, FuzzyFilter, BranchConnector, AncestorConnector},
 })
 
 // Show progress bar on live navigation and form submits
