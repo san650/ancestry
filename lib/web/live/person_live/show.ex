@@ -98,6 +98,19 @@ defmodule Web.PersonLive.Show do
     {:noreply, cancel_upload(socket, :photo, ref)}
   end
 
+  def handle_event("remove_photo", _, socket) do
+    case People.remove_photo(socket.assigns.person) do
+      {:ok, person} ->
+        {:noreply,
+         socket
+         |> assign(:person, person)
+         |> assign(:form, to_form(People.change_person(person)))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to remove photo")}
+    end
+  end
+
   def handle_event("request_remove", _, socket) do
     {:noreply, assign(socket, :confirm_remove, true)}
   end

@@ -119,4 +119,31 @@ defmodule Web.PersonLive.ShowTest do
 
     assert_raise Ecto.NoResultsError, fn -> People.get_person!(person.id) end
   end
+
+  test "removes person photo from edit form", %{conn: conn, family: family, person: person} do
+    # Given a person with a processed photo
+    {:ok, person_with_photo} =
+      person
+      |> Ecto.Changeset.change(%{
+        photo: %{file_name: "test.jpg", updated_at: nil},
+        photo_status: "processed"
+      })
+      |> Ancestry.Repo.update()
+
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person_with_photo.id}")
+
+    # When the user clicks edit and then remove photo
+    view |> element("#edit-person-btn") |> render_click()
+    assert has_element?(view, "#remove-photo-btn")
+
+    view |> element("#remove-photo-btn") |> render_click()
+
+    # Then the photo is removed and the remove button is gone
+    refute has_element?(view, "#remove-photo-btn")
+
+    # And the DB is updated
+    updated = People.get_person!(person.id)
+    assert is_nil(updated.photo)
+    assert is_nil(updated.photo_status)
+  end
 end

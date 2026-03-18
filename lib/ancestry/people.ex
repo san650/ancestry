@@ -146,6 +146,22 @@ defmodule Ancestry.People do
     |> Repo.update()
   end
 
+  def remove_photo(%Person{} = person) do
+    result =
+      person
+      |> Ecto.Changeset.change(%{photo: nil, photo_status: nil})
+      |> Repo.update()
+
+    case result do
+      {:ok, person} ->
+        cleanup_person_files(person)
+        {:ok, person}
+
+      error ->
+        error
+    end
+  end
+
   defp cleanup_person_files(person) do
     photo_dir = Path.join(["priv", "static", "uploads", "people", "#{person.id}"])
     File.rm_rf(photo_dir)
