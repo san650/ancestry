@@ -68,7 +68,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   # --- Placeholder Card ---
 
-  attr :type, :atom, required: true, values: [:parent, :spouse, :child]
+  attr :type, :atom, required: true, values: [:parent, :partner, :child]
   attr :person_id, :integer, default: nil
   attr :family_id, :integer, required: true
 
@@ -98,7 +98,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :ex_partners, :list, default: []
   attr :family_id, :integer, required: true
   attr :focused_person_id, :integer, default: nil
-  attr :show_spouse_placeholder, :boolean, default: false
+  attr :show_partner_placeholder, :boolean, default: false
   attr :person_for_placeholder, :integer, default: nil
 
   def couple_card(assigns) do
@@ -158,14 +158,14 @@ defmodule Web.FamilyLive.PersonCardComponent do
             family_id={@family_id}
             focused={@person_b.id == @focused_person_id}
           />
-        <% @person_a && @show_spouse_placeholder -> %>
+        <% @person_a && @show_partner_placeholder -> %>
           <.person_card
             person={@person_a}
             family_id={@family_id}
             focused={@person_a.id == @focused_person_id}
           />
           <.placeholder_card
-            type={:spouse}
+            type={:partner}
             person_id={@person_for_placeholder}
             family_id={@family_id}
           />
@@ -219,7 +219,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           ex_partners={@unit.ex_partners}
           family_id={@family_id}
           focused_person_id={@focused_person_id}
-          show_spouse_placeholder={@is_root && is_nil(@unit.partner)}
+          show_partner_placeholder={@is_root && is_nil(@unit.partner)}
           person_for_placeholder={@unit.focus.id}
         />
         <%= if @all_children != [] do %>
@@ -389,7 +389,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   end
 
   defp placeholder_label(:parent), do: "Add Parent"
-  defp placeholder_label(:spouse), do: "Add Spouse"
+  defp placeholder_label(:partner), do: "Add Partner"
   defp placeholder_label(:child), do: "Add Child"
 
   defp placeholder_link(_type, person_id, family_id) when is_integer(person_id) do
