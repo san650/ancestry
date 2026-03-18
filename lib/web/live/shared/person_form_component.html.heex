@@ -1,0 +1,308 @@
+<.form
+  for={@form}
+  id="person-form"
+  phx-target={@myself}
+  phx-submit="save"
+  phx-change="validate"
+  multipart
+>
+  <div class="space-y-5">
+    <%!-- Photo --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
+      <label class="text-sm font-medium text-base-content/70 md:text-right md:pt-2">Photo</label>
+      <div>
+        <%= if @action == :edit && @person.photo && @person.photo_status == "processed" && @uploads.photo.entries == [] do %>
+          <div class="mb-3 flex items-center gap-3">
+            <img
+              src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
+              alt="Current photo"
+              class="w-16 h-16 rounded-lg object-cover"
+            />
+            <span class="text-sm text-base-content/50">Current photo</span>
+          </div>
+        <% end %>
+
+        <.live_file_input
+          upload={@uploads.photo}
+          class="file-input file-input-bordered file-input-sm w-full"
+        />
+
+        <%= for entry <- @uploads.photo.entries do %>
+          <div class="mt-3 flex items-center gap-3">
+            <.live_img_preview entry={entry} class="w-16 h-16 rounded-lg object-cover" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-base-content truncate">{entry.client_name}</p>
+              <div class="mt-1 h-1.5 bg-base-200 rounded-full overflow-hidden">
+                <div
+                  class="h-full bg-primary rounded-full transition-all duration-300"
+                  style={"width: #{entry.progress}%"}
+                >
+                </div>
+              </div>
+            </div>
+            <button
+              type="button"
+              phx-click="cancel_upload"
+              phx-target={@myself}
+              phx-value-ref={entry.ref}
+              class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+            >
+              <.icon name="hero-x-mark" class="w-4 h-4" />
+            </button>
+          </div>
+        <% end %>
+
+        <%= for err <- upload_errors(@uploads.photo) do %>
+          <p class="text-error text-sm mt-2">{upload_error_to_string(err)}</p>
+        <% end %>
+      </div>
+    </div>
+
+    <%!-- Given names --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+      <label class="text-sm font-medium text-base-content/70 md:text-right">Given names</label>
+      <.input field={@form[:given_name]} label="" />
+    </div>
+
+    <%!-- Given names at birth (details) --%>
+    <%= if @show_details do %>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <label class="text-sm font-medium text-base-content/70 md:text-right">
+          Given names at birth
+        </label>
+        <.input field={@form[:given_name_at_birth]} label="" />
+      </div>
+
+      <%!-- Nickname --%>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <label class="text-sm font-medium text-base-content/70 md:text-right">Nickname</label>
+        <.input field={@form[:nickname]} label="" />
+      </div>
+
+      <%!-- Title / Suffix side by side --%>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <label class="text-sm font-medium text-base-content/70 md:text-right">
+          Title / Suffix
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <.input field={@form[:title]} label="" placeholder="e.g. Dr., Sir" />
+          <.input field={@form[:suffix]} label="" placeholder="e.g. Jr., III" />
+        </div>
+      </div>
+    <% end %>
+
+    <%!-- Surname --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+      <label class="text-sm font-medium text-base-content/70 md:text-right">Surname</label>
+      <.input field={@form[:surname]} label="" />
+    </div>
+
+    <%!-- Surname at birth (details) --%>
+    <%= if @show_details do %>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <label class="text-sm font-medium text-base-content/70 md:text-right">
+          Surname at birth
+        </label>
+        <.input field={@form[:surname_at_birth]} label="" />
+      </div>
+    <% end %>
+
+    <%!-- Gender --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+      <label class="text-sm font-medium text-base-content/70 md:text-right">Gender</label>
+      <div class="flex items-center gap-4">
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="radio"
+            name={@form[:gender].name}
+            value="female"
+            checked={to_string(@form[:gender].value) == "female"}
+            class="radio radio-sm"
+          />
+          <span class="text-sm text-base-content">Female</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="radio"
+            name={@form[:gender].name}
+            value="male"
+            checked={to_string(@form[:gender].value) == "male"}
+            class="radio radio-sm"
+          />
+          <span class="text-sm text-base-content">Male</span>
+        </label>
+        <label class="flex items-center gap-1.5 cursor-pointer">
+          <input
+            type="radio"
+            name={@form[:gender].name}
+            value="other"
+            checked={to_string(@form[:gender].value) == "other"}
+            class="radio radio-sm"
+          />
+          <span class="text-sm text-base-content">Other</span>
+        </label>
+      </div>
+    </div>
+
+    <%!-- Birth date --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+      <label class="text-sm font-medium text-base-content/70 md:text-right">Birth date</label>
+      <div class="flex items-center gap-2">
+        <select
+          name={@form[:birth_day].name}
+          id={@form[:birth_day].id}
+          class="select select-bordered select-sm"
+        >
+          <option value="">Day</option>
+          <%= for {label, val} <- day_options() do %>
+            <option value={val} selected={to_string(@form[:birth_day].value) == val}>
+              {label}
+            </option>
+          <% end %>
+        </select>
+        <select
+          name={@form[:birth_month].name}
+          id={@form[:birth_month].id}
+          class="select select-bordered select-sm"
+        >
+          <option value="">Month</option>
+          <%= for {label, val} <- month_options() do %>
+            <option value={val} selected={to_string(@form[:birth_month].value) == val}>
+              {label}
+            </option>
+          <% end %>
+        </select>
+        <input
+          type="number"
+          name={@form[:birth_year].name}
+          id={@form[:birth_year].id}
+          value={@form[:birth_year].value}
+          min="1000"
+          max="2100"
+          placeholder="Year"
+          class="input input-bordered input-sm w-24"
+        />
+      </div>
+    </div>
+
+    <%!-- Living checkbox --%>
+    <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+      <div></div>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="hidden" name="person[living]" value="false" />
+        <input
+          type="checkbox"
+          name="person[living]"
+          id="person-living"
+          value="true"
+          checked={living_checked?(@form)}
+          class="checkbox checkbox-sm"
+        />
+        <span class="text-sm text-base-content">This person is living</span>
+      </label>
+    </div>
+
+    <%!-- Death date (shown when not living) --%>
+    <%= unless living_checked?(@form) do %>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <label class="text-sm font-medium text-base-content/70 md:text-right">Death date</label>
+        <div class="flex items-center gap-2">
+          <select
+            name={@form[:death_day].name}
+            id={@form[:death_day].id}
+            class="select select-bordered select-sm"
+          >
+            <option value="">Day</option>
+            <%= for {label, val} <- day_options() do %>
+              <option value={val} selected={to_string(@form[:death_day].value) == val}>
+                {label}
+              </option>
+            <% end %>
+          </select>
+          <select
+            name={@form[:death_month].name}
+            id={@form[:death_month].id}
+            class="select select-bordered select-sm"
+          >
+            <option value="">Month</option>
+            <%= for {label, val} <- month_options() do %>
+              <option value={val} selected={to_string(@form[:death_month].value) == val}>
+                {label}
+              </option>
+            <% end %>
+          </select>
+          <input
+            type="number"
+            name={@form[:death_year].name}
+            id={@form[:death_year].id}
+            value={@form[:death_year].value}
+            min="1000"
+            max="2100"
+            placeholder="Year"
+            class="input input-bordered input-sm w-24"
+          />
+        </div>
+      </div>
+    <% end %>
+
+    <%!-- Add more details button --%>
+    <%= unless @show_details do %>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <div></div>
+        <button
+          type="button"
+          id="add-more-details-btn"
+          phx-click="toggle_details"
+          phx-target={@myself}
+          class="flex items-center gap-1.5 text-sm text-primary/70 hover:text-primary transition-colors"
+        >
+          <.icon name="hero-plus" class="w-4 h-4" /> Add more details
+        </button>
+      </div>
+    <% end %>
+
+    <%!-- Alternate names (details) --%>
+    <%= if @show_details do %>
+      <div class="border-t border-base-200 pt-5">
+        <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
+          <label class="text-sm font-medium text-base-content/70 md:text-right md:pt-2">
+            Alternate names
+          </label>
+          <div>
+            <p class="text-xs text-base-content/50 mb-2">Also known as (one per line)</p>
+            <textarea
+              name="person[alternate_names_text]"
+              id="person-alternate-names"
+              rows="3"
+              class="textarea textarea-bordered w-full textarea-sm"
+              phx-debounce="300"
+            ><%= if @action == :edit && @person.alternate_names != [] do %><%= Enum.join(@person.alternate_names, "\n") %><% end %></textarea>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <%!-- Action buttons --%>
+  <div class="mt-8 md:grid md:grid-cols-[10rem_1fr] md:gap-x-4">
+    <div></div>
+    <div class="flex gap-3">
+      <button type="submit" id="person-form-submit" class="btn btn-primary flex-1">
+        <%= if @action == :new do %>
+          Create
+        <% else %>
+          Save
+        <% end %>
+      </button>
+      <button
+        type="button"
+        id="person-form-cancel"
+        phx-click="cancel"
+        phx-target={@myself}
+        class="btn btn-ghost flex-1"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</.form>
