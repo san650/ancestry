@@ -730,3 +730,109 @@ When implementing or debugging features in this Phoenix app, prefer this order:
 - Do not assume runtime configuration or macro expansion details; verify with `project_eval`.
 - Do not assume database contents; verify with `execute_sql_query`.
 - If a Tidewave tool can answer the question, use it before falling back to generic search.
+
+## Feature testing
+
+When creating a new feature or fixing an existing feature make sure there is a test that covers the new/edited user flow to make sure there are no regression on the features. The main focus is to test using interactions.
+
+Store this tests in the `test/user_flows/` folder. E.g. `test/user_flows/create-new-family.eex`.
+
+To decide between LiveView tests and or e2e test have into account if the functionality is using javascript which can't be tested with LiveView tests. Prefer e2e tests where possible.
+
+For each test for a user flow write a Given/When/Then comment on top of the test and then make sure the test follows all the specifications. If a feature changes a feature, update the Given/When/Then instructions and update the tests accordingly. Evaluate if it's better to add a new test or extend an existing test. The decision should be based on how related is the new functionality to any of the existing tests and how large the test already is. Accept large tests of a maximum of ~1000 lines.
+
+The description of the tests use the Given/When/Then format. Below are some examples of test specifications you have to build for the application. Think on the test cases before writing these tests and don't mind if there is a bit of superposition between the tests (doesn't matter if several test test the same part of the application whenever it makes sense from a user flow stand of point).
+
+Creating a new family
+<test_case>
+Given a system with no data
+When the user clicks "New Family"
+Then the "New Family" form is displayed.
+
+When the user writes a name for the family
+And selects a cover photo
+And clicks "Create"
+Then a new family is created
+And the application navigates automatically to the family show page
+And the empty state is shown
+
+When the user clicks the navigate back arrow in the gallery
+Then the grid with the list of families is shown
+
+When the user clicks on the family shown in the grid
+Then the user can see the family show page
+</test_case>
+Makes sure that all navigation and modals work as expected.
+
+Edit family metadata
+<test_case>
+Given a family
+When the user clicks on the family from the /families page
+Then the user navigates to the family show page
+
+When the user clicks "Edit" on the toolbar
+Then a modal is shown to edit the family name
+
+When the user enters a new family name in the modal
+And clicks "Save"
+Then the modal closes and the gallery show page is visible
+And the gallery name is updated
+</test_case>
+Makes sure that all navigation and modals work as expected.
+
+Delete family
+<test_case>
+Given a family with some people and galleries
+When the user clicks on the family from the /families page
+Then the user navigates to the family show page
+
+When the user clicks "Delete" on the toolbar
+Then a confirmation modal is shown
+
+When the user clicks "Delete"
+Then the gallery is deleted with all it's related galleries
+And people is not deleted, just detached from the gallery
+And the user is redirected to the /galleries page
+</test_case>
+Makes sure that all navigation and modals work as expected.
+
+Creating people in a family
+<test_case>
+Given an existing family
+When the user navigates to /families
+And clicks on the existing family
+Then the family show screen is shown
+And the empty state can be seen
+
+When the user clicks the add person button
+Then the page navigates to the new member page
+
+When the user fills the form with the user information
+And uploads a photo for the user
+And clicks "Create"
+Then the page navigates to the family show page
+And the new person is listed on the sidebar
+</test_case>
+Makes sure that all navigation and modals work as expected.
+
+Linking people in a family
+<test_case>
+Given an existing family
+And an existing person that's not associated to the family
+When the user navigates to /families
+And clicks on the existing family
+Then the family show screen is shown
+And the empty state can be seen
+
+When the user clicks the link people
+Then a modal is shown to search for an existing person
+
+When the user search the existing user in the search form
+Then the user appears as an option
+
+When the user selects the person from the search form
+Then the person is added to the family
+And the page navigates to the family show page
+And the new person is listed on the sidebar
+</test_case>
+Makes sure that all navigation and modals work as expected.
