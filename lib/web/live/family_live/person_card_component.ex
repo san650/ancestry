@@ -43,11 +43,13 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <p class="text-xs font-medium text-base-content w-full group-hover:text-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
           {Person.display_name(@person)}
         </p>
-        <%= if @person.birth_year do %>
-          <p class="text-[10px] text-base-content/50">
+        <p class="text-[10px] text-base-content/50">
+          <%= if @person.birth_year do %>
             {format_life_span(@person)}
-          </p>
-        <% end %>
+          <% else %>
+            &nbsp;
+          <% end %>
+        </p>
       </button>
     </div>
     """
@@ -93,6 +95,40 @@ defmodule Web.FamilyLive.PersonCardComponent do
       {b, nil} -> "#{b}"
       {b, d} -> "#{b}\u2013#{d}"
     end
+  end
+
+  attr :children, :list, required: true
+  attr :family_id, :integer, required: true
+
+  def children_row(assigns) do
+    ~H"""
+    <div class="flex flex-col items-center">
+      <%= if length(@children) > 1 do %>
+        <div class="flex items-start">
+          <%= for {child, idx} <- Enum.with_index(@children) do %>
+            <div class="flex flex-col items-center">
+              <div class={[
+                "h-3 border-base-content/20",
+                if(idx == 0, do: "border-r w-1/2 self-end", else: ""),
+                if(idx == length(@children) - 1, do: "border-l w-1/2 self-start", else: ""),
+                if(idx > 0 && idx < length(@children) - 1, do: "border-l border-r w-full", else: ""),
+                "border-t"
+              ]}>
+              </div>
+              <.person_card person={child} family_id={@family_id} focused={false} />
+            </div>
+            <%= if idx < length(@children) - 1 do %>
+              <div class="h-3 border-t border-base-content/20 w-4 flex-shrink-0"></div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <%= for child <- @children do %>
+          <.person_card person={child} family_id={@family_id} focused={false} />
+        <% end %>
+      <% end %>
+    </div>
+    """
   end
 
   defp placeholder_label(:parent), do: "Add Parent"
