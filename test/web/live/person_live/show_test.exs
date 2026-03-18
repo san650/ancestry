@@ -36,6 +36,36 @@ defmodule Web.PersonLive.ShowTest do
     assert render(view) =~ "Janet"
   end
 
+  test "edit form auto-expands when person has extra fields", %{conn: conn, family: family} do
+    {:ok, person_with_nickname} =
+      People.create_person(family, %{
+        given_name: "Maria",
+        surname: "Silva",
+        nickname: "Mari",
+        gender: "female"
+      })
+
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person_with_nickname.id}")
+    view |> element("#edit-person-btn") |> render_click()
+
+    # Form should be auto-expanded since nickname has a value
+    assert has_element?(view, "#person_nickname")
+    refute has_element?(view, "#add-more-details-btn")
+  end
+
+  test "edit form shows compact when person has only basic fields", %{
+    conn: conn,
+    family: family,
+    person: person
+  } do
+    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    view |> element("#edit-person-btn") |> render_click()
+
+    # Person only has given_name, surname, gender — should be compact
+    assert has_element?(view, "#add-more-details-btn")
+    refute has_element?(view, "#person_nickname")
+  end
+
   test "shows deceased status on detail page", %{conn: conn, family: family} do
     {:ok, deceased_person} =
       People.create_person(family, %{

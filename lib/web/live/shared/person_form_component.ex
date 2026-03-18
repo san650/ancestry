@@ -13,8 +13,8 @@ defmodule Web.Shared.PersonFormComponent do
     changeset = People.change_person(person)
 
     extra_fields_present? =
-      has_value?(person.given_name_at_birth) ||
-        has_value?(person.surname_at_birth) ||
+      birth_name_differs?(person.given_name_at_birth, person.given_name) ||
+        birth_name_differs?(person.surname_at_birth, person.surname) ||
         has_value?(person.nickname) ||
         has_value?(person.title) ||
         has_value?(person.suffix) ||
@@ -104,6 +104,10 @@ defmodule Web.Shared.PersonFormComponent do
   defp has_value?(nil), do: false
   defp has_value?(""), do: false
   defp has_value?(_), do: true
+
+  defp birth_name_differs?(nil, _current), do: false
+  defp birth_name_differs?("", _current), do: false
+  defp birth_name_differs?(birth, current), do: birth != current
 
   defp invert_living_to_deceased(params) do
     case Map.pop(params, "living") do
