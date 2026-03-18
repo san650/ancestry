@@ -298,9 +298,17 @@
           const targetRect = target.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
 
+          // Horizontal scroll within the tree canvas container
           container.scrollTo({
             left: container.scrollLeft + (targetRect.left + targetRect.width / 2) - (containerRect.left + containerRect.width / 2),
-            top: container.scrollTop + (targetRect.top + targetRect.height / 2) - (containerRect.top + containerRect.height / 2),
+            behavior: "instant"
+          })
+
+          // Vertical scroll at page level
+          const targetCenterY = targetRect.top + targetRect.height / 2
+          const viewportCenterY = window.innerHeight / 2
+          window.scrollBy({
+            top: targetCenterY - viewportCenterY,
             behavior: "instant"
           })
         }, 50)
