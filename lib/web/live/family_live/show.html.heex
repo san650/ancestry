@@ -5,19 +5,28 @@
         <.link
           navigate={~p"/"}
           class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          {test_id("family-back-btn")}
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">{@family.name}</h1>
+        <h1 class="text-2xl font-bold text-base-content" {test_id("family-name")}>
+          {@family.name}
+        </h1>
       </div>
       <div class="flex items-center gap-2">
-        <button id="edit-family-btn" phx-click="edit" class="btn btn-ghost btn-sm">
+        <button
+          id="edit-family-btn"
+          phx-click="edit"
+          class="btn btn-ghost btn-sm"
+          {test_id("family-edit-btn")}
+        >
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
         </button>
         <button
           id="delete-family-btn"
           phx-click="request_delete"
           class="btn btn-ghost btn-sm text-error"
+          {test_id("family-delete-btn")}
         >
           <.icon name="hero-trash" class="w-4 h-4" /> Delete
         </button>
@@ -93,7 +102,7 @@
               />
             </div>
           <% else %>
-            <div class="text-center text-base-content/40">
+            <div class="text-center text-base-content/40" {test_id("family-empty-state")}>
               <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
               <p class="text-lg font-medium">No family members yet</p>
               <p class="text-sm mt-1">Add members to start building the family tree</p>
@@ -110,10 +119,18 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
       <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
         <h2 class="text-xl font-bold text-base-content mb-6">Edit Family</h2>
-        <.form for={@form} id="edit-family-form" phx-submit="save" phx-change="validate">
+        <.form
+          for={@form}
+          id="edit-family-form"
+          phx-submit="save"
+          phx-change="validate"
+          {test_id("family-edit-form")}
+        >
           <.input field={@form[:name]} label="Family name" autofocus />
           <div class="flex gap-3 mt-6">
-            <button type="submit" class="btn btn-primary flex-1">Save</button>
+            <button type="submit" class="btn btn-primary flex-1" {test_id("family-edit-save-btn")}>
+              Save
+            </button>
             <button type="button" phx-click="cancel_edit" class="btn btn-ghost flex-1">
               Cancel
             </button>
@@ -130,13 +147,20 @@
       <div
         id="confirm-delete-family-modal"
         class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        {test_id("family-delete-modal")}
       >
         <h2 class="text-xl font-bold text-base-content mb-2">Delete Family</h2>
         <p class="text-base-content/60 mb-6">
           Delete <span class="font-semibold">"{@family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
+          <button
+            phx-click="confirm_delete"
+            class="btn btn-error flex-1"
+            {test_id("family-delete-confirm-btn")}
+          >
+            Delete
+          </button>
           <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
         </div>
       </div>
@@ -207,6 +231,7 @@
       <div
         id="link-person-modal"
         class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        {test_id("person-link-modal")}
       >
         <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
         <input
@@ -219,6 +244,7 @@
           phx-debounce="300"
           autofocus
           class="input input-bordered w-full mb-4"
+          {test_id("person-search-input")}
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
@@ -230,6 +256,7 @@
               phx-click="link_person"
               phx-value-id={person.id}
               class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+              {test_id("person-link-result-#{person.id}")}
             >
               <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <%= if person.photo && person.photo_status == "processed" do %>

@@ -15,6 +15,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             phx-click="open_search"
             class="p-1 rounded text-base-content/40 hover:text-primary hover:bg-primary/10 transition-colors"
             title="Link existing person"
+            {test_id("person-link-btn")}
           >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
           </button>
@@ -23,6 +24,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             navigate={~p"/families/#{@family_id}/members/new"}
             class="p-1 rounded text-base-content/40 hover:text-primary hover:bg-primary/10 transition-colors"
             title="New member"
+            {test_id("person-add-btn")}
           >
             <.icon name="hero-plus" class="w-4 h-4" />
           </.link>
@@ -41,7 +43,11 @@ defmodule Web.FamilyLive.PeopleListComponent do
         />
       </div>
 
-      <div id="people-list-items" class="space-y-0.5 max-h-96 overflow-y-auto">
+      <div
+        id="people-list-items"
+        class="space-y-0.5 max-h-96 overflow-y-auto"
+        {test_id("person-list")}
+      >
         <%= if @people == [] do %>
           <p class="text-sm text-base-content/40 py-2">No members yet.</p>
         <% end %>
@@ -52,6 +58,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
               if(person.id == @focus_person_id, do: "bg-primary/10", else: "hover:bg-base-200")
             ]}
             data-filter-name={String.downcase("#{person.surname}, #{person.given_name}")}
+            {test_id("person-item-#{person.id}")}
           >
             <button
               phx-click="focus_person"

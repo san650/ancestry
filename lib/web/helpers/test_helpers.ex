@@ -9,7 +9,7 @@ defmodule Web.Helpers.TestHelpers do
   """
 
   if Mix.env() in [:dev, :test] do
-    def test_id(id), do: [{"data-testid", id}]
+    def test_id(id), do: [{:"data-testid", id}]
   else
     def test_id(_id), do: []
   end

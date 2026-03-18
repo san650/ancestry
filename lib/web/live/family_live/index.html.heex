@@ -6,6 +6,7 @@
         id="new-family-btn"
         navigate={~p"/families/new"}
         class="btn btn-primary"
+        {test_id("family-new-btn")}
       >
         New Family
       </.link>
@@ -21,6 +22,7 @@
       <div
         id="families-empty"
         class="hidden only:block col-span-full text-center py-20 text-base-content/40"
+        {test_id("families-empty")}
       >
         No families yet
       </div>
@@ -28,6 +30,7 @@
         :for={{id, family} <- @streams.families}
         id={id}
         class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
+        {test_id("family-card-#{family.id}")}
       >
         <.link navigate={~p"/families/#{family.id}"} class="block">
           <%= if family.cover do %>

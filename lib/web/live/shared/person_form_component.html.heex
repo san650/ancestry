@@ -5,6 +5,7 @@
     phx-submit="save"
     phx-change="validate"
     multipart
+    {test_id("person-form")}
   >
     <div class="space-y-5">
       <%!-- Photo --%>
@@ -35,6 +36,7 @@
           <.live_file_input
             upload={@uploads.photo}
             class="file-input file-input-bordered file-input-sm w-full"
+            {test_id("person-photo-input")}
           />
 
           <%= for entry <- @uploads.photo.entries do %>
@@ -295,7 +297,12 @@
     <div class="mt-8 md:grid md:grid-cols-[10rem_1fr] md:gap-x-4">
       <div></div>
       <div class="flex gap-3">
-        <button type="submit" id="person-form-submit" class="btn btn-primary flex-1">
+        <button
+          type="submit"
+          id="person-form-submit"
+          class="btn btn-primary flex-1"
+          {test_id("person-form-submit")}
+        >
           <%= if @action == :new do %>
             Create
           <% else %>
