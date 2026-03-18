@@ -212,11 +212,23 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :focused_person_id, :integer, default: nil
 
   def subtree_children(assigns) do
+    assigns = assign(assigns, :connector_id, "conn-#{System.unique_integer([:positive])}")
+
     ~H"""
     <div class="flex flex-col items-center">
-      <div class="flex items-start gap-6">
+      <%!-- SVG connector drawn by JS hook --%>
+      <div
+        id={@connector_id}
+        phx-hook=".BranchConnector"
+        phx-update="ignore"
+        class="w-full"
+        style="height: 20px; position: relative;"
+      >
+        <svg class="absolute inset-0 w-full h-full overflow-visible"></svg>
+      </div>
+      <div class="flex items-start gap-6" data-children-row>
         <%= for child <- @children do %>
-          <div class="flex flex-col items-center">
+          <div class="flex flex-col items-center" data-child-column>
             <%= cond do %>
               <% Map.get(child, :has_more, false) -> %>
                 <.couple_card
