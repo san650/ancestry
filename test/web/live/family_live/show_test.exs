@@ -15,13 +15,15 @@ defmodule Web.FamilyLive.ShowTest do
     assert html =~ family.name
   end
 
-  test "shows family members", %{conn: conn, family: family} do
+  test "shows family members in side panel", %{conn: conn, family: family} do
     {:ok, _} =
       People.create_person(family, %{given_name: "Jane", surname: "Doe", birth_year: 1985})
 
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}")
-    assert html =~ "Jane Doe"
+    {:ok, view, html} = live(conn, ~p"/families/#{family.id}")
     assert html =~ "Doe"
+    assert html =~ "Jane"
+    assert html =~ "Select a person"
+    assert has_element?(view, "#person-selector-center")
   end
 
   test "shows family galleries", %{conn: conn, family: family} do

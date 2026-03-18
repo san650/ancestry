@@ -144,11 +144,30 @@
         </div>
       <% else %>
         <div class="flex items-center justify-center h-full">
-          <div class="text-center text-base-content/40">
-            <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">No family members yet</p>
-            <p class="text-sm mt-1">Add members to start building the family tree</p>
-          </div>
+          <%= if @people != [] do %>
+            <div class="text-center">
+              <.icon name="hero-share" class="w-16 h-16 mx-auto mb-4 text-base-content/20" />
+              <h2 class="text-xl font-semibold text-base-content mb-2">
+                Explore the Family Tree
+              </h2>
+              <p class="text-base-content/50 mb-6 max-w-sm">
+                Select a family member to see their ancestors and descendants
+              </p>
+              <.live_component
+                module={Web.FamilyLive.PersonSelectorComponent}
+                id="person-selector-center"
+                people={@people}
+                family_id={@family.id}
+                focus_person={nil}
+              />
+            </div>
+          <% else %>
+            <div class="text-center text-base-content/40">
+              <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
+              <p class="text-lg font-medium">No family members yet</p>
+              <p class="text-sm mt-1">Add members to start building the family tree</p>
+            </div>
+          <% end %>
         </div>
       <% end %>
     </div>

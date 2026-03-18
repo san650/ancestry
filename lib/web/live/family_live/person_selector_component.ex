@@ -28,7 +28,11 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
       >
         <.icon name="hero-user" class="w-4 h-4 text-base-content/50" />
         <span class="truncate font-medium text-base-content">
-          {Person.display_name(@focus_person)}
+          <%= if @focus_person do %>
+            {Person.display_name(@focus_person)}
+          <% else %>
+            Select a person...
+          <% end %>
         </span>
         <.icon name="hero-chevron-down" class="w-4 h-4 text-base-content/50 ml-auto" />
       </button>
@@ -37,7 +41,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
         <div class="absolute top-full left-0 mt-1 w-full max-w-xs bg-base-100 border border-base-200 rounded-lg shadow-xl z-50 max-h-80 flex flex-col">
           <div class="p-2 border-b border-base-200">
             <input
-              id="person-selector-input"
+              id={"#{@id}-input"}
               type="text"
               value={@query}
               placeholder="Search people..."
@@ -60,7 +64,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
                 phx-target={@myself}
                 class={[
                   "w-full flex items-center gap-2 px-3 py-2 hover:bg-base-200 transition-colors text-sm text-left",
-                  person.id == @focus_person.id && "bg-primary/10"
+                  @focus_person && person.id == @focus_person.id && "bg-primary/10"
                 ]}
               >
                 <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">

@@ -40,7 +40,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
             <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@person.gender)]} />
           <% end %>
         </div>
-        <p class="text-xs font-medium text-base-content truncate w-full group-hover:text-primary transition-colors">
+        <p class="text-xs font-medium text-base-content w-full group-hover:text-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
           {Person.display_name(@person)}
         </p>
         <%= if @person.birth_year do %>

@@ -50,7 +50,7 @@ defmodule Web.FamilyLive.Show do
           Enum.find(people, &(&1.id == person_id))
 
         _ ->
-          List.first(people)
+          nil
       end
 
     tree =
