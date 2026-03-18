@@ -71,7 +71,12 @@
 
       <%!-- Given names --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-        <label class="text-sm font-medium text-base-content/70 md:text-right">Given names</label>
+        <label
+          for={@form[:given_name].id}
+          class="text-sm font-medium text-base-content/70 md:text-right"
+        >
+          Given names
+        </label>
         <.input field={@form[:given_name]} label="" />
       </div>
 
@@ -104,7 +109,12 @@
 
       <%!-- Surname --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-        <label class="text-sm font-medium text-base-content/70 md:text-right">Surname</label>
+        <label
+          for={@form[:surname].id}
+          class="text-sm font-medium text-base-content/70 md:text-right"
+        >
+          Surname
+        </label>
         <.input field={@form[:surname]} label="" />
       </div>
 
