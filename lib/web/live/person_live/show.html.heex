@@ -36,13 +36,13 @@
 
   <%= if @editing do %>
     <div class="max-w-2xl mx-auto">
-      <.live_component
-        module={Web.Shared.PersonFormComponent}
-        id="person-form"
+      <Web.Shared.PersonFormComponent.person_form_component
         person={@person}
         family={@family}
         action={:edit}
         uploads={@uploads}
+        form={@form}
+        show_details={@show_details}
       />
     </div>
   <% else %>

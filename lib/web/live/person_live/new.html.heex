@@ -14,13 +14,13 @@
   </:toolbar>
 
   <div class="max-w-2xl mx-auto mt-8">
-    <.live_component
-      module={Web.Shared.PersonFormComponent}
-      id="person-form"
+    <Web.Shared.PersonFormComponent.person_form_component
       person={@person}
       family={@family}
       action={:new}
       uploads={@uploads}
+      form={@form}
+      show_details={@show_details}
     />
   </div>
 </Layouts.app>

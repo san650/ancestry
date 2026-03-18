@@ -34,11 +34,68 @@ defmodule Web.PersonLive.Show do
 
   @impl true
   def handle_event("edit", _, socket) do
-    {:noreply, assign(socket, :editing, true)}
+    person = socket.assigns.person
+
+    extra_fields_present? =
+      birth_name_differs?(person.given_name_at_birth, person.given_name) ||
+        birth_name_differs?(person.surname_at_birth, person.surname) ||
+        has_value?(person.nickname) ||
+        has_value?(person.title) ||
+        has_value?(person.suffix) ||
+        (person.alternate_names != nil and person.alternate_names != [])
+
+    {:noreply,
+     socket
+     |> assign(:editing, true)
+     |> assign(:form, to_form(People.change_person(person)))
+     |> assign(:show_details, extra_fields_present?)}
   end
 
   def handle_event("cancel_edit", _, socket) do
     {:noreply, assign(socket, :editing, false)}
+  end
+
+  def handle_event("cancel", _, socket) do
+    {:noreply, assign(socket, :editing, false)}
+  end
+
+  def handle_event("toggle_details", _, socket) do
+    {:noreply, assign(socket, :show_details, true)}
+  end
+
+  def handle_event("validate", %{"person" => params}, socket) do
+    params = invert_living_to_deceased(params)
+
+    changeset =
+      socket.assigns.person
+      |> People.change_person(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  def handle_event("save", %{"person" => params}, socket) do
+    params =
+      params
+      |> invert_living_to_deceased()
+      |> process_alternate_names()
+
+    case People.update_person(socket.assigns.person, params) do
+      {:ok, person} ->
+        socket = maybe_process_photo(socket, person)
+
+        {:noreply,
+         socket
+         |> assign(:person, person)
+         |> assign(:editing, false)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :photo, ref)}
   end
 
   def handle_event("request_remove", _, socket) do
@@ -219,23 +276,6 @@ defmodule Web.PersonLive.Show do
     {:noreply, assign(socket, :person, person)}
   end
 
-  def handle_info({:person_saved, person}, socket) do
-    socket = maybe_process_photo(socket, person)
-
-    {:noreply,
-     socket
-     |> assign(:person, person)
-     |> assign(:editing, false)}
-  end
-
-  def handle_info({:cancel_upload, ref}, socket) do
-    {:noreply, cancel_upload(socket, :photo, ref)}
-  end
-
-  def handle_info({:cancel_edit}, socket) do
-    {:noreply, assign(socket, :editing, false)}
-  end
-
   def handle_info({:relationship_saved, _type, _person}, socket) do
     {:noreply,
      socket
@@ -406,6 +446,37 @@ defmodule Web.PersonLive.Show do
 
   defp sibling_person(sibling_tuple) do
     elem(sibling_tuple, 0)
+  end
+
+  defp has_value?(nil), do: false
+  defp has_value?(""), do: false
+  defp has_value?(_), do: true
+
+  defp birth_name_differs?(nil, _current), do: false
+  defp birth_name_differs?("", _current), do: false
+  defp birth_name_differs?(birth, current), do: birth != current
+
+  defp invert_living_to_deceased(params) do
+    case Map.pop(params, "living") do
+      {nil, params} -> params
+      {"true", params} -> Map.put(params, "deceased", "false")
+      {"false", params} -> Map.put(params, "deceased", "true")
+      {_, params} -> params
+    end
+  end
+
+  defp process_alternate_names(params) do
+    case Map.pop(params, "alternate_names_text") do
+      {nil, params} ->
+        params
+
+      {"", params} ->
+        params
+
+      {text, params} ->
+        names = text |> String.split("\n") |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+        Map.put(params, "alternate_names", names)
+    end
   end
 
   defp person_card(assigns) do

@@ -13,6 +13,8 @@ defmodule Web.PersonLive.New do
      socket
      |> assign(:family, family)
      |> assign(:person, %Person{})
+     |> assign(:form, to_form(People.change_person(%Person{})))
+     |> assign(:show_details, false)
      |> allow_upload(:photo,
        accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
        max_entries: 1,
@@ -24,14 +26,46 @@ defmodule Web.PersonLive.New do
   def handle_params(_params, _url, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_info({:person_saved, person}, socket) do
-    socket = maybe_process_photo(socket, person)
+  def handle_event("toggle_details", _, socket) do
+    {:noreply, assign(socket, :show_details, true)}
+  end
+
+  def handle_event("validate", %{"person" => params}, socket) do
+    params = invert_living_to_deceased(params)
+
+    changeset =
+      socket.assigns.person
+      |> People.change_person(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  def handle_event("save", %{"person" => params}, socket) do
+    params =
+      params
+      |> invert_living_to_deceased()
+      |> process_alternate_names()
+
+    case People.create_person(socket.assigns.family, params) do
+      {:ok, person} ->
+        socket = maybe_process_photo(socket, person)
+        {:noreply, push_navigate(socket, to: ~p"/families/#{socket.assigns.family.id}")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :photo, ref)}
+  end
+
+  def handle_event("cancel", _, socket) do
     {:noreply, push_navigate(socket, to: ~p"/families/#{socket.assigns.family.id}")}
   end
 
-  def handle_info({:cancel_upload, ref}, socket) do
-    {:noreply, cancel_upload(socket, :photo, ref)}
-  end
+  # --- Private helpers ---
 
   defp maybe_process_photo(socket, person) do
     uploaded =
@@ -52,6 +86,29 @@ defmodule Web.PersonLive.New do
 
       [] ->
         socket
+    end
+  end
+
+  defp invert_living_to_deceased(params) do
+    case Map.pop(params, "living") do
+      {nil, params} -> params
+      {"true", params} -> Map.put(params, "deceased", "false")
+      {"false", params} -> Map.put(params, "deceased", "true")
+      {_, params} -> params
+    end
+  end
+
+  defp process_alternate_names(params) do
+    case Map.pop(params, "alternate_names_text") do
+      {nil, params} ->
+        params
+
+      {"", params} ->
+        params
+
+      {text, params} ->
+        names = text |> String.split("\n") |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
+        Map.put(params, "alternate_names", names)
     end
   end
 end
