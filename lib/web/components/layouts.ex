@@ -74,7 +74,7 @@ defmodule Web.Layouts do
         </div>
       <% end %>
 
-      <main class="px-4 sm:px-6 lg:px-8 pt-8 min-h-100">
+      <main class="min-h-100">
         {render_slot(@inner_block)}
       </main>
       <.flash_group flash={@flash} />
