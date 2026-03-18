@@ -27,7 +27,11 @@
 
   <div class="flex flex-col lg:flex-row">
     <%!-- Tree Canvas --%>
-    <div id="tree-canvas" class="flex-1 overflow-x-scroll overflow-y-visible p-6" phx-hook=".ScrollToFocus">
+    <div
+      id="tree-canvas"
+      class="flex-1 overflow-x-scroll overflow-y-visible p-6"
+      phx-hook=".ScrollToFocus"
+    >
       <%= if @tree do %>
         <div class="inline-flex flex-col items-center gap-0 min-w-full">
           <%!-- Ancestor Tree (recursive: great-grandparents → parents) --%>

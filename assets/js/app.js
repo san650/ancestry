@@ -20,9 +20,9 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
-import {hooks as colocatedHooks} from "phoenix-colocated/family"
+import { Socket } from "phoenix"
+import { LiveSocket } from "phoenix_live_view"
+import { hooks as colocatedHooks } from "phoenix-colocated/family"
 import topbar from "../vendor/topbar"
 
 const FuzzyFilter = {
@@ -44,11 +44,12 @@ const FuzzyFilter = {
   }
 }
 
-function makeSvgLine(svg, x1, y1, x2, y2, stroke) {
+function makeSvgLine(svg, x1, y1, x2, y2, stroke, dashArray) {
   const l = document.createElementNS("http://www.w3.org/2000/svg", "line")
   l.setAttribute("x1", x1); l.setAttribute("y1", y1)
   l.setAttribute("x2", x2); l.setAttribute("y2", y2)
-  l.setAttribute("stroke", stroke); l.setAttribute("stroke-width", "1")
+  l.setAttribute("stroke", stroke); l.setAttribute("stroke-width", "3")
+  if (dashArray) l.setAttribute("stroke-dasharray", dashArray)
   svg.appendChild(l)
 }
 
@@ -67,33 +68,90 @@ const BranchConnector = {
       const columns = childrenRow.querySelectorAll(":scope > [data-child-column]")
       if (columns.length === 0) return
 
+      // Find the couple card above (sibling of the subtree_children wrapper)
+      const coupleCard = this.el.parentElement.previousElementSibling
+
       const h = 20
-      // Find the actual child person by explicit ID on each column
-      const centers = Array.from(columns).map(col => {
+      const barY = h / 2
+
+      // Group children by line origin
+      const groups = {}
+      Array.from(columns).forEach(col => {
+        const origin = col.dataset.lineOrigin || "partner"
+        if (!groups[origin]) groups[origin] = []
         const childId = col.dataset.childPersonId
+        let cx
         if (childId) {
           const personEl = col.querySelector(`[data-person-id="${childId}"]`)
           if (personEl) {
             const r = personEl.getBoundingClientRect()
-            return r.left + r.width / 2 - containerRect.left
+            cx = r.left + r.width / 2 - containerRect.left
           }
         }
-        const r = col.getBoundingClientRect()
-        return r.left + r.width / 2 - containerRect.left
+        if (cx === undefined) {
+          const r = col.getBoundingClientRect()
+          cx = r.left + r.width / 2 - containerRect.left
+        }
+        groups[origin].push(cx)
       })
-      const parentCx = containerRect.width / 2
+
+      // Compute origin X for each group type
+      function getOriginX(origin) {
+        if (coupleCard) {
+          if (origin === "partner") {
+            const aId = coupleCard.dataset.personAId
+            const bId = coupleCard.dataset.personBId
+            if (aId && bId) {
+              const a = coupleCard.querySelector(`[data-person-id="${aId}"]`)
+              const b = coupleCard.querySelector(`[data-person-id="${bId}"]`)
+              if (a && b) {
+                const aR = a.getBoundingClientRect()
+                const bR = b.getBoundingClientRect()
+                return (aR.left + aR.width / 2 + bR.left + bR.width / 2) / 2 - containerRect.left
+              }
+            }
+          } else if (origin === "solo") {
+            const aId = coupleCard.dataset.personAId
+            if (aId) {
+              const a = coupleCard.querySelector(`[data-person-id="${aId}"]`)
+              if (a) {
+                const r = a.getBoundingClientRect()
+                return r.left + r.width / 2 - containerRect.left
+              }
+            }
+          } else if (origin.startsWith("ex-")) {
+            const exId = origin.replace("ex-", "")
+            const sep = coupleCard.querySelector(`[data-ex-separator="${exId}"]`)
+            if (sep) {
+              const r = sep.getBoundingClientRect()
+              return r.left + r.width / 2 - containerRect.left
+            }
+          }
+        }
+        return containerRect.width / 2
+      }
 
       while (svg.firstChild) svg.removeChild(svg.firstChild)
 
-      if (centers.length === 1) {
-        makeSvgLine(svg, centers[0], 0, centers[0], h, CONNECTOR_STROKE)
-      } else {
-        const left = Math.min(...centers)
-        const right = Math.max(...centers)
-        const barY = h / 2
-        makeSvgLine(svg, parentCx, 0, parentCx, barY, CONNECTOR_STROKE)
-        makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
-        centers.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
+      // Draw connectors for each group
+      for (const [origin, centers] of Object.entries(groups)) {
+        const originX = getOriginX(origin)
+        const isDashed = origin.startsWith("ex-")
+        const dash = isDashed ? "6,4" : null
+
+        // All X positions for this group (origin + children)
+        const allX = [originX, ...centers]
+        const left = Math.min(...allX)
+        const right = Math.max(...allX)
+
+        // Vertical from origin down to bar
+        makeSvgLine(svg, originX, 0, originX, barY, CONNECTOR_STROKE, dash)
+        // Horizontal bar (skip if all points align)
+        if (left !== right) {
+          makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE, dash)
+        }
+        // Vertical from bar down to each child
+        centers.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE, dash))
       }
 
       svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
@@ -164,12 +222,12 @@ const AncestorConnector = {
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, FuzzyFilter, BranchConnector, AncestorConnector},
+  params: { _csrf_token: csrfToken },
+  hooks: { ...colocatedHooks, FuzzyFilter, BranchConnector, AncestorConnector },
 })
 
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
@@ -189,7 +247,7 @@ window.liveSocket = liveSocket
 //     2. click on elements to jump to their definitions in your code editor
 //
 if (process.env.NODE_ENV === "development") {
-  window.addEventListener("phx:live_reload:attached", ({detail: reloader}) => {
+  window.addEventListener("phx:live_reload:attached", ({ detail: reloader }) => {
     // Enable server log streaming to client.
     // Disable with reloader.disableServerLogs()
     reloader.enableServerLogs()
@@ -202,11 +260,11 @@ if (process.env.NODE_ENV === "development") {
     window.addEventListener("keydown", e => keyDown = e.key)
     window.addEventListener("keyup", _e => keyDown = null)
     window.addEventListener("click", e => {
-      if(keyDown === "c"){
+      if (keyDown === "c") {
         e.preventDefault()
         e.stopImmediatePropagation()
         reloader.openEditorAtCaller(e.target)
-      } else if(keyDown === "d"){
+      } else if (keyDown === "d") {
         e.preventDefault()
         e.stopImmediatePropagation()
         reloader.openEditorAtDef(e.target)

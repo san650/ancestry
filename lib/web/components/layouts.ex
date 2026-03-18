@@ -65,7 +65,10 @@ defmodule Web.Layouts do
     </header>
 
     <%= if @toolbar != [] do %>
-      <div id="toolbar" class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 border-b border-base-200 bg-base-100">
+      <div
+        id="toolbar"
+        class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 border-b border-base-200 bg-base-100"
+      >
         {render_slot(@toolbar)}
       </div>
     <% end %>
