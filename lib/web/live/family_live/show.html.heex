@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash}>
   <:toolbar>
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+    <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/"}
@@ -11,11 +11,7 @@
         <h1 class="text-2xl font-bold text-base-content">{@family.name}</h1>
       </div>
       <div class="flex items-center gap-2">
-        <button
-          id="edit-family-btn"
-          phx-click="edit"
-          class="btn btn-ghost btn-sm"
-        >
+        <button id="edit-family-btn" phx-click="edit" class="btn btn-ghost btn-sm">
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
         </button>
         <button
@@ -29,144 +25,22 @@
     </div>
   </:toolbar>
 
-  <div class="max-w-7xl mx-auto">
-    <%!-- Cover photo --%>
-    <div class="mb-8 rounded-2xl overflow-hidden bg-base-200 h-48 flex items-center justify-center">
-      <%= if @family.cover do %>
-        <img
-          src={Ancestry.Uploaders.FamilyCover.url({@family.cover, @family}, :cover)}
-          alt={@family.name}
-          class="w-full h-full object-cover"
-        />
-      <% else %>
-        <.icon name="hero-users" class="w-16 h-16 text-base-content/20" />
-      <% end %>
-    </div>
+  <div class="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
+    <.live_component
+      module={Web.FamilyLive.CanvasComponent}
+      id="canvas"
+      graph={@graph}
+      grid={@grid}
+      family_id={@family.id}
+    />
 
-    <%!-- Members section --%>
-    <div class="mb-10">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-base-content">Members</h2>
-        <div class="flex items-center gap-2">
-          <button
-            id="link-existing-btn"
-            phx-click="open_search"
-            class="btn btn-ghost btn-sm"
-          >
-            <.icon name="hero-magnifying-glass" class="w-4 h-4" /> Link Existing
-          </button>
-          <.link
-            id="add-member-btn"
-            navigate={~p"/families/#{@family.id}/members/new"}
-            class="btn btn-primary btn-sm"
-          >
-            <.icon name="hero-plus" class="w-4 h-4" /> Add Member
-          </.link>
-        </div>
-      </div>
-      <div
-        id="members"
-        phx-update="stream"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
-      >
-        <div
-          id="members-empty"
-          class="hidden only:block col-span-full text-center py-12 text-base-content/40"
-        >
-          No members yet.
-          <.link navigate={~p"/families/#{@family.id}/members/new"} class="link link-primary">
-            Add your first member
-          </.link>
-        </div>
-        <.link
-          :for={{id, person} <- @streams.members}
-          id={id}
-          navigate={~p"/families/#{@family.id}/members/#{person.id}"}
-          class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-5"
-        >
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <%= if person.photo && person.photo_status == "processed" do %>
-                <img
-                  src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
-                  alt={Ancestry.People.Person.display_name(person)}
-                  class="w-full h-full object-cover"
-                />
-              <% else %>
-                <.icon name="hero-user" class="w-7 h-7 text-primary" />
-              <% end %>
-            </div>
-            <div class="min-w-0">
-              <h3 class="font-semibold text-base-content truncate">
-                {Ancestry.People.Person.display_name(person)}
-              </h3>
-              <%= if person.birth_year || person.birth_month || person.birth_day do %>
-                <p class="text-sm text-base-content/50">
-                  b. {format_partial_date(person.birth_day, person.birth_month, person.birth_year)}
-                </p>
-              <% end %>
-              <%= if person.death_year || person.death_month || person.death_day do %>
-                <p class="text-sm text-base-content/50">
-                  d. {format_partial_date(person.death_day, person.death_month, person.death_year)}
-                </p>
-              <% end %>
-            </div>
-          </div>
-        </.link>
-      </div>
-    </div>
-
-    <%!-- Galleries section --%>
-    <div class="mb-10">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold text-base-content">Galleries</h2>
-        <button
-          id="open-new-gallery-btn"
-          phx-click="open_new_gallery_modal"
-          class="btn btn-primary btn-sm"
-        >
-          <.icon name="hero-plus" class="w-4 h-4" /> New Gallery
-        </button>
-      </div>
-      <div
-        id="galleries"
-        phx-update="stream"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
-      >
-        <div
-          id="galleries-empty"
-          class="hidden only:block col-span-full text-center py-12 text-base-content/40"
-        >
-          No galleries yet. Create your first one.
-        </div>
-        <div
-          :for={{id, gallery} <- @streams.galleries}
-          id={id}
-          data-gallery-id={gallery.id}
-          class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
-        >
-          <.link navigate={~p"/families/#{@family.id}/galleries/#{gallery.id}"} class="block p-6">
-            <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-              <.icon name="hero-photo" class="w-6 h-6 text-primary" />
-            </div>
-            <h3 data-gallery-name class="text-lg font-semibold text-base-content truncate">
-              {gallery.name}
-            </h3>
-            <p class="text-sm text-base-content/50 mt-1">
-              {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
-            </p>
-          </.link>
-          <button
-            id={"delete-gallery-#{gallery.id}"}
-            phx-click="request_delete_gallery"
-            phx-value-id={gallery.id}
-            class="absolute top-3 right-3 p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-all"
-          >
-            <.icon name="hero-trash" class="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+    <.live_component
+      module={Web.FamilyLive.SidePanelComponent}
+      id="side-panel"
+      galleries={@galleries}
+      people={@people}
+      family_id={@family.id}
+    />
   </div>
 
   <%!-- Edit Family Modal --%>
@@ -175,17 +49,8 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
       <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
         <h2 class="text-xl font-bold text-base-content mb-6">Edit Family</h2>
-        <.form
-          for={@form}
-          id="edit-family-form"
-          phx-submit="save"
-          phx-change="validate"
-        >
-          <.input
-            field={@form[:name]}
-            label="Family name"
-            autofocus
-          />
+        <.form for={@form} id="edit-family-form" phx-submit="save" phx-change="validate">
+          <.input field={@form[:name]} label="Family name" autofocus />
           <div class="flex gap-3 mt-6">
             <button type="submit" class="btn btn-primary flex-1">Save</button>
             <button type="button" phx-click="cancel_edit" class="btn btn-ghost flex-1">

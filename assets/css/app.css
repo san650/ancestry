@@ -35,3 +35,10 @@
 .masonry-grid > * {
   break-inside: avoid;
 }
+
+.family-tree-grid {
+  display: grid;
+  gap: 0;
+  justify-items: center;
+  align-items: center;
+}

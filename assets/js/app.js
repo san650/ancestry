@@ -25,11 +25,30 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/family"
 import topbar from "../vendor/topbar"
 
+const FuzzyFilter = {
+  mounted() {
+    const targetId = this.el.dataset.target
+    this.el.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase().trim()
+      const container = document.getElementById(targetId)
+      if (!container) return
+      const items = container.querySelectorAll("[data-filter-name]")
+      items.forEach((item) => {
+        if (!query || item.dataset.filterName.includes(query)) {
+          item.style.display = ""
+        } else {
+          item.style.display = "none"
+        }
+      })
+    })
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks},
+  hooks: {...colocatedHooks, FuzzyFilter},
 })
 
 // Show progress bar on live navigation and form submits

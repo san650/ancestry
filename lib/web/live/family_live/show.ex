@@ -14,9 +14,18 @@ defmodule Web.FamilyLive.Show do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "family:#{family_id}")
     end
 
+    graph = People.build_family_graph(family_id)
+    grid = Ancestry.People.FamilyGraph.to_grid(graph)
+    people = People.list_people_for_family(family_id)
+    galleries = Galleries.list_galleries(family_id)
+
     {:ok,
      socket
      |> assign(:family, family)
+     |> assign(:graph, graph)
+     |> assign(:grid, grid)
+     |> assign(:people, people)
+     |> assign(:galleries, galleries)
      |> assign(:editing, false)
      |> assign(:confirm_delete, false)
      |> assign(:form, to_form(Families.change_family(family)))
@@ -25,9 +34,7 @@ defmodule Web.FamilyLive.Show do
      |> assign(:gallery_form, to_form(Galleries.change_gallery(%Gallery{})))
      |> assign(:search_mode, false)
      |> assign(:search_query, "")
-     |> assign(:search_results, [])
-     |> stream(:galleries, Galleries.list_galleries(family_id))
-     |> stream(:members, People.list_people_for_family(family_id))}
+     |> assign(:search_results, [])}
   end
 
   @impl true
@@ -105,11 +112,13 @@ defmodule Web.FamilyLive.Show do
     params = Map.put(params, "family_id", socket.assigns.family.id)
 
     case Galleries.create_gallery(params) do
-      {:ok, gallery} ->
+      {:ok, _gallery} ->
+        galleries = Galleries.list_galleries(socket.assigns.family.id)
+
         {:noreply,
          socket
          |> assign(:show_new_gallery_modal, false)
-         |> stream_insert(:galleries, gallery)}
+         |> assign(:galleries, galleries)}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :gallery_form, to_form(changeset))}
@@ -127,11 +136,12 @@ defmodule Web.FamilyLive.Show do
   def handle_event("confirm_delete_gallery", _, socket) do
     gallery = socket.assigns.confirm_delete_gallery
     {:ok, _} = Galleries.delete_gallery(gallery)
+    galleries = Galleries.list_galleries(socket.assigns.family.id)
 
     {:noreply,
      socket
      |> assign(:confirm_delete_gallery, nil)
-     |> stream_delete(:galleries, gallery)}
+     |> assign(:galleries, galleries)}
   end
 
   # Member search/link
@@ -165,9 +175,15 @@ defmodule Web.FamilyLive.Show do
 
     case People.add_to_family(person, family) do
       {:ok, _} ->
+        graph = People.build_family_graph(family.id)
+        grid = Ancestry.People.FamilyGraph.to_grid(graph)
+        people = People.list_people_for_family(family.id)
+
         {:noreply,
          socket
-         |> stream_insert(:members, person)
+         |> assign(:graph, graph)
+         |> assign(:grid, grid)
+         |> assign(:people, people)
          |> assign(:search_mode, false)
          |> assign(:search_results, [])
          |> assign(:search_query, "")}
@@ -184,14 +200,5 @@ defmodule Web.FamilyLive.Show do
 
   def handle_info({:cover_failed, family}, socket) do
     {:noreply, assign(socket, :family, family)}
-  end
-
-  defp format_partial_date(day, month, year) do
-    [day, month, year]
-    |> Enum.reject(&is_nil/1)
-    |> case do
-      [] -> ""
-      parts -> Enum.join(parts, "/")
-    end
   end
 end
