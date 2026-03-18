@@ -14,6 +14,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
     ~H"""
     <div
       data-person-id={@person.id}
+      id={if(@focused, do: "focus-person-card")}
       class={[
         "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all group",
         "border border-base-content/10",
@@ -210,7 +211,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
       <%!-- Main person + partner --%>
       <div
         class={["flex flex-col items-center", @is_root && "scroll-mt-4"]}
-        id={if(@is_root, do: "focus-person-card")}
         data-primary-column
       >
         <.couple_card

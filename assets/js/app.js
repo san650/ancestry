@@ -222,11 +222,31 @@ const AncestorConnector = {
   }
 }
 
+// In the TreeView when chaning the focus person, scroll the page so the focus person is visible.
+const ScrollToFocus = {
+  mounted() {
+    this.handleEvent("scroll_to_focus", () => this.scrollToFocus())
+    this.scrollToFocus()
+  },
+  scrollToFocus() {
+    setTimeout(() => {
+      const target = this.el.querySelector("#focus-person-card")
+      if (!target) return
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center"
+      })
+    }, 50)
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, FuzzyFilter, BranchConnector, AncestorConnector },
+  hooks: { ...colocatedHooks, FuzzyFilter, BranchConnector, AncestorConnector, ScrollToFocus },
 })
 
 // Show progress bar on live navigation and form submits

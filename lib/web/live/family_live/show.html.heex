@@ -42,7 +42,7 @@
     <div
       id="tree-canvas"
       class="overflow-x-auto p-6 order-last lg:order-first"
-      phx-hook=".ScrollToFocus"
+      phx-hook="ScrollToFocus"
     >
       <%= if @tree do %>
         <div class="inline-flex flex-col items-center gap-0 min-w-full">
@@ -282,37 +282,4 @@
       </div>
     </div>
   <% end %>
-
-  <script :type={Phoenix.LiveView.ColocatedHook} name=".ScrollToFocus">
-    export default {
-      mounted() {
-        this.handleEvent("scroll_to_focus", () => this.scrollToFocus())
-        this.scrollToFocus()
-      },
-      scrollToFocus() {
-        setTimeout(() => {
-          const target = this.el.querySelector("#focus-person-card")
-          if (!target) return
-
-          const container = this.el
-          const targetRect = target.getBoundingClientRect()
-          const containerRect = container.getBoundingClientRect()
-
-          // Horizontal scroll within the tree canvas container
-          container.scrollTo({
-            left: container.scrollLeft + (targetRect.left + targetRect.width / 2) - (containerRect.left + containerRect.width / 2),
-            behavior: "instant"
-          })
-
-          // Vertical scroll at page level
-          const targetCenterY = targetRect.top + targetRect.height / 2
-          const viewportCenterY = window.innerHeight / 2
-          window.scrollBy({
-            top: targetCenterY - viewportCenterY,
-            behavior: "instant"
-          })
-        }, 50)
-      }
-    }
-  </script>
 </Layouts.app>
