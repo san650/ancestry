@@ -222,27 +222,6 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
-  describe "build_family_graph/1" do
-    test "returns a FamilyGraph struct" do
-      family = family_fixture()
-      {:ok, _} = People.create_person(family, %{given_name: "Alice", surname: "A"})
-
-      graph = People.build_family_graph(family.id)
-      assert %Ancestry.People.FamilyGraph{} = graph
-    end
-
-    test "includes people and relationships from the family" do
-      family = family_fixture()
-      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
-      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
-      {:ok, _} = Ancestry.Relationships.create_relationship(alice, bob, "partner")
-
-      graph = People.build_family_graph(family.id)
-      assert map_size(graph.nodes) == 2
-      assert length(graph.unions) == 1
-    end
-  end
-
   describe "change_person/2" do
     test "returns a changeset" do
       assert %Ecto.Changeset{} = People.change_person(%Person{})

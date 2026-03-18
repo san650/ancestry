@@ -5,6 +5,10 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
   alias Ancestry.People
+  alias Ancestry.People.PersonTree
+
+  import Web.FamilyLive.PersonCardComponent
+  import Web.FamilyLive.CoupleCardComponent
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
@@ -14,18 +18,16 @@ defmodule Web.FamilyLive.Show do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "family:#{family_id}")
     end
 
-    graph = People.build_family_graph(family_id)
-    grid = Ancestry.People.FamilyGraph.to_grid(graph)
     people = People.list_people_for_family(family_id)
     galleries = Galleries.list_galleries(family_id)
 
     {:ok,
      socket
      |> assign(:family, family)
-     |> assign(:graph, graph)
-     |> assign(:grid, grid)
      |> assign(:people, people)
      |> assign(:galleries, galleries)
+     |> assign(:tree, nil)
+     |> assign(:focus_person, nil)
      |> assign(:editing, false)
      |> assign(:confirm_delete, false)
      |> assign(:form, to_form(Families.change_family(family)))
@@ -38,9 +40,44 @@ defmodule Web.FamilyLive.Show do
   end
 
   @impl true
-  def handle_params(_params, _url, socket), do: {:noreply, socket}
+  def handle_params(params, _url, socket) do
+    people = socket.assigns.people
+
+    focus_person =
+      case params do
+        %{"person" => id} ->
+          person_id = String.to_integer(id)
+          Enum.find(people, &(&1.id == person_id))
+
+        _ ->
+          List.first(people)
+      end
+
+    tree =
+      if focus_person do
+        PersonTree.build(focus_person)
+      else
+        nil
+      end
+
+    {:noreply,
+     socket
+     |> assign(:focus_person, focus_person)
+     |> assign(:tree, tree)}
+  end
+
+  # Focus person event — re-center tree
 
   @impl true
+  def handle_event("focus_person", %{"id" => id}, socket) do
+    {:noreply,
+     push_patch(socket,
+       to: ~p"/families/#{socket.assigns.family.id}?person=#{id}"
+     )}
+  end
+
+  # Family editing
+
   def handle_event("edit", _, socket) do
     form = to_form(Families.change_family(socket.assigns.family))
     {:noreply, socket |> assign(:editing, true) |> assign(:form, form)}
@@ -175,15 +212,15 @@ defmodule Web.FamilyLive.Show do
 
     case People.add_to_family(person, family) do
       {:ok, _} ->
-        graph = People.build_family_graph(family.id)
-        grid = Ancestry.People.FamilyGraph.to_grid(graph)
         people = People.list_people_for_family(family.id)
+
+        focus_person = socket.assigns.focus_person
+        tree = if focus_person, do: PersonTree.build(focus_person), else: nil
 
         {:noreply,
          socket
-         |> assign(:graph, graph)
-         |> assign(:grid, grid)
          |> assign(:people, people)
+         |> assign(:tree, tree)
          |> assign(:search_mode, false)
          |> assign(:search_results, [])
          |> assign(:search_query, "")}
@@ -193,6 +230,8 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
+  # PubSub
+
   @impl true
   def handle_info({:cover_processed, family}, socket) do
     {:noreply, assign(socket, :family, family)}
@@ -200,5 +239,12 @@ defmodule Web.FamilyLive.Show do
 
   def handle_info({:cover_failed, family}, socket) do
     {:noreply, assign(socket, :family, family)}
+  end
+
+  def handle_info({:focus_person, person_id}, socket) do
+    {:noreply,
+     push_patch(socket,
+       to: ~p"/families/#{socket.assigns.family.id}?person=#{person_id}"
+     )}
   end
 end

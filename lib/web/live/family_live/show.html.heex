@@ -11,6 +11,15 @@
         <h1 class="text-2xl font-bold text-base-content">{@family.name}</h1>
       </div>
       <div class="flex items-center gap-2">
+        <%= if @focus_person do %>
+          <.live_component
+            module={Web.FamilyLive.PersonSelectorComponent}
+            id="person-selector"
+            people={@people}
+            family_id={@family.id}
+            focus_person={@focus_person}
+          />
+        <% end %>
         <button id="edit-family-btn" phx-click="edit" class="btn btn-ghost btn-sm">
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
         </button>
@@ -26,20 +35,132 @@
   </:toolbar>
 
   <div class="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
-    <.live_component
-      module={Web.FamilyLive.CanvasComponent}
-      id="canvas"
-      graph={@graph}
-      grid={@grid}
-      family_id={@family.id}
-    />
+    <%!-- Tree Canvas --%>
+    <div class="flex-1 overflow-auto p-6">
+      <%= if @tree do %>
+        <div class="flex flex-col items-center gap-0">
+          <%!-- Ancestor Generations (top to bottom: great-grandparents → parents) --%>
+          <%= for {couples, gen_idx} <- @tree.ancestors |> Enum.reverse() |> Enum.with_index() do %>
+            <div class="flex items-end justify-center gap-8 mb-0">
+              <%= for couple <- couples do %>
+                <div class="flex flex-col items-center">
+                  <.couple_card
+                    person_a={couple.person_a}
+                    person_b={couple.person_b}
+                    family_id={@family.id}
+                    focused_person_id={@focus_person && @focus_person.id}
+                  />
+                </div>
+              <% end %>
+            </div>
+            <%!-- Connector line down --%>
+            <div class="flex justify-center">
+              <div class="w-px h-6 bg-base-content/20"></div>
+            </div>
+          <% end %>
 
+          <%!-- Center Row --%>
+          <div class="flex items-start justify-center gap-12">
+            <%!-- Ex-partners on the left --%>
+            <%= for ex_group <- @tree.center.ex_partners do %>
+              <div class="flex flex-col items-center">
+                <.couple_card
+                  person_a={ex_group.person}
+                  family_id={@family.id}
+                  focused_person_id={@focus_person.id}
+                />
+                <%!-- Ex-partner's shared children --%>
+                <%= if ex_group.children != [] do %>
+                  <div class="w-px h-4 bg-base-content/20"></div>
+                  <div class="flex gap-4">
+                    <%= for child <- ex_group.children do %>
+                      <.person_card
+                        person={child}
+                        family_id={@family.id}
+                        focused={false}
+                      />
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+
+            <%!-- Focus person + current partner (center) --%>
+            <div class="flex flex-col items-center">
+              <.couple_card
+                person_a={@focus_person}
+                person_b={@tree.center.partner}
+                family_id={@family.id}
+                focused_person_id={@focus_person.id}
+                show_spouse_placeholder={is_nil(@tree.center.partner)}
+                person_for_placeholder={@focus_person.id}
+              />
+              <%!-- Partner children --%>
+              <%= if @tree.center.partner_children != [] or @tree.center.solo_children != [] do %>
+                <div class="w-px h-4 bg-base-content/20"></div>
+                <div class="flex gap-4 flex-wrap justify-center">
+                  <%= for child <- @tree.center.partner_children ++ @tree.center.solo_children do %>
+                    <.person_card
+                      person={child}
+                      family_id={@family.id}
+                      focused={false}
+                    />
+                  <% end %>
+                </div>
+              <% end %>
+              <%!-- Add child placeholder when no children at all --%>
+              <%= if @tree.center.partner_children == [] and @tree.center.solo_children == [] and Enum.empty?(@tree.center.ex_partners) do %>
+                <div class="w-px h-4 bg-base-content/20"></div>
+                <.placeholder_card
+                  type={:child}
+                  person_id={@focus_person.id}
+                  family_id={@family.id}
+                />
+              <% end %>
+            </div>
+          </div>
+
+          <%!-- Descendant Generations --%>
+          <%= for {units, gen_idx} <- Enum.with_index(@tree.descendants) do %>
+            <%!-- Only show generations beyond the first (first is shown inline above) --%>
+            <%= if gen_idx > 0 do %>
+              <div class="flex justify-center mt-2">
+                <div class="w-px h-4 bg-base-content/20"></div>
+              </div>
+              <div class="flex items-start justify-center gap-6 flex-wrap">
+                <%= for unit <- units do %>
+                  <div class="flex flex-col items-center">
+                    <.couple_card
+                      person_a={unit.person}
+                      person_b={unit.partner}
+                      family_id={@family.id}
+                      focused_person_id={@focus_person.id}
+                    />
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="flex items-center justify-center h-full">
+          <div class="text-center text-base-content/40">
+            <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
+            <p class="text-lg font-medium">No family members yet</p>
+            <p class="text-sm mt-1">Add members to start building the family tree</p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <%!-- Side Panel --%>
     <.live_component
       module={Web.FamilyLive.SidePanelComponent}
       id="side-panel"
       galleries={@galleries}
       people={@people}
       family_id={@family.id}
+      focus_person_id={@focus_person && @focus_person.id}
     />
   </div>
 

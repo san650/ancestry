@@ -46,30 +46,45 @@ defmodule Web.FamilyLive.PeopleListComponent do
           <p class="text-sm text-base-content/40 py-2">No members yet.</p>
         <% end %>
         <%= for person <- @people do %>
-          <.link
-            navigate={~p"/families/#{@family_id}/members/#{person.id}"}
-            class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 transition-colors text-sm"
+          <div
+            class={[
+              "flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors text-sm group",
+              if(person.id == @focus_person_id, do: "bg-primary/10", else: "hover:bg-base-200")
+            ]}
             data-filter-name={String.downcase("#{person.surname}, #{person.given_name}")}
           >
-            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
-              <%= if person.photo && person.photo_status == "processed" do %>
-                <img
-                  src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
-                  alt={Person.display_name(person)}
-                  class="w-full h-full object-cover"
-                />
-              <% else %>
-                <.icon name="hero-user" class="w-3 h-3 text-primary" />
-              <% end %>
-            </div>
-            <span class="text-base-content truncate">
-              {person.surname}
-              <%= if person.surname && person.given_name do %>
-                ,
-              <% end %>
-              {person.given_name}
-            </span>
-          </.link>
+            <button
+              phx-click="focus_person"
+              phx-value-id={person.id}
+              class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+            >
+              <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <%= if person.photo && person.photo_status == "processed" do %>
+                  <img
+                    src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                    alt={Person.display_name(person)}
+                    class="w-full h-full object-cover"
+                  />
+                <% else %>
+                  <.icon name="hero-user" class="w-3 h-3 text-primary" />
+                <% end %>
+              </div>
+              <span class="text-base-content truncate">
+                {person.surname}
+                <%= if person.surname && person.given_name do %>
+                  ,
+                <% end %>
+                {person.given_name}
+              </span>
+            </button>
+            <.link
+              navigate={~p"/families/#{@family_id}/members/#{person.id}"}
+              class="p-1 rounded text-base-content/20 hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+              title="View details"
+            >
+              <.icon name="hero-arrow-top-right-on-square-mini" class="w-3.5 h-3.5" />
+            </.link>
+          </div>
         <% end %>
       </div>
     </div>
