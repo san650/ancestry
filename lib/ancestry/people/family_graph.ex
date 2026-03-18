@@ -106,6 +106,11 @@ defmodule Ancestry.People.FamilyGraph do
 
         [single_parent] ->
           [%ChildEdge{from: {:person, single_parent}, to: child_id}]
+
+        parents ->
+          Enum.map(parents, fn parent_id ->
+            %ChildEdge{from: {:person, parent_id}, to: child_id}
+          end)
       end
     end)
   end
