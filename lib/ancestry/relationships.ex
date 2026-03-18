@@ -2,6 +2,7 @@ defmodule Ancestry.Relationships do
   import Ecto.Query
 
   alias Ancestry.Repo
+  alias Ancestry.People.FamilyMember
   alias Ancestry.People.Person
   alias Ancestry.Relationships.Relationship
 
@@ -74,8 +75,6 @@ defmodule Ancestry.Relationships do
   Returns all relationships where both person_a and person_b are members of the given family.
   """
   def list_relationships_for_family(family_id) do
-    alias Ancestry.People.FamilyMember
-
     from(r in Relationship,
       join: fm_a in FamilyMember,
       on: fm_a.person_id == r.person_a_id and fm_a.family_id == ^family_id,
