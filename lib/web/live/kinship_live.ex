@@ -159,8 +159,10 @@ defmodule Web.KinshipLive do
   end
 
   defp find_person(people, id) when is_binary(id) do
-    person_id = String.to_integer(id)
-    Enum.find(people, &(&1.id == person_id))
+    case Integer.parse(id) do
+      {person_id, ""} -> Enum.find(people, &(&1.id == person_id))
+      _ -> nil
+    end
   end
 
   defp filter_people(people, query, exclude_person) do
