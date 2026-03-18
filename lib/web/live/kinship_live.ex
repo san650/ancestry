@@ -137,15 +137,6 @@ defmodule Web.KinshipLive do
      |> maybe_calculate()}
   end
 
-  # --- Close dropdowns (click-away) ---
-
-  def handle_event("close_dropdowns", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:dropdown_a, false)
-     |> assign(:dropdown_b, false)}
-  end
-
   # --- Private helpers ---
 
   defp resolve_person(nil, _people), do: nil
@@ -246,7 +237,10 @@ defmodule Web.KinshipLive do
       <% end %>
 
       <%= if @dropdown_open do %>
-        <div class="absolute z-20 top-full left-0 right-0 mt-2 rounded-xl bg-base-100 border border-base-300 shadow-xl overflow-hidden">
+        <div
+          class="absolute z-20 top-full left-0 right-0 mt-2 rounded-xl bg-base-100 border border-base-300 shadow-xl overflow-hidden"
+          phx-click-away={"toggle_dropdown_#{@side}"}
+        >
           <div class="p-2">
             <input
               id={"kinship-person-#{@side}-search-input"}
@@ -255,7 +249,7 @@ defmodule Web.KinshipLive do
               placeholder="Search..."
               phx-keyup={"filter_#{@side}"}
               phx-debounce="200"
-              autofocus
+              phx-mounted={JS.focus()}
               class="input input-bordered input-sm w-full"
               {test_id("kinship-person-#{@side}-search")}
             />

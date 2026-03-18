@@ -35,3 +35,9 @@ When a batch import uses a unique external ID to track imported records, re-runn
 Pages should go edge-to-edge with no padding on `<main>`. Each page controls its own internal spacing. Horizontal scroll should only exist on specific content containers (e.g., a tree canvas), never on the full page — use `overflow-x-hidden` on the outer wrapper and `overflow-x-auto` on the scrollable container. Vertical scroll should be page-level (the browser's natural scroll behavior), not constrained to individual containers.
 
 **Fix:** When adding a new page, do not add `overflow-y-auto` or `max-h-screen` to content containers. Let the page grow naturally. Only add `overflow-x-auto` to containers whose content may exceed the viewport width.
+
+## Parent click handlers close child dropdowns via event bubbling
+
+Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
+
+**Fix:** Use `phx-click-away` on the dropdown element itself instead of `phx-click` on a parent container. `phx-click-away` fires only when the click is *outside* the annotated element, so clicks within the dropdown (search field, options) work normally. For autofocusing inputs that appear dynamically (via LiveView patching), use `phx-mounted={JS.focus()}` instead of the HTML `autofocus` attribute, which only works on initial page load.
