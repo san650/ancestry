@@ -10,7 +10,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
     <aside
       id={@id}
       class={[
-        "border-l border-base-200 bg-base-100 flex flex-col overflow-y-auto p-4 gap-6",
+        "border-l border-base-200 bg-base-100 flex flex-col p-4 gap-6",
         "w-72 lg:w-72",
         "max-lg:w-full max-lg:border-l-0 max-lg:border-t"
       ]}

@@ -15,7 +15,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
     <div
       data-person-id={@person.id}
       class={[
-        "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all",
+        "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all group",
         "border border-base-content/10",
         gender_border_class(@person.gender),
         @focused && "ring-2 ring-primary",
@@ -24,7 +24,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
     >
       <.link
         navigate={~p"/families/#{@family_id}/members/#{@person.id}"}
-        class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10"
+        class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
         title="View details"
       >
         <.icon name="hero-arrow-top-right-on-square-mini" class="w-3 h-3" />

@@ -103,6 +103,8 @@ const BranchConnector = {
   }
 }
 
+// AncestorConnector uses the exact same drawing logic as BranchConnector
+// but mirrors the direction: N parent couples above → bar → N child persons below.
 const AncestorConnector = {
   mounted() { this.draw() },
   updated() { this.draw() },
@@ -117,15 +119,17 @@ const AncestorConnector = {
       if (parentColumns.length === 0) return
 
       const h = 20
-      // Source: center of bottom-most couple card in each parent column
+
+      // Source: bottom couple card in each parent column (direct child only, not nested)
       const parentCenters = Array.from(parentColumns).map(col => {
-        const coupleCards = col.querySelectorAll("[data-couple-card]")
-        const target = coupleCards.length > 0 ? coupleCards[coupleCards.length - 1] : col
+        const subtreeRoot = col.children[0]
+        const bottomCouple = subtreeRoot?.querySelector(":scope > [data-couple-card]")
+        const target = bottomCouple || col
         const r = target.getBoundingClientRect()
         return r.left + r.width / 2 - containerRect.left
       })
 
-      // Target: specific person position within the couple card below
+      // Target: specific person by ID within the couple card below
       const coupleCardBelow = this.el.nextElementSibling
       const childTargets = Array.from(parentColumns).map(col => {
         const targetId = col.dataset.targetPersonId
@@ -141,25 +145,14 @@ const AncestorConnector = {
 
       while (svg.firstChild) svg.removeChild(svg.firstChild)
 
-      if (parentCenters.length === 1) {
-        const px = parentCenters[0], cx = childTargets[0]
-        if (Math.abs(px - cx) < 2) {
-          makeSvgLine(svg, px, 0, px, h, CONNECTOR_STROKE)
-        } else {
-          const barY = h / 2
-          makeSvgLine(svg, px, 0, px, barY, CONNECTOR_STROKE)
-          makeSvgLine(svg, px, barY, cx, barY, CONNECTOR_STROKE)
-          makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE)
-        }
-      } else {
-        const barY = h / 2
-        const allX = [...parentCenters, ...childTargets]
-        const left = Math.min(...allX)
-        const right = Math.max(...allX)
-        parentCenters.forEach(cx => makeSvgLine(svg, cx, 0, cx, barY, CONNECTOR_STROKE))
-        makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
-        childTargets.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
-      }
+      // Same pattern as BranchConnector: verticals → bar → verticals
+      const barY = h / 2
+      const allX = [...parentCenters, ...childTargets]
+      const left = Math.min(...allX)
+      const right = Math.max(...allX)
+      parentCenters.forEach(cx => makeSvgLine(svg, cx, 0, cx, barY, CONNECTOR_STROKE))
+      makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
+      childTargets.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
 
       svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
       svg.style.width = containerRect.width + "px"

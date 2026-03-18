@@ -65,7 +65,7 @@ defmodule Web.Layouts do
     </header>
 
     <%= if @toolbar != [] do %>
-      <div id="toolbar" class="px-4 sm:px-6 lg:px-8 border-b border-base-200">
+      <div id="toolbar" class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 border-b border-base-200 bg-base-100">
         {render_slot(@toolbar)}
       </div>
     <% end %>
@@ -73,11 +73,6 @@ defmodule Web.Layouts do
     <main class="px-4 sm:px-6 lg:px-8 pt-8">
       {render_slot(@inner_block)}
     </main>
-
-    <footer class="mt-6">
-      <div></div>
-    </footer>
-
     <.flash_group flash={@flash} />
     """
   end
