@@ -2,8 +2,10 @@ defmodule Ancestry.People do
   import Ecto.Query
 
   alias Ancestry.Repo
-  alias Ancestry.People.Person
+  alias Ancestry.People.FamilyGraph
   alias Ancestry.People.FamilyMember
+  alias Ancestry.People.Person
+  alias Ancestry.Relationships
 
   def list_people_for_family(family_id) do
     Repo.all(
@@ -13,6 +15,12 @@ defmodule Ancestry.People do
         where: fm.family_id == ^family_id,
         order_by: [asc: p.surname, asc: p.given_name]
     )
+  end
+
+  def build_family_graph(family_id) do
+    people = list_people_for_family(family_id)
+    relationships = Relationships.list_relationships_for_family(family_id)
+    FamilyGraph.build(people, relationships)
   end
 
   def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
