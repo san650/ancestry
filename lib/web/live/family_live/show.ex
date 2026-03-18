@@ -35,7 +35,8 @@ defmodule Web.FamilyLive.Show do
      |> assign(:gallery_form, to_form(Galleries.change_gallery(%Gallery{})))
      |> assign(:search_mode, false)
      |> assign(:search_query, "")
-     |> assign(:search_results, [])}
+     |> assign(:search_results, [])
+     |> assign(:adding_relationship, nil)}
   end
 
   @impl true
@@ -233,6 +234,20 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
+  # Add relationship from tree placeholders
+
+  def handle_event("add_relationship", %{"type" => type, "person-id" => person_id}, socket) do
+    {:noreply,
+     assign(socket, :adding_relationship, %{
+       type: to_string(type),
+       person_id: String.to_integer(person_id)
+     })}
+  end
+
+  def handle_event("cancel_add_relationship", _, socket) do
+    {:noreply, assign(socket, :adding_relationship, nil)}
+  end
+
   # PubSub
 
   @impl true
@@ -249,5 +264,46 @@ defmodule Web.FamilyLive.Show do
      push_patch(socket,
        to: ~p"/families/#{socket.assigns.family.id}?person=#{person_id}"
      )}
+  end
+
+  def handle_info({:relationship_saved, _type, _person}, socket) do
+    family = socket.assigns.family
+    people = People.list_people_for_family(family.id)
+    focus_person = socket.assigns.focus_person
+
+    focus_person =
+      if focus_person do
+        Enum.find(people, &(&1.id == focus_person.id))
+      end
+
+    tree =
+      if focus_person do
+        PersonTree.build(focus_person)
+      end
+
+    {:noreply,
+     socket
+     |> assign(:people, people)
+     |> assign(:focus_person, focus_person)
+     |> assign(:tree, tree)
+     |> assign(:adding_relationship, nil)
+     |> put_flash(:info, "Relationship added")}
+  end
+
+  def handle_info({:relationship_error, message}, socket) do
+    {:noreply, put_flash(socket, :error, message)}
+  end
+
+  # Private helpers
+
+  defp count_parents(nil), do: 0
+
+  defp count_parents(%{couple: %{person_a: a, person_b: b}}) do
+    count = if a, do: 1, else: 0
+    count + if(b, do: 1, else: 0)
+  end
+
+  defp find_person(people, person_id) do
+    Enum.find(people, &(&1.id == person_id)) || People.get_person!(person_id)
   end
 end

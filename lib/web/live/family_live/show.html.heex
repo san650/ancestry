@@ -44,6 +44,15 @@
             <.vline height={24} />
           <% end %>
 
+          <%!-- Add Parent placeholder (when fewer than 2 parents) --%>
+          <% parent_count = count_parents(@tree.ancestors) %>
+          <%= if parent_count < 2 do %>
+            <%= if parent_count == 0 do %>
+              <.placeholder_card type={:parent} person_id={@focus_person.id} />
+              <.vline height={16} />
+            <% end %>
+          <% end %>
+
           <%!-- Center Row + Descendants (recursive) --%>
           <.family_subtree
             unit={@tree.center}
@@ -245,6 +254,29 @@
           <% end %>
         </div>
         <button phx-click="close_search" class="btn btn-ghost w-full mt-4">Cancel</button>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Add Relationship Modal (from tree placeholders) --%>
+  <%= if @adding_relationship do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_add_relationship"
+      >
+      </div>
+      <div
+        id="add-relationship-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+      >
+        <.live_component
+          module={Web.Shared.AddRelationshipComponent}
+          id="add-relationship"
+          person={find_person(@people, @adding_relationship.person_id)}
+          family={@family}
+          relationship_type={@adding_relationship.type}
+        />
       </div>
     </div>
   <% end %>
