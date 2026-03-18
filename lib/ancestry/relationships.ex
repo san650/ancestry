@@ -70,6 +70,21 @@ defmodule Ancestry.Relationships do
     )
   end
 
+  @doc """
+  Returns all relationships where both person_a and person_b are members of the given family.
+  """
+  def list_relationships_for_family(family_id) do
+    alias Ancestry.People.FamilyMember
+
+    from(r in Relationship,
+      join: fm_a in FamilyMember,
+      on: fm_a.person_id == r.person_a_id and fm_a.family_id == ^family_id,
+      join: fm_b in FamilyMember,
+      on: fm_b.person_id == r.person_b_id and fm_b.family_id == ^family_id
+    )
+    |> Repo.all()
+  end
+
   def change_relationship(%Relationship{} = rel, attrs \\ %{}) do
     Relationship.changeset(rel, attrs)
   end

@@ -426,6 +426,43 @@ defmodule Ancestry.RelationshipsTest do
     end
   end
 
+  describe "list_relationships_for_family/1" do
+    test "returns relationships where both people are in the family" do
+      family = family_fixture()
+      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+      {:ok, rel} = Relationships.create_relationship(alice, bob, "partner")
+
+      results = Relationships.list_relationships_for_family(family.id)
+      assert length(results) == 1
+      assert hd(results).id == rel.id
+    end
+
+    test "excludes relationships where one person is outside the family" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+      {:ok, alice} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
+      {:ok, bob} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
+      {:ok, _rel} = Relationships.create_relationship(alice, bob, "partner")
+
+      assert Relationships.list_relationships_for_family(family1.id) == []
+    end
+
+    test "returns all relationship types" do
+      family = family_fixture()
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "P"})
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
+      {:ok, partner} = People.create_person(family, %{given_name: "Partner", surname: "X"})
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(parent, partner, "partner")
+
+      results = Relationships.list_relationships_for_family(family.id)
+      assert length(results) == 2
+      types = Enum.map(results, & &1.type) |> Enum.sort()
+      assert types == ["parent", "partner"]
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, family} =
       attrs
