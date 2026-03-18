@@ -99,6 +99,46 @@ defmodule Ancestry.Families.MetricsTest do
       assert metrics.oldest_person == nil
     end
 
+    test "adjusts age for deceased person when death_month < birth_month" do
+      family = insert(:family)
+
+      deceased =
+        insert(:person,
+          given_name: "Adjusted",
+          birth_year: 1900,
+          birth_month: 6,
+          death_year: 1980,
+          death_month: 3,
+          deceased: true
+        )
+
+      Ancestry.People.add_to_family(deceased, family)
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.oldest_person.person.id == deceased.id
+      assert metrics.oldest_person.age == 79
+    end
+
+    test "returns base age for deceased person with nil death_month" do
+      family = insert(:family)
+
+      deceased =
+        insert(:person,
+          given_name: "NilMonth",
+          birth_year: 1900,
+          birth_month: 6,
+          death_year: 1980,
+          death_month: nil,
+          deceased: true
+        )
+
+      Ancestry.People.add_to_family(deceased, family)
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.oldest_person.person.id == deceased.id
+      assert metrics.oldest_person.age == 80
+    end
+
     test "adjusts age by month when birth_month is available" do
       family = insert(:family)
       today = Date.utc_today()

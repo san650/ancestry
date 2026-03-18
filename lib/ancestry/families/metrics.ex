@@ -72,6 +72,7 @@ defmodule Ancestry.Families.Metrics do
     adjust_age(base, p.birth_month, p.birth_day, today.month, today.day)
   end
 
+  defp adjust_age(base, _bm, _bd, nil, _ed), do: base
   defp adjust_age(base, nil, _bd, _em, _ed), do: base
 
   defp adjust_age(base, bm, bd, end_month, end_day) do
