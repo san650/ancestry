@@ -207,11 +207,12 @@ const AncestorConnector = {
 
       // Same pattern as BranchConnector: verticals → bar → verticals
       const barY = h / 2
-      const allX = [...parentCenters, ...childTargets]
-      const left = Math.min(...allX)
-      const right = Math.max(...allX)
+
+      parentCenters.map((p, i) => {
+        makeSvgLine(svg, p, barY, childTargets[i], barY, CONNECTOR_STROKE)
+      })
+
       parentCenters.forEach(cx => makeSvgLine(svg, cx, 0, cx, barY, CONNECTOR_STROKE))
-      makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE)
       childTargets.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE))
 
       svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
