@@ -30,7 +30,7 @@ defmodule Web.PersonLive.ShowTest do
     view |> element("#edit-person-btn") |> render_click()
 
     view
-    |> form("#edit-person-form", person: %{given_name: "Janet"})
+    |> form("#person-form", person: %{given_name: "Janet"})
     |> render_submit()
 
     assert render(view) =~ "Janet"
