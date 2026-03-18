@@ -103,18 +103,13 @@ defmodule Web.PersonLive.Show do
     {:noreply, cancel_upload(socket, :photo, ref)}
   end
 
-  # --- Relationship event handlers (Task 10) ---
+  # --- Relationship adding (delegated to shared component) ---
 
   def handle_event("add_relationship", %{"type" => type}, socket) do
     {:noreply,
      socket
      |> assign(:adding_relationship, type)
-     |> assign(:search_query, "")
-     |> assign(:search_results, [])
-     |> assign(:selected_person, nil)
-     |> assign(:relationship_form, nil)
-     |> assign(:adding_partner_id, nil)
-     |> assign(:quick_creating, false)}
+     |> update(:add_rel_key, &(&1 + 1))}
   end
 
   def handle_event("add_child_for_partner", %{"partner-id" => partner_id}, socket) do
@@ -122,143 +117,14 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:adding_relationship, "child")
      |> assign(:adding_partner_id, String.to_integer(partner_id))
-     |> assign(:search_query, "")
-     |> assign(:search_results, [])
-     |> assign(:selected_person, nil)
-     |> assign(:relationship_form, nil)
-     |> assign(:quick_creating, false)}
+     |> update(:add_rel_key, &(&1 + 1))}
   end
 
   def handle_event("cancel_add_relationship", _, socket) do
     {:noreply,
      socket
      |> assign(:adding_relationship, nil)
-     |> assign(:search_query, "")
-     |> assign(:search_results, [])
-     |> assign(:selected_person, nil)
-     |> assign(:relationship_form, nil)
-     |> assign(:adding_partner_id, nil)
-     |> assign(:quick_creating, false)}
-  end
-
-  def handle_event("start_quick_create", _, socket) do
-    {:noreply, assign(socket, :quick_creating, true)}
-  end
-
-  def handle_event("cancel_quick_create", _, socket) do
-    {:noreply, assign(socket, :quick_creating, false)}
-  end
-
-  def handle_event("search_members", %{"value" => query}, socket) do
-    results =
-      if String.length(query) >= 2 do
-        People.search_family_members(query, socket.assigns.family.id, socket.assigns.person.id)
-      else
-        []
-      end
-
-    {:noreply,
-     socket
-     |> assign(:search_query, query)
-     |> assign(:search_results, results)}
-  end
-
-  def handle_event("select_person", %{"id" => person_id}, socket) do
-    selected = People.get_person!(person_id)
-    type = socket.assigns.adding_relationship
-
-    relationship_form =
-      case type do
-        "parent" ->
-          role = if selected.gender == "male", do: "father", else: "mother"
-          to_form(%{"role" => role}, as: :metadata)
-
-        "partner" ->
-          to_form(%{}, as: :metadata)
-
-        _ ->
-          nil
-      end
-
-    {:noreply,
-     socket
-     |> assign(:selected_person, selected)
-     |> assign(:relationship_form, relationship_form)}
-  end
-
-  def handle_event("save_relationship", params, socket) do
-    person = socket.assigns.person
-    selected = socket.assigns.selected_person
-    type = socket.assigns.adding_relationship
-
-    result =
-      case type do
-        "parent" ->
-          metadata_params = Map.get(params, "metadata", %{})
-
-          Relationships.create_relationship(
-            selected,
-            person,
-            "parent",
-            atomize_metadata(metadata_params)
-          )
-
-        "partner" ->
-          metadata_params = Map.get(params, "metadata", %{})
-
-          Relationships.create_relationship(
-            person,
-            selected,
-            "partner",
-            atomize_metadata(metadata_params)
-          )
-
-        "child" ->
-          role = if person.gender == "male", do: "father", else: "mother"
-
-          case Relationships.create_relationship(person, selected, "parent", %{role: role}) do
-            {:ok, _} = ok ->
-              partner_id = socket.assigns.adding_partner_id
-
-              if partner_id do
-                partner = People.get_person!(partner_id)
-                partner_role = if partner.gender == "male", do: "father", else: "mother"
-
-                case Relationships.create_relationship(partner, selected, "parent", %{
-                       role: partner_role
-                     }) do
-                  {:ok, _} -> :ok
-                  {:error, _} -> :ok
-                end
-              end
-
-              ok
-
-            error ->
-              error
-          end
-
-        "child_solo" ->
-          role = if person.gender == "male", do: "father", else: "mother"
-          Relationships.create_relationship(person, selected, "parent", %{role: role})
-      end
-
-    case result do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> load_relationships(person)
-         |> assign(:adding_relationship, nil)
-         |> assign(:search_query, "")
-         |> assign(:search_results, [])
-         |> assign(:selected_person, nil)
-         |> assign(:relationship_form, nil)
-         |> assign(:adding_partner_id, nil)
-         |> put_flash(:info, "Relationship added")}
-
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, relationship_error_message(reason))}
-    end
+     |> assign(:adding_partner_id, nil)}
   end
 
   def handle_event("convert_to_ex", %{"id" => rel_id}, socket) do
@@ -386,25 +252,17 @@ defmodule Web.PersonLive.Show do
     {:noreply, assign(socket, :person, person)}
   end
 
-  def handle_info({:person_created, person, type}, socket) do
-    relationship_form =
-      case type do
-        "parent" ->
-          role = if person.gender == "male", do: "father", else: "mother"
-          to_form(%{"role" => role}, as: :metadata)
-
-        "partner" ->
-          to_form(%{}, as: :metadata)
-
-        _ ->
-          nil
-      end
-
+  def handle_info({:relationship_saved, _type, _person}, socket) do
     {:noreply,
      socket
-     |> assign(:quick_creating, false)
-     |> assign(:selected_person, person)
-     |> assign(:relationship_form, relationship_form)}
+     |> load_relationships(socket.assigns.person)
+     |> assign(:adding_relationship, nil)
+     |> assign(:adding_partner_id, nil)
+     |> put_flash(:info, "Relationship added")}
+  end
+
+  def handle_info({:relationship_error, message}, socket) do
+    {:noreply, put_flash(socket, :error, message)}
   end
 
   # --- Private helpers ---
@@ -472,16 +330,12 @@ defmodule Web.PersonLive.Show do
     |> assign(:siblings, Relationships.get_siblings(person.id))
     |> assign(:solo_children, Enum.reverse(solo_children))
     |> assign(:adding_relationship, nil)
-    |> assign(:search_query, "")
-    |> assign(:search_results, [])
-    |> assign(:selected_person, nil)
-    |> assign(:relationship_form, nil)
+    |> assign(:adding_partner_id, nil)
+    |> assign_new(:add_rel_key, fn -> 0 end)
     |> assign(:converting_to_ex, nil)
     |> assign(:ex_form, nil)
     |> assign(:editing_relationship, nil)
     |> assign(:edit_relationship_form, nil)
-    |> assign(:adding_partner_id, nil)
-    |> assign(:quick_creating, false)
   end
 
   defp atomize_metadata(params) do
@@ -514,10 +368,6 @@ defmodule Web.PersonLive.Show do
       {key, val}
     end)
   end
-
-  defp relationship_error_message(:max_parents_reached), do: "This person already has 2 parents"
-  defp relationship_error_message(%Ecto.Changeset{}), do: "Invalid relationship data"
-  defp relationship_error_message(_), do: "Failed to create relationship"
 
   defp process_alternate_names(params) do
     case Map.pop(params, "alternate_names_text") do
@@ -636,10 +486,4 @@ defmodule Web.PersonLive.Show do
     </div>
     """
   end
-
-  defp add_relationship_title("parent"), do: "Add Parent"
-  defp add_relationship_title("partner"), do: "Add Spouse/Partner"
-  defp add_relationship_title("child"), do: "Add Child"
-  defp add_relationship_title("child_solo"), do: "Add Child (Unknown Other Parent)"
-  defp add_relationship_title(_), do: "Add Relationship"
 end
