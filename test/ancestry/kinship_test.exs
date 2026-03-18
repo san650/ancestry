@@ -424,6 +424,43 @@ defmodule Ancestry.KinshipTest do
       assert path_labels == ["Self", "Parent", "Grandparent"]
     end
 
+    test "path for second cousins includes correct intermediate labels" do
+      family = family_fixture()
+      great_gp = person_fixture(family, %{given_name: "GreatGP", surname: "Smith"})
+      great_gm = person_fixture(family, %{given_name: "GreatGM", surname: "Smith"})
+      gp_a = person_fixture(family, %{given_name: "GPA", surname: "Smith"})
+      gp_b = person_fixture(family, %{given_name: "GPB", surname: "Smith"})
+      parent_a = person_fixture(family, %{given_name: "ParentA", surname: "Smith"})
+      parent_b = person_fixture(family, %{given_name: "ParentB", surname: "Smith"})
+      cousin_a = person_fixture(family, %{given_name: "CousinA", surname: "Smith"})
+      cousin_b = person_fixture(family, %{given_name: "CousinB", surname: "Smith"})
+
+      make_parent!(great_gp, gp_a, "father")
+      make_parent!(great_gm, gp_a, "mother")
+      make_parent!(great_gp, gp_b, "father")
+      make_parent!(great_gm, gp_b, "mother")
+      make_parent!(gp_a, parent_a, "father")
+      make_parent!(gp_b, parent_b, "father")
+      make_parent!(parent_a, cousin_a, "father")
+      make_parent!(parent_b, cousin_b, "father")
+
+      assert {:ok, result} = Kinship.calculate(cousin_a.id, cousin_b.id)
+
+      path_labels = Enum.map(result.path, & &1.label)
+
+      # CousinA (Self) -> ParentA (Parent) -> GPA (Grandparent) -> GreatGP (Great-Grandparent)
+      #   -> GPB (Great-Uncle/Aunt) -> ParentB (First Cousin, Once Removed) -> CousinB (Second Cousin)
+      assert path_labels == [
+               "Self",
+               "Parent",
+               "Grandparent",
+               "Great-Grandparent",
+               "Great-Uncle/Aunt",
+               "First Cousin, Once Removed",
+               "Second Cousin"
+             ]
+    end
+
     test "path for first cousins" do
       family = family_fixture()
       grandpa = person_fixture(family, %{given_name: "Grandpa", surname: "Smith"})
@@ -444,6 +481,36 @@ defmodule Ancestry.KinshipTest do
 
       path_labels = Enum.map(result.path, & &1.label)
       assert path_labels == ["Self", "Parent", "Grandparent", "Uncle/Aunt", "First Cousin"]
+    end
+  end
+
+  describe "calculate/2 - half-cousins" do
+    test "half-first cousins (share only one grandparent)" do
+      family = family_fixture()
+      grandpa = person_fixture(family, %{given_name: "Grandpa", surname: "Smith"})
+      grandma1 = person_fixture(family, %{given_name: "Grandma1", surname: "Smith"})
+      grandma2 = person_fixture(family, %{given_name: "Grandma2", surname: "Jones"})
+      parent_a = person_fixture(family, %{given_name: "ParentA", surname: "Smith"})
+      parent_b = person_fixture(family, %{given_name: "ParentB", surname: "Smith"})
+      cousin_a = person_fixture(family, %{given_name: "CousinA", surname: "Smith"})
+      cousin_b = person_fixture(family, %{given_name: "CousinB", surname: "Smith"})
+
+      # parent_a has grandpa + grandma1
+      make_parent!(grandpa, parent_a, "father")
+      make_parent!(grandma1, parent_a, "mother")
+      # parent_b has grandpa + grandma2 (different mother = half-siblings)
+      make_parent!(grandpa, parent_b, "father")
+      make_parent!(grandma2, parent_b, "mother")
+      make_parent!(parent_a, cousin_a, "father")
+      make_parent!(parent_b, cousin_b, "father")
+
+      assert {:ok, result} = Kinship.calculate(cousin_a.id, cousin_b.id)
+
+      assert result.relationship == "Half-First Cousin"
+      assert result.steps_a == 2
+      assert result.steps_b == 2
+      assert result.half? == true
+      assert result.mrca.id == grandpa.id
     end
   end
 

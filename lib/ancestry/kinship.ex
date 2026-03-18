@@ -121,19 +121,45 @@ defmodule Ancestry.Kinship do
   # Classify the relationship based on steps from each person to the MRCA.
   defp classify(steps_a, steps_b, half?) do
     cond do
-      steps_a == 0 and steps_b == 1 -> "Parent"
-      steps_a == 0 and steps_b == 2 -> "Grandparent"
-      steps_a == 0 and steps_b >= 3 -> ancestor_label(steps_b)
-      steps_b == 0 and steps_a == 1 -> "Child"
-      steps_b == 0 and steps_a == 2 -> "Grandchild"
-      steps_b == 0 and steps_a >= 3 -> descendant_label(steps_a)
-      steps_a == 1 and steps_b == 1 and half? -> "Half-Sibling"
-      steps_a == 1 and steps_b == 1 -> "Sibling"
-      steps_a == 1 and steps_b == 2 -> "Uncle/Aunt"
-      steps_a == 2 and steps_b == 1 -> "Niece/Nephew"
-      steps_a == 1 and steps_b >= 3 -> great_uncle_aunt_label(steps_b - 2)
-      steps_a >= 3 and steps_b == 1 -> great_niece_nephew_label(steps_a - 2)
-      true -> cousin_label(steps_a, steps_b)
+      steps_a == 0 and steps_b == 1 ->
+        "Parent"
+
+      steps_a == 0 and steps_b == 2 ->
+        "Grandparent"
+
+      steps_a == 0 and steps_b >= 3 ->
+        ancestor_label(steps_b)
+
+      steps_b == 0 and steps_a == 1 ->
+        "Child"
+
+      steps_b == 0 and steps_a == 2 ->
+        "Grandchild"
+
+      steps_b == 0 and steps_a >= 3 ->
+        descendant_label(steps_a)
+
+      steps_a == 1 and steps_b == 1 and half? ->
+        "Half-Sibling"
+
+      steps_a == 1 and steps_b == 1 ->
+        "Sibling"
+
+      steps_a == 1 and steps_b == 2 ->
+        "Uncle/Aunt"
+
+      steps_a == 2 and steps_b == 1 ->
+        "Niece/Nephew"
+
+      steps_a == 1 and steps_b >= 3 ->
+        great_uncle_aunt_label(steps_b - 2)
+
+      steps_a >= 3 and steps_b == 1 ->
+        great_niece_nephew_label(steps_a - 2)
+
+      true ->
+        half_prefix = if(half?, do: "Half-", else: "")
+        "#{half_prefix}#{cousin_label(steps_a, steps_b)}"
     end
   end
 
@@ -223,27 +249,22 @@ defmodule Ancestry.Kinship do
   end
 
   # Labels for going down from MRCA toward person B.
-  # down_steps: how many steps down from MRCA we are (1-based).
-  defp descending_label(steps_a, steps_b, down_steps) do
+  # Each intermediate person's relationship to Person A is determined by
+  # Person A's distance to MRCA (steps_a) and that person's distance from MRCA (down_steps).
+  # We reuse classify/3 to get the correct label for each position.
+  defp descending_label(steps_a, _steps_b, down_steps) do
     cond do
       # Direct descendant path (person A is the MRCA)
       steps_a == 0 ->
         child_label(down_steps)
 
-      # Sibling: one step up, one step down
-      steps_a >= 1 and down_steps == steps_b and steps_b == 1 ->
-        "Sibling"
-
-      # Uncle/Aunt path: one step down from MRCA, more steps remain
-      down_steps < steps_b ->
-        "Uncle/Aunt"
-
-      # Final person (person B): classify based on overall relationship
-      down_steps == steps_b ->
-        classify_endpoint(steps_a, steps_b)
-
+      # For collateral relationships, classify what this intermediate person
+      # is TO Person A. The intermediate person is down_steps from MRCA,
+      # Person A is steps_a from MRCA. We swap the arguments because classify/3
+      # returns what the first person is to the second, but we want the label
+      # from Person A's perspective (what the node is to Person A).
       true ->
-        child_label(down_steps)
+        classify(down_steps, steps_a, false)
     end
   end
 
@@ -253,15 +274,5 @@ defmodule Ancestry.Kinship do
   defp child_label(n) when n >= 3 do
     greats = n - 2
     "#{String.duplicate("Great-", greats)}Grandchild"
-  end
-
-  defp classify_endpoint(steps_a, steps_b) do
-    cond do
-      steps_a == 1 and steps_b == 1 -> "Sibling"
-      steps_a == 1 and steps_b == 2 -> "Niece/Nephew"
-      steps_a == 2 and steps_b == 1 -> "Uncle/Aunt"
-      steps_a >= 2 and steps_b >= 2 -> cousin_label(steps_a, steps_b)
-      true -> "Relative"
-    end
   end
 end
