@@ -38,7 +38,7 @@
     <%!-- Tree Canvas --%>
     <div class="flex-1 overflow-auto p-6">
       <%= if @tree do %>
-        <div class="flex flex-col items-center gap-0">
+        <div class="inline-flex flex-col items-center gap-0 min-w-full">
           <%!-- Ancestor Generations (top to bottom: great-grandparents → parents) --%>
           <%= for {couples, gen_idx} <- @tree.ancestors |> Enum.reverse() |> Enum.with_index() do %>
             <div class="flex items-end justify-center gap-8 mb-0">
@@ -98,7 +98,7 @@
               <%!-- Partner children --%>
               <%= if @tree.center.partner_children != [] or @tree.center.solo_children != [] do %>
                 <div class="w-px h-4 bg-base-content/20"></div>
-                <div class="flex gap-4 flex-wrap justify-center">
+                <div class="flex gap-4 justify-center">
                   <%= for child <- @tree.center.partner_children ++ @tree.center.solo_children do %>
                     <.person_card
                       person={child}
@@ -127,7 +127,7 @@
               <div class="flex justify-center mt-2">
                 <div class="w-px h-4 bg-base-content/20"></div>
               </div>
-              <div class="flex items-start justify-center gap-6 flex-wrap">
+              <div class="flex items-start justify-center gap-6">
                 <%= for unit <- units do %>
                   <div class="flex flex-col items-center">
                     <.couple_card
