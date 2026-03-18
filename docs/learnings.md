@@ -29,3 +29,9 @@ When a batch import (e.g., CSV import) skips records, printing only aggregate co
 When a batch import uses a unique external ID to track imported records, re-running the import will crash with a constraint error if the changeset doesn't declare `unique_constraint/3`. Even with the constraint declared, the import logic should check for existing records before attempting insertion to provide meaningful feedback ("already exists" vs a cryptic changeset error).
 
 **Fix:** Always add `unique_constraint` to changesets for fields with unique DB indexes. For idempotent imports, look up by external ID first: if the record exists and data matches, report it as unchanged; if data differs, update it and report what changed; if it doesn't exist, create it. For the parent entity (e.g., family), use find-or-create by name.
+
+## Page layout should be full-width with scoped scroll containers
+
+Pages should go edge-to-edge with no padding on `<main>`. Each page controls its own internal spacing. Horizontal scroll should only exist on specific content containers (e.g., a tree canvas), never on the full page — use `overflow-x-hidden` on the outer wrapper and `overflow-x-auto` on the scrollable container. Vertical scroll should be page-level (the browser's natural scroll behavior), not constrained to individual containers.
+
+**Fix:** When adding a new page, do not add `overflow-y-auto` or `max-h-screen` to content containers. Let the page grow naturally. Only add `overflow-x-auto` to containers whose content may exceed the viewport width.
