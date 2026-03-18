@@ -25,11 +25,23 @@
     </div>
   </:toolbar>
 
-  <div class="flex flex-col lg:flex-row">
-    <%!-- Tree Canvas --%>
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] overflow-x-hidden">
+    <%!-- Side Panel: first on mobile, last on desktop --%>
+    <div class="order-first lg:order-last border-b lg:border-b-0 lg:border-l border-base-200">
+      <.live_component
+        module={Web.FamilyLive.SidePanelComponent}
+        id="side-panel"
+        galleries={@galleries}
+        people={@people}
+        family_id={@family.id}
+        focus_person_id={@focus_person && @focus_person.id}
+      />
+    </div>
+
+    <%!-- Tree Canvas: last on mobile, first on desktop --%>
     <div
       id="tree-canvas"
-      class="flex-1 overflow-x-scroll overflow-y-visible p-6"
+      class="overflow-x-auto p-6 order-last lg:order-first"
       phx-hook=".ScrollToFocus"
     >
       <%= if @tree do %>
@@ -90,16 +102,6 @@
         </div>
       <% end %>
     </div>
-
-    <%!-- Side Panel --%>
-    <.live_component
-      module={Web.FamilyLive.SidePanelComponent}
-      id="side-panel"
-      galleries={@galleries}
-      people={@people}
-      family_id={@family.id}
-      focus_person_id={@focus_person && @focus_person.id}
-    />
   </div>
 
   <%!-- Edit Family Modal --%>
