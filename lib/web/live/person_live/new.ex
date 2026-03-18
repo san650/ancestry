@@ -12,7 +12,7 @@ defmodule Web.PersonLive.New do
     {:ok,
      socket
      |> assign(:family, family)
-     |> assign(:form, to_form(People.change_person(%Person{})))
+     |> assign(:person, %Person{})
      |> allow_upload(:photo,
        accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
        max_entries: 1,
@@ -24,47 +24,13 @@ defmodule Web.PersonLive.New do
   def handle_params(_params, _url, socket), do: {:noreply, socket}
 
   @impl true
-  def handle_event("validate", %{"person" => params}, socket) do
-    changeset =
-      %Person{}
-      |> People.change_person(params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :form, to_form(changeset))}
+  def handle_info({:person_saved, person}, socket) do
+    socket = maybe_process_photo(socket, person)
+    {:noreply, push_navigate(socket, to: ~p"/families/#{socket.assigns.family.id}")}
   end
 
-  def handle_event("save", %{"person" => params}, socket) do
-    params = process_alternate_names(params)
-    family = socket.assigns.family
-
-    case People.create_person(family, params) do
-      {:ok, person} ->
-        socket = maybe_process_photo(socket, person)
-        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+  def handle_info({:cancel_upload, ref}, socket) do
     {:noreply, cancel_upload(socket, :photo, ref)}
-  end
-
-  defp process_alternate_names(params) do
-    case Map.pop(params, "alternate_names_text") do
-      {nil, params} ->
-        params
-
-      {"", params} ->
-        params
-
-      {text, params} ->
-        names =
-          text |> String.split("\n") |> Enum.map(&String.trim/1) |> Enum.reject(&(&1 == ""))
-
-        Map.put(params, "alternate_names", names)
-    end
   end
 
   defp maybe_process_photo(socket, person) do
@@ -88,9 +54,4 @@ defmodule Web.PersonLive.New do
         socket
     end
   end
-
-  defp upload_error_to_string(:too_large), do: "File too large (max 20MB)"
-  defp upload_error_to_string(:not_accepted), do: "File type not supported"
-  defp upload_error_to_string(:too_many_files), do: "Too many files (max 1)"
-  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
 end

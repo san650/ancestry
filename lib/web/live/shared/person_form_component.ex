@@ -27,7 +27,7 @@ defmodule Web.Shared.PersonFormComponent do
      |> assign(:person, person)
      |> assign(:family, assigns.family)
      |> assign(:action, assigns.action)
-     |> assign(:uploads, assigns.uploads)
+     |> assign(:parent_uploads, assigns.uploads)
      |> assign(:form, to_form(changeset))
      |> assign(:show_details, show_details)}
   end
