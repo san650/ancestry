@@ -14,6 +14,19 @@
         </h1>
       </div>
       <div class="flex items-center gap-2">
+        <.link
+          navigate={
+            if(@focus_person,
+              do: ~p"/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+              else: ~p"/families/#{@family.id}/kinship"
+            )
+          }
+          class="btn btn-ghost btn-sm"
+          id="kinship-btn"
+          {test_id("family-kinship-btn")}
+        >
+          <.icon name="hero-arrows-right-left" class="w-4 h-4" /> Kinship
+        </.link>
         <button
           id="edit-family-btn"
           phx-click="edit"
