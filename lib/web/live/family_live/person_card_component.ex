@@ -219,7 +219,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       <%!-- SVG connector drawn by JS hook --%>
       <div
         id={@connector_id}
-        phx-hook=".BranchConnector"
+        phx-hook="BranchConnector"
         phx-update="ignore"
         class="w-full"
         style="height: 20px; position: relative;"

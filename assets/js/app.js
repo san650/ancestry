@@ -44,11 +44,60 @@ const FuzzyFilter = {
   }
 }
 
+const BranchConnector = {
+  mounted() { this.draw() },
+  updated() { this.draw() },
+  draw() {
+    requestAnimationFrame(() => {
+      const svg = this.el.querySelector("svg")
+      if (!svg) return
+      const containerRect = this.el.getBoundingClientRect()
+      const childrenRow = this.el.nextElementSibling
+      if (!childrenRow) return
+      const columns = childrenRow.querySelectorAll(":scope > [data-child-column]")
+      if (columns.length === 0) return
+
+      const h = 20
+      const centers = Array.from(columns).map(col => {
+        const r = col.getBoundingClientRect()
+        return r.left + r.width / 2 - containerRect.left
+      })
+      const parentCx = containerRect.width / 2
+      const stroke = "rgba(128,128,128,0.2)"
+
+      while (svg.firstChild) svg.removeChild(svg.firstChild)
+
+      const makeLine = (x1, y1, x2, y2) => {
+        const l = document.createElementNS("http://www.w3.org/2000/svg", "line")
+        l.setAttribute("x1", x1); l.setAttribute("y1", y1)
+        l.setAttribute("x2", x2); l.setAttribute("y2", y2)
+        l.setAttribute("stroke", stroke); l.setAttribute("stroke-width", "1")
+        svg.appendChild(l)
+      }
+
+      if (centers.length === 1) {
+        makeLine(centers[0], 0, centers[0], h)
+      } else {
+        const left = Math.min(...centers)
+        const right = Math.max(...centers)
+        const barY = h / 2
+        makeLine(parentCx, 0, parentCx, barY)
+        makeLine(left, barY, right, barY)
+        centers.forEach(cx => makeLine(cx, barY, cx, h))
+      }
+
+      svg.setAttribute("viewBox", `0 0 ${containerRect.width} ${h}`)
+      svg.style.width = containerRect.width + "px"
+      svg.style.height = h + "px"
+    })
+  }
+}
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, FuzzyFilter},
+  hooks: {...colocatedHooks, FuzzyFilter, BranchConnector},
 })
 
 // Show progress bar on live navigation and form submits
