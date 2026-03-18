@@ -90,6 +90,7 @@ defmodule Web do
       import Phoenix.HTML
       # Core UI components
       import Web.CoreComponents
+      import Web.Helpers.TestHelpers
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

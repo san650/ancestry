@@ -7,12 +7,21 @@ defmodule Web.E2ECase do
       use Web, :verified_routes
       @moduletag :e2e
       import Web.E2ECase
+      import Ancestry.Factory
     end
   end
 
   def wait_liveview(conn) do
     PhoenixTest.assert_has(conn, "body .phx-connected")
   end
+
+  @doc """
+  Returns a CSS attribute selector for `data-testid`.
+
+      click(conn, test_id("family-new-btn"))
+      assert_has(conn, test_id("family-name"), text: "The Smiths")
+  """
+  def test_id(id), do: "[data-testid='#{id}']"
 
   @doc """
   Simulates selecting files via a file input element.

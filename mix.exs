@@ -42,6 +42,7 @@ defmodule Ancestry.MixProject do
   defp deps do
     [
       {:phoenix_test_playwright, "~> 0.13", only: :test, runtime: false},
+      {:ex_machina, "~> 2.8", only: :test},
       {:claude, "~> 0.5", only: [:dev], runtime: false},
       {:tidewave, "~> 0.5", only: :dev},
       {:igniter, "~> 0.7", only: [:dev]},

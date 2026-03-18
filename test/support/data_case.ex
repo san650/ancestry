@@ -24,6 +24,7 @@ defmodule Ancestry.DataCase do
       import Ecto.Changeset
       import Ecto.Query
       import Ancestry.DataCase
+      import Ancestry.Factory
     end
   end
 
