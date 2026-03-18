@@ -73,6 +73,7 @@ const BranchConnector = {
 
       const h = 20
       const barY = h / 2
+      const exDelta = 5
 
       // Group children by line origin
       const groups = {}
@@ -138,6 +139,7 @@ const BranchConnector = {
         const originX = getOriginX(origin)
         const isDashed = origin.startsWith("ex-")
         const dash = isDashed ? "6,4" : null
+        const exDelta = 8
 
         // All X positions for this group (origin + children)
         const allX = [originX, ...centers]
@@ -145,10 +147,10 @@ const BranchConnector = {
         const right = Math.max(...allX)
 
         // Vertical from origin down to bar
-        makeSvgLine(svg, originX, 0, originX, barY, CONNECTOR_STROKE, dash)
+        makeSvgLine(svg, originX, 0, originX, dash ? barY - exDelta : barY, CONNECTOR_STROKE, dash)
         // Horizontal bar (skip if all points align)
         if (left !== right) {
-          makeSvgLine(svg, left, barY, right, barY, CONNECTOR_STROKE, dash)
+          makeSvgLine(svg, left, dash ? barY - exDelta : barY, right, dash ? barY - exDelta : barY, CONNECTOR_STROKE, dash)
         }
         // Vertical from bar down to each child
         centers.forEach(cx => makeSvgLine(svg, cx, barY, cx, h, CONNECTOR_STROKE, dash))

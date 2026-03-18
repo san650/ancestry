@@ -119,8 +119,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <svg
           data-ex-separator={ex_group.person.id}
           class="w-2 h-1"
-          viewBox="0 0 40 100"
-          style="width: 40px; height: 100px;"
+          viewBox="0 0 40 123"
+          style="width: 40px; height: 123px;"
         >
           <line
             x1="0"
@@ -132,6 +132,18 @@ defmodule Web.FamilyLive.PersonCardComponent do
             stroke-dasharray="5"
           >
           </line>
+          <%= if ex_group.children != [] do %>
+            <line
+              x1="20"
+              y1="55"
+              x2="20"
+              y2="123"
+              stroke="rgba(128,128,128,0.2)"
+              stroke-width="3"
+              stroke-dasharray="5"
+            >
+            </line>
+          <% end %>
         </svg>
       <% end %>
       <%= cond do %>
