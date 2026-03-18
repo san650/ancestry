@@ -106,33 +106,70 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :children, :list, required: true
   attr :family_id, :integer, required: true
 
+  # w-28 = 7rem = 112px, gap-4 = 1rem = 16px
+  @card_width 112
+  @card_gap 16
+
   def children_row(assigns) do
+    count = length(assigns.children)
+
+    assigns =
+      assign(assigns,
+        count: count,
+        total_width: count * @card_width + (count - 1) * @card_gap,
+        card_width: @card_width,
+        card_gap: @card_gap
+      )
+
     ~H"""
     <div class="flex flex-col items-center">
-      <%= if length(@children) > 1 do %>
-        <div class="flex items-start">
-          <%= for {child, idx} <- Enum.with_index(@children) do %>
-            <div class="flex flex-col items-center">
-              <div class={[
-                "h-3 border-base-content/20",
-                if(idx == 0, do: "border-r w-1/2 self-end", else: ""),
-                if(idx == length(@children) - 1, do: "border-l w-1/2 self-start", else: ""),
-                if(idx > 0 && idx < length(@children) - 1, do: "border-l border-r w-full", else: ""),
-                "border-t"
-              ]}>
-              </div>
-              <.person_card person={child} family_id={@family_id} focused={false} />
-            </div>
-            <%= if idx < length(@children) - 1 do %>
-              <div class="h-3 border-t border-base-content/20 w-4 flex-shrink-0"></div>
-            <% end %>
+      <%= if @count > 1 do %>
+        <svg
+          width={@total_width}
+          height="20"
+          viewBox={"0 0 #{@total_width} 20"}
+          class="block"
+          style={"width: #{@total_width}px; height: 20px;"}
+        >
+          <%!-- Horizontal bar connecting all children --%>
+          <line
+            x1={div(@card_width, 2)}
+            y1="10"
+            x2={@total_width - div(@card_width, 2)}
+            y2="10"
+            stroke="currentColor"
+            class="text-base-content/20"
+            stroke-width="1"
+          />
+          <%!-- Vertical drop from center top to the bar --%>
+          <line
+            x1={div(@total_width, 2)}
+            y1="0"
+            x2={div(@total_width, 2)}
+            y2="10"
+            stroke="currentColor"
+            class="text-base-content/20"
+            stroke-width="1"
+          />
+          <%!-- Vertical drops from bar to each child --%>
+          <%= for {_child, idx} <- Enum.with_index(@children) do %>
+            <line
+              x1={idx * (@card_width + @card_gap) + div(@card_width, 2)}
+              y1="10"
+              x2={idx * (@card_width + @card_gap) + div(@card_width, 2)}
+              y2="20"
+              stroke="currentColor"
+              class="text-base-content/20"
+              stroke-width="1"
+            />
           <% end %>
-        </div>
-      <% else %>
+        </svg>
+      <% end %>
+      <div class="flex gap-4 justify-center">
         <%= for child <- @children do %>
           <.person_card person={child} family_id={@family_id} focused={false} />
         <% end %>
-      <% end %>
+      </div>
     </div>
     """
   end
