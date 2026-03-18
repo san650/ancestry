@@ -109,6 +109,7 @@ defmodule Ancestry.Relationships do
       join: p in Person,
       on: p.id == r.person_b_id,
       where: r.person_a_id == ^person_id and r.type == "parent",
+      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
       select: p
     )
     |> Repo.all()
@@ -174,6 +175,7 @@ defmodule Ancestry.Relationships do
       on: r1.person_b_id == p.id and r1.person_a_id == ^parent_a_id and r1.type == "parent",
       join: r2 in Relationship,
       on: r2.person_b_id == p.id and r2.person_a_id == ^parent_b_id and r2.type == "parent",
+      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
       select: p
     )
     |> Repo.all()
@@ -189,6 +191,7 @@ defmodule Ancestry.Relationships do
       left_join: r2 in Relationship,
       on: r2.person_b_id == p.id and r2.type == "parent" and r2.person_a_id != ^person_id,
       where: is_nil(r2.id),
+      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
       select: p
     )
     |> Repo.all()
