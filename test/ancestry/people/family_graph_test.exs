@@ -273,6 +273,146 @@ defmodule Ancestry.People.FamilyGraphTest do
     end
   end
 
+  describe "to_grid/1" do
+    alias Ancestry.People.FamilyGraph.Grid
+
+    test "empty graph returns empty grid" do
+      graph = FamilyGraph.build([], [])
+      grid = FamilyGraph.to_grid(graph)
+
+      assert %Grid{} = grid
+      assert grid.rows == 0
+      assert grid.cols == 0
+      assert grid.cells == %{}
+    end
+
+    test "single couple produces 2 person cells and 1 union cell" do
+      family = family_fixture()
+      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+      {:ok, rel} = Relationships.create_relationship(alice, bob, "partner")
+
+      graph = FamilyGraph.build([alice, bob], [rel])
+      grid = FamilyGraph.to_grid(graph)
+
+      assert %Grid{} = grid
+
+      person_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :person end)
+
+      union_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :union end)
+
+      assert length(person_cells) == 2
+      assert length(union_cells) == 1
+
+      # All on the same row
+      rows = Enum.map(person_cells ++ union_cells, fn {{row, _col}, _cell} -> row end)
+      assert Enum.uniq(rows) |> length() == 1
+    end
+
+    test "couple with one child produces at least 2 rows and 3 person cells with vertical connector" do
+      family = family_fixture()
+      {:ok, father} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, mother} = People.create_person(family, %{given_name: "Mom", surname: "D"})
+      {:ok, child} = People.create_person(family, %{given_name: "Kid", surname: "D"})
+
+      {:ok, partner_rel} = Relationships.create_relationship(father, mother, "partner")
+
+      {:ok, parent_rel1} =
+        Relationships.create_relationship(father, child, "parent", %{role: "father"})
+
+      {:ok, parent_rel2} =
+        Relationships.create_relationship(mother, child, "parent", %{role: "mother"})
+
+      graph =
+        FamilyGraph.build([father, mother, child], [partner_rel, parent_rel1, parent_rel2])
+
+      grid = FamilyGraph.to_grid(graph)
+
+      person_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :person end)
+
+      assert length(person_cells) == 3
+
+      # At least 2 node rows (parents + child) plus connector row(s)
+      assert grid.rows >= 3
+
+      # Should have at least one connector cell (vertical, t_down, or similar)
+      connector_types = [
+        :vertical,
+        :t_down,
+        :horizontal,
+        :top_left,
+        :top_right,
+        :bottom_left,
+        :bottom_right
+      ]
+
+      connector_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type in connector_types end)
+
+      assert length(connector_cells) >= 1
+    end
+
+    test "ex-partner chain produces 3 person cells and 2 union cells" do
+      family = family_fixture()
+      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+      {:ok, carol} = People.create_person(family, %{given_name: "Carol", surname: "C"})
+
+      {:ok, rel1} = Relationships.create_relationship(alice, bob, "partner")
+      {:ok, rel2} = Relationships.create_relationship(bob, carol, "ex_partner")
+
+      graph = FamilyGraph.build([alice, bob, carol], [rel1, rel2])
+      grid = FamilyGraph.to_grid(graph)
+
+      person_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :person end)
+
+      union_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :union end)
+
+      assert length(person_cells) == 3
+      assert length(union_cells) == 2
+
+      # All on the same row
+      all_cells = person_cells ++ union_cells
+      rows = Enum.map(all_cells, fn {{row, _col}, _cell} -> row end)
+      assert Enum.uniq(rows) |> length() == 1
+    end
+
+    test "disconnected components produce grid with rows for both and 4 person cells" do
+      family = family_fixture()
+      {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+      {:ok, carol} = People.create_person(family, %{given_name: "Carol", surname: "C"})
+      {:ok, dave} = People.create_person(family, %{given_name: "Dave", surname: "D"})
+
+      {:ok, rel1} = Relationships.create_relationship(alice, bob, "partner")
+      {:ok, rel2} = Relationships.create_relationship(carol, dave, "partner")
+
+      graph = FamilyGraph.build([alice, bob, carol, dave], [rel1, rel2])
+      grid = FamilyGraph.to_grid(graph)
+
+      person_cells =
+        Enum.filter(grid.cells, fn {_pos, cell} -> cell.type == :person end)
+
+      assert length(person_cells) == 4
+
+      # Components are on different rows (gap row between them)
+      person_rows =
+        person_cells
+        |> Enum.map(fn {{row, _col}, _cell} -> row end)
+        |> Enum.uniq()
+        |> Enum.sort()
+
+      assert length(person_rows) == 2
+      # There should be a gap between the two component rows
+      assert Enum.at(person_rows, 1) - Enum.at(person_rows, 0) >= 2
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, family} =
       attrs

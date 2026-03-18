@@ -7,7 +7,9 @@ defmodule Ancestry.People.FamilyGraph do
   BFS from root nodes, and returns a flat `%FamilyGraph{}` struct.
   """
 
+  alias __MODULE__.Cell
   alias __MODULE__.ChildEdge
+  alias __MODULE__.Grid
   alias __MODULE__.Node
   alias __MODULE__.Union
 
@@ -52,6 +54,259 @@ defmodule Ancestry.People.FamilyGraph do
       components: components,
       unconnected: unconnected_people
     }
+  end
+
+  @doc """
+  Convert a FamilyGraph into a 2D grid of cells for rendering.
+
+  Returns a `%Grid{}` with person, union, and connector cells placed
+  at `{row, col}` positions.
+  """
+  def to_grid(%__MODULE__{components: [], unconnected: []}) do
+    %Grid{rows: 0, cols: 0, cells: %{}}
+  end
+
+  def to_grid(%__MODULE__{} = graph) do
+    union_by_id = Map.new(graph.unions, fn u -> {u.id, u} end)
+
+    # Build person_id -> generation lookup from graph nodes
+    person_gen = Map.new(graph.nodes, fn {pid, node} -> {pid, node.generation} end)
+
+    {all_cells, total_rows, max_cols} =
+      graph.components
+      |> Enum.reduce({%{}, 0, 0}, fn component_ids, {cells, row_offset, max_col} ->
+        row_offset = if map_size(cells) > 0, do: row_offset + 1, else: row_offset
+
+        {comp_cells, comp_rows, comp_cols} =
+          layout_component(component_ids, graph, union_by_id, person_gen)
+
+        shifted_cells =
+          Map.new(comp_cells, fn {{r, c}, cell} -> {{r + row_offset, c}, cell} end)
+
+        merged = Map.merge(cells, shifted_cells)
+        {merged, row_offset + comp_rows, max(max_col, comp_cols)}
+      end)
+
+    %Grid{rows: total_rows, cols: max_cols, cells: all_cells}
+  end
+
+  defp layout_component(person_ids, graph, union_by_id, person_gen) do
+    person_id_set = MapSet.new(person_ids)
+
+    gen_groups =
+      person_ids
+      |> Enum.group_by(fn pid -> graph.nodes[pid].generation end)
+      |> Enum.sort_by(fn {gen, _} -> gen end)
+
+    component_unions =
+      Enum.filter(graph.unions, fn u ->
+        MapSet.member?(person_id_set, u.person_a_id) and
+          MapSet.member?(person_id_set, u.person_b_id)
+      end)
+
+    component_child_edges =
+      Enum.filter(graph.child_edges, fn edge ->
+        MapSet.member?(person_id_set, edge.to)
+      end)
+
+    {node_cells, col_map, row_count, gen_to_row} =
+      layout_generation_rows(gen_groups, component_unions)
+
+    connector_cells =
+      build_connectors(gen_to_row, col_map, component_child_edges, union_by_id, person_gen)
+
+    all_cells = Map.merge(node_cells, connector_cells)
+
+    max_col =
+      if map_size(all_cells) > 0 do
+        all_cells |> Map.keys() |> Enum.map(fn {_r, c} -> c end) |> Enum.max() |> Kernel.+(1)
+      else
+        0
+      end
+
+    {all_cells, row_count, max_col}
+  end
+
+  defp layout_generation_rows(gen_groups, unions) do
+    gen_groups
+    |> Enum.reduce({%{}, %{}, 0, %{}}, fn {gen, pids}, {cells, col_map, current_row, gen_rows} ->
+      gen_set = MapSet.new(pids)
+
+      gen_unions =
+        Enum.filter(unions, fn u ->
+          MapSet.member?(gen_set, u.person_a_id) and MapSet.member?(gen_set, u.person_b_id)
+        end)
+
+      gen_union_adj =
+        Enum.reduce(gen_unions, %{}, fn u, acc ->
+          acc
+          |> Map.update(u.person_a_id, [{u, u.person_b_id}], &[{u, u.person_b_id} | &1])
+          |> Map.update(u.person_b_id, [{u, u.person_a_id}], &[{u, u.person_a_id} | &1])
+        end)
+
+      chains = build_chains(pids, gen_union_adj)
+
+      {gen_cells, new_col_map, _next_col} =
+        place_chains(chains, current_row, col_map)
+
+      next_row = current_row + 2
+
+      {
+        Map.merge(cells, gen_cells),
+        new_col_map,
+        next_row,
+        Map.put(gen_rows, gen, current_row)
+      }
+    end)
+    |> then(fn {cells, col_map, total_row, gen_rows} ->
+      adjusted_rows = if total_row > 0, do: total_row - 1, else: 0
+      {cells, col_map, adjusted_rows, gen_rows}
+    end)
+  end
+
+  defp build_chains(person_ids, gen_union_adj) do
+    {chains, _visited} =
+      Enum.reduce(person_ids, {[], MapSet.new()}, fn pid, {chains_acc, visited_acc} ->
+        if MapSet.member?(visited_acc, pid) do
+          {chains_acc, visited_acc}
+        else
+          {chain, new_visited} = walk_chain(pid, gen_union_adj, visited_acc)
+          {[chain | chains_acc], new_visited}
+        end
+      end)
+
+    Enum.reverse(chains)
+  end
+
+  defp walk_chain(start_pid, gen_union_adj, visited) do
+    endpoint = find_chain_endpoint(start_pid, gen_union_adj, visited)
+    do_walk_chain(endpoint, gen_union_adj, visited, [])
+  end
+
+  defp find_chain_endpoint(pid, gen_union_adj, visited) do
+    find_endpoint_walk(pid, gen_union_adj, visited, MapSet.new([pid]))
+  end
+
+  defp find_endpoint_walk(pid, gen_union_adj, visited, seen) do
+    neighbors =
+      gen_union_adj
+      |> Map.get(pid, [])
+      |> Enum.reject(fn {_u, other} ->
+        MapSet.member?(visited, other) or MapSet.member?(seen, other)
+      end)
+
+    case neighbors do
+      [] ->
+        pid
+
+      [{_u, next_pid} | _] ->
+        find_endpoint_walk(next_pid, gen_union_adj, visited, MapSet.put(seen, next_pid))
+    end
+  end
+
+  defp do_walk_chain(pid, gen_union_adj, visited, chain) do
+    visited = MapSet.put(visited, pid)
+    chain = chain ++ [{:person, pid}]
+
+    neighbors =
+      gen_union_adj
+      |> Map.get(pid, [])
+      |> Enum.reject(fn {_u, other} -> MapSet.member?(visited, other) end)
+
+    case neighbors do
+      [] ->
+        {chain, visited}
+
+      [{union, next_pid} | _] ->
+        chain = chain ++ [{:union, union.id}]
+        do_walk_chain(next_pid, gen_union_adj, visited, chain)
+    end
+  end
+
+  defp place_chains(chains, row, col_map) do
+    start_col =
+      if map_size(col_map) > 0 do
+        col_map |> Map.values() |> Enum.max() |> Kernel.+(2)
+      else
+        0
+      end
+
+    chains
+    |> Enum.reduce({%{}, col_map, start_col}, fn chain, {cells, cmap, col} ->
+      col = if col > start_col, do: col + 1, else: col
+
+      Enum.reduce(chain, {cells, cmap, col}, fn elem, {c, cm, cur_col} ->
+        cell =
+          case elem do
+            {:person, pid} -> %Cell{type: :person, data: %{person_id: pid}}
+            {:union, uid} -> %Cell{type: :union, data: %{union_id: uid}}
+          end
+
+        {
+          Map.put(c, {row, cur_col}, cell),
+          Map.put(cm, elem, cur_col),
+          cur_col + 1
+        }
+      end)
+    end)
+  end
+
+  defp build_connectors(gen_to_row, col_map, child_edges, union_by_id, person_gen) do
+    Enum.reduce(child_edges, %{}, fn edge, cells ->
+      source_col = find_source_col(edge.from, col_map)
+      child_col = Map.get(col_map, {:person, edge.to})
+      source_row = find_source_row(edge.from, gen_to_row, union_by_id, person_gen)
+
+      cond do
+        is_nil(source_col) or is_nil(child_col) or is_nil(source_row) ->
+          cells
+
+        source_col == child_col ->
+          connector_row = source_row + 1
+          Map.put(cells, {connector_row, source_col}, %Cell{type: :vertical, data: %{}})
+
+        true ->
+          connector_row = source_row + 1
+          place_connector_path(cells, connector_row, source_col, child_col)
+      end
+    end)
+  end
+
+  defp find_source_col(from, col_map) do
+    Map.get(col_map, from)
+  end
+
+  defp find_source_row({:union, uid}, gen_to_row, union_by_id, person_gen) do
+    case Map.get(union_by_id, uid) do
+      nil ->
+        nil
+
+      union ->
+        gen = Map.get(person_gen, union.person_a_id)
+        if gen, do: Map.get(gen_to_row, gen), else: nil
+    end
+  end
+
+  defp find_source_row({:person, pid}, gen_to_row, _union_by_id, person_gen) do
+    gen = Map.get(person_gen, pid)
+    if gen, do: Map.get(gen_to_row, gen), else: nil
+  end
+
+  defp place_connector_path(cells, row, source_col, child_col) do
+    {left, right} = {min(source_col, child_col), max(source_col, child_col)}
+
+    cells = Map.put_new(cells, {row, source_col}, %Cell{type: :t_down, data: %{}})
+
+    corner_type = if child_col > source_col, do: :top_right, else: :top_left
+    cells = Map.put_new(cells, {row, child_col}, %Cell{type: corner_type, data: %{}})
+
+    Enum.reduce((left + 1)..(right - 1)//1, cells, fn c, acc ->
+      if c != source_col and c != child_col do
+        Map.put_new(acc, {row, c}, %Cell{type: :horizontal, data: %{}})
+      else
+        acc
+      end
+    end)
   end
 
   defp separate_relationships(relationships) do
