@@ -11,15 +11,6 @@
         <h1 class="text-2xl font-bold text-base-content">{@family.name}</h1>
       </div>
       <div class="flex items-center gap-2">
-        <%= if @focus_person do %>
-          <.live_component
-            module={Web.FamilyLive.PersonSelectorComponent}
-            id="person-selector"
-            people={@people}
-            family_id={@family.id}
-            focus_person={@focus_person}
-          />
-        <% end %>
         <button id="edit-family-btn" phx-click="edit" class="btn btn-ghost btn-sm">
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
         </button>
@@ -36,7 +27,7 @@
 
   <div class="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
     <%!-- Tree Canvas --%>
-    <div class="flex-1 overflow-auto p-6">
+    <div id="tree-canvas" class="flex-1 overflow-auto p-6" phx-hook=".ScrollToFocus">
       <%= if @tree do %>
         <div class="inline-flex flex-col items-center gap-0 min-w-full">
           <%!-- Ancestor Generations (top to bottom: great-grandparents → parents) --%>
@@ -86,7 +77,7 @@
             <% end %>
 
             <%!-- Focus person + current partner (center) --%>
-            <div class="flex flex-col items-center">
+            <div id="focus-person-card" class="flex flex-col items-center">
               <.couple_card
                 person_a={@focus_person}
                 person_b={@tree.center.partner}
@@ -338,4 +329,31 @@
       </div>
     </div>
   <% end %>
+
+  <script :type={Phoenix.LiveView.ColocatedHook} name=".ScrollToFocus">
+    export default {
+      mounted() {
+        this.scrollToFocus()
+      },
+      updated() {
+        this.scrollToFocus()
+      },
+      scrollToFocus() {
+        const target = this.el.querySelector("#focus-person-card")
+        if (!target) return
+
+        requestAnimationFrame(() => {
+          const container = this.el
+          const targetRect = target.getBoundingClientRect()
+          const containerRect = container.getBoundingClientRect()
+
+          container.scrollTo({
+            left: container.scrollLeft + (targetRect.left + targetRect.width / 2) - (containerRect.left + containerRect.width / 2),
+            top: container.scrollTop + (targetRect.top + targetRect.height / 2) - (containerRect.top + containerRect.height / 2),
+            behavior: "instant"
+          })
+        })
+      }
+    }
+  </script>
 </Layouts.app>
