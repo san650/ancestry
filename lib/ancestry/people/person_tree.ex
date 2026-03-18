@@ -175,10 +175,12 @@ defmodule Ancestry.People.PersonTree do
   defp build_descendant_generations(_family_units, depth) when depth >= @max_depth, do: []
 
   defp build_descendant_generations(family_units, depth) do
+    at_last_level = depth + 1 >= @max_depth
+
     # For each family unit in the current generation, get their children
     next_units =
       Enum.flat_map(family_units, fn unit ->
-        get_children_for_unit(unit)
+        get_children_for_unit(unit, check_more: at_last_level)
       end)
 
     if Enum.empty?(next_units) do
@@ -188,7 +190,8 @@ defmodule Ancestry.People.PersonTree do
     end
   end
 
-  defp build_child_unit(child) do
+  defp build_child_unit(child, opts \\ []) do
+    check_more = Keyword.get(opts, :check_more, false)
     partners = Relationships.get_partners(child.id)
 
     partner =
@@ -197,10 +200,17 @@ defmodule Ancestry.People.PersonTree do
         [] -> nil
       end
 
-    %{person: child, partner: partner}
+    has_more =
+      if check_more do
+        Relationships.get_children(child.id) != []
+      else
+        false
+      end
+
+    %{person: child, partner: partner, has_more: has_more}
   end
 
-  defp get_children_for_unit(%{person: person, partner: partner}) do
+  defp get_children_for_unit(%{person: person, partner: partner}, opts) do
     children =
       if partner do
         paired = Relationships.get_children_of_pair(person.id, partner.id)
@@ -211,7 +221,7 @@ defmodule Ancestry.People.PersonTree do
       end
 
     Enum.map(children, fn child ->
-      build_child_unit(child)
+      build_child_unit(child, opts)
     end)
   end
 end

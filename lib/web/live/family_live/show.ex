@@ -60,10 +60,14 @@ defmodule Web.FamilyLive.Show do
         nil
       end
 
-    {:noreply,
-     socket
-     |> assign(:focus_person, focus_person)
-     |> assign(:tree, tree)}
+    socket =
+      socket
+      |> assign(:focus_person, focus_person)
+      |> assign(:tree, tree)
+
+    socket = if focus_person, do: push_event(socket, "scroll_to_focus", %{}), else: socket
+
+    {:noreply, socket}
   end
 
   # Focus person event — re-center tree

@@ -112,6 +112,15 @@
                       family_id={@family.id}
                       focused_person_id={@focus_person.id}
                     />
+                    <%= if Map.get(unit, :has_more, false) do %>
+                      <div
+                        class="flex flex-col items-center mt-1 text-base-content/30"
+                        title="Has more descendants"
+                      >
+                        <div class="w-px h-2 bg-base-content/20"></div>
+                        <.icon name="hero-ellipsis-horizontal" class="w-4 h-4" />
+                      </div>
+                    <% end %>
                   </div>
                 <% end %>
               </div>
@@ -318,16 +327,14 @@
   <script :type={Phoenix.LiveView.ColocatedHook} name=".ScrollToFocus">
     export default {
       mounted() {
-        this.scrollToFocus()
-      },
-      updated() {
+        this.handleEvent("scroll_to_focus", () => this.scrollToFocus())
         this.scrollToFocus()
       },
       scrollToFocus() {
-        const target = this.el.querySelector("#focus-person-card")
-        if (!target) return
+        setTimeout(() => {
+          const target = this.el.querySelector("#focus-person-card")
+          if (!target) return
 
-        requestAnimationFrame(() => {
           const container = this.el
           const targetRect = target.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
@@ -337,7 +344,7 @@
             top: container.scrollTop + (targetRect.top + targetRect.height / 2) - (containerRect.top + containerRect.height / 2),
             behavior: "instant"
           })
-        })
+        }, 50)
       }
     }
   </script>

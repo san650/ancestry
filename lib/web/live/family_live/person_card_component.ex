@@ -6,6 +6,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :person, Person, required: true
   attr :family_id, :integer, required: true
   attr :focused, :boolean, default: false
+  attr :has_more, :boolean, default: false
 
   def person_card(assigns) do
     ~H"""
@@ -51,6 +52,11 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <% end %>
         </p>
       </button>
+      <%= if @has_more do %>
+        <div class="mt-1 text-base-content/30" title="Has more descendants">
+          <.icon name="hero-chevron-down" class="w-3 h-3" />
+        </div>
+      <% end %>
     </div>
     """
   end
