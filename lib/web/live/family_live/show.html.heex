@@ -48,84 +48,13 @@
             </div>
           <% end %>
 
-          <%!-- Center Row --%>
-          <div class="flex items-start justify-center gap-12">
-            <%!-- Ex-partners on the left --%>
-            <%= for ex_group <- @tree.center.ex_partners do %>
-              <div class="flex flex-col items-center">
-                <.couple_card
-                  person_a={ex_group.person}
-                  family_id={@family.id}
-                  focused_person_id={@focus_person.id}
-                />
-                <%!-- Ex-partner's shared children --%>
-                <%= if ex_group.children != [] do %>
-                  <div class="w-px h-4 bg-base-content/20"></div>
-                  <.children_row children={ex_group.children} family_id={@family.id} />
-                <% end %>
-              </div>
-            <% end %>
-
-            <%!-- Focus person + current partner (center) --%>
-            <div id="focus-person-card" class="flex flex-col items-center">
-              <.couple_card
-                person_a={@focus_person}
-                person_b={@tree.center.partner}
-                family_id={@family.id}
-                focused_person_id={@focus_person.id}
-                show_spouse_placeholder={is_nil(@tree.center.partner)}
-                person_for_placeholder={@focus_person.id}
-              />
-              <%!-- Partner children --%>
-              <%= if @tree.center.partner_children != [] or @tree.center.solo_children != [] do %>
-                <div class="w-px h-4 bg-base-content/20"></div>
-                <.children_row
-                  children={@tree.center.partner_children ++ @tree.center.solo_children}
-                  family_id={@family.id}
-                />
-              <% end %>
-              <%!-- Add child placeholder when no children at all --%>
-              <%= if @tree.center.partner_children == [] and @tree.center.solo_children == [] and Enum.empty?(@tree.center.ex_partners) do %>
-                <div class="w-px h-4 bg-base-content/20"></div>
-                <.placeholder_card
-                  type={:child}
-                  person_id={@focus_person.id}
-                  family_id={@family.id}
-                />
-              <% end %>
-            </div>
-          </div>
-
-          <%!-- Descendant Generations --%>
-          <%= for {units, gen_idx} <- Enum.with_index(@tree.descendants) do %>
-            <%!-- Only show generations beyond the first (first is shown inline above) --%>
-            <%= if gen_idx > 0 do %>
-              <div class="flex justify-center mt-2">
-                <div class="w-px h-4 bg-base-content/20"></div>
-              </div>
-              <div class="flex items-start justify-center gap-6">
-                <%= for unit <- units do %>
-                  <div class="flex flex-col items-center">
-                    <.couple_card
-                      person_a={unit.person}
-                      person_b={unit.partner}
-                      family_id={@family.id}
-                      focused_person_id={@focus_person.id}
-                    />
-                    <%= if Map.get(unit, :has_more, false) do %>
-                      <div
-                        class="flex flex-col items-center mt-1 text-base-content/30"
-                        title="Has more descendants"
-                      >
-                        <div class="w-px h-2 bg-base-content/20"></div>
-                        <.icon name="hero-ellipsis-horizontal" class="w-4 h-4" />
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          <% end %>
+          <%!-- Center Row + Descendants (recursive) --%>
+          <.family_subtree
+            unit={@tree.center}
+            family_id={@family.id}
+            focused_person_id={@focus_person.id}
+            is_root={true}
+          />
         </div>
       <% else %>
         <div class="flex items-center justify-center h-full">

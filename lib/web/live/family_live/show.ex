@@ -8,7 +8,6 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.People.PersonTree
 
   import Web.FamilyLive.PersonCardComponent
-  import Web.FamilyLive.CoupleCardComponent
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do

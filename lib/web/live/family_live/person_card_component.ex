@@ -3,6 +3,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   alias Ancestry.People.Person
 
+  # --- Person Card ---
+
   attr :person, Person, required: true
   attr :family_id, :integer, required: true
   attr :focused, :boolean, default: false
@@ -61,6 +63,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
     """
   end
 
+  # --- Placeholder Card ---
+
   attr :type, :atom, required: true, values: [:parent, :spouse, :child]
   attr :person_id, :integer, default: nil
   attr :family_id, :integer, required: true
@@ -84,6 +88,173 @@ defmodule Web.FamilyLive.PersonCardComponent do
     """
   end
 
+  # --- Couple Card ---
+
+  attr :person_a, :map, default: nil
+  attr :person_b, :map, default: nil
+  attr :family_id, :integer, required: true
+  attr :focused_person_id, :integer, default: nil
+  attr :show_spouse_placeholder, :boolean, default: false
+  attr :person_for_placeholder, :integer, default: nil
+
+  def couple_card(assigns) do
+    ~H"""
+    <div class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1">
+      <%= cond do %>
+        <% @person_a && @person_b -> %>
+          <.person_card
+            person={@person_a}
+            family_id={@family_id}
+            focused={@person_a.id == @focused_person_id}
+          />
+          <.person_card
+            person={@person_b}
+            family_id={@family_id}
+            focused={@person_b.id == @focused_person_id}
+          />
+        <% @person_a && @show_spouse_placeholder -> %>
+          <.person_card
+            person={@person_a}
+            family_id={@family_id}
+            focused={@person_a.id == @focused_person_id}
+          />
+          <.placeholder_card
+            type={:spouse}
+            person_id={@person_for_placeholder}
+            family_id={@family_id}
+          />
+        <% @person_a -> %>
+          <.person_card
+            person={@person_a}
+            family_id={@family_id}
+            focused={@person_a.id == @focused_person_id}
+          />
+        <% true -> %>
+          <div class="w-28"></div>
+      <% end %>
+    </div>
+    """
+  end
+
+  # --- Family Subtree (recursive) ---
+
+  attr :unit, :map, required: true
+  attr :family_id, :integer, required: true
+  attr :focused_person_id, :integer, default: nil
+  attr :is_root, :boolean, default: false
+
+  def family_subtree(assigns) do
+    all_children = assigns.unit.partner_children ++ assigns.unit.solo_children
+    has_children = all_children != [] or assigns.unit.ex_partners != []
+
+    assigns =
+      assign(assigns,
+        all_children: all_children,
+        has_children: has_children
+      )
+
+    ~H"""
+    <div class="flex items-start justify-center gap-8">
+      <%!-- Ex-partners on the sides --%>
+      <%= for ex_group <- @unit.ex_partners do %>
+        <div class="flex flex-col items-center">
+          <.couple_card
+            person_a={ex_group.person}
+            family_id={@family_id}
+            focused_person_id={@focused_person_id}
+          />
+          <%= if ex_group.children != [] do %>
+            <div class="w-px h-4 bg-base-content/20"></div>
+            <.subtree_children
+              children={ex_group.children}
+              family_id={@family_id}
+              focused_person_id={@focused_person_id}
+            />
+          <% end %>
+        </div>
+      <% end %>
+
+      <%!-- Main person + partner --%>
+      <div
+        class={["flex flex-col items-center", @is_root && "scroll-mt-4"]}
+        id={if(@is_root, do: "focus-person-card")}
+      >
+        <.couple_card
+          person_a={@unit.focus}
+          person_b={@unit.partner}
+          family_id={@family_id}
+          focused_person_id={@focused_person_id}
+          show_spouse_placeholder={@is_root && is_nil(@unit.partner)}
+          person_for_placeholder={@unit.focus.id}
+        />
+        <%= if @all_children != [] do %>
+          <div class="w-px h-4 bg-base-content/20"></div>
+          <.subtree_children
+            children={@all_children}
+            family_id={@family_id}
+            focused_person_id={@focused_person_id}
+          />
+        <% end %>
+        <%!-- Add child placeholder --%>
+        <%= if @is_root and not @has_children do %>
+          <div class="w-px h-4 bg-base-content/20"></div>
+          <.placeholder_card type={:child} person_id={@unit.focus.id} family_id={@family_id} />
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  # --- Subtree Children ---
+
+  attr :children, :list, required: true
+  attr :family_id, :integer, required: true
+  attr :focused_person_id, :integer, default: nil
+
+  def subtree_children(assigns) do
+    ~H"""
+    <div class="flex flex-col items-center">
+      <div class="flex items-start gap-6">
+        <%= for child <- @children do %>
+          <div class="flex flex-col items-center">
+            <%= cond do %>
+              <% Map.get(child, :has_more, false) -> %>
+                <.couple_card
+                  person_a={child.person}
+                  person_b={child[:partner]}
+                  family_id={@family_id}
+                  focused_person_id={@focused_person_id}
+                />
+                <div
+                  class="flex flex-col items-center mt-1 text-base-content/30"
+                  title="Has more descendants"
+                >
+                  <div class="w-px h-2 bg-base-content/20"></div>
+                  <.icon name="hero-ellipsis-horizontal" class="w-4 h-4" />
+                </div>
+              <% Map.has_key?(child, :partner_children) -> %>
+                <.family_subtree
+                  unit={child}
+                  family_id={@family_id}
+                  focused_person_id={@focused_person_id}
+                />
+              <% true -> %>
+                <.couple_card
+                  person_a={child.person}
+                  person_b={child[:partner]}
+                  family_id={@family_id}
+                  focused_person_id={@focused_person_id}
+                />
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  # --- Private helpers ---
+
   defp gender_border_class("male"), do: "border-t-2 border-t-blue-400"
   defp gender_border_class("female"), do: "border-t-2 border-t-pink-400"
   defp gender_border_class(_), do: "border-t-2 border-t-base-content/20"
@@ -101,77 +272,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
       {b, nil} -> "#{b}"
       {b, d} -> "#{b}\u2013#{d}"
     end
-  end
-
-  attr :children, :list, required: true
-  attr :family_id, :integer, required: true
-
-  # w-28 = 7rem = 112px, gap-4 = 1rem = 16px
-  @card_width 112
-  @card_gap 16
-
-  def children_row(assigns) do
-    count = length(assigns.children)
-
-    assigns =
-      assign(assigns,
-        count: count,
-        total_width: count * @card_width + (count - 1) * @card_gap,
-        card_width: @card_width,
-        card_gap: @card_gap
-      )
-
-    ~H"""
-    <div class="flex flex-col items-center">
-      <%= if @count > 1 do %>
-        <svg
-          width={@total_width}
-          height="20"
-          viewBox={"0 0 #{@total_width} 20"}
-          class="block"
-          style={"width: #{@total_width}px; height: 20px;"}
-        >
-          <%!-- Horizontal bar connecting all children --%>
-          <line
-            x1={div(@card_width, 2)}
-            y1="10"
-            x2={@total_width - div(@card_width, 2)}
-            y2="10"
-            stroke="currentColor"
-            class="text-base-content/20"
-            stroke-width="1"
-          />
-          <%!-- Vertical drop from center top to the bar --%>
-          <line
-            x1={div(@total_width, 2)}
-            y1="0"
-            x2={div(@total_width, 2)}
-            y2="10"
-            stroke="currentColor"
-            class="text-base-content/20"
-            stroke-width="1"
-          />
-          <%!-- Vertical drops from bar to each child --%>
-          <%= for {_child, idx} <- Enum.with_index(@children) do %>
-            <line
-              x1={idx * (@card_width + @card_gap) + div(@card_width, 2)}
-              y1="10"
-              x2={idx * (@card_width + @card_gap) + div(@card_width, 2)}
-              y2="20"
-              stroke="currentColor"
-              class="text-base-content/20"
-              stroke-width="1"
-            />
-          <% end %>
-        </svg>
-      <% end %>
-      <div class="flex gap-4 justify-center">
-        <%= for child <- @children do %>
-          <.person_card person={child} family_id={@family_id} focused={false} />
-        <% end %>
-      </div>
-    </div>
-    """
   end
 
   defp placeholder_label(:parent), do: "Add Parent"
