@@ -70,12 +70,13 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :type, :atom, required: true, values: [:parent, :partner, :child]
   attr :person_id, :integer, default: nil
-  attr :family_id, :integer, required: true
 
   def placeholder_card(assigns) do
     ~H"""
-    <.link
-      navigate={placeholder_link(@type, @person_id, @family_id)}
+    <button
+      phx-click="add_relationship"
+      phx-value-type={@type}
+      phx-value-person-id={@person_id}
       class="flex flex-col items-center text-center w-28 rounded-lg p-2 border border-dashed border-base-content/20 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group"
     >
       <div class="w-14 h-14 rounded-full bg-base-content/5 flex items-center justify-center mb-1 group-hover:bg-primary/10 transition-colors">
@@ -87,7 +88,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       <p class="text-xs text-base-content/40 group-hover:text-primary transition-colors">
         {placeholder_label(@type)}
       </p>
-    </.link>
+    </button>
     """
   end
 
@@ -167,7 +168,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <.placeholder_card
             type={:partner}
             person_id={@person_for_placeholder}
-            family_id={@family_id}
           />
         <% @person_a -> %>
           <.person_card
@@ -232,7 +232,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <%!-- Add child placeholder --%>
         <%= if @is_root and not @has_children do %>
           <.vline />
-          <.placeholder_card type={:child} person_id={@unit.focus.id} family_id={@family_id} />
+          <.placeholder_card type={:child} person_id={@unit.focus.id} />
         <% end %>
       </div>
     </div>
@@ -391,14 +391,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
   defp placeholder_label(:parent), do: "Add Parent"
   defp placeholder_label(:partner), do: "Add Partner"
   defp placeholder_label(:child), do: "Add Child"
-
-  defp placeholder_link(_type, person_id, family_id) when is_integer(person_id) do
-    ~p"/families/#{family_id}/members/#{person_id}"
-  end
-
-  defp placeholder_link(_type, _person_id, family_id) do
-    ~p"/families/#{family_id}/members/new"
-  end
 
   defp child_person_id(%{person: person}), do: person.id
   defp child_person_id(%{focus: person}), do: person.id
