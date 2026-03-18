@@ -1,0 +1,174 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
+      <div class="flex items-center gap-3">
+        <.link
+          navigate={~p"/families/#{@family.id}"}
+          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          {test_id("kinship-back-btn")}
+        >
+          <.icon name="hero-arrow-left" class="w-5 h-5" />
+        </.link>
+        <h1 class="text-2xl font-bold text-base-content">Kinship</h1>
+      </div>
+    </div>
+  </:toolbar>
+
+  <div class="max-w-2xl mx-auto p-6" phx-click="close_dropdowns">
+    <%!-- Person selectors --%>
+    <div class="flex items-start gap-4" {test_id("kinship-selectors")}>
+      <%!-- Person A --%>
+      <div class="flex-1 min-w-0">
+        <label class="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2 block">
+          Person A
+        </label>
+        <.person_selector
+          side="a"
+          person={@person_a}
+          dropdown_open={@dropdown_a}
+          search={@search_a}
+          filtered={@filtered_a}
+        />
+      </div>
+
+      <%!-- Swap button --%>
+      <div class="pt-7">
+        <button
+          id="kinship-swap-btn"
+          phx-click="swap"
+          class={[
+            "p-2 rounded-lg transition-colors",
+            if(@person_a && @person_b,
+              do: "text-base-content/60 hover:text-primary hover:bg-primary/10",
+              else: "text-base-content/20 cursor-not-allowed"
+            )
+          ]}
+          disabled={!(@person_a && @person_b)}
+          {test_id("kinship-swap-btn")}
+        >
+          <.icon name="hero-arrows-right-left" class="w-5 h-5" />
+        </button>
+      </div>
+
+      <%!-- Person B --%>
+      <div class="flex-1 min-w-0">
+        <label class="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2 block">
+          Person B
+        </label>
+        <.person_selector
+          side="b"
+          person={@person_b}
+          dropdown_open={@dropdown_b}
+          search={@search_b}
+          filtered={@filtered_b}
+        />
+      </div>
+    </div>
+
+    <%!-- Result area --%>
+    <div class="mt-8">
+      <%= cond do %>
+        <% is_nil(@person_a) or is_nil(@person_b) -> %>
+          <div
+            class="text-center py-12 text-base-content/30"
+            {test_id("kinship-empty-state")}
+          >
+            <.icon name="hero-arrows-right-left" class="w-12 h-12 mx-auto mb-3" />
+            <p class="text-lg font-medium">Select two people</p>
+            <p class="text-sm mt-1">Choose Person A and Person B to discover their kinship</p>
+          </div>
+        <% match?({:error, :same_person}, @result) -> %>
+          <div
+            class="text-center py-12 text-base-content/40"
+            {test_id("kinship-same-person")}
+          >
+            <.icon name="hero-user" class="w-12 h-12 mx-auto mb-3" />
+            <p class="text-lg font-medium">Same person selected</p>
+            <p class="text-sm mt-1">Please select two different people</p>
+          </div>
+        <% match?({:error, :no_common_ancestor}, @result) -> %>
+          <div
+            class="text-center py-12 text-base-content/40"
+            {test_id("kinship-no-result")}
+          >
+            <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
+            <p class="text-lg font-medium">No common ancestor found</p>
+            <p class="text-sm mt-1">
+              These two people don't appear to share a common ancestor within the family tree
+            </p>
+          </div>
+        <% match?({:ok, _}, @result) -> %>
+          <% {:ok, kinship} = @result %>
+          <div {test_id("kinship-result")}>
+            <%!-- Relationship label --%>
+            <div class="text-center mb-2">
+              <span
+                class="text-3xl font-bold text-primary"
+                {test_id("kinship-relationship-label")}
+              >
+                {kinship.relationship}
+              </span>
+            </div>
+
+            <%!-- Directional label --%>
+            <div class="text-center mb-8">
+              <span
+                class="text-base text-base-content/60"
+                {test_id("kinship-directional-label")}
+              >
+                {Ancestry.People.Person.display_name(@person_b)} is {Ancestry.People.Person.display_name(
+                  @person_a
+                )}'s {String.downcase(kinship.relationship)}
+              </span>
+            </div>
+
+            <%!-- Path visualization --%>
+            <div
+              class="flex flex-col items-center"
+              {test_id("kinship-path")}
+            >
+              <%= for {node, index} <- Enum.with_index(kinship.path) do %>
+                <%!-- Connector line (between nodes) --%>
+                <%= if index > 0 do %>
+                  <div class="w-px h-6 bg-base-300"></div>
+                <% end %>
+
+                <%!-- Node card --%>
+                <% is_endpoint = index == 0 or index == length(kinship.path) - 1 %>
+                <div class={[
+                  "flex items-center gap-3 px-4 py-3 rounded-xl border w-full max-w-sm",
+                  if(is_endpoint,
+                    do: "bg-primary/10 border-primary/30",
+                    else: "bg-base-200 border-base-300"
+                  )
+                ]}>
+                  <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-base-200">
+                    <%= if node.person.photo && node.person.photo_status == "processed" do %>
+                      <img
+                        src={
+                          Ancestry.Uploaders.PersonPhoto.url(
+                            {node.person.photo, node.person},
+                            :thumbnail
+                          )
+                        }
+                        alt={Ancestry.People.Person.display_name(node.person)}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <.icon name="hero-user" class="w-4 h-4 text-base-content/20" />
+                    <% end %>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="font-medium text-sm text-base-content truncate">
+                      {Ancestry.People.Person.display_name(node.person)}
+                    </p>
+                    <p class="text-xs text-base-content/50">{node.label}</p>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+      <% end %>
+    </div>
+  </div>
+</Layouts.app>
