@@ -58,7 +58,7 @@ defmodule Web.FamilyLive.Show do
 
     tree =
       if focus_person do
-        PersonTree.build(focus_person)
+        PersonTree.build(focus_person, socket.assigns.family.id)
       else
         nil
       end
@@ -227,7 +227,7 @@ defmodule Web.FamilyLive.Show do
         metrics = Metrics.compute(family.id)
 
         focus_person = socket.assigns.focus_person
-        tree = if focus_person, do: PersonTree.build(focus_person), else: nil
+        tree = if focus_person, do: PersonTree.build(focus_person, family.id), else: nil
 
         {:noreply,
          socket
@@ -288,7 +288,7 @@ defmodule Web.FamilyLive.Show do
 
     tree =
       if focus_person do
-        PersonTree.build(focus_person)
+        PersonTree.build(focus_person, family.id)
       end
 
     {:noreply,
