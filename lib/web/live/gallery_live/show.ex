@@ -134,7 +134,8 @@ defmodule Web.GalleryLive.Show do
       {:noreply,
        socket
        |> assign(:selected_photo, photo)
-       |> assign(:photo_people, Galleries.list_photo_people(photo.id))}
+       |> assign(:photo_people, Galleries.list_photo_people(photo.id))
+       |> push_photo_people()}
     end
   end
 
@@ -190,6 +191,7 @@ defmodule Web.GalleryLive.Show do
      socket
      |> assign(:selected_photo, new_photo)
      |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
+     |> push_photo_people()
      |> resubscribe_comments(new_photo)}
   end
 
@@ -198,7 +200,10 @@ defmodule Web.GalleryLive.Show do
 
     case Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), x, y) do
       {:ok, _} ->
-        {:noreply, assign(socket, :photo_people, Galleries.list_photo_people(photo.id))}
+        {:noreply,
+         socket
+         |> assign(:photo_people, Galleries.list_photo_people(photo.id))
+         |> push_photo_people()}
 
       {:error, _} ->
         {:noreply, socket}
@@ -210,7 +215,9 @@ defmodule Web.GalleryLive.Show do
       Galleries.untag_person_from_photo(String.to_integer(photo_id), String.to_integer(person_id))
 
     {:noreply,
-     assign(socket, :photo_people, Galleries.list_photo_people(socket.assigns.selected_photo.id))}
+     socket
+     |> assign(:photo_people, Galleries.list_photo_people(socket.assigns.selected_photo.id))
+     |> push_photo_people()}
   end
 
   def handle_event("search_people_for_tag", %{"query" => query}, socket) do
@@ -342,7 +349,22 @@ defmodule Web.GalleryLive.Show do
     socket
     |> assign(:selected_photo, new_photo)
     |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
+    |> push_photo_people()
     |> resubscribe_comments(new_photo)
+  end
+
+  defp push_photo_people(socket) do
+    people_data =
+      Enum.map(socket.assigns.photo_people, fn pp ->
+        %{
+          person_id: pp.person_id,
+          x: pp.x,
+          y: pp.y,
+          person_name: Ancestry.People.Person.display_name(pp.person)
+        }
+      end)
+
+    push_event(socket, "photo_people_updated", %{people: people_data})
   end
 
   defp cleanup_comments_subscription(socket) do
