@@ -1,8 +1,9 @@
 const PhotoTagger = {
   mounted() {
-    this.image = this.el.querySelector("#lightbox-image")
-    this.circlesContainer = this.el.querySelector("#tag-circles")
-    this.popover = this.el.querySelector("#tag-popover")
+    const inner = this.el.querySelector("#photo-tagger-inner")
+    this.image = inner.querySelector("#lightbox-image")
+    this.circlesContainer = inner.querySelector("#tag-circles")
+    this.popover = inner.querySelector("#tag-popover")
     this.pendingClick = null
 
     this.image.addEventListener("click", (e) => {
