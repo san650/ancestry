@@ -27,6 +27,7 @@ defmodule Web.GalleryLive.Show do
      |> assign(:comments_topic, nil)
      |> assign(:show_upload_modal, false)
      |> assign(:upload_results, [])
+     |> assign(:gallery_photos, Galleries.list_photos(id))
      |> stream(:photos, Galleries.list_photos(id))
      |> allow_upload(:photos,
        accept: ~w(.jpg .jpeg .png .webp .gif .dng .nef .tiff .tif),
@@ -122,6 +123,7 @@ defmodule Web.GalleryLive.Show do
      |> assign(:selection_mode, false)
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_photos, false)
+     |> assign(:gallery_photos, Galleries.list_photos(socket.assigns.gallery.id))
      |> stream(:photos, Galleries.list_photos(socket.assigns.gallery.id), reset: true)}
   end
 
@@ -188,7 +190,10 @@ defmodule Web.GalleryLive.Show do
 
   @impl true
   def handle_info({:photo_processed, photo}, socket) do
-    {:noreply, stream_insert(socket, :photos, photo)}
+    {:noreply,
+     socket
+     |> assign(:gallery_photos, Galleries.list_photos(socket.assigns.gallery.id))
+     |> stream_insert(:photos, photo)}
   end
 
   def handle_info({:photo_failed, photo}, socket) do

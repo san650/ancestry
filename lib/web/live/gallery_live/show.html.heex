@@ -280,7 +280,7 @@
   <%= if @selected_photo do %>
     <Web.Components.PhotoGallery.lightbox
       selected_photo={@selected_photo}
-      photos={Ancestry.Galleries.list_photos(@gallery.id)}
+      photos={@gallery_photos}
       panel_open={@panel_open}
       photo_people={@photo_people}
     />
