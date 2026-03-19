@@ -195,6 +195,45 @@ defmodule Ancestry.PeopleTest do
       results = People.search_people("Bob", family2.id)
       assert length(results) == 0
     end
+
+    test "finds people with diacritics using unaccented search" do
+      family = family_fixture()
+      other_family = family_fixture(%{name: "Other Family"})
+
+      {:ok, _} = People.create_person(other_family, %{given_name: "María", surname: "González"})
+
+      results = People.search_people("maria", family.id)
+      assert length(results) == 1
+      assert hd(results).given_name == "María"
+
+      results = People.search_people("gonzalez", family.id)
+      assert length(results) == 1
+      assert hd(results).surname == "González"
+    end
+
+    test "finds people without diacritics using accented search" do
+      family = family_fixture()
+      other_family = family_fixture(%{name: "Other Family"})
+
+      {:ok, _} = People.create_person(other_family, %{given_name: "Maria", surname: "Gonzalez"})
+
+      results = People.search_people("María", family.id)
+      assert length(results) == 1
+
+      results = People.search_people("González", family.id)
+      assert length(results) == 1
+    end
+  end
+
+  describe "search_all_people/1 diacritics" do
+    test "finds people with diacritics using unaccented search" do
+      family = family_fixture()
+      {:ok, _} = People.create_person(family, %{given_name: "José", surname: "García"})
+
+      results = People.search_all_people("jose")
+      assert length(results) == 1
+      assert hd(results).given_name == "José"
+    end
   end
 
   describe "search_family_members/3" do
@@ -221,6 +260,16 @@ defmodule Ancestry.PeopleTest do
 
       results = People.search_family_members("bob", family1.id, alice.id)
       assert results == []
+    end
+
+    test "finds family members with diacritics using unaccented search" do
+      family = family_fixture()
+      {:ok, maria} = People.create_person(family, %{given_name: "María", surname: "López"})
+      {:ok, jose} = People.create_person(family, %{given_name: "José", surname: "López"})
+
+      results = People.search_family_members("maria", family.id, jose.id)
+      assert length(results) == 1
+      assert hd(results).id == maria.id
     end
   end
 

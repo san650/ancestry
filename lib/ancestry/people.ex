@@ -76,11 +76,11 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id and fm.family_id == ^exclude_family_id,
         where: is_nil(fm.id),
         where:
-          ilike(p.given_name, ^like) or
-            ilike(p.surname, ^like) or
-            ilike(p.nickname, ^like) or
+          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
             fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE name ILIKE ?)",
+              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
               p.alternate_names,
               ^like
             ),
@@ -102,11 +102,11 @@ defmodule Ancestry.People do
     Repo.all(
       from p in Person,
         where:
-          ilike(p.given_name, ^like) or
-            ilike(p.surname, ^like) or
-            ilike(p.nickname, ^like) or
+          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
             fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE name ILIKE ?)",
+              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
               p.alternate_names,
               ^like
             ),
@@ -129,11 +129,11 @@ defmodule Ancestry.People do
       from p in Person,
         where: p.id != ^exclude_person_id,
         where:
-          ilike(p.given_name, ^like) or
-            ilike(p.surname, ^like) or
-            ilike(p.nickname, ^like) or
+          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
             fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE name ILIKE ?)",
+              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
               p.alternate_names,
               ^like
             ),
@@ -159,9 +159,9 @@ defmodule Ancestry.People do
         where: fm.family_id == ^family_id,
         where: p.id != ^exclude_person_id,
         where:
-          ilike(p.given_name, ^like) or
-            ilike(p.surname, ^like) or
-            ilike(p.nickname, ^like),
+          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20
     )
