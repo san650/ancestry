@@ -56,6 +56,12 @@ When a function accepts a parameter that may be `nil` and uses `if`/`case` to br
 
 **Fix:** Create two functions with descriptive names that each do one thing: `search_family_members/3` for family-scoped search and `search_all_people/2` for global search. Similarly, `create_person_wtih_family/2` and `create_person_without_family/1` (standalone). Let the caller choose the right function explicitly. Pattern matching on struct vs no-struct in function heads is acceptable for dispatch, but the distinct behaviors should have distinct names in the public API.
 
+## Event handlers that change state must update all dependent assigns
+
+When a LiveView event handler modifies state that other assigns depend on (e.g., setting a default person that should trigger a tree to render), it must also update those dependent assigns in the same response. LiveView's `handle_params/3` only runs on mount and URL changes — not after event handlers. So if the tree rendering logic lives only in `handle_params`, saving a default person in a `handle_event` won't trigger the tree to appear until the user navigates away and back.
+
+**Fix:** After modifying state in an event handler, also update any assigns that derive from that state. If the same derivation logic is needed in both `handle_params` and `handle_event`, extract it to a shared private function and call it from both places.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
