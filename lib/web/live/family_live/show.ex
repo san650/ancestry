@@ -21,14 +21,13 @@ defmodule Web.FamilyLive.Show do
 
     people = People.list_people_for_family(family_id)
     galleries = Galleries.list_galleries(family_id)
-    metrics = Metrics.compute(family_id)
 
     {:ok,
      socket
      |> assign(:family, family)
      |> assign(:people, people)
      |> assign(:galleries, galleries)
-     |> assign(:metrics, metrics)
+     |> assign_async(:metrics, fn -> {:ok, %{metrics: Metrics.compute(family_id)}} end)
      |> assign(:tree, nil)
      |> assign(:focus_person, nil)
      |> assign(:editing, false)
@@ -209,7 +208,7 @@ defmodule Web.FamilyLive.Show do
          socket
          |> assign(:show_new_gallery_modal, false)
          |> assign(:galleries, galleries)
-         |> assign(:metrics, metrics)}
+         |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :gallery_form, to_form(changeset))}
@@ -234,7 +233,7 @@ defmodule Web.FamilyLive.Show do
      socket
      |> assign(:confirm_delete_gallery, nil)
      |> assign(:galleries, galleries)
-     |> assign(:metrics, metrics)}
+     |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
   end
 
   # Member search/link
@@ -277,7 +276,7 @@ defmodule Web.FamilyLive.Show do
         {:noreply,
          socket
          |> assign(:people, people)
-         |> assign(:metrics, metrics)
+         |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))
          |> assign(:tree, tree)
          |> assign(:search_mode, false)
          |> assign(:search_results, [])
@@ -339,7 +338,7 @@ defmodule Web.FamilyLive.Show do
     {:noreply,
      socket
      |> assign(:people, people)
-     |> assign(:metrics, metrics)
+     |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))
      |> assign(:focus_person, focus_person)
      |> assign(:tree, tree)
      |> assign(:adding_relationship, nil)
@@ -349,6 +348,9 @@ defmodule Web.FamilyLive.Show do
   def handle_info({:relationship_error, message}, socket) do
     {:noreply, put_flash(socket, :error, message)}
   end
+
+  # assign_async spawns linked tasks that send :EXIT on completion
+  def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
 
   # Private helpers
 

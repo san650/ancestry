@@ -10,7 +10,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
     ~H"""
     <aside id={@id} class="bg-base-100 flex flex-col p-4 gap-6">
       <%!-- Metrics Section --%>
-      <%= if @metrics.people_count > 0 do %>
+      <%= if @metrics.ok? && @metrics.result.people_count > 0 do %>
         <div class="space-y-4">
           <%!-- People & Photo counts --%>
           <div class="grid grid-cols-2 gap-3">
@@ -19,7 +19,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
               {test_id("metric-people-count")}
             >
               <.icon name="hero-users" class="w-5 h-5 text-primary mb-1" />
-              <span class="text-2xl font-bold text-base-content">{@metrics.people_count}</span>
+              <span class="text-2xl font-bold text-base-content">{@metrics.result.people_count}</span>
               <span class="text-xs text-base-content/50">Members</span>
             </div>
             <div
@@ -27,13 +27,13 @@ defmodule Web.FamilyLive.SidePanelComponent do
               {test_id("metric-photo-count")}
             >
               <.icon name="hero-photo" class="w-5 h-5 text-secondary mb-1" />
-              <span class="text-2xl font-bold text-base-content">{@metrics.photo_count}</span>
+              <span class="text-2xl font-bold text-base-content">{@metrics.result.photo_count}</span>
               <span class="text-xs text-base-content/50">Photos</span>
             </div>
           </div>
 
           <%!-- Generations --%>
-          <%= if @metrics.generations do %>
+          <%= if @metrics.result.generations do %>
             <div
               class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
               {test_id("metric-generations")}
@@ -41,20 +41,23 @@ defmodule Web.FamilyLive.SidePanelComponent do
               <span class="text-xs text-base-content/50 uppercase tracking-wider mb-2">
                 Lineage
               </span>
-              <.metric_person_card person={@metrics.generations.root} label="Root ancestor" />
+              <.metric_person_card person={@metrics.result.generations.root} label="Root ancestor" />
               <div class="flex flex-col items-center my-1">
                 <div class="w-px h-3 bg-base-content/20"></div>
                 <span class="text-sm font-semibold text-primary py-0.5">
-                  {@metrics.generations.count} generations
+                  {@metrics.result.generations.count} generations
                 </span>
                 <div class="w-px h-3 bg-base-content/20"></div>
               </div>
-              <.metric_person_card person={@metrics.generations.leaf} label="Latest descendant" />
+              <.metric_person_card
+                person={@metrics.result.generations.leaf}
+                label="Latest descendant"
+              />
             </div>
           <% end %>
 
           <%!-- Oldest Person --%>
-          <%= if @metrics.oldest_person do %>
+          <%= if @metrics.result.oldest_person do %>
             <div
               class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
               {test_id("metric-oldest-person")}
@@ -63,8 +66,8 @@ defmodule Web.FamilyLive.SidePanelComponent do
                 Oldest Record
               </span>
               <.metric_person_card
-                person={@metrics.oldest_person.person}
-                label={age_label(@metrics.oldest_person)}
+                person={@metrics.result.oldest_person.person}
+                label={age_label(@metrics.result.oldest_person)}
               />
             </div>
           <% end %>
