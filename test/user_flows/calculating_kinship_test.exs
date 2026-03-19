@@ -222,8 +222,8 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     conn =
       assert_has(conn, test_id("kinship-relationship-label"), text: "First Cousin, Once Removed")
 
-    # Verify DNA percentage for 1st cousin once removed (~6.3% after rounding)
-    conn = assert_has(conn, test_id("kinship-dna-percentage"), text: "6.3% shared DNA")
+    # Verify DNA percentage for 1st cousin once removed (6.25%)
+    conn = assert_has(conn, test_id("kinship-dna-percentage"), text: "6.25% shared DNA")
 
     # Verify the "removed" footnote appears
     conn

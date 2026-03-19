@@ -315,19 +315,16 @@ defmodule Web.KinshipLive do
     """
   end
 
-  defp format_dna(percentage) when percentage >= 1.0 do
+  defp format_dna(percentage) do
     if percentage == trunc(percentage) do
       "#{trunc(percentage)}"
     else
-      :erlang.float_to_binary(percentage, decimals: 1)
+      :erlang.float_to_binary(percentage, decimals: 4)
+      |> String.trim_trailing("0")
+      |> String.trim_trailing("0")
+      |> String.trim_trailing("0")
+      |> String.trim_trailing(".")
     end
-  end
-
-  defp format_dna(percentage) do
-    :erlang.float_to_binary(percentage, decimals: 4)
-    |> String.trim_trailing("0")
-    |> String.trim_trailing("0")
-    |> String.trim_trailing(".")
   end
 
   attr :person, :any, required: true
