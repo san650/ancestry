@@ -110,6 +110,16 @@
               </span>
             </div>
 
+            <%!-- DNA percentage --%>
+            <div class="text-center mb-2">
+              <span
+                class="text-sm text-base-content/50"
+                {test_id("kinship-dna-percentage")}
+              >
+                ~{format_dna(kinship.dna_percentage)}% shared DNA
+              </span>
+            </div>
+
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
@@ -122,50 +132,132 @@
               </span>
             </div>
 
-            <%!-- Path visualization --%>
-            <div
-              class="flex flex-col items-center"
-              {test_id("kinship-path")}
-            >
-              <%= for {node, index} <- Enum.with_index(kinship.path) do %>
-                <%!-- Connector line (between nodes) --%>
-                <%= if index > 0 do %>
-                  <div class="w-px h-6 bg-base-300"></div>
-                <% end %>
-
-                <%!-- Node card --%>
-                <% is_endpoint = index == 0 or index == length(kinship.path) - 1 %>
-                <div class={[
-                  "flex items-center gap-3 px-4 py-3 rounded-xl border w-full max-w-sm",
-                  if(is_endpoint,
-                    do: "bg-primary/10 border-primary/30",
-                    else: "bg-base-200 border-base-300"
-                  )
-                ]}>
-                  <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-base-200">
-                    <%= if node.person.photo && node.person.photo_status == "processed" do %>
-                      <img
-                        src={
-                          Ancestry.Uploaders.PersonPhoto.url(
-                            {node.person.photo, node.person},
-                            :thumbnail
-                          )
-                        }
-                        alt={Ancestry.People.Person.display_name(node.person)}
-                        class="w-full h-full object-cover"
-                      />
-                    <% else %>
-                      <.icon name="hero-user" class="w-4 h-4 text-base-content/20" />
+            <%!-- Tree visualization --%>
+            <div class="flex flex-col items-center" {test_id("kinship-path")}>
+              <%= cond do %>
+                <% length(@path_a) <= 1 or length(@path_b) <= 1 -> %>
+                  <%!-- Direct line — single column, no branching --%>
+                  <% direct_path = if(length(@path_a) > 1, do: @path_a, else: @path_b) %>
+                  <%= for {node, index} <- Enum.with_index(direct_path) do %>
+                    <%= if index > 0 do %>
+                      <div class="w-px h-4 bg-base-300"></div>
                     <% end %>
+                    <% is_endpoint = index == 0 or index == length(direct_path) - 1 %>
+                    <div class={[
+                      "flex items-center gap-3 px-4 py-3 rounded-xl border w-full max-w-sm",
+                      if(is_endpoint,
+                        do: "bg-primary/10 border-primary/30",
+                        else: "bg-base-200/50 border-base-300"
+                      )
+                    ]}>
+                      <.kinship_person_avatar person={node.person} />
+                      <div class="min-w-0 flex-1">
+                        <p class="font-medium text-sm text-base-content truncate">
+                          {Ancestry.People.Person.display_name(node.person)}
+                        </p>
+                        <p class="text-xs text-base-content/50">{node.label}</p>
+                      </div>
+                    </div>
+                  <% end %>
+                <% true -> %>
+                  <%!-- Two-branch inverted-V tree --%>
+                  <%!-- MRCA node at top --%>
+                  <% mrca_node = List.first(@path_a) %>
+                  <div class="flex items-center gap-3 px-4 py-3 rounded-xl border bg-base-200 border-base-300 w-full max-w-sm">
+                    <.kinship_person_avatar person={mrca_node.person} />
+                    <div class="min-w-0 flex-1">
+                      <p class="font-medium text-sm text-base-content truncate">
+                        {Ancestry.People.Person.display_name(mrca_node.person)}
+                      </p>
+                      <p class="text-xs text-base-content/50">Common Ancestor</p>
+                    </div>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="font-medium text-sm text-base-content truncate">
-                      {Ancestry.People.Person.display_name(node.person)}
-                    </p>
-                    <p class="text-xs text-base-content/50">{node.label}</p>
+
+                  <%!-- Branch connectors --%>
+                  <div class="flex w-full max-w-2xl">
+                    <div class="flex-1 flex justify-center">
+                      <div class="w-px h-4 bg-base-300"></div>
+                    </div>
+                    <div class="flex-1 flex justify-center">
+                      <div class="w-px h-4 bg-base-300"></div>
+                    </div>
                   </div>
-                </div>
+
+                  <%!-- Horizontal connector bar --%>
+                  <div class="flex w-full max-w-2xl">
+                    <div class="flex-1 border-t-2 border-r border-base-300 h-0"></div>
+                    <div class="flex-1 border-t-2 border-l border-base-300 h-0"></div>
+                  </div>
+
+                  <%!-- Two branches side by side --%>
+                  <div class="flex w-full max-w-2xl gap-4">
+                    <%!-- Left branch: Person A's lineage (skip MRCA, already shown) --%>
+                    <div class="flex-1 flex flex-col items-center">
+                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
+                        <div class="w-px h-4 bg-base-300"></div>
+                        <% is_endpoint = index == length(@path_a) - 2 %>
+                        <div class={[
+                          "flex items-center gap-3 px-3 py-2 rounded-xl border w-full",
+                          if(is_endpoint,
+                            do: "bg-primary/10 border-primary/30",
+                            else: "bg-base-200/50 border-base-300"
+                          )
+                        ]}>
+                          <.kinship_person_avatar person={node.person} />
+                          <div class="min-w-0 flex-1">
+                            <p class="font-medium text-sm text-base-content truncate">
+                              {Ancestry.People.Person.display_name(node.person)}
+                            </p>
+                            <p class="text-xs text-base-content/50">{node.label}</p>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+
+                    <%!-- Right branch: Person B's lineage (skip MRCA, already shown) --%>
+                    <div class="flex-1 flex flex-col items-center">
+                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_b, 1)) do %>
+                        <div class="w-px h-4 bg-base-300"></div>
+                        <% is_endpoint = index == length(@path_b) - 2 %>
+                        <div class={[
+                          "flex items-center gap-3 px-3 py-2 rounded-xl border w-full",
+                          if(is_endpoint,
+                            do: "bg-primary/10 border-primary/30",
+                            else: "bg-base-200/50 border-base-300"
+                          )
+                        ]}>
+                          <.kinship_person_avatar person={node.person} />
+                          <div class="min-w-0 flex-1">
+                            <p class="font-medium text-sm text-base-content truncate">
+                              {Ancestry.People.Person.display_name(node.person)}
+                            </p>
+                            <p class="text-xs text-base-content/50">{node.label}</p>
+                          </div>
+                        </div>
+                      <% end %>
+                    </div>
+                  </div>
               <% end %>
+            </div>
+
+            <%!-- "Times Removed" footnote --%>
+            <%= if String.contains?(kinship.relationship, "Removed") do %>
+              <div
+                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-lg bg-base-200/50 text-xs text-base-content/50"
+                {test_id("kinship-removed-footnote")}
+              >
+                <.icon name="hero-information-circle" class="w-4 h-4 shrink-0 mt-0.5" />
+                <p>
+                  A "removed" cousin is a relative from a different generation.
+                  The number indicates how many generations apart you are.
+                  For example, your parent's first cousin is your first cousin, once removed.
+                </p>
+              </div>
+            <% end %>
+
+            <%!-- DNA disclaimer --%>
+            <div class="mt-4 text-center text-xs text-base-content/30">
+              Percentages are approximate and may vary.
             </div>
           </div>
       <% end %>

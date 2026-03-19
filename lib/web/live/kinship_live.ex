@@ -18,6 +18,8 @@ defmodule Web.KinshipLive do
      |> assign(:person_a, nil)
      |> assign(:person_b, nil)
      |> assign(:result, nil)
+     |> assign(:path_a, [])
+     |> assign(:path_b, [])
      |> assign(:search_a, "")
      |> assign(:search_b, "")
      |> assign(:filtered_a, people)
@@ -176,10 +178,33 @@ defmodule Web.KinshipLive do
     case {socket.assigns.person_a, socket.assigns.person_b} do
       {%Person{id: a_id}, %Person{id: b_id}} ->
         result = Kinship.calculate(a_id, b_id)
-        assign(socket, :result, result)
+
+        case result do
+          {:ok, kinship} ->
+            # path_a: from MRCA down to person A (top-down for tree display)
+            # path_b: from MRCA down to person B
+            path_a = Enum.slice(kinship.path, 0, kinship.steps_a + 1) |> Enum.reverse()
+
+            path_b =
+              Enum.slice(kinship.path, kinship.steps_a, length(kinship.path) - kinship.steps_a)
+
+            socket
+            |> assign(:result, result)
+            |> assign(:path_a, path_a)
+            |> assign(:path_b, path_b)
+
+          _ ->
+            socket
+            |> assign(:result, result)
+            |> assign(:path_a, [])
+            |> assign(:path_b, [])
+        end
 
       _ ->
-        assign(socket, :result, nil)
+        socket
+        |> assign(:result, nil)
+        |> assign(:path_a, [])
+        |> assign(:path_b, [])
     end
   end
 
@@ -285,6 +310,39 @@ defmodule Web.KinshipLive do
             <% end %>
           </div>
         </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp format_dna(percentage) when percentage >= 1.0 do
+    if percentage == trunc(percentage) do
+      "#{trunc(percentage)}"
+    else
+      :erlang.float_to_binary(percentage, decimals: 1)
+    end
+  end
+
+  defp format_dna(percentage) do
+    :erlang.float_to_binary(percentage, decimals: 4)
+    |> String.trim_trailing("0")
+    |> String.trim_trailing("0")
+    |> String.trim_trailing(".")
+  end
+
+  attr :person, :any, required: true
+
+  defp kinship_person_avatar(assigns) do
+    ~H"""
+    <div class="w-8 h-8 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-base-200">
+      <%= if @person.photo && @person.photo_status == "processed" do %>
+        <img
+          src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
+          alt={Ancestry.People.Person.display_name(@person)}
+          class="w-full h-full object-cover"
+        />
+      <% else %>
+        <.icon name="hero-user" class="w-4 h-4 text-base-content/20" />
       <% end %>
     </div>
     """
