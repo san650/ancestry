@@ -327,6 +327,38 @@ defmodule Web.KinshipLive do
     end
   end
 
+  attr :direction, :atom, required: true
+
+  defp arrow_connector(assigns) do
+    ~H"""
+    <div class="py-1 text-base-200">
+      <%= if @direction == :up do %>
+        <svg width="16" height="16" viewBox="0 0 16 16" class="mx-auto">
+          <path
+            d="M8 2 L8 14 M3 7 L8 2 L13 7"
+            stroke="currentColor"
+            stroke-width="1.5"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      <% else %>
+        <svg width="16" height="16" viewBox="0 0 16 16" class="mx-auto">
+          <path
+            d="M8 2 L8 14 M3 9 L8 14 L13 9"
+            stroke="currentColor"
+            stroke-width="1.5"
+            fill="none"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      <% end %>
+    </div>
+    """
+  end
+
   attr :person, :any, required: true
 
   defp kinship_person_avatar(assigns) do
