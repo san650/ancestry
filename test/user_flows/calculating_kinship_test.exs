@@ -49,6 +49,14 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     Ancestry.Relationships.create_relationship(parent_a, cousin_a, "parent", %{role: "father"})
     Ancestry.Relationships.create_relationship(parent_b, cousin_b, "parent", %{role: "father"})
 
+    # Child of cousin_b (for testing "removed" relationships)
+    child_of_cousin = insert(:person, given_name: "Frank", surname: "Kinship")
+    Ancestry.People.add_to_family(child_of_cousin, family)
+
+    Ancestry.Relationships.create_relationship(cousin_b, child_of_cousin, "parent", %{
+      role: "father"
+    })
+
     # One unrelated person
     unrelated = insert(:person, given_name: "Eve", surname: "Stranger")
     Ancestry.People.add_to_family(unrelated, family)
@@ -61,6 +69,7 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
       parent_b: parent_b,
       cousin_a: cousin_a,
       cousin_b: cousin_b,
+      child_of_cousin: child_of_cousin,
       unrelated: unrelated
     }
   end
@@ -116,6 +125,12 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     conn = assert_has(conn, test_id("kinship-result"), timeout: 5_000)
     conn = assert_has(conn, test_id("kinship-relationship-label"), text: "First Cousin")
 
+    # Verify DNA percentage is shown for 1st cousins (12.5%)
+    conn = assert_has(conn, test_id("kinship-dna-percentage"), text: "12.5% shared DNA")
+
+    # First cousins are NOT "removed", so no footnote
+    conn = refute_has(conn, test_id("kinship-removed-footnote"))
+
     # Verify directional label shows correct direction
     conn =
       assert_has(conn, test_id("kinship-directional-label"),
@@ -168,5 +183,50 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     conn
     |> assert_has(test_id("kinship-no-result"), timeout: 5_000)
     |> assert_has(test_id("kinship-no-result"), text: "No common ancestor found")
+  end
+
+  # Given a family with known relationships including a child of a cousin
+  # When the user selects cousin_a and child_of_cousin on the kinship page
+  # Then the "First Cousin, Once Removed" relationship is displayed
+  # And the DNA percentage (6.25%) is shown
+  # And the "removed" footnote appears
+  test "removed relationship shows footnote and DNA percentage", %{
+    conn: conn,
+    family: family,
+    cousin_a: cousin_a,
+    child_of_cousin: child_of_cousin
+  } do
+    # Navigate directly to the kinship page
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/kinship")
+      |> wait_liveview()
+
+    # Select cousin_a as Person A
+    conn =
+      conn
+      |> click(test_id("kinship-person-a-toggle"))
+
+    conn = click(conn, test_id("kinship-person-a-option-#{cousin_a.id}"))
+
+    # Select child_of_cousin as Person B
+    conn =
+      conn
+      |> click(test_id("kinship-person-b-toggle"))
+
+    conn = click(conn, test_id("kinship-person-b-option-#{child_of_cousin.id}"))
+
+    # Verify "First Cousin, Once Removed" relationship
+    conn = assert_has(conn, test_id("kinship-result"), timeout: 5_000)
+
+    conn =
+      assert_has(conn, test_id("kinship-relationship-label"), text: "First Cousin, Once Removed")
+
+    # Verify DNA percentage for 1st cousin once removed (~6.3% after rounding)
+    conn = assert_has(conn, test_id("kinship-dna-percentage"), text: "6.3% shared DNA")
+
+    # Verify the "removed" footnote appears
+    conn
+    |> assert_has(test_id("kinship-removed-footnote"))
   end
 end
