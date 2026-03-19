@@ -86,6 +86,12 @@ When `mount/3` runs multiple sequential DB queries synchronously, the LiveView p
 
 **Fix:** Use `assign_async/3` for expensive or non-critical data loading (like metrics, aggregations, or analytics). This moves the queries into a supervised async task that is properly cleaned up on process termination. The template renders immediately with a loading state, and the data appears when ready. When re-assigning the same data synchronously elsewhere (e.g., after a user action that changes the underlying data), wrap the result with `Phoenix.LiveView.AsyncResult.ok(value)` to maintain a consistent type for the template.
 
+## SVG elements inherit color from CSS `color` property via `currentColor` — verify the color class is visible
+
+When using `stroke="currentColor"` on SVG elements inside a Tailwind-styled container, the SVG stroke color is controlled by the container's `text-*` class. If the text color class matches the background color (e.g., `text-base-200` on a `base-200` background), the SVG will render but be invisible. This is easy to miss because the SVG element is present in the DOM and passes structural tests.
+
+**Fix:** Always verify SVG color classes against the actual background. Use a color that provides visible contrast (e.g., `text-base-300` or `text-base-content/30`). When replacing simple CSS connectors (borders, divs) with SVG connectors, test visibility visually — structural/DOM tests won't catch invisible-but-present elements.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
