@@ -48,7 +48,7 @@ defmodule Web.Layouts do
 
   def app(assigns) do
     ~H"""
-    <div class="grid min-h-screen grid-rows[auto_auto_1fr">
+    <div class="min-h-screen">
       <header class="navbar px-4 sm:px-6 lg:px-8">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
