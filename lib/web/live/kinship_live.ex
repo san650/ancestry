@@ -331,7 +331,7 @@ defmodule Web.KinshipLive do
 
   defp arrow_connector(assigns) do
     ~H"""
-    <div class="py-1 text-base-300">
+    <div class="py-1 text-base-content/50">
       <%= if @direction == :up do %>
         <svg width="16" height="16" viewBox="0 0 16 16" class="mx-auto">
           <path
@@ -361,7 +361,7 @@ defmodule Web.KinshipLive do
 
   defp fork_connector(assigns) do
     ~H"""
-    <div class="w-full max-w-2xl py-1 text-base-300">
+    <div class="w-full max-w-2xl py-1 text-base-content/50">
       <svg viewBox="0 0 200 40" class="w-full h-10" preserveAspectRatio="none">
         <path
           d="M100 0 L100 15 M100 15 L50 40 M100 15 L150 40"
