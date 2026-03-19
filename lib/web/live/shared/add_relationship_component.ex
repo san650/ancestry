@@ -32,14 +32,28 @@ defmodule Web.Shared.AddRelationshipComponent do
   # -------------------------------------------------------------------
 
   @impl true
+  def handle_event(
+        "search_members",
+        %{"value" => query},
+        %{assigns: %{family: %{id: family_id}}} = socket
+      ) do
+    results =
+      if String.length(query) >= 2 do
+        People.search_family_members(query, family_id, socket.assigns.person.id)
+      else
+        []
+      end
+
+    {:noreply,
+     socket
+     |> assign(:search_query, query)
+     |> assign(:search_results, results)}
+  end
+
   def handle_event("search_members", %{"value" => query}, socket) do
     results =
       if String.length(query) >= 2 do
-        People.search_family_members(
-          query,
-          socket.assigns.family.id,
-          socket.assigns.person.id
-        )
+        People.search_all_people(query, socket.assigns.person.id)
       else
         []
       end
@@ -88,7 +102,7 @@ defmodule Web.Shared.AddRelationshipComponent do
       |> Ecto.Changeset.validate_required([:given_name])
 
     if changeset.valid? do
-      case People.create_person(socket.assigns.family, params) do
+      case create_quick_person(socket.assigns, params) do
         {:ok, person} ->
           person = People.get_person!(person.id)
           relationship_form = build_relationship_form(socket.assigns.relationship_type, person)
@@ -187,7 +201,7 @@ defmodule Web.Shared.AddRelationshipComponent do
         <% :search -> %>
           <div class="space-y-4">
             <p class="text-sm text-base-content/60">
-              Search for an existing family member to add as a relationship.
+              Search for a person to add as a relationship.
             </p>
             <input
               id="relationship-search-input"
@@ -399,6 +413,14 @@ defmodule Web.Shared.AddRelationshipComponent do
   # -------------------------------------------------------------------
   # Private helpers
   # -------------------------------------------------------------------
+
+  defp create_quick_person(%{family: %{} = family}, params) do
+    People.create_person(family, params)
+  end
+
+  defp create_quick_person(_assigns, params) do
+    People.create_person_without_family(params)
+  end
 
   defp build_relationship_form(type, selected_person) do
     case type do

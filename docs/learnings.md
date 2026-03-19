@@ -50,6 +50,12 @@ When finding the "max" of a derived value (e.g., age = end_date - start_date), s
 
 **Fix:** Load all eligible candidates, compute the derived value for each in application code, then pick the max. For small datasets (family trees), the overhead is negligible and the logic stays in one place rather than being split between SQL and application code.
 
+## Functions that accept nil to branch behavior are an anti-pattern
+
+When a function accepts a parameter that may be `nil` and uses `if`/`case` to branch into fundamentally different behavior (e.g., `search(query, family_id)` where `family_id: nil` means "search globally" and a value means "search within family"), the function is doing two jobs under one name. This hides intent, makes the call site ambiguous, and makes the function harder to reason about.
+
+**Fix:** Create two functions with descriptive names that each do one thing: `search_family_members/3` for family-scoped search and `search_all_people/2` for global search. Similarly, `create_person_wtih_family/2` and `create_person_without_family/1` (standalone). Let the caller choose the right function explicitly. Pattern matching on struct vs no-struct in function heads is acceptable for dispatch, but the distinct behaviors should have distinct names in the public API.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.

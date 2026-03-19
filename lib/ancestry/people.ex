@@ -90,6 +90,33 @@ defmodule Ancestry.People do
     )
   end
 
+  def search_all_people(query, exclude_person_id) do
+    escaped =
+      query
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
+    like = "%#{escaped}%"
+
+    Repo.all(
+      from p in Person,
+        where: p.id != ^exclude_person_id,
+        where:
+          ilike(p.given_name, ^like) or
+            ilike(p.surname, ^like) or
+            ilike(p.nickname, ^like) or
+            fragment(
+              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE name ILIKE ?)",
+              p.alternate_names,
+              ^like
+            ),
+        order_by: [asc: p.surname, asc: p.given_name],
+        limit: 20,
+        preload: [:families]
+    )
+  end
+
   def search_family_members(query, family_id, exclude_person_id) do
     escaped =
       query
@@ -112,6 +139,12 @@ defmodule Ancestry.People do
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20
     )
+  end
+
+  def create_person_without_family(attrs) do
+    %Person{}
+    |> Person.changeset(attrs)
+    |> Repo.insert()
   end
 
   def change_person(%Person{} = person, attrs \\ %{}) do
