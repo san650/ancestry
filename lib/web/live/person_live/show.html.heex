@@ -470,6 +470,33 @@
         </div>
       </div>
     </div>
+
+    <%!-- Tagged Photos Section --%>
+    <%= if @person_photos_count > 0 do %>
+      <div id="person-photos-section" class="max-w-7xl mx-auto mt-12">
+        <div class="flex items-center gap-3 mb-6">
+          <h2 class="text-xl font-bold text-base-content">Photos</h2>
+          <span class="text-sm bg-base-200 text-base-content/60 px-2.5 py-0.5 rounded-full">
+            {@person_photos_count}
+          </span>
+        </div>
+
+        <Web.Components.PhotoGallery.photo_grid
+          id="person-photo-grid"
+          photos={@streams.person_photos}
+        />
+      </div>
+    <% end %>
+
+    <%!-- Lightbox (shared component) --%>
+    <%= if @selected_photo do %>
+      <Web.Components.PhotoGallery.lightbox
+        selected_photo={@selected_photo}
+        photos={@person_photos}
+        panel_open={@panel_open}
+        photo_people={@photo_people}
+      />
+    <% end %>
   <% end %>
 
   <%!-- Remove Confirmation Modal --%>

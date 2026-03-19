@@ -2,8 +2,10 @@ defmodule Web.PersonLive.Show do
   use Web, :live_view
 
   alias Ancestry.Families
+  alias Ancestry.Galleries
   alias Ancestry.People
   alias Ancestry.Relationships
+  alias Web.PhotoInteractions
 
   @impl true
   def mount(%{"id" => id}, _session, socket) do
@@ -20,7 +22,12 @@ defmodule Web.PersonLive.Show do
      |> assign(:editing, false)
      |> assign(:confirm_remove, false)
      |> assign(:confirm_delete, false)
+     |> assign(:selected_photo, nil)
+     |> assign(:panel_open, false)
+     |> assign(:photo_people, [])
+     |> assign(:comments_topic, nil)
      |> load_relationships(person)
+     |> load_person_photos(person)
      |> allow_upload(:photo,
        accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
        max_entries: 1,
@@ -294,6 +301,65 @@ defmodule Web.PersonLive.Show do
     end
   end
 
+  # --- Photo gallery events ---
+
+  def handle_event("photo_clicked", %{"id" => id}, socket) do
+    {:noreply, PhotoInteractions.open_photo(socket, id)}
+  end
+
+  def handle_event("close_lightbox", _, socket) do
+    {:noreply, PhotoInteractions.close_lightbox(socket)}
+  end
+
+  def handle_event("lightbox_keydown", %{"key" => "Escape"}, socket) do
+    {:noreply, PhotoInteractions.close_lightbox(socket)}
+  end
+
+  def handle_event("lightbox_keydown", %{"key" => "ArrowRight"}, socket) do
+    {:noreply,
+     PhotoInteractions.navigate_lightbox(socket, :next, fn ->
+       Galleries.list_photos_for_person(socket.assigns.person.id)
+     end)}
+  end
+
+  def handle_event("lightbox_keydown", %{"key" => "ArrowLeft"}, socket) do
+    {:noreply,
+     PhotoInteractions.navigate_lightbox(socket, :prev, fn ->
+       Galleries.list_photos_for_person(socket.assigns.person.id)
+     end)}
+  end
+
+  def handle_event("lightbox_keydown", _, socket), do: {:noreply, socket}
+
+  def handle_event("lightbox_select", %{"id" => id}, socket) do
+    {:noreply, PhotoInteractions.select_photo(socket, String.to_integer(id))}
+  end
+
+  def handle_event("toggle_panel", _, socket) do
+    {:noreply, PhotoInteractions.toggle_panel(socket)}
+  end
+
+  def handle_event("tag_person", %{"person_id" => person_id, "x" => x, "y" => y}, socket) do
+    {:noreply, PhotoInteractions.tag_person(socket, person_id, x, y)}
+  end
+
+  def handle_event("untag_person", %{"photo-id" => photo_id, "person-id" => person_id}, socket) do
+    {:noreply, PhotoInteractions.untag_person(socket, photo_id, person_id)}
+  end
+
+  def handle_event("highlight_person_on_photo", %{"id" => dom_id}, socket) do
+    {:noreply, PhotoInteractions.highlight_person(socket, dom_id)}
+  end
+
+  def handle_event("unhighlight_person_on_photo", %{"id" => dom_id}, socket) do
+    {:noreply, PhotoInteractions.unhighlight_person(socket, dom_id)}
+  end
+
+  def handle_event("search_people_for_tag", %{"query" => query}, socket) do
+    {payload, socket} = PhotoInteractions.search_people_for_tag(socket, query)
+    {:reply, payload, socket}
+  end
+
   @impl true
   def handle_info({:person_photo_processed, person}, socket) do
     {:noreply, assign(socket, :person, person)}
@@ -302,6 +368,15 @@ defmodule Web.PersonLive.Show do
   def handle_info({:person_photo_failed, person}, socket) do
     {:noreply, assign(socket, :person, person)}
   end
+
+  def handle_info({:comment_created, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
+
+  def handle_info({:comment_updated, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
+
+  def handle_info({:comment_deleted, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
 
   def handle_info({:relationship_saved, _type, _person}, socket) do
     {:noreply,
@@ -317,6 +392,15 @@ defmodule Web.PersonLive.Show do
   end
 
   # --- Private helpers ---
+
+  defp load_person_photos(socket, person) do
+    photos = Galleries.list_photos_for_person(person.id)
+
+    socket
+    |> assign(:person_photos, photos)
+    |> assign(:person_photos_count, length(photos))
+    |> stream(:person_photos, photos, reset: true)
+  end
 
   defp load_relationships(socket, person) do
     partners = Relationships.get_partners(person.id)
