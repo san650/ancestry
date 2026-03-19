@@ -236,6 +236,18 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "search_all_people/2 diacritics" do
+    test "finds people with diacritics, excluding a given person" do
+      family = family_fixture()
+      {:ok, jose} = People.create_person(family, %{given_name: "José", surname: "García"})
+      {:ok, _maria} = People.create_person(family, %{given_name: "María", surname: "García"})
+
+      results = People.search_all_people("garcia", jose.id)
+      assert length(results) == 1
+      refute hd(results).id == jose.id
+    end
+  end
+
   describe "search_family_members/3" do
     test "searches people within a family by name, excluding a specific person" do
       family = family_fixture()
