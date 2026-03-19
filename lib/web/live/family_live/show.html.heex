@@ -141,6 +141,99 @@
           {test_id("family-edit-form")}
         >
           <.input field={@form[:name]} label="Family name" autofocus />
+
+          <%!-- Default Person Picker --%>
+          <div class="mt-4" {test_id("default-person-picker")}>
+            <label class="label text-sm font-medium text-base-content">Default person</label>
+
+            <%= if @default_person_id do %>
+              <% selected = Enum.find(@people, &(&1.id == @default_person_id)) %>
+              <%= if selected do %>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-base-200 mb-2">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <%= if selected.photo && selected.photo_status == "processed" do %>
+                      <img
+                        src={
+                          Ancestry.Uploaders.PersonPhoto.url(
+                            {selected.photo, selected},
+                            :thumbnail
+                          )
+                        }
+                        alt={Person.display_name(selected)}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <.icon name="hero-user" class="w-4 h-4 text-primary" />
+                    <% end %>
+                  </div>
+                  <span class="text-sm font-medium flex-1">{Person.display_name(selected)}</span>
+                  <button
+                    type="button"
+                    phx-click="clear_default_person"
+                    class="btn btn-ghost btn-xs"
+                    {test_id("default-person-clear")}
+                  >
+                    <.icon name="hero-x-mark" class="w-4 h-4" />
+                  </button>
+                </div>
+              <% end %>
+            <% end %>
+
+            <input
+              id="default-person-filter"
+              type="text"
+              name="default_person_filter"
+              value={@default_person_filter}
+              placeholder="Filter members..."
+              phx-keyup="filter_default_person"
+              phx-debounce="200"
+              class="input input-bordered input-sm w-full mb-2"
+              {test_id("default-person-filter")}
+            />
+            <div class="max-h-40 overflow-y-auto space-y-1">
+              <button
+                type="button"
+                phx-click="clear_default_person"
+                class={[
+                  "w-full flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors text-left text-sm",
+                  is_nil(@default_person_id) && "bg-base-200 font-medium"
+                ]}
+                {test_id("default-person-none")}
+              >
+                <.icon name="hero-no-symbol" class="w-4 h-4 text-base-content/40" />
+                <span class="text-base-content/60">None</span>
+              </button>
+              <%= for person <- filtered_people(@people, @default_person_filter) do %>
+                <button
+                  type="button"
+                  id={"default-person-#{person.id}"}
+                  phx-click="select_default_person"
+                  phx-value-id={person.id}
+                  class={[
+                    "w-full flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors text-left text-sm",
+                    @default_person_id == person.id && "bg-primary/10 ring-1 ring-primary/30"
+                  ]}
+                  {test_id("default-person-option-#{person.id}")}
+                >
+                  <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <%= if person.photo && person.photo_status == "processed" do %>
+                      <img
+                        src={
+                          Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)
+                        }
+                        alt={Person.display_name(person)}
+                        class="w-full h-full object-cover"
+                      />
+                    <% else %>
+                      <.icon name="hero-user" class="w-3 h-3 text-primary" />
+                    <% end %>
+                  </div>
+                  <span>{Person.display_name(person)}</span>
+                </button>
+              <% end %>
+            </div>
+          </div>
+
           <div class="flex gap-3 mt-6">
             <button type="submit" class="btn btn-primary flex-1" {test_id("family-edit-save-btn")}>
               Save

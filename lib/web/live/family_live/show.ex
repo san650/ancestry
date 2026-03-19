@@ -6,6 +6,7 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
   alias Ancestry.People
+  alias Ancestry.People.Person
   alias Ancestry.People.PersonTree
 
   import Web.FamilyLive.PersonCardComponent
@@ -39,7 +40,9 @@ defmodule Web.FamilyLive.Show do
      |> assign(:search_mode, false)
      |> assign(:search_query, "")
      |> assign(:search_results, [])
-     |> assign(:adding_relationship, nil)}
+     |> assign(:adding_relationship, nil)
+     |> assign(:default_person_id, get_default_person_id(family_id))
+     |> assign(:default_person_filter, "")}
   end
 
   @impl true
@@ -87,7 +90,13 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("edit", _, socket) do
     form = to_form(Families.change_family(socket.assigns.family))
-    {:noreply, socket |> assign(:editing, true) |> assign(:form, form)}
+
+    {:noreply,
+     socket
+     |> assign(:editing, true)
+     |> assign(:form, form)
+     |> assign(:default_person_id, get_default_person_id(socket.assigns.family.id))
+     |> assign(:default_person_filter, "")}
   end
 
   def handle_event("cancel_edit", _, socket) do
@@ -106,6 +115,12 @@ defmodule Web.FamilyLive.Show do
   def handle_event("save", %{"family" => params}, socket) do
     case Families.update_family(socket.assigns.family, params) do
       {:ok, family} ->
+        # Persist default person selection
+        case socket.assigns.default_person_id do
+          nil -> People.clear_default_member(family.id)
+          person_id -> People.set_default_member(family.id, person_id)
+        end
+
         {:noreply,
          socket
          |> assign(:family, family)
@@ -115,6 +130,18 @@ defmodule Web.FamilyLive.Show do
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
+  end
+
+  def handle_event("filter_default_person", %{"value" => query}, socket) do
+    {:noreply, assign(socket, :default_person_filter, query)}
+  end
+
+  def handle_event("select_default_person", %{"id" => id}, socket) do
+    {:noreply, assign(socket, :default_person_id, String.to_integer(id))}
+  end
+
+  def handle_event("clear_default_person", _, socket) do
+    {:noreply, assign(socket, :default_person_id, nil)}
   end
 
   def handle_event("request_delete", _, socket) do
@@ -316,5 +343,25 @@ defmodule Web.FamilyLive.Show do
 
   defp find_person(people, person_id) do
     Enum.find(people, &(&1.id == person_id)) || People.get_person!(person_id)
+  end
+
+  defp get_default_person_id(family_id) do
+    case People.get_default_person(family_id) do
+      nil -> nil
+      person -> person.id
+    end
+  end
+
+  defp filtered_people(people, filter) do
+    if String.trim(filter) == "" do
+      people
+    else
+      filter = String.downcase(filter)
+
+      Enum.filter(people, fn person ->
+        name = Person.display_name(person) |> String.downcase()
+        String.contains?(name, filter)
+      end)
+    end
   end
 end
