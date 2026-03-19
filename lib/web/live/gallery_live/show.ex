@@ -198,7 +198,9 @@ defmodule Web.GalleryLive.Show do
   def handle_event("tag_person", %{"person_id" => person_id, "x" => x, "y" => y}, socket) do
     photo = socket.assigns.selected_photo
 
-    case Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), x, y) do
+    person_id = if is_binary(person_id), do: String.to_integer(person_id), else: person_id
+
+    case Galleries.tag_person_in_photo(photo.id, person_id, x, y) do
       {:ok, _} ->
         {:noreply,
          socket
