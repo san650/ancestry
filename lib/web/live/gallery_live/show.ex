@@ -2,7 +2,7 @@ defmodule Web.GalleryLive.Show do
   use Web, :live_view
 
   alias Ancestry.Galleries
-  alias Web.Comments.PhotoCommentsComponent
+  alias Web.PhotoInteractions
 
   @impl true
   def mount(%{"family_id" => family_id, "id" => id}, _session, socket) do
@@ -129,143 +129,61 @@ defmodule Web.GalleryLive.Show do
     if socket.assigns.selection_mode do
       handle_event("toggle_photo_select", %{"id" => to_string(id)}, socket)
     else
-      photo = Galleries.get_photo!(id)
-
-      {:noreply,
-       socket
-       |> assign(:selected_photo, photo)
-       |> assign(:photo_people, Galleries.list_photo_people(photo.id))
-       |> push_photo_people()}
+      {:noreply, PhotoInteractions.open_photo(socket, id)}
     end
   end
 
   def handle_event("toggle_panel", _, socket) do
-    opening = not socket.assigns.panel_open
-
-    socket =
-      if opening do
-        topic = "photo_comments:#{socket.assigns.selected_photo.id}"
-
-        if connected?(socket) do
-          Phoenix.PubSub.subscribe(Ancestry.PubSub, topic)
-        end
-
-        socket
-        |> assign(:panel_open, true)
-        |> assign(:comments_topic, topic)
-      else
-        cleanup_comments_subscription(socket)
-      end
-
-    {:noreply, socket}
+    {:noreply, PhotoInteractions.toggle_panel(socket)}
   end
 
   def handle_event("close_lightbox", _, socket) do
-    {:noreply,
-     socket
-     |> cleanup_comments_subscription()
-     |> assign(:selected_photo, nil)}
+    {:noreply, PhotoInteractions.close_lightbox(socket)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "Escape"}, socket) do
-    {:noreply,
-     socket
-     |> cleanup_comments_subscription()
-     |> assign(:selected_photo, nil)}
+    {:noreply, PhotoInteractions.close_lightbox(socket)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "ArrowRight"}, socket) do
-    {:noreply, navigate_lightbox(socket, :next)}
+    {:noreply,
+     PhotoInteractions.navigate_lightbox(socket, :next, fn ->
+       Galleries.list_photos(socket.assigns.gallery.id)
+     end)}
   end
 
   def handle_event("lightbox_keydown", %{"key" => "ArrowLeft"}, socket) do
-    {:noreply, navigate_lightbox(socket, :prev)}
+    {:noreply,
+     PhotoInteractions.navigate_lightbox(socket, :prev, fn ->
+       Galleries.list_photos(socket.assigns.gallery.id)
+     end)}
   end
 
   def handle_event("lightbox_keydown", _, socket), do: {:noreply, socket}
 
   def handle_event("lightbox_select", %{"id" => id}, socket) do
-    new_photo = Galleries.get_photo!(String.to_integer(id))
-
-    {:noreply,
-     socket
-     |> assign(:selected_photo, new_photo)
-     |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
-     |> push_photo_people()
-     |> resubscribe_comments(new_photo)}
+    {:noreply, PhotoInteractions.select_photo(socket, String.to_integer(id))}
   end
 
   def handle_event("tag_person", %{"person_id" => person_id, "x" => x, "y" => y}, socket) do
-    photo = socket.assigns.selected_photo
-
-    case Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), x, y) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> assign(:photo_people, Galleries.list_photo_people(photo.id))
-         |> push_photo_people()}
-
-      {:error, _} ->
-        {:noreply, socket}
-    end
+    {:noreply, PhotoInteractions.tag_person(socket, person_id, x, y)}
   end
 
   def handle_event("untag_person", %{"photo-id" => photo_id, "person-id" => person_id}, socket) do
-    :ok =
-      Galleries.untag_person_from_photo(String.to_integer(photo_id), String.to_integer(person_id))
-
-    {:noreply,
-     socket
-     |> assign(:photo_people, Galleries.list_photo_people(socket.assigns.selected_photo.id))
-     |> push_photo_people()}
+    {:noreply, PhotoInteractions.untag_person(socket, photo_id, person_id)}
   end
 
   def handle_event("highlight_person_on_photo", %{"id" => dom_id}, socket) do
-    pp_id = dom_id |> String.replace("photo-person-", "") |> String.to_integer()
-    pp = Enum.find(socket.assigns.photo_people, &(&1.id == pp_id))
-
-    if pp do
-      {:noreply, push_event(socket, "highlight_person", %{person_id: pp.person_id})}
-    else
-      {:noreply, socket}
-    end
+    {:noreply, PhotoInteractions.highlight_person(socket, dom_id)}
   end
 
   def handle_event("unhighlight_person_on_photo", %{"id" => dom_id}, socket) do
-    pp_id = dom_id |> String.replace("photo-person-", "") |> String.to_integer()
-    pp = Enum.find(socket.assigns.photo_people, &(&1.id == pp_id))
-
-    if pp do
-      {:noreply, push_event(socket, "unhighlight_person", %{person_id: pp.person_id})}
-    else
-      {:noreply, socket}
-    end
+    {:noreply, PhotoInteractions.unhighlight_person(socket, dom_id)}
   end
 
   def handle_event("search_people_for_tag", %{"query" => query}, socket) do
-    results =
-      if String.length(query) >= 2 do
-        Ancestry.People.search_all_people(query)
-      else
-        []
-      end
-
-    {:reply,
-     %{
-       results:
-         Enum.map(results, fn p ->
-           %{
-             id: p.id,
-             name: Ancestry.People.Person.display_name(p),
-             has_photo: p.photo != nil && p.photo_status == "processed",
-             photo_url:
-               if(p.photo && p.photo_status == "processed",
-                 do: Ancestry.Uploaders.PersonPhoto.url({p.photo, p}, :thumbnail),
-                 else: nil
-               )
-           }
-         end)
-     }, socket}
+    {payload, socket} = PhotoInteractions.search_people_for_tag(socket, query)
+    {:reply, payload, socket}
   end
 
   @impl true
@@ -277,32 +195,14 @@ defmodule Web.GalleryLive.Show do
     {:noreply, stream_insert(socket, :photos, photo)}
   end
 
-  def handle_info({:comment_created, comment}, socket) do
-    send_update(PhotoCommentsComponent,
-      id: "photo-comments",
-      comment_created: comment
-    )
+  def handle_info({:comment_created, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
 
-    {:noreply, socket}
-  end
+  def handle_info({:comment_updated, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
 
-  def handle_info({:comment_updated, comment}, socket) do
-    send_update(PhotoCommentsComponent,
-      id: "photo-comments",
-      comment_updated: comment
-    )
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:comment_deleted, comment}, socket) do
-    send_update(PhotoCommentsComponent,
-      id: "photo-comments",
-      comment_deleted: comment
-    )
-
-    {:noreply, socket}
-  end
+  def handle_info({:comment_deleted, _} = msg, socket),
+    do: PhotoInteractions.handle_comment_info(socket, msg)
 
   # LiveView traps exits; upload writer tasks send :EXIT on completion
   def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
@@ -353,69 +253,6 @@ defmodule Web.GalleryLive.Show do
 
     socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
     {:noreply, socket}
-  end
-
-  defp navigate_lightbox(socket, direction) do
-    current = socket.assigns.selected_photo
-    photos = Galleries.list_photos(socket.assigns.gallery.id)
-    idx = Enum.find_index(photos, &(&1.id == current.id)) || 0
-
-    next_idx =
-      case direction do
-        :next -> min(idx + 1, length(photos) - 1)
-        :prev -> max(idx - 1, 0)
-      end
-
-    new_photo = Enum.at(photos, next_idx)
-
-    socket
-    |> assign(:selected_photo, new_photo)
-    |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
-    |> push_photo_people()
-    |> resubscribe_comments(new_photo)
-  end
-
-  defp push_photo_people(socket) do
-    people_data =
-      Enum.map(socket.assigns.photo_people, fn pp ->
-        %{
-          person_id: pp.person_id,
-          x: pp.x,
-          y: pp.y,
-          person_name: Ancestry.People.Person.display_name(pp.person)
-        }
-      end)
-
-    push_event(socket, "photo_people_updated", %{people: people_data})
-  end
-
-  defp cleanup_comments_subscription(socket) do
-    if socket.assigns.comments_topic && connected?(socket) do
-      Phoenix.PubSub.unsubscribe(Ancestry.PubSub, socket.assigns.comments_topic)
-    end
-
-    socket
-    |> assign(:panel_open, false)
-    |> assign(:comments_topic, nil)
-  end
-
-  defp resubscribe_comments(socket, new_photo) do
-    if socket.assigns.panel_open and connected?(socket) do
-      old_topic = socket.assigns.comments_topic
-      new_topic = "photo_comments:#{new_photo.id}"
-
-      if old_topic && old_topic != new_topic do
-        Phoenix.PubSub.unsubscribe(Ancestry.PubSub, old_topic)
-      end
-
-      if old_topic != new_topic do
-        Phoenix.PubSub.subscribe(Ancestry.PubSub, new_topic)
-      end
-
-      assign(socket, :comments_topic, new_topic)
-    else
-      socket
-    end
   end
 
   defp ext_from_content_type("image/jpeg"), do: ".jpg"
