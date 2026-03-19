@@ -2,6 +2,7 @@ defmodule Web.FamilyLive.Show do
   use Web, :live_view
 
   alias Ancestry.Families
+  alias Ancestry.Families.Metrics
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
   alias Ancestry.People
@@ -19,12 +20,14 @@ defmodule Web.FamilyLive.Show do
 
     people = People.list_people_for_family(family_id)
     galleries = Galleries.list_galleries(family_id)
+    metrics = Metrics.compute(family_id)
 
     {:ok,
      socket
      |> assign(:family, family)
      |> assign(:people, people)
      |> assign(:galleries, galleries)
+     |> assign(:metrics, metrics)
      |> assign(:tree, nil)
      |> assign(:focus_person, nil)
      |> assign(:editing, false)
@@ -155,11 +158,13 @@ defmodule Web.FamilyLive.Show do
     case Galleries.create_gallery(params) do
       {:ok, _gallery} ->
         galleries = Galleries.list_galleries(socket.assigns.family.id)
+        metrics = Metrics.compute(socket.assigns.family.id)
 
         {:noreply,
          socket
          |> assign(:show_new_gallery_modal, false)
-         |> assign(:galleries, galleries)}
+         |> assign(:galleries, galleries)
+         |> assign(:metrics, metrics)}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :gallery_form, to_form(changeset))}
@@ -178,11 +183,13 @@ defmodule Web.FamilyLive.Show do
     gallery = socket.assigns.confirm_delete_gallery
     {:ok, _} = Galleries.delete_gallery(gallery)
     galleries = Galleries.list_galleries(socket.assigns.family.id)
+    metrics = Metrics.compute(socket.assigns.family.id)
 
     {:noreply,
      socket
      |> assign(:confirm_delete_gallery, nil)
-     |> assign(:galleries, galleries)}
+     |> assign(:galleries, galleries)
+     |> assign(:metrics, metrics)}
   end
 
   # Member search/link
@@ -217,6 +224,7 @@ defmodule Web.FamilyLive.Show do
     case People.add_to_family(person, family) do
       {:ok, _} ->
         people = People.list_people_for_family(family.id)
+        metrics = Metrics.compute(family.id)
 
         focus_person = socket.assigns.focus_person
         tree = if focus_person, do: PersonTree.build(focus_person), else: nil
@@ -224,6 +232,7 @@ defmodule Web.FamilyLive.Show do
         {:noreply,
          socket
          |> assign(:people, people)
+         |> assign(:metrics, metrics)
          |> assign(:tree, tree)
          |> assign(:search_mode, false)
          |> assign(:search_results, [])
@@ -269,6 +278,7 @@ defmodule Web.FamilyLive.Show do
   def handle_info({:relationship_saved, _type, _person}, socket) do
     family = socket.assigns.family
     people = People.list_people_for_family(family.id)
+    metrics = Metrics.compute(family.id)
     focus_person = socket.assigns.focus_person
 
     focus_person =
@@ -284,6 +294,7 @@ defmodule Web.FamilyLive.Show do
     {:noreply,
      socket
      |> assign(:people, people)
+     |> assign(:metrics, metrics)
      |> assign(:focus_person, focus_person)
      |> assign(:tree, tree)
      |> assign(:adding_relationship, nil)
