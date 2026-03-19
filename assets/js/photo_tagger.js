@@ -28,15 +28,16 @@ const PhotoTagger = {
       this.showPopover(e.clientX, e.clientY)
     })
 
-    // Show circles only on hover
-    this.image.addEventListener("mouseenter", () => {
-      this.circlesContainer.style.opacity = "1"
-    })
-    this.image.addEventListener("mouseleave", () => {
-      // Keep visible if popover is open
+    // Show circles on hover (image or circles themselves)
+    this._showCircles = () => { this.circlesContainer.style.opacity = "1" }
+    this._hideCircles = () => {
       if (this.popoverContainer.style.display !== "none") return
       this.circlesContainer.style.opacity = "0"
-    })
+    }
+    this.image.addEventListener("mouseenter", this._showCircles)
+    this.image.addEventListener("mouseleave", this._hideCircles)
+    this.circlesContainer.addEventListener("mouseenter", this._showCircles)
+    this.circlesContainer.addEventListener("mouseleave", this._hideCircles)
 
     // Sync position on resize
     this._onResize = () => this.syncCircles()
