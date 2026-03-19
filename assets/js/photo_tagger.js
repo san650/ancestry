@@ -1,10 +1,23 @@
+// PhotoTagger hook — attaches to the lightbox <img> element directly.
+// Circles and popover are appended to document.body with fixed positioning
+// so they don't interfere with the flex layout that constrains the image.
+
 const PhotoTagger = {
   mounted() {
-    this.image = this.el.querySelector("#lightbox-image")
-    this.circlesContainer = this.el.querySelector("#tag-circles")
-    this.popover = this.el.querySelector("#tag-popover")
+    this.image = this.el
     this.pendingClick = null
     this.people = []
+
+    // Create overlay containers in document.body
+    this.circlesContainer = document.createElement("div")
+    this.circlesContainer.id = "tag-circles"
+    this.circlesContainer.style.cssText = "position:fixed;pointer-events:none;z-index:51"
+    document.body.appendChild(this.circlesContainer)
+
+    this.popoverContainer = document.createElement("div")
+    this.popoverContainer.id = "tag-popover"
+    this.popoverContainer.style.cssText = "position:fixed;z-index:60;display:none"
+    document.body.appendChild(this.popoverContainer)
 
     this.image.addEventListener("click", (e) => {
       const rect = this.image.getBoundingClientRect()
@@ -15,12 +28,12 @@ const PhotoTagger = {
       this.showPopover(e.clientX, e.clientY)
     })
 
-    this._onResize = () => this.syncOverlays()
+    this._onResize = () => this.syncCircles()
     window.addEventListener("resize", this._onResize)
 
     this.handleEvent("photo_people_updated", ({ people }) => {
       this.people = people
-      this.syncOverlays()
+      this.syncCircles()
       this.hidePopover()
     })
 
@@ -33,28 +46,22 @@ const PhotoTagger = {
     })
   },
 
-  // Position the circles container to exactly cover the image
-  syncOverlays() {
-    const imgRect = this.image.getBoundingClientRect()
-    const parentRect = this.image.offsetParent
-      ? this.image.offsetParent.getBoundingClientRect()
-      : { left: 0, top: 0 }
-
-    // We position circles container using fixed positioning to avoid
-    // any offset issues with the unstyled wrapper div
-    this.circlesContainer.style.position = "fixed"
-    this.circlesContainer.style.left = imgRect.left + "px"
-    this.circlesContainer.style.top = imgRect.top + "px"
-    this.circlesContainer.style.width = imgRect.width + "px"
-    this.circlesContainer.style.height = imgRect.height + "px"
-
+  // Position circles container to exactly cover the image
+  syncCircles() {
+    const rect = this.image.getBoundingClientRect()
+    const c = this.circlesContainer
+    c.style.left = rect.left + "px"
+    c.style.top = rect.top + "px"
+    c.style.width = rect.width + "px"
+    c.style.height = rect.height + "px"
     this.renderCircles(this.people)
   },
 
   showPopover(clientX, clientY) {
     const popoverWidth = 256
+    const c = this.popoverContainer
 
-    this.popover.replaceChildren()
+    c.replaceChildren()
     const wrapper = document.createElement("div")
     wrapper.className = "bg-neutral-900 border border-white/20 rounded-xl shadow-2xl w-64 overflow-hidden"
 
@@ -77,15 +84,12 @@ const PhotoTagger = {
     resultsDiv.appendChild(hint)
     wrapper.appendChild(resultsDiv)
 
-    this.popover.appendChild(wrapper)
+    c.appendChild(wrapper)
 
-    // Position with fixed so it appears exactly at the click point
-    this.popover.style.position = "fixed"
-    this.popover.style.zIndex = "60"
     const popoverLeft = Math.min(clientX, window.innerWidth - popoverWidth - 16)
-    this.popover.style.left = popoverLeft + "px"
-    this.popover.style.top = (clientY + 12) + "px"
-    this.popover.classList.remove("hidden")
+    c.style.left = popoverLeft + "px"
+    c.style.top = (clientY + 12) + "px"
+    c.style.display = ""
 
     setTimeout(() => input.focus(), 50)
 
@@ -108,7 +112,7 @@ const PhotoTagger = {
 
     setTimeout(() => {
       this._clickAway = (e) => {
-        if (!this.popover.contains(e.target) && e.target !== this.image) {
+        if (!c.contains(e.target) && e.target !== this.image) {
           this.hidePopover()
         }
       }
@@ -117,8 +121,8 @@ const PhotoTagger = {
   },
 
   hidePopover() {
-    this.popover.classList.add("hidden")
-    this.popover.replaceChildren()
+    this.popoverContainer.style.display = "none"
+    this.popoverContainer.replaceChildren()
     this.pendingClick = null
     if (this._clickAway) {
       document.removeEventListener("click", this._clickAway)
@@ -127,7 +131,7 @@ const PhotoTagger = {
   },
 
   renderSearchResults(results) {
-    const container = this.popover.querySelector("#tag-search-results")
+    const container = this.popoverContainer.querySelector("#tag-search-results")
     if (!container) return
     container.replaceChildren()
 
@@ -234,6 +238,9 @@ const PhotoTagger = {
     if (this._clickAway) {
       document.removeEventListener("click", this._clickAway)
     }
+    // Clean up body-appended elements
+    this.circlesContainer.remove()
+    this.popoverContainer.remove()
   }
 }
 

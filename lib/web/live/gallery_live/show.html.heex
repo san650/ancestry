@@ -400,16 +400,13 @@
             <.icon name="hero-chevron-left" class="w-7 h-7" />
           </button>
 
-          <div id="photo-tagger" phx-hook="PhotoTagger" phx-update="ignore">
-            <img
-              id="lightbox-image"
-              src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
-              alt={@selected_photo.original_filename}
-              class="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-            />
-            <div id="tag-circles" class="pointer-events-none" style="position:absolute"></div>
-            <div id="tag-popover" class="hidden" style="position:absolute;z-index:20"></div>
-          </div>
+          <img
+            id="lightbox-image"
+            src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
+            alt={@selected_photo.original_filename}
+            class="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
+            phx-hook="PhotoTagger"
+          />
 
           <button
             phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowRight"})}
