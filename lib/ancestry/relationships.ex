@@ -182,32 +182,40 @@ defmodule Ancestry.Relationships do
   @doc """
   Returns list of persons who have BOTH parent_a and parent_b as parents.
   """
-  def get_children_of_pair(parent_a_id, parent_b_id) do
-    from(p in Person,
-      join: r1 in Relationship,
-      on: r1.person_b_id == p.id and r1.person_a_id == ^parent_a_id and r1.type == "parent",
-      join: r2 in Relationship,
-      on: r2.person_b_id == p.id and r2.person_a_id == ^parent_b_id and r2.type == "parent",
-      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
-      select: p
-    )
-    |> Repo.all()
+  def get_children_of_pair(parent_a_id, parent_b_id, opts \\ []) do
+    query =
+      from(p in Person,
+        join: r1 in Relationship,
+        on: r1.person_b_id == p.id and r1.person_a_id == ^parent_a_id and r1.type == "parent",
+        join: r2 in Relationship,
+        on: r2.person_b_id == p.id and r2.person_a_id == ^parent_b_id and r2.type == "parent",
+        order_by: [asc_nulls_last: p.birth_year, asc: p.id],
+        select: p
+      )
+
+    query = maybe_filter_person_by_family(query, opts[:family_id])
+
+    Repo.all(query)
   end
 
   @doc """
   Returns list of persons who are children of person_id but do NOT have a second parent.
   """
-  def get_solo_children(person_id) do
-    from(p in Person,
-      join: r in Relationship,
-      on: r.person_b_id == p.id and r.person_a_id == ^person_id and r.type == "parent",
-      left_join: r2 in Relationship,
-      on: r2.person_b_id == p.id and r2.type == "parent" and r2.person_a_id != ^person_id,
-      where: is_nil(r2.id),
-      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
-      select: p
-    )
-    |> Repo.all()
+  def get_solo_children(person_id, opts \\ []) do
+    query =
+      from(p in Person,
+        join: r in Relationship,
+        on: r.person_b_id == p.id and r.person_a_id == ^person_id and r.type == "parent",
+        left_join: r2 in Relationship,
+        on: r2.person_b_id == p.id and r2.type == "parent" and r2.person_a_id != ^person_id,
+        where: is_nil(r2.id),
+        order_by: [asc_nulls_last: p.birth_year, asc: p.id],
+        select: p
+      )
+
+    query = maybe_filter_person_by_family(query, opts[:family_id])
+
+    Repo.all(query)
   end
 
   @doc """
@@ -268,6 +276,14 @@ defmodule Ancestry.Relationships do
 
   defp maybe_filter_by_family(query, family_id) do
     from [_r, p] in query,
+      join: fm in FamilyMember,
+      on: fm.person_id == p.id and fm.family_id == ^family_id
+  end
+
+  defp maybe_filter_person_by_family(query, nil), do: query
+
+  defp maybe_filter_person_by_family(query, family_id) do
+    from [p, ...] in query,
       join: fm in FamilyMember,
       on: fm.person_id == p.id and fm.family_id == ^family_id
   end

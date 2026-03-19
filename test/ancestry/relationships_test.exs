@@ -376,6 +376,29 @@ defmodule Ancestry.RelationshipsTest do
       assert child2.id in ids
       refute solo_child.id in ids
     end
+
+    test "filters children of pair by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, father} = People.create_person(family1, %{given_name: "Dad", surname: "D"})
+      {:ok, mother} = People.create_person(family1, %{given_name: "Mom", surname: "D"})
+      People.add_to_family(father, family2)
+      People.add_to_family(mother, family2)
+      {:ok, child1} = People.create_person(family1, %{given_name: "Kid1", surname: "D"})
+      {:ok, child2} = People.create_person(family2, %{given_name: "Kid2", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(father, child1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother, child1, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(father, child2, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother, child2, "parent", %{role: "mother"})
+
+      assert length(Relationships.get_children_of_pair(father.id, mother.id)) == 2
+
+      f1 = Relationships.get_children_of_pair(father.id, mother.id, family_id: family1.id)
+      assert length(f1) == 1
+      assert hd(f1).id == child1.id
+    end
   end
 
   describe "get_solo_children/1" do
@@ -398,6 +421,25 @@ defmodule Ancestry.RelationshipsTest do
       solo = Relationships.get_solo_children(parent.id)
       assert length(solo) == 1
       assert hd(solo).id == solo_child.id
+    end
+
+    test "filters solo children by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, parent} = People.create_person(family1, %{given_name: "Dad", surname: "D"})
+      People.add_to_family(parent, family2)
+      {:ok, solo1} = People.create_person(family1, %{given_name: "Solo1", surname: "D"})
+      {:ok, solo2} = People.create_person(family2, %{given_name: "Solo2", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(parent, solo1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(parent, solo2, "parent", %{role: "father"})
+
+      assert length(Relationships.get_solo_children(parent.id)) == 2
+
+      f1 = Relationships.get_solo_children(parent.id, family_id: family1.id)
+      assert length(f1) == 1
+      assert hd(f1).id == solo1.id
     end
   end
 
