@@ -109,7 +109,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
   end
 
   defp assign_filtered(socket) do
-    query = String.downcase(String.trim(socket.assigns.query))
+    query = Ancestry.StringUtils.normalize(String.trim(socket.assigns.query))
     people = socket.assigns.people
 
     filtered =
@@ -117,7 +117,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
         people
       else
         Enum.filter(people, fn person ->
-          name = String.downcase(Person.display_name(person))
+          name = Ancestry.StringUtils.normalize(Person.display_name(person))
           String.contains?(name, query)
         end)
       end

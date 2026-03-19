@@ -160,16 +160,16 @@ defmodule Web.KinshipLive do
 
   defp filter_people(people, query, exclude_person) do
     exclude_id = if exclude_person, do: exclude_person.id, else: nil
-    query_down = String.downcase(String.trim(query))
+    query_normalized = Ancestry.StringUtils.normalize(String.trim(query))
 
     people
     |> Enum.reject(&(&1.id == exclude_id))
     |> Enum.filter(fn person ->
-      if query_down == "" do
+      if query_normalized == "" do
         true
       else
-        name = String.downcase(Person.display_name(person))
-        String.contains?(name, query_down)
+        name = Ancestry.StringUtils.normalize(Person.display_name(person))
+        String.contains?(name, query_normalized)
       end
     end)
   end
