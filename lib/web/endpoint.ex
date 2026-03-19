@@ -19,6 +19,16 @@ defmodule Web.Endpoint do
     websocket: [connect_info: [:user_agent, session: @session_options]],
     longpoll: [connect_info: [:user_agent, session: @session_options]]
 
+  # In test, Waffle writes uploads to tmp/test_uploads/ but the main
+  # Plug.Static serves from priv/static/. This extra plug lets the
+  # browser find Oban-processed upload files during E2E tests.
+  if Mix.env() == :test do
+    plug Plug.Static,
+      at: "/",
+      from: "tmp/test_uploads",
+      only: ~w(uploads)
+  end
+
   # Serve at "/" the static files from "priv/static" directory.
   #
   # When code reloading is disabled (e.g., in production),

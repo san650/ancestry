@@ -36,6 +36,14 @@ Pages should go edge-to-edge with no padding on `<main>`. Each page controls its
 
 **Fix:** When adding a new page, do not add `overflow-y-auto` or `max-h-screen` to content containers. Let the page grow naturally. Only add `overflow-x-auto` to containers whose content may exceed the viewport width.
 
+## Test output must be clean — no hanging log errors or warnings
+
+After implementing a feature or bugfix, the test suite output should contain only test results — no `[error]` log lines, no `[warning]` noise, no 404s from missing resources. Noisy test output hides real problems and normalizes ignoring errors.
+
+Common causes: E2E tests rendering `<img>` tags for files that don't exist on disk (factories create DB records with `status: "processed"` but no actual files), or test configs that route file storage to a different directory than where the web server serves static files.
+
+**Fix:** Always verify clean output with `mix test 2>&1 | grep "\[error\]"` before considering a task complete. When tests create records that reference files, ensure the files exist where the server expects them — either by aligning storage paths, adding test-only static file serving, or creating placeholder files in test setup.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.

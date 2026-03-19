@@ -28,8 +28,8 @@ defmodule Web.UserFlows.FamilyMetricsTest do
 
     # A gallery with photos
     gallery = insert(:gallery, family: family, name: "Summer 2025")
-    insert(:photo, gallery: gallery)
-    insert(:photo, gallery: gallery)
+    insert(:photo, gallery: gallery) |> ensure_photo_file()
+    insert(:photo, gallery: gallery) |> ensure_photo_file()
 
     %{family: family, grandpa: grandpa, parent: parent, child: child}
   end

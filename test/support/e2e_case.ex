@@ -57,6 +57,32 @@ defmodule Web.E2ECase do
     """)
   end
 
+  @doc """
+  Creates placeholder image files for a factory-created photo so the browser
+  can fetch them without 404 errors during E2E tests.
+
+  Waffle's Photo uploader appends `.jpg` to transformed version filenames
+  (e.g. `thumbnail.jpg` + `:jpg` transform → `thumbnail.jpg.jpg`).
+  """
+  def ensure_photo_file(%Ancestry.Galleries.Photo{} = photo) do
+    photo = Ancestry.Repo.preload(photo, :gallery)
+
+    dir =
+      Path.join([
+        "tmp/test_uploads/uploads/photos",
+        "#{photo.gallery.family_id}",
+        "#{photo.gallery_id}",
+        "#{photo.id}"
+      ])
+
+    File.mkdir_p!(dir)
+    source = "test/fixtures/test_image.jpg"
+    File.cp!(source, Path.join(dir, "thumbnail.jpg.jpg"))
+    File.cp!(source, Path.join(dir, "large.jpg.jpg"))
+    File.cp!(source, Path.join(dir, "original#{Path.extname(photo.original_filename)}"))
+    photo
+  end
+
   defp mime_for_extension(".jpg"), do: "image/jpeg"
   defp mime_for_extension(".jpeg"), do: "image/jpeg"
   defp mime_for_extension(".png"), do: "image/png"
