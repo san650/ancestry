@@ -359,6 +359,24 @@ defmodule Web.KinshipLive do
     """
   end
 
+  defp fork_connector(assigns) do
+    ~H"""
+    <div class="w-full max-w-2xl py-1 text-base-300">
+      <svg viewBox="0 0 200 40" class="w-full h-10" preserveAspectRatio="none">
+        <path
+          d="M100 0 L100 15 M100 15 L50 40 M100 15 L150 40"
+          stroke="currentColor"
+          stroke-width="1.5"
+          fill="none"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
+    """
+  end
+
   attr :person, :any, required: true
 
   defp kinship_person_avatar(assigns) do
