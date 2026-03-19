@@ -376,10 +376,10 @@ defmodule Web.FamilyLive.Show do
     if String.trim(filter) == "" do
       people
     else
-      filter = String.downcase(filter)
+      filter = Ancestry.StringUtils.normalize(filter)
 
       Enum.filter(people, fn person ->
-        name = Person.display_name(person) |> String.downcase()
+        name = Person.display_name(person) |> Ancestry.StringUtils.normalize()
         String.contains?(name, filter)
       end)
     end
