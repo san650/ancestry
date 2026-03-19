@@ -4,6 +4,7 @@ defmodule Ancestry.GalleriesTest do
   alias Ancestry.Families
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
+  alias Ancestry.People
 
   setup do
     {:ok, family} = Families.create_family(%{name: "Test Family"})
@@ -189,6 +190,63 @@ defmodule Ancestry.GalleriesTest do
       assert length(result) == 2
       assert Enum.all?(result, fn pp -> pp.person != nil end)
       assert hd(result).person.given_name == "Alice"
+    end
+  end
+
+  describe "list_photos_for_person/1" do
+    setup %{family: family} do
+      {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
+      {:ok, person} = People.create_person(family, %{given_name: "Alice", surname: "Smith"})
+      %{gallery: gallery, person: person}
+    end
+
+    test "returns processed photos where person is tagged, ordered by inserted_at desc", %{
+      gallery: gallery,
+      person: person
+    } do
+      {:ok, photo1} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test1.jpg",
+          original_filename: "test1.jpg",
+          content_type: "image/jpeg"
+        })
+
+      {:ok, photo1} = Galleries.update_photo_processed(photo1, "test1.jpg")
+
+      {:ok, photo2} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test2.jpg",
+          original_filename: "test2.jpg",
+          content_type: "image/jpeg"
+        })
+
+      {:ok, photo2} = Galleries.update_photo_processed(photo2, "test2.jpg")
+
+      # Pending photo — should not appear
+      {:ok, photo3} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test3.jpg",
+          original_filename: "test3.jpg",
+          content_type: "image/jpeg"
+        })
+
+      {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
+      {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.3)
+      {:ok, _} = Galleries.tag_person_in_photo(photo3.id, person.id, 0.1, 0.1)
+
+      result = Galleries.list_photos_for_person(person.id)
+
+      assert length(result) == 2
+      assert List.first(result).id == photo2.id
+      assert List.last(result).id == photo1.id
+      assert List.first(result).gallery != nil
+    end
+
+    test "returns empty list when person has no tagged photos", %{person: person} do
+      assert Galleries.list_photos_for_person(person.id) == []
     end
   end
 

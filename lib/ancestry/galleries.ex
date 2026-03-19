@@ -91,4 +91,15 @@ defmodule Ancestry.Galleries do
         preload: [:person]
     )
   end
+
+  def list_photos_for_person(person_id) do
+    Repo.all(
+      from p in Photo,
+        join: pp in PhotoPerson,
+        on: pp.photo_id == p.id,
+        where: pp.person_id == ^person_id and p.status == "processed",
+        order_by: [desc: p.inserted_at, desc: p.id],
+        preload: [:gallery]
+    )
+  end
 end
