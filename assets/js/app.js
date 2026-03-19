@@ -26,11 +26,15 @@ import { hooks as colocatedHooks } from "phoenix-colocated/ancestry"
 import topbar from "../vendor/topbar"
 import { PhotoTagger, PersonHighlight } from "./photo_tagger"
 
+function stripDiacritics(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+}
+
 const FuzzyFilter = {
   mounted() {
     const targetId = this.el.dataset.target
     this.el.addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase().trim()
+      const query = stripDiacritics(e.target.value.trim())
       const container = document.getElementById(targetId)
       if (!container) return
       const items = container.querySelectorAll("[data-filter-name]")

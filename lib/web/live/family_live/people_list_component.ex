@@ -57,7 +57,9 @@ defmodule Web.FamilyLive.PeopleListComponent do
               "flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors text-sm group",
               if(person.id == @focus_person_id, do: "bg-primary/10", else: "hover:bg-base-200")
             ]}
-            data-filter-name={String.downcase("#{person.surname}, #{person.given_name}")}
+            data-filter-name={
+              Ancestry.StringUtils.normalize("#{person.surname}, #{person.given_name}")
+            }
             {test_id("person-item-#{person.id}")}
           >
             <button
