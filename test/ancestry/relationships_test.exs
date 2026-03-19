@@ -239,6 +239,29 @@ defmodule Ancestry.RelationshipsTest do
       assert child1.id in child_ids
       assert child2.id in child_ids
     end
+
+    test "filters children by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, parent} = People.create_person(family1, %{given_name: "Dad", surname: "D"})
+      People.add_to_family(parent, family2)
+      {:ok, child1} = People.create_person(family1, %{given_name: "Kid1", surname: "D"})
+      {:ok, child2} = People.create_person(family2, %{given_name: "Kid2", surname: "D"})
+
+      {:ok, _} = Relationships.create_relationship(parent, child1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(parent, child2, "parent", %{role: "father"})
+
+      assert length(Relationships.get_children(parent.id)) == 2
+
+      f1_children = Relationships.get_children(parent.id, family_id: family1.id)
+      assert length(f1_children) == 1
+      assert hd(f1_children).id == child1.id
+
+      f2_children = Relationships.get_children(parent.id, family_id: family2.id)
+      assert length(f2_children) == 1
+      assert hd(f2_children).id == child2.id
+    end
   end
 
   describe "get_partners/1" do

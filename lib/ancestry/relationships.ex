@@ -108,15 +108,19 @@ defmodule Ancestry.Relationships do
   @doc """
   Returns list of persons who are children of the given person_id.
   """
-  def get_children(person_id) do
-    from(r in Relationship,
-      join: p in Person,
-      on: p.id == r.person_b_id,
-      where: r.person_a_id == ^person_id and r.type == "parent",
-      order_by: [asc_nulls_last: p.birth_year, asc: p.id],
-      select: p
-    )
-    |> Repo.all()
+  def get_children(person_id, opts \\ []) do
+    query =
+      from(r in Relationship,
+        join: p in Person,
+        on: p.id == r.person_b_id,
+        where: r.person_a_id == ^person_id and r.type == "parent",
+        order_by: [asc_nulls_last: p.birth_year, asc: p.id],
+        select: p
+      )
+
+    query = maybe_filter_by_family(query, opts[:family_id])
+
+    Repo.all(query)
   end
 
   @doc """
