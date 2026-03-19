@@ -174,21 +174,8 @@
                     </div>
                   </div>
 
-                  <%!-- Branch connectors --%>
-                  <div class="flex w-full max-w-2xl">
-                    <div class="flex-1 flex justify-center">
-                      <.arrow_connector direction={:down} />
-                    </div>
-                    <div class="flex-1 flex justify-center">
-                      <.arrow_connector direction={:down} />
-                    </div>
-                  </div>
-
-                  <%!-- Horizontal connector bar --%>
-                  <div class="flex w-full max-w-2xl">
-                    <div class="flex-1 border-t-2 border-r border-base-300 h-0"></div>
-                    <div class="flex-1 border-t-2 border-l border-base-300 h-0"></div>
-                  </div>
+                  <%!-- Fork connector from MRCA to branches --%>
+                  <.fork_connector />
 
                   <%!-- Two branches side by side --%>
                   <div class="flex w-full max-w-2xl gap-4">
