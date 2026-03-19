@@ -1,6 +1,8 @@
 defmodule Ancestry.PeopleTest do
   use Ancestry.DataCase, async: true
 
+  import Ancestry.Factory
+
   alias Ancestry.People
   alias Ancestry.People.Person
 
@@ -225,6 +227,51 @@ defmodule Ancestry.PeopleTest do
   describe "change_person/2" do
     test "returns a changeset" do
       assert %Ecto.Changeset{} = People.change_person(%Person{})
+    end
+  end
+
+  describe "default member" do
+    setup do
+      family = insert(:family)
+      person_a = insert(:person, given_name: "Alice", surname: "Smith")
+      person_b = insert(:person, given_name: "Bob", surname: "Smith")
+      People.add_to_family(person_a, family)
+      People.add_to_family(person_b, family)
+      %{family: family, person_a: person_a, person_b: person_b}
+    end
+
+    test "get_default_person/1 returns nil when no default is set", %{family: family} do
+      assert People.get_default_person(family.id) == nil
+    end
+
+    test "set_default_member/2 sets the default person", %{family: family, person_a: person_a} do
+      assert {:ok, _} = People.set_default_member(family.id, person_a.id)
+      assert People.get_default_person(family.id).id == person_a.id
+    end
+
+    test "set_default_member/2 replaces existing default", %{
+      family: family,
+      person_a: person_a,
+      person_b: person_b
+    } do
+      {:ok, _} = People.set_default_member(family.id, person_a.id)
+      {:ok, _} = People.set_default_member(family.id, person_b.id)
+      assert People.get_default_person(family.id).id == person_b.id
+    end
+
+    test "clear_default_member/1 removes the default", %{family: family, person_a: person_a} do
+      {:ok, _} = People.set_default_member(family.id, person_a.id)
+      assert :ok = People.clear_default_member(family.id)
+      assert People.get_default_person(family.id) == nil
+    end
+
+    test "removing a member from family clears default automatically", %{
+      family: family,
+      person_a: person_a
+    } do
+      {:ok, _} = People.set_default_member(family.id, person_a.id)
+      {:ok, _} = People.remove_from_family(person_a, family)
+      assert People.get_default_person(family.id) == nil
     end
   end
 

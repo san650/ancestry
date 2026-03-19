@@ -147,6 +147,41 @@ defmodule Ancestry.People do
     |> Repo.insert()
   end
 
+  def get_default_person(family_id) do
+    Repo.one(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id,
+        where: fm.family_id == ^family_id and fm.is_default == true
+    )
+  end
+
+  def set_default_member(family_id, person_id) do
+    Repo.transaction(fn ->
+      Repo.update_all(
+        from(fm in FamilyMember, where: fm.family_id == ^family_id),
+        set: [is_default: false]
+      )
+
+      {1, _} =
+        Repo.update_all(
+          from(fm in FamilyMember,
+            where: fm.family_id == ^family_id and fm.person_id == ^person_id
+          ),
+          set: [is_default: true]
+        )
+    end)
+  end
+
+  def clear_default_member(family_id) do
+    Repo.update_all(
+      from(fm in FamilyMember, where: fm.family_id == ^family_id),
+      set: [is_default: false]
+    )
+
+    :ok
+  end
+
   def change_person(%Person{} = person, attrs \\ %{}) do
     Person.changeset(person, attrs)
   end
