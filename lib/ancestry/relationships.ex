@@ -143,18 +143,20 @@ defmodule Ancestry.Relationships do
   @doc """
   Returns list of `{person, relationship}` tuples for current partners of the given person_id.
   """
-  def get_partners(person_id) do
-    get_relationship_partners(person_id, "partner")
+  def get_partners(person_id, opts \\ []) do
+    get_relationship_partners(person_id, "partner", opts)
   end
 
   @doc """
   Returns list of `{person, relationship}` tuples for ex-partners of the given person_id.
   """
-  def get_ex_partners(person_id) do
-    get_relationship_partners(person_id, "ex_partner")
+  def get_ex_partners(person_id, opts \\ []) do
+    get_relationship_partners(person_id, "ex_partner", opts)
   end
 
-  defp get_relationship_partners(person_id, type) do
+  defp get_relationship_partners(person_id, type, opts) do
+    family_id = opts[:family_id]
+
     as_a =
       from(r in Relationship,
         join: p in Person,
@@ -170,6 +172,9 @@ defmodule Ancestry.Relationships do
         where: r.person_b_id == ^person_id and r.type == ^type,
         select: {p, r}
       )
+
+    as_a = maybe_filter_by_family(as_a, family_id)
+    as_b = maybe_filter_by_family(as_b, family_id)
 
     Repo.all(as_a) ++ Repo.all(as_b)
   end

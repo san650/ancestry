@@ -282,6 +282,26 @@ defmodule Ancestry.RelationshipsTest do
       assert {partner_b, _rel} = hd(partners_b)
       assert partner_b.id == a.id
     end
+
+    test "filters partners by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, person} = People.create_person(family1, %{given_name: "Person", surname: "P"})
+      People.add_to_family(person, family2)
+      {:ok, partner1} = People.create_person(family1, %{given_name: "Partner1", surname: "P"})
+      {:ok, partner2} = People.create_person(family2, %{given_name: "Partner2", surname: "P"})
+
+      {:ok, _} = Relationships.create_relationship(person, partner1, "partner")
+      {:ok, _} = Relationships.create_relationship(person, partner2, "partner")
+
+      assert length(Relationships.get_partners(person.id)) == 2
+
+      f1_partners = Relationships.get_partners(person.id, family_id: family1.id)
+      assert length(f1_partners) == 1
+      assert {p, _} = hd(f1_partners)
+      assert p.id == partner1.id
+    end
   end
 
   describe "get_ex_partners/1" do
@@ -300,6 +320,35 @@ defmodule Ancestry.RelationshipsTest do
       assert length(exes) == 1
       assert {ex, _rel} = hd(exes)
       assert ex.id == b.id
+    end
+
+    test "filters ex_partners by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, person} = People.create_person(family1, %{given_name: "Person", surname: "P"})
+      People.add_to_family(person, family2)
+      {:ok, ex1} = People.create_person(family1, %{given_name: "Ex1", surname: "P"})
+      {:ok, ex2} = People.create_person(family2, %{given_name: "Ex2", surname: "P"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, ex1, "ex_partner", %{
+          marriage_year: 2010,
+          divorce_year: 2015
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(person, ex2, "ex_partner", %{
+          marriage_year: 2012,
+          divorce_year: 2016
+        })
+
+      assert length(Relationships.get_ex_partners(person.id)) == 2
+
+      f1_exes = Relationships.get_ex_partners(person.id, family_id: family1.id)
+      assert length(f1_exes) == 1
+      assert {ex, _} = hd(f1_exes)
+      assert ex.id == ex1.id
     end
   end
 
