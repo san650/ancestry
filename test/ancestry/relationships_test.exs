@@ -194,6 +194,33 @@ defmodule Ancestry.RelationshipsTest do
       assert father.id in parent_ids
       assert mother.id in parent_ids
     end
+
+    test "filters parents by family_id" do
+      family1 = family_fixture(%{name: "Family 1"})
+      family2 = family_fixture(%{name: "Family 2"})
+
+      {:ok, father} = People.create_person(family1, %{given_name: "Dad", surname: "D"})
+      {:ok, mother} = People.create_person(family2, %{given_name: "Mom", surname: "D"})
+      {:ok, child} = People.create_person(family1, %{given_name: "Kid", surname: "D"})
+      People.add_to_family(child, family2)
+
+      {:ok, _} = Relationships.create_relationship(father, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mother, child, "parent", %{role: "mother"})
+
+      # Without family_id — returns both parents (global)
+      assert length(Relationships.get_parents(child.id)) == 2
+
+      # With family_id — only returns the parent who is in that family
+      family1_parents = Relationships.get_parents(child.id, family_id: family1.id)
+      assert length(family1_parents) == 1
+      assert {parent, _rel} = hd(family1_parents)
+      assert parent.id == father.id
+
+      family2_parents = Relationships.get_parents(child.id, family_id: family2.id)
+      assert length(family2_parents) == 1
+      assert {parent, _rel} = hd(family2_parents)
+      assert parent.id == mother.id
+    end
   end
 
   describe "get_children/1" do

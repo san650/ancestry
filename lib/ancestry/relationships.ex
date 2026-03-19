@@ -91,14 +91,18 @@ defmodule Ancestry.Relationships do
   @doc """
   Returns list of `{person, relationship}` tuples where person is a parent of the given person_id.
   """
-  def get_parents(person_id) do
-    from(r in Relationship,
-      join: p in Person,
-      on: p.id == r.person_a_id,
-      where: r.person_b_id == ^person_id and r.type == "parent",
-      select: {p, r}
-    )
-    |> Repo.all()
+  def get_parents(person_id, opts \\ []) do
+    query =
+      from(r in Relationship,
+        join: p in Person,
+        on: p.id == r.person_a_id,
+        where: r.person_b_id == ^person_id and r.type == "parent",
+        select: {p, r}
+      )
+
+    query = maybe_filter_by_family(query, opts[:family_id])
+
+    Repo.all(query)
   end
 
   @doc """
@@ -249,6 +253,14 @@ defmodule Ancestry.Relationships do
           end
         end)
     end
+  end
+
+  defp maybe_filter_by_family(query, nil), do: query
+
+  defp maybe_filter_by_family(query, family_id) do
+    from [_r, p] in query,
+      join: fm in FamilyMember,
+      on: fm.person_id == p.id and fm.family_id == ^family_id
   end
 
   defp validate_parent_limit(child_id, "parent") do
