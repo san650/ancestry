@@ -6,12 +6,13 @@ defmodule Ancestry.Families.Metrics do
   alias Ancestry.People.Person
   alias Ancestry.Galleries.Gallery
   alias Ancestry.Galleries.Photo
+  alias Ancestry.Relationships.Relationship
 
   def compute(family_id) do
     %{
       people_count: count_people(family_id),
       photo_count: count_photos(family_id),
-      generations: nil,
+      generations: find_longest_line(family_id),
       oldest_person: find_oldest_person(family_id)
     }
   end
@@ -79,6 +80,84 @@ defmodule Ancestry.Families.Metrics do
     bd = bd || 1
     end_day = end_day || 1
     if {end_month, end_day} < {bm, bd}, do: base - 1, else: base
+  end
+
+  defp find_longest_line(family_id) do
+    member_ids = MapSet.new(Repo.all(family_member_ids_query(family_id)))
+
+    if MapSet.size(member_ids) < 2 do
+      nil
+    else
+      member_id_list = MapSet.to_list(member_ids)
+
+      parent_child_pairs =
+        Repo.all(
+          from r in Relationship,
+            where: r.type == "parent",
+            where: r.person_a_id in ^member_id_list,
+            where: r.person_b_id in ^member_id_list,
+            select: {r.person_a_id, r.person_b_id}
+        )
+
+      if parent_child_pairs == [] do
+        nil
+      else
+        children_map =
+          Enum.group_by(parent_child_pairs, fn {parent_id, _} -> parent_id end, fn {_, child_id} ->
+            child_id
+          end)
+
+        child_set = MapSet.new(parent_child_pairs, fn {_, child_id} -> child_id end)
+
+        # Root ancestors: family members who have children but are not children themselves (within family)
+        roots =
+          member_ids
+          |> Enum.filter(&Map.has_key?(children_map, &1))
+          |> Enum.reject(&MapSet.member?(child_set, &1))
+
+        if roots == [] do
+          nil
+        else
+          {best_count, best_root_id, best_leaf_id} =
+            Enum.reduce(roots, {0, nil, nil}, fn root_id, best ->
+              {depth, leaf_id} = dfs_longest(root_id, children_map)
+              if depth > elem(best, 0), do: {depth, root_id, leaf_id}, else: best
+            end)
+
+          if best_count >= 2 do
+            people_by_id = load_people_by_ids([best_root_id, best_leaf_id])
+
+            %{
+              count: best_count,
+              root: Map.get(people_by_id, best_root_id),
+              leaf: Map.get(people_by_id, best_leaf_id)
+            }
+          else
+            nil
+          end
+        end
+      end
+    end
+  end
+
+  defp dfs_longest(person_id, children_map) do
+    case Map.get(children_map, person_id, []) do
+      [] ->
+        {1, person_id}
+
+      children ->
+        children
+        |> Enum.map(fn child_id -> dfs_longest(child_id, children_map) end)
+        |> Enum.max_by(fn {depth, _} -> depth end)
+        |> then(fn {depth, leaf_id} -> {depth + 1, leaf_id} end)
+    end
+  end
+
+  defp load_people_by_ids(ids) do
+    ids = Enum.uniq(ids)
+
+    Repo.all(from p in Person, where: p.id in ^ids)
+    |> Map.new(fn p -> {p.id, p} end)
   end
 
   defp family_member_ids_query(family_id) do

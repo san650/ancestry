@@ -152,4 +152,105 @@ defmodule Ancestry.Families.MetricsTest do
       assert metrics.oldest_person.age == expected_age
     end
   end
+
+  describe "compute/1 generations" do
+    test "returns nil when fewer than 2 people" do
+      family = insert(:family)
+      person = insert(:person)
+      Ancestry.People.add_to_family(person, family)
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.generations == nil
+    end
+
+    test "3-generation chain returns count 3 with correct root and leaf" do
+      family = insert(:family)
+      grandparent = insert(:person, given_name: "Grand")
+      parent = insert(:person, given_name: "Parent")
+      child = insert(:person, given_name: "Child")
+
+      Ancestry.People.add_to_family(grandparent, family)
+      Ancestry.People.add_to_family(parent, family)
+      Ancestry.People.add_to_family(child, family)
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(grandparent, parent, "parent", %{
+          role: "father"
+        })
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.generations.count == 3
+      assert metrics.generations.root.id == grandparent.id
+      assert metrics.generations.leaf.id == child.id
+    end
+
+    test "picks the longest branch when multiple exist" do
+      family = insert(:family)
+      root = insert(:person, given_name: "Root")
+      mid = insert(:person, given_name: "Mid")
+      leaf_short = insert(:person, given_name: "ShortLeaf")
+      leaf_long = insert(:person, given_name: "LongLeaf")
+
+      for p <- [root, mid, leaf_short, leaf_long], do: Ancestry.People.add_to_family(p, family)
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(root, mid, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(root, leaf_short, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(mid, leaf_long, "parent", %{role: "father"})
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.generations.count == 3
+      assert metrics.generations.root.id == root.id
+      assert metrics.generations.leaf.id == leaf_long.id
+    end
+
+    test "scopes to family members only — ignores children outside the family" do
+      family = insert(:family)
+      root = insert(:person, given_name: "Root")
+      child_in = insert(:person, given_name: "InFamily")
+      child_out = insert(:person, given_name: "OutFamily")
+      grandchild = insert(:person, given_name: "Grandchild")
+
+      Ancestry.People.add_to_family(root, family)
+      Ancestry.People.add_to_family(child_in, family)
+      # child_out is NOT added to family
+      Ancestry.People.add_to_family(grandchild, family)
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(root, child_in, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(root, child_out, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(child_out, grandchild, "parent", %{
+          role: "father"
+        })
+
+      metrics = Metrics.compute(family.id)
+      # root -> child_in is 2 generations
+      # root -> child_out -> grandchild would be 3, but child_out is not in family so chain breaks
+      assert metrics.generations.count == 2
+      assert metrics.generations.root.id == root.id
+      assert metrics.generations.leaf.id == child_in.id
+    end
+
+    test "returns nil when people exist but no parent relationships" do
+      family = insert(:family)
+      a = insert(:person)
+      b = insert(:person)
+      Ancestry.People.add_to_family(a, family)
+      Ancestry.People.add_to_family(b, family)
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.generations == nil
+    end
+  end
 end
