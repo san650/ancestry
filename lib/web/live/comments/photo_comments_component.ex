@@ -85,26 +85,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
     {:noreply, socket}
   end
 
-  def handle_event("close_comments", _, socket) do
-    send(self(), {:close_comments})
-    {:noreply, socket}
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
     <div id="photo-comments-panel" class="flex flex-col h-full bg-black/80 text-white">
       <%!-- Header --%>
-      <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
+      <div class="px-4 py-3 border-b border-white/10 shrink-0">
         <h3 class="text-sm font-semibold text-white/90 tracking-wide">Comments</h3>
-        <button
-          id="close-comments-btn"
-          phx-click="close_comments"
-          phx-target={@myself}
-          class="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          <.icon name="hero-x-mark" class="w-4 h-4" />
-        </button>
       </div>
 
       <%!-- Scrollable comment list --%>

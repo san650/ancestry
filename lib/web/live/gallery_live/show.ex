@@ -22,7 +22,8 @@ defmodule Web.GalleryLive.Show do
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_photos, false)
      |> assign(:selected_photo, nil)
-     |> assign(:comments_open, false)
+     |> assign(:panel_open, false)
+     |> assign(:photo_people, [])
      |> assign(:comments_topic, nil)
      |> assign(:show_upload_modal, false)
      |> assign(:upload_results, [])
@@ -128,12 +129,17 @@ defmodule Web.GalleryLive.Show do
     if socket.assigns.selection_mode do
       handle_event("toggle_photo_select", %{"id" => to_string(id)}, socket)
     else
-      {:noreply, assign(socket, :selected_photo, Galleries.get_photo!(id))}
+      photo = Galleries.get_photo!(id)
+
+      {:noreply,
+       socket
+       |> assign(:selected_photo, photo)
+       |> assign(:photo_people, Galleries.list_photo_people(photo.id))}
     end
   end
 
-  def handle_event("toggle_comments", _, socket) do
-    opening = not socket.assigns.comments_open
+  def handle_event("toggle_panel", _, socket) do
+    opening = not socket.assigns.panel_open
 
     socket =
       if opening do
@@ -144,7 +150,7 @@ defmodule Web.GalleryLive.Show do
         end
 
         socket
-        |> assign(:comments_open, true)
+        |> assign(:panel_open, true)
         |> assign(:comments_topic, topic)
       else
         cleanup_comments_subscription(socket)
@@ -179,8 +185,12 @@ defmodule Web.GalleryLive.Show do
 
   def handle_event("lightbox_select", %{"id" => id}, socket) do
     new_photo = Galleries.get_photo!(String.to_integer(id))
-    socket = assign(socket, :selected_photo, new_photo)
-    {:noreply, resubscribe_comments(socket, new_photo)}
+
+    {:noreply,
+     socket
+     |> assign(:selected_photo, new_photo)
+     |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
+     |> resubscribe_comments(new_photo)}
   end
 
   @impl true
@@ -217,10 +227,6 @@ defmodule Web.GalleryLive.Show do
     )
 
     {:noreply, socket}
-  end
-
-  def handle_info({:close_comments}, socket) do
-    {:noreply, cleanup_comments_subscription(socket)}
   end
 
   # LiveView traps exits; upload writer tasks send :EXIT on completion
@@ -289,6 +295,7 @@ defmodule Web.GalleryLive.Show do
 
     socket
     |> assign(:selected_photo, new_photo)
+    |> assign(:photo_people, Galleries.list_photo_people(new_photo.id))
     |> resubscribe_comments(new_photo)
   end
 
@@ -298,12 +305,12 @@ defmodule Web.GalleryLive.Show do
     end
 
     socket
-    |> assign(:comments_open, false)
+    |> assign(:panel_open, false)
     |> assign(:comments_topic, nil)
   end
 
   defp resubscribe_comments(socket, new_photo) do
-    if socket.assigns.comments_open and connected?(socket) do
+    if socket.assigns.panel_open and connected?(socket) do
       old_topic = socket.assigns.comments_topic
       new_topic = "photo_comments:#{new_photo.id}"
 

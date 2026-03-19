@@ -17,7 +17,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel")
       assert has_element?(view, "#photo-comments-panel", "Great shot!")
@@ -30,7 +30,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel")
       assert has_element?(view, "#comments-empty")
@@ -44,7 +44,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       view
       |> form("#new-comment-form", comment: %{text: "Beautiful photo!"})
@@ -63,7 +63,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       view
       |> form("#new-comment-form", comment: %{text: ""})
@@ -82,7 +82,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Original")
 
@@ -109,7 +109,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       view
       |> element("[phx-click='edit_comment'][phx-value-id='#{comment.id}']")
@@ -131,7 +131,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Delete me")
 
@@ -155,10 +155,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
       refute has_element?(view, "#photo-comments-panel")
 
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
       assert has_element?(view, "#photo-comments-panel")
 
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
       refute has_element?(view, "#photo-comments-panel")
     end
 
@@ -168,7 +168,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel")
 
@@ -188,7 +188,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo1.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Comment on photo 1")
       refute has_element?(view, "#photo-comments-panel", "Comment on photo 2")
@@ -210,7 +210,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo1.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Only on photo 1")
 
@@ -230,7 +230,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       # Simulate a PubSub broadcast by sending the message directly to the LiveView
       {:ok, comment} =
@@ -251,7 +251,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Before edit")
 
@@ -269,7 +269,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
-      view |> element("#toggle-comments-btn") |> render_click()
+      view |> element("#toggle-panel-btn") |> render_click()
 
       assert has_element?(view, "#photo-comments-panel", "Will vanish")
 
