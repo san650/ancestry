@@ -62,6 +62,12 @@ When a LiveView event handler modifies state that other assigns depend on (e.g.,
 
 **Fix:** After modifying state in an event handler, also update any assigns that derive from that state. If the same derivation logic is needed in both `handle_params` and `handle_event`, extract it to a shared private function and call it from both places.
 
+## JS hook pushEvent sends native types, phx-value-* sends strings
+
+When a JS hook calls `this.pushEvent("event", { id: 42 })`, the value arrives in the Elixir `handle_event` as an integer (`42`), not a string. Calling `String.to_integer(42)` raises `ArgumentError: not a binary`. In contrast, `phx-value-*` HTML attributes always arrive as strings because they go through DOM serialization (`phx-value-id="42"` → `%{"id" => "42"}`).
+
+**Fix:** When a `handle_event` receives values from JS hooks, don't assume they're strings. Either ensure the JS side sends strings (`person_id: String(person.id)`) or handle both types on the server. The cleanest approach is to normalize in the JS hook — always send string values to match the convention of `phx-value-*` attributes, so all event handlers can consistently use `String.to_integer/1`.
+
 ## Colocated JS hooks resolve under the OTP app name, not the project directory name
 
 Phoenix LiveView colocated hooks (`<script :type={Phoenix.LiveView.ColocatedHook}>`) are compiled into `_build/{env}/phoenix-colocated/{otp_app}/`. The import in `app.js` must use the **OTP app name** (e.g., `"phoenix-colocated/ancestry"`), not the project directory name (e.g., `"phoenix-colocated/family"`). If these don't match, the import resolves to a stale or empty index and hooks silently fail to register — they compile without errors but don't work at runtime.

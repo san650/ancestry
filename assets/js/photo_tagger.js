@@ -149,7 +149,7 @@ const PhotoTagger = {
         e.stopPropagation()
         if (this.pendingClick) {
           this.pushEvent("tag_person", {
-            person_id: person.id,
+            person_id: String(person.id),
             x: this.pendingClick.x,
             y: this.pendingClick.y
           })
