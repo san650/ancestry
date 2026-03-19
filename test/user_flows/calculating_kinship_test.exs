@@ -134,7 +134,7 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     # Verify directional label shows correct direction
     conn =
       assert_has(conn, test_id("kinship-directional-label"),
-        text: "Diana Kinship is Charlie Kinship's first cousin"
+        text: "Charlie Kinship is Diana Kinship's first cousin"
       )
 
     # Verify path visualization is displayed
@@ -154,7 +154,7 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     # Directional label should update to reflect the swap
     conn =
       assert_has(conn, test_id("kinship-directional-label"),
-        text: "Charlie Kinship is Diana Kinship's first cousin"
+        text: "Diana Kinship is Charlie Kinship's first cousin"
       )
 
     # --- Clear a selection ---

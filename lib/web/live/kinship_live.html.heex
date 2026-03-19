@@ -182,7 +182,7 @@
                     <%!-- Left branch: Person A's lineage (skip MRCA, already shown) --%>
                     <div class="flex-1 flex flex-col items-center">
                       <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
-                        <.arrow_connector direction={:down} />
+                        <.arrow_connector direction={:up} />
                         <% is_endpoint = index == length(@path_a) - 2 %>
                         <div class={[
                           "flex items-center gap-3 px-3 py-2 rounded-xl border w-full",
