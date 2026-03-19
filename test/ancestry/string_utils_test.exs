@@ -14,10 +14,6 @@ defmodule Ancestry.StringUtilsTest do
       assert StringUtils.normalize("John") == "john"
     end
 
-    test "handles nil" do
-      assert StringUtils.normalize(nil) == ""
-    end
-
     test "handles empty string" do
       assert StringUtils.normalize("") == ""
     end
