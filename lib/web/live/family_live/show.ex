@@ -125,11 +125,25 @@ defmodule Web.FamilyLive.Show do
           person_id -> People.set_default_member(family.id, person_id)
         end
 
+        # Update tree view to reflect new default person
+        {focus_person, tree} =
+          case socket.assigns.default_person_id do
+            nil ->
+              {nil, nil}
+
+            person_id ->
+              person = Enum.find(socket.assigns.people, &(&1.id == person_id))
+              tree = if person, do: PersonTree.build(person, family.id), else: nil
+              {person, tree}
+          end
+
         {:noreply,
          socket
          |> assign(:family, family)
          |> assign(:editing, false)
-         |> assign(:form, to_form(Families.change_family(family)))}
+         |> assign(:form, to_form(Families.change_family(family)))
+         |> assign(:focus_person, focus_person)
+         |> assign(:tree, tree)}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

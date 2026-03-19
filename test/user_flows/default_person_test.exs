@@ -11,14 +11,16 @@ defmodule Web.UserFlows.DefaultPersonTest do
   # When the user filters and selects a person as default
   # And clicks "Save"
   # Then the modal closes
+  # And the tree is immediately rendered for the default person
   #
   # When the user navigates away and back to the family page
-  # Then the tree is auto-rendered for the default person
+  # Then the tree is still rendered for the default person
   #
   # When the user clicks "Edit" again
   # And selects "None" as default person
   # And clicks "Save"
   # Then the modal closes
+  # And the tree is immediately cleared
   #
   # When the user navigates away and back to the family page
   # Then the empty state / person selector is shown again
@@ -64,10 +66,14 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> click_button(test_id("family-edit-save-btn"), "Save")
       |> wait_liveview()
 
-    # Modal should close
-    conn = conn |> refute_has(test_id("family-edit-form"))
+    # Modal should close and tree should render immediately
+    conn =
+      conn
+      |> refute_has(test_id("family-edit-form"))
+      |> assert_has("#focus-person-card", timeout: 3_000)
+      |> assert_has("[data-person-id='#{person_a.id}']")
 
-    # Navigate away and back — tree should auto-render
+    # Navigate away and back — tree should still be rendered
     conn =
       conn
       |> visit(~p"/")
@@ -75,10 +81,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> click_link("Tree Family")
       |> wait_liveview()
 
-    # Tree should be visible (Alice's person card rendered with focus)
     conn = conn |> assert_has("#focus-person-card", timeout: 3_000)
-
-    # Verify it's actually Alice's card via data-person-id
     conn = conn |> assert_has("[data-person-id='#{person_a.id}']")
 
     # Open Edit modal again and clear default
@@ -90,10 +93,13 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> click_button(test_id("family-edit-save-btn"), "Save")
       |> wait_liveview()
 
-    # Modal should close
-    conn = conn |> refute_has(test_id("family-edit-form"))
+    # Modal should close and tree should be cleared immediately
+    conn =
+      conn
+      |> refute_has(test_id("family-edit-form"))
+      |> refute_has("#focus-person-card")
 
-    # Navigate away and back — should show person selector again (no tree)
+    # Navigate away and back — should still show no tree
     conn =
       conn
       |> visit(~p"/")
