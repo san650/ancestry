@@ -56,7 +56,11 @@ defmodule Web.FamilyLive.Show do
           Enum.find(people, &(&1.id == person_id))
 
         _ ->
-          nil
+          # Fallback to default person
+          case People.get_default_person(socket.assigns.family.id) do
+            nil -> nil
+            default -> Enum.find(people, &(&1.id == default.id))
+          end
       end
 
     tree =
