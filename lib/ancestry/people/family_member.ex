@@ -6,6 +6,8 @@ defmodule Ancestry.People.FamilyMember do
     belongs_to :family, Ancestry.Families.Family
     belongs_to :person, Ancestry.People.Person
 
+    field :is_default, :boolean, default: false
+
     timestamps()
   end
 
