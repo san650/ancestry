@@ -62,6 +62,12 @@ When a LiveView event handler modifies state that other assigns depend on (e.g.,
 
 **Fix:** After modifying state in an event handler, also update any assigns that derive from that state. If the same derivation logic is needed in both `handle_params` and `handle_event`, extract it to a shared private function and call it from both places.
 
+## Use safe DOM methods instead of string-based HTML in JS hooks
+
+When building DOM dynamically in LiveView JS hooks (e.g., rendering search results in a popover), using string-based HTML construction with interpolated data (even database-sourced data) triggers security warnings and risks XSS if the data ever contains HTML. Pre-commit hooks and CI security scanners will flag this.
+
+**Fix:** Use safe DOM construction methods: `document.createElement`, `element.textContent = value`, `element.appendChild`. For clearing containers, use `element.replaceChildren()`. This eliminates XSS vectors entirely and satisfies security linters.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
