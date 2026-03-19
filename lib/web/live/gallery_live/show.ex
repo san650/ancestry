@@ -220,6 +220,28 @@ defmodule Web.GalleryLive.Show do
      |> push_photo_people()}
   end
 
+  def handle_event("highlight_person_on_photo", %{"id" => dom_id}, socket) do
+    pp_id = dom_id |> String.replace("photo-person-", "") |> String.to_integer()
+    pp = Enum.find(socket.assigns.photo_people, &(&1.id == pp_id))
+
+    if pp do
+      {:noreply, push_event(socket, "highlight_person", %{person_id: pp.person_id})}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  def handle_event("unhighlight_person_on_photo", %{"id" => dom_id}, socket) do
+    pp_id = dom_id |> String.replace("photo-person-", "") |> String.to_integer()
+    pp = Enum.find(socket.assigns.photo_people, &(&1.id == pp_id))
+
+    if pp do
+      {:noreply, push_event(socket, "unhighlight_person", %{person_id: pp.person_id})}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("search_people_for_tag", %{"query" => query}, socket) do
     results =
       if String.length(query) >= 2 do

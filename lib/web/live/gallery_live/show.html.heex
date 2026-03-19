@@ -443,6 +443,20 @@
     }
   </script>
 
+  <script :type={Phoenix.LiveView.ColocatedHook} name=".PersonHighlight">
+    export default {
+      mounted() {
+        this.el.addEventListener("mouseenter", () => {
+          this.pushEvent("highlight_person_on_photo", { id: this.el.id })
+        })
+
+        this.el.addEventListener("mouseleave", () => {
+          this.pushEvent("unhighlight_person_on_photo", { id: this.el.id })
+        })
+      }
+    }
+  </script>
+
   <%!-- Upload progress modal --%>
   <%= if @show_upload_modal do %>
     <div
@@ -667,6 +681,7 @@
                         id={"photo-person-#{pp.id}"}
                         class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
                         data-person-id={pp.person_id}
+                        phx-hook=".PersonHighlight"
                       >
                         <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
                           <img
