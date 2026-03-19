@@ -24,7 +24,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       ]}
     >
       <.link
-        navigate={~p"/families/#{@family_id}/members/#{@person.id}"}
+        navigate={~p"/people/#{@person.id}?from_family=#{@family_id}"}
         class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
         title="View details"
       >

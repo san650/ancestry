@@ -85,7 +85,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
               </span>
             </button>
             <.link
-              navigate={~p"/families/#{@family_id}/members/#{person.id}"}
+              navigate={~p"/people/#{person.id}?from_family=#{@family_id}"}
               class="p-1 rounded text-base-content/20 hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
               title="View details"
             >

@@ -16,7 +16,7 @@ defmodule Web.PersonLive.RelationshipsTest do
   end
 
   test "displays relationships section headings", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert has_element?(view, "#relationships-section")
     assert has_element?(view, "h3", "Spouses")
     assert has_element?(view, "h3", "Parents")
@@ -29,7 +29,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} =
       Relationships.create_relationship(person, spouse, "partner", %{marriage_year: 2020})
 
-    {:ok, view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert has_element?(view, "#partner-group-#{spouse.id}")
     assert html =~ "Jane"
     assert html =~ "2020"
@@ -45,7 +45,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(mother, person, "parent", %{role: "mother"})
 
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert html =~ "Dad"
     assert html =~ "Mom"
     assert html =~ "Father"
@@ -65,7 +65,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(spouse, child, "parent", %{role: "mother"})
 
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert html =~ "Kid"
   end
 
@@ -75,7 +75,7 @@ defmodule Web.PersonLive.RelationshipsTest do
 
     {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
 
-    {:ok, view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert has_element?(view, "#solo-children-section")
     assert html =~ "Solo"
   end
@@ -98,7 +98,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(father, child2, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(mother, child2, "parent", %{role: "mother"})
 
-    {:ok, view, html} = live(conn, ~p"/families/#{family.id}/members/#{child1.id}")
+    {:ok, view, html} = live(conn, ~p"/people/#{child1.id}?from_family=#{family.id}")
     assert has_element?(view, "#siblings-section")
     assert html =~ "Kid2"
   end
@@ -108,7 +108,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert has_element?(view, "#add-parent-btn")
   end
 
@@ -126,12 +126,12 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(mother, person, "parent", %{role: "mother"})
 
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     refute has_element?(view, "#add-parent-btn")
   end
 
   test "opens add parent modal", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     refute has_element?(view, "#add-relationship-modal")
 
     view |> element("#add-parent-btn") |> render_click()
@@ -147,7 +147,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _candidate} =
       People.create_person(family, %{given_name: "Alice", surname: "Smith", gender: "female"})
 
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
 
     html = view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
@@ -155,13 +155,13 @@ defmodule Web.PersonLive.RelationshipsTest do
   end
 
   test "opens add partner modal", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-partner-btn") |> render_click()
     assert has_element?(view, "#add-relationship-modal")
   end
 
   test "opens add child solo modal", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-child-solo-btn") |> render_click()
     assert has_element?(view, "#add-relationship-modal")
   end
@@ -176,7 +176,7 @@ defmodule Web.PersonLive.RelationshipsTest do
         divorce_year: 2015
       })
 
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert html =~ "Ex"
     assert html =~ "2010"
     assert html =~ "2015"
@@ -197,12 +197,12 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(mother, child, "parent", %{role: "mother"})
 
     # Visit father's page — child should be visible in coparent section
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{father.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{father.id}?from_family=#{family.id}")
     assert has_element?(view, "#coparent-children-#{mother.id}")
     assert render(view) =~ "Kid"
 
     # Visit mother's page — child should also be visible
-    {:ok, view2, _html} = live(conn, ~p"/families/#{family.id}/members/#{mother.id}")
+    {:ok, view2, _html} = live(conn, ~p"/people/#{mother.id}?from_family=#{family.id}")
     assert has_element?(view2, "#coparent-children-#{father.id}")
     assert render(view2) =~ "Kid"
   end
@@ -224,7 +224,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(spouse, child, "parent", %{role: "mother"})
 
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
 
     # Child should be under partner group, NOT in coparent section
     assert has_element?(view, "#partner-group-#{spouse.id}")
@@ -240,7 +240,7 @@ defmodule Web.PersonLive.RelationshipsTest do
     {:ok, candidate} =
       People.create_person(family, %{given_name: "Alice", surname: "Smith", gender: "female"})
 
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
 
     # Open add parent modal
     view |> element("#add-parent-btn") |> render_click()

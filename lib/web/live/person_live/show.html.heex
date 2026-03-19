@@ -2,12 +2,21 @@
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
-        <.link
-          navigate={~p"/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
-        >
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
-        </.link>
+        <%= if @from_family do %>
+          <.link
+            navigate={~p"/families/#{@from_family.id}?person=#{@person.id}"}
+            class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          >
+            <.icon name="hero-arrow-left" class="w-5 h-5" />
+          </.link>
+        <% else %>
+          <.link
+            navigate={~p"/"}
+            class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          >
+            <.icon name="hero-arrow-left" class="w-5 h-5" />
+          </.link>
+        <% end %>
         <h1 class="text-2xl font-bold text-base-content">
           {Ancestry.People.Person.display_name(@person)}
         </h1>
@@ -16,13 +25,15 @@
         <button id="edit-person-btn" phx-click="edit" class="btn btn-ghost btn-sm">
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
         </button>
-        <button
-          id="remove-from-family-btn"
-          phx-click="request_remove"
-          class="btn btn-ghost btn-sm text-error"
-        >
-          <.icon name="hero-user-minus" class="w-4 h-4" /> Remove
-        </button>
+        <%= if @from_family do %>
+          <button
+            id="remove-from-family-btn"
+            phx-click="request_remove"
+            class="btn btn-ghost btn-sm text-error"
+          >
+            <.icon name="hero-user-minus" class="w-4 h-4" /> Remove
+          </button>
+        <% end %>
         <button
           id="delete-person-btn"
           phx-click="request_delete"
@@ -38,7 +49,6 @@
     <div class="max-w-2xl mx-auto">
       <Web.Shared.PersonFormComponent.person_form_component
         person={@person}
-        family={@family}
         action={:edit}
         uploads={@uploads}
         form={@form}
@@ -195,7 +205,7 @@
               <%!-- Partner card with relationship info --%>
               <div class="flex items-center gap-2">
                 <.link
-                  navigate={~p"/families/#{@family.id}/members/#{partner.id}"}
+                  navigate={person_path(partner, @from_family)}
                   class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={partner} highlighted={false} />
@@ -271,7 +281,7 @@
                   </p>
                   <%= for child <- children do %>
                     <.link
-                      navigate={~p"/families/#{@family.id}/members/#{child.id}"}
+                      navigate={person_path(child, @from_family)}
                       class="rounded-lg transition-colors hover:bg-base-200"
                     >
                       <.person_card person={child} highlighted={false} />
@@ -302,7 +312,7 @@
                 Children with
               </p>
               <.link
-                navigate={~p"/families/#{@family.id}/members/#{coparent.id}"}
+                navigate={person_path(coparent, @from_family)}
                 class="rounded-lg transition-colors hover:bg-base-200"
               >
                 <.person_card person={coparent} highlighted={false} />
@@ -310,7 +320,7 @@
               <div class="pl-4 border-l-2 border-base-200 space-y-1 mt-2">
                 <%= for child <- children do %>
                   <.link
-                    navigate={~p"/families/#{@family.id}/members/#{child.id}"}
+                    navigate={person_path(child, @from_family)}
                     class="rounded-lg transition-colors hover:bg-base-200"
                   >
                     <.person_card person={child} highlighted={false} />
@@ -331,7 +341,7 @@
               </p>
               <%= for child <- @solo_children do %>
                 <.link
-                  navigate={~p"/families/#{@family.id}/members/#{child.id}"}
+                  navigate={person_path(child, @from_family)}
                   class="rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={child} highlighted={false} />
@@ -372,7 +382,7 @@
             <%= for {parent, rel} <- @parents do %>
               <div class="flex items-center gap-2">
                 <.link
-                  navigate={~p"/families/#{@family.id}/members/#{parent.id}"}
+                  navigate={person_path(parent, @from_family)}
                   class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={parent} highlighted={false} />
@@ -443,7 +453,7 @@
               <%= for sib <- @siblings do %>
                 <div class="flex items-center gap-2">
                   <.link
-                    navigate={~p"/families/#{@family.id}/members/#{sibling_person(sib).id}"}
+                    navigate={person_path(sibling_person(sib), @from_family)}
                     class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                   >
                     <.person_card person={sibling_person(sib)} highlighted={false} />
@@ -470,7 +480,7 @@
         <h2 class="text-xl font-bold text-base-content mb-2">Remove from Family</h2>
         <p class="text-base-content/60 mb-6">
           Remove <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>
-          from <span class="font-semibold">{@family.name}</span>?
+          from <span class="font-semibold">{@from_family.name}</span>?
           The person will still exist and can be linked to other families.
         </p>
         <div class="flex gap-3">
@@ -522,7 +532,7 @@
           module={Web.Shared.AddRelationshipComponent}
           id={"add-relationship-#{@add_rel_key}"}
           person={@person}
-          family={@family}
+          family={@from_family}
           relationship_type={@adding_relationship}
           partner_id={@adding_partner_id}
         />

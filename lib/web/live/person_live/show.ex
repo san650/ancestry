@@ -6,8 +6,7 @@ defmodule Web.PersonLive.Show do
   alias Ancestry.Relationships
 
   @impl true
-  def mount(%{"family_id" => family_id, "id" => id}, _session, socket) do
-    family = Families.get_family!(family_id)
+  def mount(%{"id" => id}, _session, socket) do
     person = People.get_person!(id)
 
     if connected?(socket) do
@@ -16,8 +15,8 @@ defmodule Web.PersonLive.Show do
 
     {:ok,
      socket
-     |> assign(:family, family)
      |> assign(:person, person)
+     |> assign(:from_family, nil)
      |> assign(:editing, false)
      |> assign(:confirm_remove, false)
      |> assign(:confirm_delete, false)
@@ -30,7 +29,15 @@ defmodule Web.PersonLive.Show do
   end
 
   @impl true
-  def handle_params(_params, _url, socket), do: {:noreply, socket}
+  def handle_params(params, _url, socket) do
+    from_family =
+      case params do
+        %{"from_family" => family_id} -> Families.get_family!(family_id)
+        _ -> nil
+      end
+
+    {:noreply, assign(socket, :from_family, from_family)}
+  end
 
   @impl true
   def handle_event("edit", _, socket) do
@@ -120,8 +127,8 @@ defmodule Web.PersonLive.Show do
   end
 
   def handle_event("confirm_remove", _, socket) do
-    family = socket.assigns.family
     person = socket.assigns.person
+    family = socket.assigns.from_family
     {:ok, _} = People.remove_from_family(person, family)
     {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
   end
@@ -135,9 +142,16 @@ defmodule Web.PersonLive.Show do
   end
 
   def handle_event("confirm_delete", _, socket) do
-    family = socket.assigns.family
     {:ok, _} = People.delete_person(socket.assigns.person)
-    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
+
+    redirect_to =
+      if socket.assigns.from_family do
+        ~p"/families/#{socket.assigns.from_family.id}"
+      else
+        ~p"/"
+      end
+
+    {:noreply, push_navigate(socket, to: redirect_to)}
   end
 
   # --- Relationship adding (delegated to shared component) ---
@@ -373,6 +387,14 @@ defmodule Web.PersonLive.Show do
     |> assign(:ex_form, nil)
     |> assign(:editing_relationship, nil)
     |> assign(:edit_relationship_form, nil)
+  end
+
+  defp person_path(person, from_family) do
+    if from_family do
+      ~p"/people/#{person.id}?from_family=#{from_family.id}"
+    else
+      ~p"/people/#{person.id}"
+    end
   end
 
   defp atomize_metadata(params) do

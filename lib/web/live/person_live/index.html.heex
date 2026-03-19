@@ -44,7 +44,7 @@
       <.link
         :for={{id, person} <- @streams.members}
         id={id}
-        navigate={~p"/families/#{@family.id}/members/#{person.id}"}
+        navigate={~p"/people/#{person.id}?from_family=#{@family.id}"}
         class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
       >
         <div class="flex items-center gap-4">

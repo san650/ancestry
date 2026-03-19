@@ -19,7 +19,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     assert has_element?(view, "#start-quick-create-btn")
   end
@@ -29,7 +29,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -43,7 +43,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")
@@ -58,7 +58,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -75,7 +75,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -93,7 +93,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-partner-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -111,7 +111,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-child-solo-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -128,7 +128,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -146,7 +146,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
 
     # Open add parent modal
     view |> element("#add-parent-btn") |> render_click()
@@ -174,7 +174,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     family: family,
     person: person
   } do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/members/#{person.id}")
+    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")
