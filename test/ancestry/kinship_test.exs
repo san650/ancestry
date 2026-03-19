@@ -334,6 +334,162 @@ defmodule Ancestry.KinshipTest do
     end
   end
 
+  describe "calculate/2 - great uncle & aunt" do
+    setup do
+      family = family_fixture()
+      grandparent = person_fixture(family, %{given_name: "Grandpa", surname: "Smith"})
+      grandma = person_fixture(family, %{given_name: "Grandma", surname: "Smith"})
+      parent = person_fixture(family, %{given_name: "Parent", surname: "Smith"})
+
+      sibling_of_grandparent =
+        person_fixture(family, %{given_name: "GreatUncle", surname: "Smith"})
+
+      child = person_fixture(family, %{given_name: "Child", surname: "Smith"})
+
+      # grandparent and sibling_of_grandparent are full siblings
+      great_gp_father = person_fixture(family, %{given_name: "GreatGPFather", surname: "Smith"})
+      great_gp_mother = person_fixture(family, %{given_name: "GreatGPMother", surname: "Smith"})
+
+      make_parent!(great_gp_father, grandparent, "father")
+      make_parent!(great_gp_mother, grandparent, "mother")
+      make_parent!(great_gp_father, sibling_of_grandparent, "father")
+      make_parent!(great_gp_mother, sibling_of_grandparent, "mother")
+      make_parent!(grandparent, parent, "father")
+      make_parent!(grandma, parent, "mother")
+      make_parent!(parent, child, "father")
+
+      %{
+        family: family,
+        sibling_of_grandparent: sibling_of_grandparent,
+        child: child
+      }
+    end
+
+    test "sibling of grandparent to child is Great Uncle & Aunt", %{
+      sibling_of_grandparent: sibling_of_grandparent,
+      child: child
+    } do
+      assert {:ok, result} = Kinship.calculate(sibling_of_grandparent.id, child.id)
+
+      assert result.relationship == "Great Uncle & Aunt"
+      assert result.steps_a == 1
+      assert result.steps_b == 3
+      assert result.half? == false
+    end
+
+    test "child to sibling of grandparent is Grand Nephew & Niece", %{
+      sibling_of_grandparent: sibling_of_grandparent,
+      child: child
+    } do
+      assert {:ok, result} = Kinship.calculate(child.id, sibling_of_grandparent.id)
+
+      assert result.relationship == "Grand Nephew & Niece"
+      assert result.steps_a == 3
+      assert result.steps_b == 1
+      assert result.half? == false
+    end
+  end
+
+  describe "calculate/2 - great grand uncle & aunt" do
+    setup do
+      family = family_fixture()
+
+      # Create shared parents for great-grandparent and their sibling
+      gg_gp_father = person_fixture(family, %{given_name: "GGGPFather", surname: "Smith"})
+      gg_gp_mother = person_fixture(family, %{given_name: "GGGPMother", surname: "Smith"})
+
+      great_grandparent = person_fixture(family, %{given_name: "GreatGrandpa", surname: "Smith"})
+
+      sibling_of_great_grandparent =
+        person_fixture(family, %{given_name: "GreatGrandUncle", surname: "Smith"})
+
+      grandparent = person_fixture(family, %{given_name: "Grandpa", surname: "Smith"})
+      parent = person_fixture(family, %{given_name: "Parent", surname: "Smith"})
+      child = person_fixture(family, %{given_name: "Child", surname: "Smith"})
+
+      # great_grandparent and sibling_of_great_grandparent are full siblings
+      make_parent!(gg_gp_father, great_grandparent, "father")
+      make_parent!(gg_gp_mother, great_grandparent, "mother")
+      make_parent!(gg_gp_father, sibling_of_great_grandparent, "father")
+      make_parent!(gg_gp_mother, sibling_of_great_grandparent, "mother")
+
+      make_parent!(great_grandparent, grandparent, "father")
+      make_parent!(grandparent, parent, "father")
+      make_parent!(parent, child, "father")
+
+      %{
+        family: family,
+        sibling_of_great_grandparent: sibling_of_great_grandparent,
+        child: child
+      }
+    end
+
+    test "sibling of great-grandparent to child is Great Grand Uncle & Aunt", %{
+      sibling_of_great_grandparent: sibling_of_great_grandparent,
+      child: child
+    } do
+      assert {:ok, result} = Kinship.calculate(sibling_of_great_grandparent.id, child.id)
+
+      assert result.relationship == "Great Grand Uncle & Aunt"
+      assert result.steps_a == 1
+      assert result.steps_b == 4
+      assert result.half? == false
+    end
+
+    test "child to sibling of great-grandparent is Great Grand Nephew & Niece", %{
+      sibling_of_great_grandparent: sibling_of_great_grandparent,
+      child: child
+    } do
+      assert {:ok, result} = Kinship.calculate(child.id, sibling_of_great_grandparent.id)
+
+      assert result.relationship == "Great Grand Nephew & Niece"
+      assert result.steps_a == 4
+      assert result.steps_b == 1
+      assert result.half? == false
+    end
+  end
+
+  describe "calculate/2 - deep ancestor naming (3rd great grandparent)" do
+    setup do
+      family = family_fixture()
+      # 6 generations: 3rd-great-gp -> 2nd-great-gp -> great-gp -> grandparent -> parent -> child
+      third_great_gp = person_fixture(family, %{given_name: "3rdGreatGP", surname: "Smith"})
+      second_great_gp = person_fixture(family, %{given_name: "2ndGreatGP", surname: "Smith"})
+      great_gp = person_fixture(family, %{given_name: "GreatGP", surname: "Smith"})
+      grandparent = person_fixture(family, %{given_name: "Grandpa", surname: "Smith"})
+      parent = person_fixture(family, %{given_name: "Parent", surname: "Smith"})
+      child = person_fixture(family, %{given_name: "Child", surname: "Smith"})
+
+      make_parent!(third_great_gp, second_great_gp, "father")
+      make_parent!(second_great_gp, great_gp, "father")
+      make_parent!(great_gp, grandparent, "father")
+      make_parent!(grandparent, parent, "father")
+      make_parent!(parent, child, "father")
+
+      %{family: family, third_great_gp: third_great_gp, child: child}
+    end
+
+    test "3rd great grandparent to child", %{third_great_gp: third_great_gp, child: child} do
+      assert {:ok, result} = Kinship.calculate(third_great_gp.id, child.id)
+
+      assert result.relationship == "3rd Great Grandparent"
+      assert result.steps_a == 0
+      assert result.steps_b == 5
+      assert result.half? == false
+      assert result.mrca.id == third_great_gp.id
+    end
+
+    test "child to 3rd great grandparent", %{third_great_gp: third_great_gp, child: child} do
+      assert {:ok, result} = Kinship.calculate(child.id, third_great_gp.id)
+
+      assert result.relationship == "3rd Great Grandchild"
+      assert result.steps_a == 5
+      assert result.steps_b == 0
+      assert result.half? == false
+      assert result.mrca.id == third_great_gp.id
+    end
+  end
+
   describe "calculate/2 - first cousin once removed" do
     setup do
       family = family_fixture()
