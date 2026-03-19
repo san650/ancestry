@@ -11,7 +11,7 @@ const PhotoTagger = {
     // Create overlay containers in document.body
     this.circlesContainer = document.createElement("div")
     this.circlesContainer.id = "tag-circles"
-    this.circlesContainer.style.cssText = "position:fixed;pointer-events:none;z-index:51"
+    this.circlesContainer.style.cssText = "position:fixed;pointer-events:none;z-index:51;opacity:0;transition:opacity 0.2s"
     document.body.appendChild(this.circlesContainer)
 
     this.popoverContainer = document.createElement("div")
@@ -28,8 +28,33 @@ const PhotoTagger = {
       this.showPopover(e.clientX, e.clientY)
     })
 
+    // Show circles only on hover
+    this.image.addEventListener("mouseenter", () => {
+      this.circlesContainer.style.opacity = "1"
+    })
+    this.image.addEventListener("mouseleave", () => {
+      // Keep visible if popover is open
+      if (this.popoverContainer.style.display !== "none") return
+      this.circlesContainer.style.opacity = "0"
+    })
+
+    // Sync position on resize
     this._onResize = () => this.syncCircles()
     window.addEventListener("resize", this._onResize)
+
+    // Observe image position changes (e.g. panel open/close shifts the image)
+    this._raf = null
+    this._lastRect = ""
+    this._pollPosition = () => {
+      const rect = this.image.getBoundingClientRect()
+      const key = [rect.left, rect.top, rect.width, rect.height].join(",")
+      if (key !== this._lastRect) {
+        this._lastRect = key
+        this.syncCircles()
+      }
+      this._raf = requestAnimationFrame(this._pollPosition)
+    }
+    this._raf = requestAnimationFrame(this._pollPosition)
 
     this.handleEvent("photo_people_updated", ({ people }) => {
       this.people = people
@@ -38,11 +63,13 @@ const PhotoTagger = {
     })
 
     this.handleEvent("highlight_person", ({ person_id }) => {
+      this.circlesContainer.style.opacity = "1"
       this.highlightCircle(person_id)
     })
 
     this.handleEvent("unhighlight_person", ({ person_id }) => {
       this.unhighlightCircle(person_id)
+      this.circlesContainer.style.opacity = "0"
     })
   },
 
@@ -234,11 +261,11 @@ const PhotoTagger = {
   },
 
   destroyed() {
+    if (this._raf) cancelAnimationFrame(this._raf)
     window.removeEventListener("resize", this._onResize)
     if (this._clickAway) {
       document.removeEventListener("click", this._clickAway)
     }
-    // Clean up body-appended elements
     this.circlesContainer.remove()
     this.popoverContainer.remove()
   }
