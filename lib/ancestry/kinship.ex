@@ -10,7 +10,32 @@ defmodule Ancestry.Kinship do
 
   @max_depth 10
 
-  defstruct [:relationship, :steps_a, :steps_b, :path, :mrca, :half?]
+  defstruct [:relationship, :steps_a, :steps_b, :path, :mrca, :half?, :dna_percentage]
+
+  @doc """
+  Calculates the approximate percentage of shared DNA between two people
+  based on their generational distances from the Most Recent Common Ancestor.
+
+  Returns a float percentage (e.g. 50.0 for parent/child).
+  """
+  def dna_percentage(steps_a, steps_b, half?) do
+    base =
+      cond do
+        # Direct line (one side is the MRCA)
+        steps_a == 0 or steps_b == 0 ->
+          100.0 / :math.pow(2, max(steps_a, steps_b))
+
+        # Siblings (special case — share both parents)
+        steps_a == 1 and steps_b == 1 ->
+          50.0
+
+        # Collateral relatives
+        true ->
+          100.0 / :math.pow(2, steps_a + steps_b - 1)
+      end
+
+    if half?, do: base / 2, else: base
+  end
 
   @doc """
   Calculates the kinship relationship between two people.
@@ -49,6 +74,7 @@ defmodule Ancestry.Kinship do
       half? = half_relationship?(mrca_id, steps_a, steps_b, ancestors_a, ancestors_b)
       relationship = classify(steps_a, steps_b, half?)
       path = build_path(path_a, path_b, steps_a, steps_b)
+      dna_pct = dna_percentage(steps_a, steps_b, half?)
 
       {:ok,
        %__MODULE__{
@@ -57,7 +83,8 @@ defmodule Ancestry.Kinship do
          steps_b: steps_b,
          path: path,
          mrca: mrca,
-         half?: half?
+         half?: half?,
+         dna_percentage: dna_pct
        }}
     end
   end

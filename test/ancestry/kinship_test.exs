@@ -670,6 +670,44 @@ defmodule Ancestry.KinshipTest do
     end
   end
 
+  describe "dna_percentage/3" do
+    test "parent/child: 50%" do
+      assert Kinship.dna_percentage(0, 1, false) == 50.0
+    end
+
+    test "siblings: 50%" do
+      assert Kinship.dna_percentage(1, 1, false) == 50.0
+    end
+
+    test "grandparent: 25%" do
+      assert Kinship.dna_percentage(0, 2, false) == 25.0
+    end
+
+    test "uncle/aunt: 25%" do
+      assert Kinship.dna_percentage(1, 2, false) == 25.0
+    end
+
+    test "1st cousin: 12.5%" do
+      assert Kinship.dna_percentage(2, 2, false) == 12.5
+    end
+
+    test "1st cousin once removed: 6.25%" do
+      assert Kinship.dna_percentage(2, 3, false) == 6.25
+    end
+
+    test "2nd cousin: 3.125%" do
+      assert Kinship.dna_percentage(3, 3, false) == 3.125
+    end
+
+    test "half-sibling: 25%" do
+      assert Kinship.dna_percentage(1, 1, true) == 25.0
+    end
+
+    test "half-first cousin: 6.25%" do
+      assert Kinship.dna_percentage(2, 2, true) == 6.25
+    end
+  end
+
   describe "calculate/2 - Kinship struct" do
     test "returns a proper Kinship struct" do
       family = family_fixture()
