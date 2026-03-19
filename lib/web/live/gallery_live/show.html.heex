@@ -400,24 +400,15 @@
             <.icon name="hero-chevron-left" class="w-7 h-7" />
           </button>
 
-          <div
-            id="photo-tagger"
-            class="absolute inset-0 flex items-center justify-center mx-16"
-            phx-hook="PhotoTagger"
-            phx-update="ignore"
-          >
-            <div id="photo-tagger-inner" class="relative max-h-full max-w-full">
-              <img
-                id="lightbox-image"
-                src={
-                  Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)
-                }
-                alt={@selected_photo.original_filename}
-                class="max-h-full max-w-full object-contain rounded-lg shadow-2xl block"
-              />
-              <div id="tag-circles" class="absolute inset-0 pointer-events-none"></div>
-              <div id="tag-popover" class="hidden absolute z-20"></div>
-            </div>
+          <div id="photo-tagger" phx-hook="PhotoTagger" phx-update="ignore">
+            <img
+              id="lightbox-image"
+              src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
+              alt={@selected_photo.original_filename}
+              class="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
+            />
+            <div id="tag-circles" class="pointer-events-none" style="position:absolute"></div>
+            <div id="tag-popover" class="hidden" style="position:absolute;z-index:20"></div>
           </div>
 
           <button

@@ -1,10 +1,10 @@
 const PhotoTagger = {
   mounted() {
-    const inner = this.el.querySelector("#photo-tagger-inner")
-    this.image = inner.querySelector("#lightbox-image")
-    this.circlesContainer = inner.querySelector("#tag-circles")
-    this.popover = inner.querySelector("#tag-popover")
+    this.image = this.el.querySelector("#lightbox-image")
+    this.circlesContainer = this.el.querySelector("#tag-circles")
+    this.popover = this.el.querySelector("#tag-popover")
     this.pendingClick = null
+    this.people = []
 
     this.image.addEventListener("click", (e) => {
       const rect = this.image.getBoundingClientRect()
@@ -12,11 +12,15 @@ const PhotoTagger = {
       const y = (e.clientY - rect.top) / rect.height
 
       this.pendingClick = { x, y }
-      this.showPopover(e.clientX - rect.left, e.clientY - rect.top, rect)
+      this.showPopover(e.clientX, e.clientY)
     })
 
+    this._onResize = () => this.syncOverlays()
+    window.addEventListener("resize", this._onResize)
+
     this.handleEvent("photo_people_updated", ({ people }) => {
-      this.renderCircles(people)
+      this.people = people
+      this.syncOverlays()
       this.hidePopover()
     })
 
@@ -29,9 +33,26 @@ const PhotoTagger = {
     })
   },
 
-  showPopover(left, top, imageRect) {
+  // Position the circles container to exactly cover the image
+  syncOverlays() {
+    const imgRect = this.image.getBoundingClientRect()
+    const parentRect = this.image.offsetParent
+      ? this.image.offsetParent.getBoundingClientRect()
+      : { left: 0, top: 0 }
+
+    // We position circles container using fixed positioning to avoid
+    // any offset issues with the unstyled wrapper div
+    this.circlesContainer.style.position = "fixed"
+    this.circlesContainer.style.left = imgRect.left + "px"
+    this.circlesContainer.style.top = imgRect.top + "px"
+    this.circlesContainer.style.width = imgRect.width + "px"
+    this.circlesContainer.style.height = imgRect.height + "px"
+
+    this.renderCircles(this.people)
+  },
+
+  showPopover(clientX, clientY) {
     const popoverWidth = 256
-    const popoverLeft = Math.min(left, imageRect.width - popoverWidth - 8)
 
     this.popover.replaceChildren()
     const wrapper = document.createElement("div")
@@ -57,8 +78,13 @@ const PhotoTagger = {
     wrapper.appendChild(resultsDiv)
 
     this.popover.appendChild(wrapper)
-    this.popover.style.left = Math.max(0, popoverLeft) + "px"
-    this.popover.style.top = Math.min(top + 24, imageRect.height - 200) + "px"
+
+    // Position with fixed so it appears exactly at the click point
+    this.popover.style.position = "fixed"
+    this.popover.style.zIndex = "60"
+    const popoverLeft = Math.min(clientX, window.innerWidth - popoverWidth - 16)
+    this.popover.style.left = popoverLeft + "px"
+    this.popover.style.top = (clientY + 12) + "px"
     this.popover.classList.remove("hidden")
 
     setTimeout(() => input.focus(), 50)
@@ -204,6 +230,7 @@ const PhotoTagger = {
   },
 
   destroyed() {
+    window.removeEventListener("resize", this._onResize)
     if (this._clickAway) {
       document.removeEventListener("click", this._clickAway)
     }
