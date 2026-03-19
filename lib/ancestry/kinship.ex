@@ -146,16 +146,28 @@ defmodule Ancestry.Kinship do
         "Sibling"
 
       steps_a == 1 and steps_b == 2 ->
-        "Uncle/Aunt"
+        "Uncle & Aunt"
+
+      steps_a == 1 and steps_b == 3 ->
+        "Great Uncle & Aunt"
+
+      steps_a == 1 and steps_b == 4 ->
+        "Great Grand Uncle & Aunt"
+
+      steps_a == 1 and steps_b >= 5 ->
+        "#{numeric_ordinal(steps_b - 4)} Great Grand Uncle & Aunt"
 
       steps_a == 2 and steps_b == 1 ->
-        "Niece/Nephew"
+        "Nephew & Niece"
 
-      steps_a == 1 and steps_b >= 3 ->
-        great_uncle_aunt_label(steps_b - 2)
+      steps_a == 3 and steps_b == 1 ->
+        "Grand Nephew & Niece"
 
-      steps_a >= 3 and steps_b == 1 ->
-        great_niece_nephew_label(steps_a - 2)
+      steps_a == 4 and steps_b == 1 ->
+        "Great Grand Nephew & Niece"
+
+      steps_a >= 5 and steps_b == 1 ->
+        "#{numeric_ordinal(steps_a - 4)} Great Grand Nephew & Niece"
 
       true ->
         half_prefix = if(half?, do: "Half-", else: "")
@@ -165,20 +177,22 @@ defmodule Ancestry.Kinship do
 
   defp ancestor_label(steps) do
     greats = steps - 2
-    "#{String.duplicate("Great-", greats)}Grandparent"
+
+    cond do
+      greats == 1 -> "Great Grandparent"
+      greats == 2 -> "Great Great Grandparent"
+      greats >= 3 -> "#{numeric_ordinal(greats)} Great Grandparent"
+    end
   end
 
   defp descendant_label(steps) do
     greats = steps - 2
-    "#{String.duplicate("Great-", greats)}Grandchild"
-  end
 
-  defp great_uncle_aunt_label(greats) do
-    "#{String.duplicate("Great-", greats)}Uncle/Aunt"
-  end
-
-  defp great_niece_nephew_label(greats) do
-    "#{String.duplicate("Great-", greats)}Niece/Nephew"
+    cond do
+      greats == 1 -> "Great Grandchild"
+      greats == 2 -> "Great Great Grandchild"
+      greats >= 3 -> "#{numeric_ordinal(greats)} Great Grandchild"
+    end
   end
 
   defp cousin_label(steps_a, steps_b) do
@@ -206,6 +220,14 @@ defmodule Ancestry.Kinship do
   defp ordinal(7), do: "Seventh"
   defp ordinal(8), do: "Eighth"
   defp ordinal(n), do: "#{n}th"
+
+  defp numeric_ordinal(1), do: "1st"
+  defp numeric_ordinal(2), do: "2nd"
+  defp numeric_ordinal(3), do: "3rd"
+  defp numeric_ordinal(n) when rem(n, 10) == 1 and rem(n, 100) != 11, do: "#{n}st"
+  defp numeric_ordinal(n) when rem(n, 10) == 2 and rem(n, 100) != 12, do: "#{n}nd"
+  defp numeric_ordinal(n) when rem(n, 10) == 3 and rem(n, 100) != 13, do: "#{n}rd"
+  defp numeric_ordinal(n), do: "#{n}th"
 
   # Build the full path from person A through MRCA down to person B.
   defp build_path(path_a, path_b, steps_a, steps_b) do
@@ -242,10 +264,11 @@ defmodule Ancestry.Kinship do
   # Labels for going up (from person A toward MRCA)
   defp ascending_label(1), do: "Parent"
   defp ascending_label(2), do: "Grandparent"
+  defp ascending_label(3), do: "Great Grandparent"
+  defp ascending_label(4), do: "Great Great Grandparent"
 
-  defp ascending_label(n) when n >= 3 do
-    greats = n - 2
-    "#{String.duplicate("Great-", greats)}Grandparent"
+  defp ascending_label(n) when n >= 5 do
+    "#{numeric_ordinal(n - 2)} Great Grandparent"
   end
 
   # Labels for going down from MRCA toward person B.
@@ -270,9 +293,10 @@ defmodule Ancestry.Kinship do
 
   defp child_label(1), do: "Child"
   defp child_label(2), do: "Grandchild"
+  defp child_label(3), do: "Great Grandchild"
+  defp child_label(4), do: "Great Great Grandchild"
 
-  defp child_label(n) when n >= 3 do
-    greats = n - 2
-    "#{String.duplicate("Great-", greats)}Grandchild"
+  defp child_label(n) when n >= 5 do
+    "#{numeric_ordinal(n - 2)} Great Grandchild"
   end
 end

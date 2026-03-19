@@ -158,7 +158,7 @@ defmodule Ancestry.KinshipTest do
     test "great-grandparent to great-grandchild", %{great_gp: great_gp, child: child} do
       assert {:ok, result} = Kinship.calculate(great_gp.id, child.id)
 
-      assert result.relationship == "Great-Grandparent"
+      assert result.relationship == "Great Grandparent"
       assert result.steps_a == 0
       assert result.steps_b == 3
       assert result.half? == false
@@ -168,7 +168,7 @@ defmodule Ancestry.KinshipTest do
     test "great-grandchild to great-grandparent", %{great_gp: great_gp, child: child} do
       assert {:ok, result} = Kinship.calculate(child.id, great_gp.id)
 
-      assert result.relationship == "Great-Grandchild"
+      assert result.relationship == "Great Grandchild"
       assert result.steps_a == 3
       assert result.steps_b == 0
       assert result.half? == false
@@ -249,7 +249,7 @@ defmodule Ancestry.KinshipTest do
     test "uncle to niece/nephew", %{uncle: uncle, child: child} do
       assert {:ok, result} = Kinship.calculate(uncle.id, child.id)
 
-      assert result.relationship == "Uncle/Aunt"
+      assert result.relationship == "Uncle & Aunt"
       assert result.steps_a == 1
       assert result.steps_b == 2
       assert result.half? == false
@@ -258,7 +258,7 @@ defmodule Ancestry.KinshipTest do
     test "niece/nephew to uncle", %{uncle: uncle, child: child} do
       assert {:ok, result} = Kinship.calculate(child.id, uncle.id)
 
-      assert result.relationship == "Niece/Nephew"
+      assert result.relationship == "Nephew & Niece"
       assert result.steps_a == 2
       assert result.steps_b == 1
       assert result.half? == false
@@ -448,14 +448,14 @@ defmodule Ancestry.KinshipTest do
 
       path_labels = Enum.map(result.path, & &1.label)
 
-      # CousinA (Self) -> ParentA (Parent) -> GPA (Grandparent) -> GreatGP (Great-Grandparent)
-      #   -> GPB (Great-Uncle/Aunt) -> ParentB (First Cousin, Once Removed) -> CousinB (Second Cousin)
+      # CousinA (Self) -> ParentA (Parent) -> GPA (Grandparent) -> GreatGP (Great Grandparent)
+      #   -> GPB (Great Uncle & Aunt) -> ParentB (First Cousin, Once Removed) -> CousinB (Second Cousin)
       assert path_labels == [
                "Self",
                "Parent",
                "Grandparent",
-               "Great-Grandparent",
-               "Great-Uncle/Aunt",
+               "Great Grandparent",
+               "Great Uncle & Aunt",
                "First Cousin, Once Removed",
                "Second Cousin"
              ]
@@ -480,7 +480,7 @@ defmodule Ancestry.KinshipTest do
       assert {:ok, result} = Kinship.calculate(cousin_a.id, cousin_b.id)
 
       path_labels = Enum.map(result.path, & &1.label)
-      assert path_labels == ["Self", "Parent", "Grandparent", "Uncle/Aunt", "First Cousin"]
+      assert path_labels == ["Self", "Parent", "Grandparent", "Uncle & Aunt", "First Cousin"]
     end
   end
 
