@@ -193,6 +193,52 @@ defmodule Web.GalleryLive.Show do
      |> resubscribe_comments(new_photo)}
   end
 
+  def handle_event("tag_person", %{"person_id" => person_id, "x" => x, "y" => y}, socket) do
+    photo = socket.assigns.selected_photo
+
+    case Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), x, y) do
+      {:ok, _} ->
+        {:noreply, assign(socket, :photo_people, Galleries.list_photo_people(photo.id))}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("untag_person", %{"photo-id" => photo_id, "person-id" => person_id}, socket) do
+    :ok =
+      Galleries.untag_person_from_photo(String.to_integer(photo_id), String.to_integer(person_id))
+
+    {:noreply,
+     assign(socket, :photo_people, Galleries.list_photo_people(socket.assigns.selected_photo.id))}
+  end
+
+  def handle_event("search_people_for_tag", %{"query" => query}, socket) do
+    results =
+      if String.length(query) >= 2 do
+        Ancestry.People.search_all_people(query)
+      else
+        []
+      end
+
+    {:reply,
+     %{
+       results:
+         Enum.map(results, fn p ->
+           %{
+             id: p.id,
+             name: Ancestry.People.Person.display_name(p),
+             has_photo: p.photo != nil && p.photo_status == "processed",
+             photo_url:
+               if(p.photo && p.photo_status == "processed",
+                 do: Ancestry.Uploaders.PersonPhoto.url({p.photo, p}, :thumbnail),
+                 else: nil
+               )
+           }
+         end)
+     }, socket}
+  end
+
   @impl true
   def handle_info({:photo_processed, photo}, socket) do
     {:noreply, stream_insert(socket, :photos, photo)}
