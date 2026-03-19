@@ -62,6 +62,12 @@ When a LiveView event handler modifies state that other assigns depend on (e.g.,
 
 **Fix:** After modifying state in an event handler, also update any assigns that derive from that state. If the same derivation logic is needed in both `handle_params` and `handle_event`, extract it to a shared private function and call it from both places.
 
+## Colocated JS hooks resolve under the OTP app name, not the project directory name
+
+Phoenix LiveView colocated hooks (`<script :type={Phoenix.LiveView.ColocatedHook}>`) are compiled into `_build/{env}/phoenix-colocated/{otp_app}/`. The import in `app.js` must use the **OTP app name** (e.g., `"phoenix-colocated/ancestry"`), not the project directory name (e.g., `"phoenix-colocated/family"`). If these don't match, the import resolves to a stale or empty index and hooks silently fail to register — they compile without errors but don't work at runtime.
+
+**Fix:** For reliability, define hooks as plain JS objects in `assets/js/` files, import them in `app.js`, and pass them to the `LiveSocket` constructor's `hooks` option. This avoids the colocated hooks build pipeline entirely and makes hook registration explicit and debuggable. Reserve colocated hooks for trivial inline scripts where the build pipeline indirection isn't a concern.
+
 ## Use safe DOM methods instead of string-based HTML in JS hooks
 
 When building DOM dynamically in LiveView JS hooks (e.g., rendering search results in a popover), using string-based HTML construction with interpolated data (even database-sourced data) triggers security warnings and risks XSS if the data ever contains HTML. Pre-commit hooks and CI security scanners will flag this.
