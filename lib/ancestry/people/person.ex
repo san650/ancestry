@@ -26,6 +26,9 @@ defmodule Ancestry.People.Person do
 
     many_to_many :families, Ancestry.Families.Family, join_through: "family_members"
 
+    has_many :photo_people, Ancestry.Galleries.PhotoPerson
+    has_many :photos, through: [:photo_people, :photo]
+
     timestamps()
   end
 
