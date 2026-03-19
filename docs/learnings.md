@@ -44,6 +44,12 @@ Common causes: E2E tests rendering `<img>` tags for files that don't exist on di
 
 **Fix:** Always verify clean output with `mix test 2>&1 | grep "\[error\]"` before considering a task complete. When tests create records that reference files, ensure the files exist where the server expects them — either by aligning storage paths, adding test-only static file serving, or creating placeholder files in test setup.
 
+## Sorting by input field is not the same as sorting by computed result
+
+When finding the "max" of a derived value (e.g., age = end_date - start_date), sorting by one of the inputs (e.g., earliest start_date) only works if the other input is constant for all candidates. If both inputs vary (e.g., deceased people have different end dates than living people), the derived value must be computed for each candidate and the max selected explicitly.
+
+**Fix:** Load all eligible candidates, compute the derived value for each in application code, then pick the max. For small datasets (family trees), the overhead is negligible and the logic stays in one place rather than being split between SQL and application code.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.

@@ -43,22 +43,18 @@ defmodule Ancestry.Families.Metrics do
         from p in Person,
           where: p.id in subquery(family_member_ids),
           where: not is_nil(p.birth_year),
-          where: p.deceased == false or (p.deceased == true and not is_nil(p.death_year)),
-          order_by: [
-            asc: p.birth_year,
-            asc_nulls_last: p.birth_month,
-            asc_nulls_last: p.birth_day
-          ],
-          limit: 1
+          where: p.deceased == false or (p.deceased == true and not is_nil(p.death_year))
       )
 
     case candidates do
-      [person] ->
-        age = calculate_age(person)
-        %{person: person, age: age}
-
       [] ->
         nil
+
+      people ->
+        people
+        |> Enum.map(fn person -> {person, calculate_age(person)} end)
+        |> Enum.max_by(fn {_person, age} -> age end)
+        |> then(fn {person, age} -> %{person: person, age: age} end)
     end
   end
 

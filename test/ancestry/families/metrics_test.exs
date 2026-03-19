@@ -99,6 +99,29 @@ defmodule Ancestry.Families.MetricsTest do
       assert metrics.oldest_person == nil
     end
 
+    test "picks living person with higher age over deceased person born earlier" do
+      family = insert(:family)
+
+      # Born earlier but died young — age 10
+      deceased =
+        insert(:person,
+          given_name: "Young Death",
+          birth_year: 1880,
+          death_year: 1890,
+          deceased: true
+        )
+
+      # Born later but still alive — age 76+ in 2026
+      alive = insert(:person, given_name: "Still Here", birth_year: 1950)
+
+      Ancestry.People.add_to_family(deceased, family)
+      Ancestry.People.add_to_family(alive, family)
+
+      metrics = Metrics.compute(family.id)
+      assert metrics.oldest_person.person.id == alive.id
+      assert metrics.oldest_person.age == Date.utc_today().year - 1950
+    end
+
     test "adjusts age for deceased person when death_month < birth_month" do
       family = insert(:family)
 
