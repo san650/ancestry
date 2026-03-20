@@ -91,38 +91,32 @@
     </div>
   <% end %>
 
-  <%!-- Table --%>
-  <div class="px-4 pb-8 max-w-4xl mx-auto w-full">
-    <%!-- Header row --%>
-    <div class={[
-      "grid items-center border-b border-base-200 text-sm font-medium text-base-content/50",
-      if(@editing,
-        do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
-        else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
-      )
-    ]}>
+  <%!-- Table — single grid container so header and rows share column sizing --%>
+  <div class={[
+    "px-4 pb-8 max-w-4xl mx-auto w-full grid items-center",
+    if(@editing,
+      do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
+      else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
+    )
+  ]}>
+    <%!-- Header cells (display:contents so they join the parent grid) --%>
+    <div class="contents text-sm font-medium text-base-content/50">
       <%= if @editing do %>
-        <div class="px-3 py-2.5"></div>
+        <div class="px-3 py-2.5 border-b border-base-200"></div>
       <% end %>
-      <div class="px-3 py-2.5"></div>
-      <div class="px-3 py-2.5">Name</div>
-      <div class="px-3 py-2.5">Est. Age</div>
-      <div class="px-3 py-2.5">Lifespan</div>
-      <div class="px-3 py-2.5">Links</div>
-      <div class="px-3 py-2.5"></div>
+      <div class="px-3 py-2.5 border-b border-base-200"></div>
+      <div class="px-3 py-2.5 border-b border-base-200">Name</div>
+      <div class="px-3 py-2.5 border-b border-base-200">Est. Age</div>
+      <div class="px-3 py-2.5 border-b border-base-200">Lifespan</div>
+      <div class="px-3 py-2.5 border-b border-base-200">Links</div>
+      <div class="px-3 py-2.5 border-b border-base-200"></div>
     </div>
 
-    <%!-- Stream rows --%>
+    <%!-- Stream rows (display:contents so children join parent grid) --%>
     <div
       id="people-table"
       phx-update="stream"
-      class={[
-        "grid items-center",
-        if(@editing,
-          do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
-          else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
-        )
-      ]}
+      class="contents"
       {test_id("people-table")}
     >
       <div id="people-empty-state" class="hidden only:block col-span-full py-16 text-center">
@@ -189,13 +183,18 @@
           </div>
         </div>
 
-        <%!-- Name cell --%>
-        <div class="px-3 py-2.5 min-w-0 font-medium text-base-content truncate">
-          <%= if person.surname && person.surname != "" do %>
-            {person.surname}, {person.given_name}
-          <% else %>
-            {person.given_name}
-          <% end %>
+        <%!-- Name cell (links to person show page) --%>
+        <div class="px-3 py-2.5 min-w-0">
+          <.link
+            navigate={~p"/people/#{person.id}?from_family=#{@family.id}"}
+            class="font-medium text-base-content hover:text-primary truncate block"
+          >
+            <%= if person.surname && person.surname != "" do %>
+              {person.surname}, {person.given_name}
+            <% else %>
+              {person.given_name}
+            <% end %>
+          </.link>
         </div>
 
         <%!-- Estimated Age cell --%>
@@ -232,8 +231,16 @@
         </div>
 
         <%!-- Actions cell --%>
-        <div class="px-3 py-2.5 text-right">
+        <div class="px-3 py-2.5 flex items-center justify-end gap-1">
           <%= unless @editing do %>
+            <.link
+              navigate={~p"/people/#{person.id}?from_family=#{@family.id}&edit=true"}
+              class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-primary"
+              title="Edit person"
+              {test_id("people-edit-person-#{person.id}")}
+            >
+              <.icon name="hero-pencil-square" class="w-4 h-4" />
+            </.link>
             <button
               phx-click="request_remove_one"
               phx-value-id={person.id}

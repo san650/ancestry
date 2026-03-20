@@ -43,26 +43,17 @@ defmodule Web.PersonLive.Show do
         _ -> nil
       end
 
-    {:noreply, assign(socket, :from_family, from_family)}
+    socket =
+      socket
+      |> assign(:from_family, from_family)
+      |> maybe_enter_edit_mode(params["edit"] == "true")
+
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("edit", _, socket) do
-    person = socket.assigns.person
-
-    extra_fields_present? =
-      birth_name_differs?(person.given_name_at_birth, person.given_name) ||
-        birth_name_differs?(person.surname_at_birth, person.surname) ||
-        has_value?(person.nickname) ||
-        has_value?(person.title) ||
-        has_value?(person.suffix) ||
-        (person.alternate_names != nil and person.alternate_names != [])
-
-    {:noreply,
-     socket
-     |> assign(:editing, true)
-     |> assign(:form, to_form(People.change_person(person)))
-     |> assign(:show_details, extra_fields_present?)}
+    {:noreply, enter_edit_mode(socket)}
   end
 
   def handle_event("cancel_edit", _, socket) do
@@ -566,6 +557,26 @@ defmodule Web.PersonLive.Show do
   defp sibling_person(sibling_tuple) do
     elem(sibling_tuple, 0)
   end
+
+  defp enter_edit_mode(socket) do
+    person = socket.assigns.person
+
+    extra_fields_present? =
+      birth_name_differs?(person.given_name_at_birth, person.given_name) ||
+        birth_name_differs?(person.surname_at_birth, person.surname) ||
+        has_value?(person.nickname) ||
+        has_value?(person.title) ||
+        has_value?(person.suffix) ||
+        (person.alternate_names != nil and person.alternate_names != [])
+
+    socket
+    |> assign(:editing, true)
+    |> assign(:form, to_form(People.change_person(person)))
+    |> assign(:show_details, extra_fields_present?)
+  end
+
+  defp maybe_enter_edit_mode(socket, true), do: enter_edit_mode(socket)
+  defp maybe_enter_edit_mode(socket, false), do: socket
 
   defp has_value?(nil), do: false
   defp has_value?(""), do: false
