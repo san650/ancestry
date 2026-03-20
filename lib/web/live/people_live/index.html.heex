@@ -161,14 +161,14 @@
         <%!-- Photo cell with alive/deceased indicator --%>
         <div class="px-3 py-2.5">
           <div class="indicator">
-            <span
-              class={[
-                "indicator-item indicator-bottom indicator-end badge badge-xs",
-                if(person.deceased, do: "bg-base-300 border-base-300", else: "badge-success")
-              ]}
-              title={if(person.deceased, do: "Deceased")}
-            >
-            </span>
+            <%= if person.deceased do %>
+              <span
+                class="indicator-item indicator- indicator-end badge badge-xs bg-transparent border-base-300"
+                title="Deceased"
+              >
+                d.
+              </span>
+            <% end %>
             <div class="w-10 h-10 rounded-full overflow-hidden bg-base-200 flex items-center justify-center">
               <%= if person.photo && person.photo_status == "processed" do %>
                 <img
