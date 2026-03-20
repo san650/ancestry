@@ -16,6 +16,7 @@ defmodule Web.PeopleLive.Index do
      |> assign(:editing, false)
      |> assign(:selected, MapSet.new())
      |> assign(:confirm_remove, false)
+     |> assign(:unlinked_only, false)
      |> assign(:people_empty?, people == [])
      |> stream_configure(:people, dom_id: fn {person, _rel_count} -> "people-#{person.id}" end)
      |> stream(:people, people)}
@@ -24,7 +25,11 @@ defmodule Web.PeopleLive.Index do
   @impl true
   def handle_event("filter", %{"filter" => query}, socket) do
     family_id = socket.assigns.family.id
-    people = People.list_people_for_family_with_relationship_counts(family_id, query)
+
+    people =
+      People.list_people_for_family_with_relationship_counts(family_id, query,
+        unlinked_only: socket.assigns.unlinked_only
+      )
 
     {:noreply,
      socket
@@ -36,15 +41,24 @@ defmodule Web.PeopleLive.Index do
 
   def handle_event("toggle_edit", _, socket) do
     editing = !socket.assigns.editing
-    family_id = socket.assigns.family.id
-
-    people =
-      People.list_people_for_family_with_relationship_counts(family_id, socket.assigns.filter)
+    people = refetch_people(socket)
 
     {:noreply,
      socket
      |> assign(:editing, editing)
      |> assign(:selected, MapSet.new())
+     |> stream(:people, people, reset: true)}
+  end
+
+  def handle_event("toggle_unlinked", _, socket) do
+    unlinked_only = !socket.assigns.unlinked_only
+    people = refetch_people(socket, unlinked_only: unlinked_only)
+
+    {:noreply,
+     socket
+     |> assign(:unlinked_only, unlinked_only)
+     |> assign(:selected, MapSet.new())
+     |> assign(:people_empty?, people == [])
      |> stream(:people, people, reset: true)}
   end
 
@@ -90,6 +104,19 @@ defmodule Web.PeopleLive.Index do
     {:noreply, assign(socket, :confirm_remove, true)}
   end
 
+  def handle_event("request_remove_one", %{"id" => id}, socket) do
+    if socket.assigns.confirm_remove do
+      {:noreply, socket}
+    else
+      person_id = String.to_integer(id)
+
+      {:noreply,
+       socket
+       |> assign(:selected, MapSet.new([person_id]))
+       |> assign(:confirm_remove, true)}
+    end
+  end
+
   def handle_event("cancel_remove", _, socket) do
     {:noreply, assign(socket, :confirm_remove, false)}
   end
@@ -104,8 +131,7 @@ defmodule Web.PeopleLive.Index do
       People.remove_from_family(person, family)
     end
 
-    people =
-      People.list_people_for_family_with_relationship_counts(family.id, socket.assigns.filter)
+    people = refetch_people(socket)
 
     {:noreply,
      socket
@@ -119,10 +145,23 @@ defmodule Web.PeopleLive.Index do
      )}
   end
 
-  defp refetch_people(socket) do
+  defp refetch_people(socket, opts \\ []) do
+    unlinked_only = Keyword.get(opts, :unlinked_only, socket.assigns.unlinked_only)
+
     People.list_people_for_family_with_relationship_counts(
       socket.assigns.family.id,
-      socket.assigns.filter
+      socket.assigns.filter,
+      unlinked_only: unlinked_only
     )
   end
+
+  def estimated_age(%{birth_year: nil}), do: nil
+
+  def estimated_age(%{deceased: true, death_year: nil}), do: nil
+
+  def estimated_age(%{deceased: true, birth_year: birth_year, death_year: death_year}),
+    do: death_year - birth_year
+
+  def estimated_age(%{birth_year: birth_year}),
+    do: Date.utc_today().year - birth_year
 end
