@@ -20,49 +20,25 @@ defmodule Ancestry.People do
     list_people_for_family_with_relationship_counts(family_id, "", [])
   end
 
-  def list_people_for_family_with_relationship_counts(family_id, "") do
-    list_people_for_family_with_relationship_counts(family_id, "", [])
+  def list_people_for_family_with_relationship_counts(family_id, opts) when is_list(opts) do
+    unlinked_only = Keyword.get(opts, :unlinked_only, false)
+
+    base_people_query(family_id)
+    |> maybe_filter_unlinked(unlinked_only)
+    |> Repo.all()
   end
 
-  def list_people_for_family_with_relationship_counts(family_id, search_term) do
+  def list_people_for_family_with_relationship_counts(family_id, search_term)
+      when is_binary(search_term) do
     list_people_for_family_with_relationship_counts(family_id, search_term, [])
   end
 
-  def list_people_for_family_with_relationship_counts(family_id, "", opts) do
-    unlinked_only = Keyword.get(opts, :unlinked_only, false)
-
-    query =
-      from p in Person,
-        join: fm in FamilyMember,
-        on: fm.person_id == p.id and fm.family_id == ^family_id,
-        left_join: r in Relationship,
-        on: r.person_a_id == p.id or r.person_b_id == p.id,
-        left_join: fm_other in FamilyMember,
-        on:
-          fm_other.family_id == ^family_id and
-            ((r.person_a_id == p.id and fm_other.person_id == r.person_b_id) or
-               (r.person_b_id == p.id and fm_other.person_id == r.person_a_id)),
-        group_by: p.id,
-        order_by: [asc: p.surname, asc: p.given_name],
-        select:
-          {p,
-           fragment(
-             "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END)",
-             fm_other.id,
-             r.id
-           )}
-
-    query =
-      if unlinked_only do
-        where(query, [p, fm, r, fm_other], count(fm_other.id) == 0)
-      else
-        query
-      end
-
-    Repo.all(query)
-  end
+  def list_people_for_family_with_relationship_counts(family_id, "", opts),
+    do: list_people_for_family_with_relationship_counts(family_id, opts)
 
   def list_people_for_family_with_relationship_counts(family_id, search_term, opts) do
+    unlinked_only = Keyword.get(opts, :unlinked_only, false)
+
     escaped =
       search_term
       |> String.replace("\\", "\\\\")
@@ -70,41 +46,16 @@ defmodule Ancestry.People do
       |> String.replace("_", "\\_")
 
     like = "%#{escaped}%"
-    unlinked_only = Keyword.get(opts, :unlinked_only, false)
 
-    query =
-      from p in Person,
-        join: fm in FamilyMember,
-        on: fm.person_id == p.id and fm.family_id == ^family_id,
-        left_join: r in Relationship,
-        on: r.person_a_id == p.id or r.person_b_id == p.id,
-        left_join: fm_other in FamilyMember,
-        on:
-          fm_other.family_id == ^family_id and
-            ((r.person_a_id == p.id and fm_other.person_id == r.person_b_id) or
-               (r.person_b_id == p.id and fm_other.person_id == r.person_a_id)),
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like),
-        group_by: p.id,
-        order_by: [asc: p.surname, asc: p.given_name],
-        select:
-          {p,
-           fragment(
-             "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END)",
-             fm_other.id,
-             r.id
-           )}
-
-    query =
-      if unlinked_only do
-        where(query, [p, fm, r, fm_other], count(fm_other.id) == 0)
-      else
-        query
-      end
-
-    Repo.all(query)
+    base_people_query(family_id)
+    |> where(
+      [p],
+      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
+    )
+    |> maybe_filter_unlinked(unlinked_only)
+    |> Repo.all()
   end
 
   def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
@@ -352,4 +303,42 @@ defmodule Ancestry.People do
     photo_dir = Path.join(["priv", "static", "uploads", "people", "#{person.id}"])
     File.rm_rf(photo_dir)
   end
+
+  defp base_people_query(family_id) do
+    from p in Person,
+      join: fm in FamilyMember,
+      on: fm.person_id == p.id and fm.family_id == ^family_id,
+      left_join: r in Relationship,
+      as: :rel,
+      on: r.person_a_id == p.id or r.person_b_id == p.id,
+      left_join: fm_other in FamilyMember,
+      as: :fm_other,
+      on:
+        fm_other.family_id == ^family_id and
+          ((r.person_a_id == p.id and fm_other.person_id == r.person_b_id) or
+             (r.person_b_id == p.id and fm_other.person_id == r.person_a_id)),
+      group_by: p.id,
+      order_by: [asc: p.surname, asc: p.given_name],
+      select:
+        {p,
+         fragment(
+           "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END)",
+           fm_other.id,
+           r.id
+         )}
+  end
+
+  defp maybe_filter_unlinked(query, true) do
+    having(
+      query,
+      [rel: r, fm_other: fm_other],
+      fragment(
+        "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END) = 0",
+        fm_other.id,
+        r.id
+      )
+    )
+  end
+
+  defp maybe_filter_unlinked(query, false), do: query
 end
