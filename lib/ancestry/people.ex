@@ -40,6 +40,45 @@ defmodule Ancestry.People do
     )
   end
 
+  def list_people_for_family_with_relationship_counts(family_id, ""),
+    do: list_people_for_family_with_relationship_counts(family_id)
+
+  def list_people_for_family_with_relationship_counts(family_id, search_term) do
+    escaped =
+      search_term
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
+    like = "%#{escaped}%"
+
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id and fm.family_id == ^family_id,
+        left_join: r in Relationship,
+        on: r.person_a_id == p.id or r.person_b_id == p.id,
+        left_join: fm_other in FamilyMember,
+        on:
+          fm_other.family_id == ^family_id and
+            ((r.person_a_id == p.id and fm_other.person_id == r.person_b_id) or
+               (r.person_b_id == p.id and fm_other.person_id == r.person_a_id)),
+        where:
+          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like),
+        group_by: p.id,
+        order_by: [asc: p.surname, asc: p.given_name],
+        select:
+          {p,
+           fragment(
+             "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END)",
+             fm_other.id,
+             r.id
+           )}
+    )
+  end
+
   def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
 
   def create_person(family, attrs) do

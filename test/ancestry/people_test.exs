@@ -407,6 +407,40 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "list_people_for_family_with_relationship_counts/2" do
+    test "filters by given_name, surname, and nickname with diacritics support" do
+      family = insert(:family)
+      jose = insert(:person, given_name: "Jos\u00e9", surname: "Garc\u00eda", nickname: "Pepe")
+      maria = insert(:person, given_name: "Mar\u00eda", surname: "L\u00f3pez")
+
+      for p <- [jose, maria], do: Ancestry.People.add_to_family(p, family)
+
+      # Search by given name (diacritics insensitive)
+      results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id, "jose")
+      assert length(results) == 1
+      assert {p, _} = hd(results)
+      assert p.id == jose.id
+
+      # Search by surname
+      results =
+        Ancestry.People.list_people_for_family_with_relationship_counts(family.id, "Lopez")
+
+      assert length(results) == 1
+      assert {p, _} = hd(results)
+      assert p.id == maria.id
+
+      # Search by nickname
+      results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id, "Pepe")
+      assert length(results) == 1
+      assert {p, _} = hd(results)
+      assert p.id == jose.id
+
+      # Empty search returns all
+      results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id, "")
+      assert length(results) == 2
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, family} =
       attrs
