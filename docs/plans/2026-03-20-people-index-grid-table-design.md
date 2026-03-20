@@ -59,6 +59,12 @@ All cells: `px-3 py-2.5`, vertically centered (`items-center` on the grid via `a
 
 40x40 rounded circle (`w-10 h-10`). Shows the person's processed photo thumbnail or a `hero-user` placeholder icon. Same as current implementation.
 
+**Alive/deceased indicator:** A DaisyUI `indicator` badge positioned at the bottom-end of the photo circle. Small dot (e.g. `badge-xs`).
+
+- **Alive** (`deceased == false`): light green (`badge-success`)
+- **Deceased** (`deceased == true`): light gray (`badge-ghost` or `bg-base-300`)
+- On hover, shows a `title` tooltip: `"Deceased"` for deceased persons, no tooltip for alive persons
+
 ### Name (column 2)
 
 Displays `Surname, Given Name` when surname exists, otherwise just `Given Name`. Styled `font-medium text-base-content`, with `truncate` for overflow.
