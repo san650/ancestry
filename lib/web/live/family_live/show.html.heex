@@ -15,6 +15,14 @@
       </div>
       <div class="flex items-center gap-2">
         <.link
+          navigate={~p"/families/#{@family.id}/people"}
+          class="btn btn-ghost btn-sm"
+          id="manage-people-btn"
+          {test_id("family-manage-people-btn")}
+        >
+          <.icon name="hero-users" class="w-4 h-4" /> Manage people
+        </.link>
+        <.link
           navigate={
             if(@focus_person,
               do: ~p"/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
