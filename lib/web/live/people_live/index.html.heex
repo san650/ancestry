@@ -84,7 +84,7 @@
   <%!-- Table --%>
   <div class="px-4 pb-8 max-w-4xl mx-auto w-full">
     <div id="people-table" phx-update="stream" {test_id("people-table")}>
-      <div class="hidden only:block py-16 text-center">
+      <div id="people-empty-state" class="hidden only:block py-16 text-center">
         <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-base-content/20" />
         <p class="text-lg font-medium text-base-content/40">No people in this family</p>
         <p class="text-sm text-base-content/30 mt-1">

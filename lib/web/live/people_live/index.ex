@@ -17,6 +17,7 @@ defmodule Web.PeopleLive.Index do
      |> assign(:selected, MapSet.new())
      |> assign(:confirm_remove, false)
      |> assign(:people_empty?, people == [])
+     |> stream_configure(:people, dom_id: fn {person, _rel_count} -> "people-#{person.id}" end)
      |> stream(:people, people)}
   end
 
@@ -35,11 +36,16 @@ defmodule Web.PeopleLive.Index do
 
   def handle_event("toggle_edit", _, socket) do
     editing = !socket.assigns.editing
+    family_id = socket.assigns.family.id
+
+    people =
+      People.list_people_for_family_with_relationship_counts(family_id, socket.assigns.filter)
 
     {:noreply,
      socket
      |> assign(:editing, editing)
-     |> assign(:selected, MapSet.new())}
+     |> assign(:selected, MapSet.new())
+     |> stream(:people, people, reset: true)}
   end
 
   def handle_event("toggle_select", %{"id" => id}, socket) do
@@ -53,20 +59,31 @@ defmodule Web.PeopleLive.Index do
         MapSet.put(selected, person_id)
       end
 
-    {:noreply, assign(socket, :selected, selected)}
+    people = refetch_people(socket)
+
+    {:noreply,
+     socket
+     |> assign(:selected, selected)
+     |> stream(:people, people, reset: true)}
   end
 
   def handle_event("select_all", _, socket) do
-    family_id = socket.assigns.family.id
-    filter = socket.assigns.filter
-    people = People.list_people_for_family_with_relationship_counts(family_id, filter)
+    people = refetch_people(socket)
     ids = MapSet.new(people, fn {p, _} -> p.id end)
 
-    {:noreply, assign(socket, :selected, ids)}
+    {:noreply,
+     socket
+     |> assign(:selected, ids)
+     |> stream(:people, people, reset: true)}
   end
 
   def handle_event("deselect_all", _, socket) do
-    {:noreply, assign(socket, :selected, MapSet.new())}
+    people = refetch_people(socket)
+
+    {:noreply,
+     socket
+     |> assign(:selected, MapSet.new())
+     |> stream(:people, people, reset: true)}
   end
 
   def handle_event("request_remove", _, socket) do
@@ -100,5 +117,12 @@ defmodule Web.PeopleLive.Index do
        :info,
        "Removed #{count} #{if count == 1, do: "person", else: "people"} from the family."
      )}
+  end
+
+  defp refetch_people(socket) do
+    People.list_people_for_family_with_relationship_counts(
+      socket.assigns.family.id,
+      socket.assigns.filter
+    )
   end
 end
