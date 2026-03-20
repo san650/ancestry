@@ -41,11 +41,11 @@
     </div>
   </:toolbar>
 
-  <%!-- Search box --%>
+  <%!-- Search box + unlinked chip --%>
   <div class="px-4 pt-4 pb-2 max-w-4xl mx-auto w-full">
-    <div {test_id("people-search")}>
-      <form phx-change="filter" phx-submit="filter">
-        <div class="relative">
+    <div class="flex items-center gap-2">
+      <div class="relative flex-1" {test_id("people-search")}>
+        <form phx-change="filter" phx-submit="filter">
           <.icon
             name="hero-magnifying-glass"
             class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none"
@@ -58,8 +58,18 @@
             placeholder="Search people..."
             class="input input-bordered w-full pl-10"
           />
-        </div>
-      </form>
+        </form>
+      </div>
+      <button
+        phx-click="toggle_unlinked"
+        class={[
+          "btn btn-sm gap-1",
+          if(@unlinked_only, do: "btn-warning", else: "btn-ghost")
+        ]}
+        {test_id("people-unlinked-chip")}
+      >
+        <.icon name="hero-exclamation-triangle-mini" class="w-4 h-4" /> Unlinked
+      </button>
     </div>
   </div>
 
@@ -83,8 +93,39 @@
 
   <%!-- Table --%>
   <div class="px-4 pb-8 max-w-4xl mx-auto w-full">
-    <div id="people-table" phx-update="stream" {test_id("people-table")}>
-      <div id="people-empty-state" class="hidden only:block py-16 text-center">
+    <%!-- Header row --%>
+    <div class={[
+      "grid items-center border-b border-base-200 text-sm font-medium text-base-content/50",
+      if(@editing,
+        do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
+        else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
+      )
+    ]}>
+      <%= if @editing do %>
+        <div class="px-3 py-2.5"></div>
+      <% end %>
+      <div class="px-3 py-2.5"></div>
+      <div class="px-3 py-2.5">Name</div>
+      <div class="px-3 py-2.5">Est. Age</div>
+      <div class="px-3 py-2.5">Lifespan</div>
+      <div class="px-3 py-2.5">Links</div>
+      <div class="px-3 py-2.5"></div>
+    </div>
+
+    <%!-- Stream rows --%>
+    <div
+      id="people-table"
+      phx-update="stream"
+      class={[
+        "grid items-center",
+        if(@editing,
+          do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
+          else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
+        )
+      ]}
+      {test_id("people-table")}
+    >
+      <div id="people-empty-state" class="hidden only:block col-span-full py-16 text-center">
         <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-base-content/20" />
         <p class="text-lg font-medium text-base-content/40">No people in this family</p>
         <p class="text-sm text-base-content/30 mt-1">
@@ -93,86 +134,115 @@
           </.link>
         </p>
       </div>
+
       <div
         :for={{dom_id, {person, rel_count}} <- @streams.people}
         id={dom_id}
-        class="flex items-center gap-4 px-3 py-3 rounded-lg hover:bg-base-200/50 transition-colors border-b border-base-200/60 last:border-b-0"
+        data-row
+        class="contents"
         {test_id("people-row-#{person.id}")}
       >
-        <%!-- Checkbox column (edit mode only) --%>
+        <%!-- Checkbox cell (edit mode only) --%>
         <%= if @editing do %>
-          <button
-            phx-click="toggle_select"
-            phx-value-id={person.id}
-            class={[
-              "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-              if(MapSet.member?(@selected, person.id),
-                do: "bg-primary border-primary text-primary-content",
-                else: "border-base-300 hover:border-primary"
-              )
-            ]}
-            {test_id("people-checkbox-#{person.id}")}
-          >
-            <%= if MapSet.member?(@selected, person.id) do %>
-              <.icon name="hero-check" class="w-3 h-3" />
-            <% end %>
-          </button>
+          <div class="px-3 py-2.5">
+            <button
+              phx-click="toggle_select"
+              phx-value-id={person.id}
+              class={[
+                "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                if(MapSet.member?(@selected, person.id),
+                  do: "bg-primary border-primary text-primary-content",
+                  else: "border-base-300 hover:border-primary"
+                )
+              ]}
+              {test_id("people-checkbox-#{person.id}")}
+            >
+              <%= if MapSet.member?(@selected, person.id) do %>
+                <.icon name="hero-check" class="w-3 h-3" />
+              <% end %>
+            </button>
+          </div>
         <% end %>
 
-        <%!-- Photo column --%>
-        <div class="w-10 h-10 rounded-full overflow-hidden bg-base-200 flex items-center justify-center shrink-0">
-          <%= if person.photo && person.photo_status == "processed" do %>
-            <img
-              src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
-              alt={Ancestry.People.Person.display_name(person)}
-              class="w-full h-full object-cover"
-            />
+        <%!-- Photo cell with alive/deceased indicator --%>
+        <div class="px-3 py-2.5">
+          <div class="indicator">
+            <span
+              class={[
+                "indicator-item indicator-bottom indicator-end badge badge-xs",
+                if(person.deceased, do: "bg-base-300 border-base-300", else: "badge-success")
+              ]}
+              title={if(person.deceased, do: "Deceased")}
+            >
+            </span>
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-base-200 flex items-center justify-center">
+              <%= if person.photo && person.photo_status == "processed" do %>
+                <img
+                  src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
+                  alt={Ancestry.People.Person.display_name(person)}
+                  class="w-full h-full object-cover"
+                />
+              <% else %>
+                <.icon name="hero-user" class="w-5 h-5 text-base-content/30" />
+              <% end %>
+            </div>
+          </div>
+        </div>
+
+        <%!-- Name cell --%>
+        <div class="px-3 py-2.5 min-w-0 font-medium text-base-content truncate">
+          <%= if person.surname && person.surname != "" do %>
+            {person.surname}, {person.given_name}
           <% else %>
-            <.icon name="hero-user" class="w-5 h-5 text-base-content/30" />
+            {person.given_name}
           <% end %>
         </div>
 
-        <%!-- Name column --%>
-        <div class="flex-1 min-w-0">
-          <div class="font-medium text-base-content truncate">
-            <%= if person.surname && person.surname != "" do %>
-              {person.surname}, {person.given_name}
-            <% else %>
-              {person.given_name}
-            <% end %>
-          </div>
-          <%!-- Lifespan (shown below name on all screens) --%>
-          <div class="text-sm text-base-content/60">
-            <%= cond do %>
-              <% person.birth_year && person.death_year -> %>
-                {person.birth_year} &ndash; {person.death_year}
-                <%= if person.deceased do %>
-                  <span class="text-base-content/40 ml-1">deceased</span>
-                <% end %>
-              <% person.birth_year -> %>
-                {person.birth_year} &ndash;
-                <%= if person.deceased do %>
-                  <span class="text-base-content/40 ml-1">deceased</span>
-                <% end %>
-              <% true -> %>
-                <%= if person.deceased do %>
-                  <span class="text-base-content/40">deceased</span>
-                <% end %>
-            <% end %>
-          </div>
+        <%!-- Estimated Age cell --%>
+        <div class="px-3 py-2.5 text-sm text-base-content/60">
+          <%= case estimated_age(person) do %>
+            <% nil -> %>
+              &mdash;
+            <% age -> %>
+              ~{age}
+          <% end %>
         </div>
 
-        <%!-- Relationships column --%>
-        <div class="text-sm shrink-0">
+        <%!-- Lifespan cell --%>
+        <div class="px-3 py-2.5 text-sm text-base-content/60">
+          <%= cond do %>
+            <% person.birth_year && person.death_year -> %>
+              b. {person.birth_year} &ndash; d. {person.death_year}
+            <% person.birth_year -> %>
+              b. {person.birth_year}
+            <% person.death_year -> %>
+              d. {person.death_year}
+            <% true -> %>
+              &mdash;
+          <% end %>
+        </div>
+
+        <%!-- Links cell --%>
+        <div class="px-3 py-2.5 text-sm" {test_id("people-links-#{person.id}")}>
           <%= if rel_count > 0 do %>
-            <span class="text-base-content/60">
-              {rel_count}
-              <span class="hidden sm:inline">
-                {if rel_count == 1, do: "relationship", else: "relationships"}
-              </span>
-            </span>
+            <span class="text-base-content/60">{rel_count}</span>
           <% else %>
-            <span class="badge badge-ghost badge-sm text-base-content/40">not connected</span>
+            <.icon name="hero-exclamation-triangle" class="w-4 h-4 text-warning" />
+          <% end %>
+        </div>
+
+        <%!-- Actions cell --%>
+        <div class="px-3 py-2.5 text-right">
+          <%= unless @editing do %>
+            <button
+              phx-click="request_remove_one"
+              phx-value-id={person.id}
+              class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-error"
+              title="Remove from family"
+              {test_id("people-unlink-#{person.id}")}
+            >
+              <.icon name="hero-link-slash" class="w-4 h-4" />
+            </button>
           <% end %>
         </div>
       </div>

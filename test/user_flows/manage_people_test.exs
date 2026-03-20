@@ -2,17 +2,22 @@ defmodule Web.UserFlows.ManagePeopleTest do
   use Web.E2ECase
 
   # Given a family with people (some with relationships, some without, one deceased)
-  # When the user navigates to /families/:family_id
-  # And clicks "Manage people" in the toolbar
-  # Then the people table is shown with names, lifespans, relationship counts
-  # And deceased people show the "deceased" indicator
-  # And unconnected people show the "not connected" tag
+  # When the user navigates to /families/:family_id/people
+  # Then the people table is shown with names, lifespans, estimated ages, link counts
+  # And deceased people show a gray indicator dot with "Deceased" tooltip
+  # And unlinked people show a warning icon in the links column
   #
   # When the user types in the search box
   # Then the table narrows to matching people
   #
+  # When the user clicks the "Unlinked" chip
+  # Then only people with 0 relationships are shown
+  #
+  # When the user clicks the per-row unlink button
+  # Then a confirmation modal appears for that single person
+  #
   # When the user clicks "Edit"
-  # Then checkboxes appear on each row
+  # Then checkboxes appear and per-row unlink buttons are hidden
   #
   # When the user selects 2 people and clicks "Remove from family"
   # Then a confirmation modal appears
@@ -23,7 +28,7 @@ defmodule Web.UserFlows.ManagePeopleTest do
   # And a flash message confirms the removal
   #
   # When the user clicks "Done"
-  # Then checkboxes disappear
+  # Then checkboxes disappear and per-row unlink buttons reappear
 
   setup do
     family = insert(:family, name: "Test Family")
@@ -47,12 +52,17 @@ defmodule Web.UserFlows.ManagePeopleTest do
     Ancestry.Relationships.create_relationship(alice, bob, "parent", %{role: "mother"})
     # Alice and Charlie are partners (both in family) = 1 more for alice, 1 for charlie
     Ancestry.Relationships.create_relationship(alice, charlie, "partner")
-    # Diana has no relationships = "not connected"
+    # Diana has no relationships = warning icon
 
     %{family: family, alice: alice, bob: bob, charlie: charlie, diana: diana}
   end
 
-  test "view people table with correct data", %{conn: conn, family: family} do
+  test "view people table with correct data", %{
+    conn: conn,
+    family: family,
+    alice: alice,
+    diana: diana
+  } do
     conn =
       conn
       |> visit(~p"/families/#{family.id}/people")
@@ -66,13 +76,18 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-table"), text: "Jones, Charlie")
     |> assert_has(test_id("people-table"), text: "Williams, Diana")
 
-    # Verify deceased indicator for Alice
+    # Verify Diana (0 relationships) shows warning icon
     conn
-    |> assert_has(test_id("people-table"), text: "deceased")
+    |> assert_has(test_id("people-links-#{diana.id}") <> " .hero-exclamation-triangle")
 
-    # Verify "not connected" for Diana
+    # Verify lifespan for Alice (deceased with both years)
     conn
-    |> assert_has(test_id("people-table"), text: "not connected")
+    |> assert_has(test_id("people-table"), text: "b. 1950")
+    |> assert_has(test_id("people-table"), text: "d. 2020")
+
+    # Verify deceased indicator has title attribute
+    conn
+    |> assert_has(test_id("people-row-#{alice.id}") <> " .indicator-item[title='Deceased']")
   end
 
   test "navigate from family show via toolbar", %{conn: conn, family: family} do
@@ -229,5 +244,150 @@ defmodule Web.UserFlows.ManagePeopleTest do
     conn
     |> refute_has(test_id("people-confirm-remove-modal"))
     |> assert_has(test_id("people-table"), text: "Jones, Charlie")
+  end
+
+  # --- New tests for grid table features ---
+
+  test "unlinked chip filters to people with 0 relationships", %{
+    conn: conn,
+    family: family
+  } do
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/people")
+      |> wait_liveview()
+
+    # Click the Unlinked chip
+    conn =
+      conn
+      |> click(test_id("people-unlinked-chip"))
+      |> wait_liveview()
+
+    # Only Diana (0 relationships) should be visible
+    conn
+    |> assert_has(test_id("people-table"), text: "Williams, Diana", timeout: 5_000)
+    |> refute_has(test_id("people-table"), text: "Smith, Alice")
+    |> refute_has(test_id("people-table"), text: "Smith, Bob")
+    |> refute_has(test_id("people-table"), text: "Jones, Charlie")
+
+    # Click again to deactivate
+    conn =
+      conn
+      |> click(test_id("people-unlinked-chip"))
+      |> wait_liveview()
+
+    # All people should be visible again
+    conn
+    |> assert_has(test_id("people-table"), text: "Smith, Alice", timeout: 5_000)
+    |> assert_has(test_id("people-table"), text: "Williams, Diana")
+  end
+
+  test "unlinked filter composes with text search", %{
+    conn: conn,
+    family: family
+  } do
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/people")
+      |> wait_liveview()
+
+    # Activate unlinked filter
+    conn =
+      conn
+      |> click(test_id("people-unlinked-chip"))
+      |> wait_liveview()
+      |> assert_has(test_id("people-table"), text: "Williams, Diana", timeout: 5_000)
+
+    # Search for "Smith" — no unlinked person has surname Smith
+    conn = PhoenixTest.Playwright.type(conn, test_id("people-search") <> " input", "Smith")
+
+    conn
+    |> refute_has(test_id("people-table"), text: "Williams, Diana", timeout: 5_000)
+    |> refute_has(test_id("people-table"), text: "Smith, Alice")
+  end
+
+  test "per-row unlink button removes person from family", %{
+    conn: conn,
+    family: family,
+    diana: diana
+  } do
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/people")
+      |> wait_liveview()
+
+    # Click the unlink button on Diana's row
+    conn =
+      conn
+      |> click(test_id("people-unlink-#{diana.id}"))
+      |> wait_liveview()
+
+    # Confirmation modal should appear
+    conn =
+      conn
+      |> assert_has(test_id("people-confirm-remove-modal"))
+
+    # Confirm removal
+    conn =
+      conn
+      |> click(test_id("people-confirm-remove-btn"))
+      |> wait_liveview()
+
+    # Diana should be gone
+    conn
+    |> refute_has(test_id("people-table"), text: "Williams, Diana", timeout: 5_000)
+    |> assert_has(test_id("people-table"), text: "Smith, Alice")
+  end
+
+  test "estimated age displays correctly", %{conn: conn, family: family} do
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/people")
+      |> wait_liveview()
+
+    # Alice: deceased, birth_year: 1950, death_year: 2020 → ~70 (stable)
+    conn
+    |> assert_has(test_id("people-table"), text: "~70")
+
+    # Bob: alive, birth_year: 1955 → dynamic age
+    expected_bob_age = Date.utc_today().year - 1955
+
+    conn
+    |> assert_has(test_id("people-table"), text: "~#{expected_bob_age}")
+  end
+
+  test "per-row unlink buttons hidden in edit mode", %{
+    conn: conn,
+    family: family,
+    diana: diana
+  } do
+    conn =
+      conn
+      |> visit(~p"/families/#{family.id}/people")
+      |> wait_liveview()
+
+    # Unlink button visible in normal mode
+    conn
+    |> assert_has(test_id("people-unlink-#{diana.id}"))
+
+    # Enter edit mode
+    conn =
+      conn
+      |> click(test_id("people-edit-btn"))
+      |> wait_liveview()
+
+    # Unlink button should be hidden
+    conn
+    |> refute_has(test_id("people-unlink-#{diana.id}"))
+
+    # Exit edit mode
+    conn =
+      conn
+      |> click(test_id("people-edit-btn"))
+      |> wait_liveview()
+
+    # Unlink button should be visible again
+    conn
+    |> assert_has(test_id("people-unlink-#{diana.id}"))
   end
 end
