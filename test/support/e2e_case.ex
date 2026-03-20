@@ -11,10 +11,6 @@ defmodule Web.E2ECase do
     end
   end
 
-  def wait_liveview(conn) do
-    PhoenixTest.assert_has(conn, "body .phx-connected")
-  end
-
   @doc """
   Returns a CSS attribute selector for `data-testid`.
 
@@ -89,4 +85,13 @@ defmodule Web.E2ECase do
   defp mime_for_extension(".webp"), do: "image/webp"
   defp mime_for_extension(".gif"), do: "image/gif"
   defp mime_for_extension(_), do: "application/octet-stream"
+
+  def wait_liveview(conn, async_containers \\ []) do
+    async_containers = [
+      "body .phx-connected"
+      | async_containers
+    ]
+
+    Enum.reduce(async_containers, conn, &PhoenixTest.assert_has(&2, &1))
+  end
 end
