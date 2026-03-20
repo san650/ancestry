@@ -17,7 +17,21 @@ defmodule Ancestry.People do
   end
 
   def list_people_for_family_with_relationship_counts(family_id) do
-    Repo.all(
+    list_people_for_family_with_relationship_counts(family_id, "", [])
+  end
+
+  def list_people_for_family_with_relationship_counts(family_id, "") do
+    list_people_for_family_with_relationship_counts(family_id, "", [])
+  end
+
+  def list_people_for_family_with_relationship_counts(family_id, search_term) do
+    list_people_for_family_with_relationship_counts(family_id, search_term, [])
+  end
+
+  def list_people_for_family_with_relationship_counts(family_id, "", opts) do
+    unlinked_only = Keyword.get(opts, :unlinked_only, false)
+
+    query =
       from p in Person,
         join: fm in FamilyMember,
         on: fm.person_id == p.id and fm.family_id == ^family_id,
@@ -37,13 +51,18 @@ defmodule Ancestry.People do
              fm_other.id,
              r.id
            )}
-    )
+
+    query =
+      if unlinked_only do
+        where(query, [p, fm, r, fm_other], count(fm_other.id) == 0)
+      else
+        query
+      end
+
+    Repo.all(query)
   end
 
-  def list_people_for_family_with_relationship_counts(family_id, ""),
-    do: list_people_for_family_with_relationship_counts(family_id)
-
-  def list_people_for_family_with_relationship_counts(family_id, search_term) do
+  def list_people_for_family_with_relationship_counts(family_id, search_term, opts) do
     escaped =
       search_term
       |> String.replace("\\", "\\\\")
@@ -51,8 +70,9 @@ defmodule Ancestry.People do
       |> String.replace("_", "\\_")
 
     like = "%#{escaped}%"
+    unlinked_only = Keyword.get(opts, :unlinked_only, false)
 
-    Repo.all(
+    query =
       from p in Person,
         join: fm in FamilyMember,
         on: fm.person_id == p.id and fm.family_id == ^family_id,
@@ -76,7 +96,15 @@ defmodule Ancestry.People do
              fm_other.id,
              r.id
            )}
-    )
+
+    query =
+      if unlinked_only do
+        where(query, [p, fm, r, fm_other], count(fm_other.id) == 0)
+      else
+        query
+      end
+
+    Repo.all(query)
   end
 
   def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
