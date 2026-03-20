@@ -336,6 +336,77 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "list_people_for_family_with_relationship_counts/1" do
+    test "returns people with their relationship count within the family" do
+      family = insert(:family)
+      alice = insert(:person, given_name: "Alice", surname: "Smith")
+      bob = insert(:person, given_name: "Bob", surname: "Smith")
+      charlie = insert(:person, given_name: "Charlie", surname: "Smith")
+
+      for p <- [alice, bob, charlie], do: Ancestry.People.add_to_family(p, family)
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(alice, bob, "parent", %{role: "mother"})
+
+      {:ok, _} = Ancestry.Relationships.create_relationship(alice, charlie, "partner")
+
+      results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id)
+
+      assert length(results) == 3
+
+      alice_result = Enum.find(results, fn {p, _} -> p.id == alice.id end)
+      bob_result = Enum.find(results, fn {p, _} -> p.id == bob.id end)
+      charlie_result = Enum.find(results, fn {p, _} -> p.id == charlie.id end)
+
+      assert {_, 2} = alice_result
+      assert {_, 1} = bob_result
+      assert {_, 1} = charlie_result
+    end
+
+    test "returns 0 count for people with no relationships in the family" do
+      family = insert(:family)
+      alice = insert(:person, given_name: "Alice", surname: "Loner")
+      Ancestry.People.add_to_family(alice, family)
+
+      [{person, count}] =
+        Ancestry.People.list_people_for_family_with_relationship_counts(family.id)
+
+      assert person.id == alice.id
+      assert count == 0
+    end
+
+    test "does not count relationships where the other person is outside the family" do
+      family = insert(:family)
+      alice = insert(:person, given_name: "Alice", surname: "Smith")
+      outsider = insert(:person, given_name: "Outsider", surname: "Jones")
+
+      Ancestry.People.add_to_family(alice, family)
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(alice, outsider, "parent", %{role: "mother"})
+
+      [{person, count}] =
+        Ancestry.People.list_people_for_family_with_relationship_counts(family.id)
+
+      assert person.id == alice.id
+      assert count == 0
+    end
+
+    test "sorts by surname then given name" do
+      family = insert(:family)
+      zara = insert(:person, given_name: "Zara", surname: "Adams")
+      bob = insert(:person, given_name: "Bob", surname: "Adams")
+      alice = insert(:person, given_name: "Alice", surname: "Brown")
+
+      for p <- [zara, bob, alice], do: Ancestry.People.add_to_family(p, family)
+
+      results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id)
+      names = Enum.map(results, fn {p, _} -> {p.surname, p.given_name} end)
+
+      assert names == [{"Adams", "Bob"}, {"Adams", "Zara"}, {"Brown", "Alice"}]
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, family} =
       attrs

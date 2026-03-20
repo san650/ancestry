@@ -4,6 +4,7 @@ defmodule Ancestry.People do
   alias Ancestry.Repo
   alias Ancestry.People.FamilyMember
   alias Ancestry.People.Person
+  alias Ancestry.Relationships.Relationship
 
   def list_people_for_family(family_id) do
     Repo.all(
@@ -12,6 +13,30 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id,
         where: fm.family_id == ^family_id,
         order_by: [asc: p.surname, asc: p.given_name]
+    )
+  end
+
+  def list_people_for_family_with_relationship_counts(family_id) do
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id and fm.family_id == ^family_id,
+        left_join: r in Relationship,
+        on: r.person_a_id == p.id or r.person_b_id == p.id,
+        left_join: fm_other in FamilyMember,
+        on:
+          fm_other.family_id == ^family_id and
+            ((r.person_a_id == p.id and fm_other.person_id == r.person_b_id) or
+               (r.person_b_id == p.id and fm_other.person_id == r.person_a_id)),
+        group_by: p.id,
+        order_by: [asc: p.surname, asc: p.given_name],
+        select:
+          {p,
+           fragment(
+             "COUNT(DISTINCT CASE WHEN ? IS NOT NULL THEN ? END)",
+             fm_other.id,
+             r.id
+           )}
     )
   end
 
