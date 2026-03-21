@@ -18,7 +18,7 @@ defmodule Ancestry.Import.CSV.Adapter do
   Parse a CSV row map into a list of relationship tuples.
 
   Each tuple is `{type, source_external_id, target_external_id, metadata}` where:
-  - `type` is an atom like `:parent`, `:partner`, `:ex_partner`
+  - `type` is an atom like `:parent`, `:married`, `:relationship`, `:divorced`, `:separated`
   - `source_external_id` and `target_external_id` are prefixed external IDs
   - `metadata` is a map of additional relationship attributes
   """

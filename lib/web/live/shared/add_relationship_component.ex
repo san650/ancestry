@@ -122,6 +122,10 @@ defmodule Web.Shared.AddRelationshipComponent do
     end
   end
 
+  def handle_event("validate_partner_form", %{"metadata" => metadata_params}, socket) do
+    {:noreply, assign(socket, :relationship_form, to_form(metadata_params, as: :metadata))}
+  end
+
   def handle_event("save_relationship", params, socket) do
     person = socket.assigns.person
     selected = socket.assigns.selected_person
@@ -141,12 +145,14 @@ defmodule Web.Shared.AddRelationshipComponent do
 
         "partner" ->
           metadata_params = Map.get(params, "metadata", %{})
+          partner_subtype = Map.get(metadata_params, "partner_subtype", "relationship")
+          clean_metadata = Map.delete(metadata_params, "partner_subtype")
 
           Relationships.create_relationship(
             person,
             selected,
-            "partner",
-            atomize_metadata(metadata_params)
+            partner_subtype,
+            atomize_metadata(clean_metadata)
           )
 
         "child" ->
@@ -306,39 +312,55 @@ defmodule Web.Shared.AddRelationshipComponent do
                   for={@relationship_form}
                   id="add-partner-form"
                   phx-target={@myself}
+                  phx-change="validate_partner_form"
                   phx-submit="save_relationship"
                 >
                   <div class="space-y-4">
-                    <p class="text-sm font-medium text-base-content/60">
-                      Marriage Details (optional)
-                    </p>
-                    <div class="grid grid-cols-3 gap-3">
-                      <.input
-                        field={@relationship_form[:marriage_day]}
-                        type="number"
-                        placeholder="Day"
-                        label="Day"
-                      />
-                      <.input
-                        field={@relationship_form[:marriage_month]}
-                        type="number"
-                        placeholder="Month"
-                        label="Month"
-                      />
-                      <.input
-                        field={@relationship_form[:marriage_year]}
-                        type="number"
-                        placeholder="Year"
-                        label="Year"
-                      />
-                    </div>
                     <.input
-                      field={@relationship_form[:marriage_location]}
-                      type="text"
-                      label="Location"
-                      placeholder="e.g. London, UK"
+                      field={@relationship_form[:partner_subtype]}
+                      type="select"
+                      label="Status"
+                      options={[
+                        {"In a relationship", "relationship"},
+                        {"Married", "married"},
+                        {"Divorced", "divorced"},
+                        {"Separated", "separated"}
+                      ]}
                     />
-                    <button type="submit" class="btn btn-primary w-full">Add Spouse</button>
+                    <% subtype =
+                      Phoenix.HTML.Form.input_value(@relationship_form, :partner_subtype) %>
+                    <%= if subtype in ~w(married divorced separated) do %>
+                      <p class="text-sm font-medium text-base-content/60">
+                        Marriage Details (optional)
+                      </p>
+                      <div class="grid grid-cols-3 gap-3">
+                        <.input
+                          field={@relationship_form[:marriage_day]}
+                          type="number"
+                          placeholder="Day"
+                          label="Day"
+                        />
+                        <.input
+                          field={@relationship_form[:marriage_month]}
+                          type="number"
+                          placeholder="Month"
+                          label="Month"
+                        />
+                        <.input
+                          field={@relationship_form[:marriage_year]}
+                          type="number"
+                          placeholder="Year"
+                          label="Year"
+                        />
+                      </div>
+                      <.input
+                        field={@relationship_form[:marriage_location]}
+                        type="text"
+                        label="Location"
+                        placeholder="e.g. London, UK"
+                      />
+                    <% end %>
+                    <button type="submit" class="btn btn-primary w-full">Add Partner</button>
                   </div>
                 </.form>
               <% @relationship_type in ["child", "child_solo"] -> %>
@@ -429,7 +451,7 @@ defmodule Web.Shared.AddRelationshipComponent do
         to_form(%{"role" => role}, as: :metadata)
 
       "partner" ->
-        to_form(%{}, as: :metadata)
+        to_form(%{"partner_subtype" => "relationship"}, as: :metadata)
 
       _ ->
         nil
@@ -449,7 +471,9 @@ defmodule Web.Shared.AddRelationshipComponent do
   end
 
   defp atomize_metadata(params) do
-    Map.new(params, fn {k, v} ->
+    params
+    |> Map.delete("partner_subtype")
+    |> Map.new(fn {k, v} ->
       key =
         if is_binary(k) do
           String.to_existing_atom(k)
@@ -465,7 +489,10 @@ defmodule Web.Shared.AddRelationshipComponent do
                :marriage_year,
                :divorce_day,
                :divorce_month,
-               :divorce_year
+               :divorce_year,
+               :separated_day,
+               :separated_month,
+               :separated_year
              ] do
           case Integer.parse(v) do
             {int, ""} -> int
@@ -480,12 +507,16 @@ defmodule Web.Shared.AddRelationshipComponent do
   end
 
   defp relationship_title("parent"), do: "Add Parent"
-  defp relationship_title("partner"), do: "Add Spouse/Partner"
+  defp relationship_title("partner"), do: "Add Partner"
   defp relationship_title("child"), do: "Add Child"
   defp relationship_title("child_solo"), do: "Add Child (Unknown Other Parent)"
   defp relationship_title(_), do: "Add Relationship"
 
   defp relationship_error_message(:max_parents_reached), do: "This person already has 2 parents"
+
+  defp relationship_error_message(:partner_relationship_exists),
+    do: "A partner relationship already exists between these two people"
+
   defp relationship_error_message(%Ecto.Changeset{}), do: "Invalid relationship data"
   defp relationship_error_message(_), do: "Failed to create relationship"
 end

@@ -27,7 +27,7 @@ defmodule Web.PersonLive.RelationshipsTest do
       People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
 
     {:ok, _} =
-      Relationships.create_relationship(person, spouse, "partner", %{marriage_year: 2020})
+      Relationships.create_relationship(person, spouse, "married", %{marriage_year: 2020})
 
     {:ok, view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
     assert has_element?(view, "#partner-group-#{spouse.id}")
@@ -60,7 +60,7 @@ defmodule Web.PersonLive.RelationshipsTest do
       People.create_person(family, %{given_name: "Kid", surname: "Doe", gender: "male"})
 
     {:ok, _} =
-      Relationships.create_relationship(person, spouse, "partner", %{marriage_year: 2020})
+      Relationships.create_relationship(person, spouse, "married", %{marriage_year: 2020})
 
     {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(spouse, child, "parent", %{role: "mother"})
@@ -171,7 +171,7 @@ defmodule Web.PersonLive.RelationshipsTest do
       People.create_person(family, %{given_name: "Ex", surname: "Wife", gender: "female"})
 
     {:ok, _} =
-      Relationships.create_relationship(person, ex, "ex_partner", %{
+      Relationships.create_relationship(person, ex, "divorced", %{
         marriage_year: 2010,
         divorce_year: 2015
       })
@@ -219,7 +219,7 @@ defmodule Web.PersonLive.RelationshipsTest do
       People.create_person(family, %{given_name: "Kid", surname: "Doe", gender: "male"})
 
     {:ok, _} =
-      Relationships.create_relationship(person, spouse, "partner", %{marriage_year: 2020})
+      Relationships.create_relationship(person, spouse, "married", %{marriage_year: 2020})
 
     {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
     {:ok, _} = Relationships.create_relationship(spouse, child, "parent", %{role: "mother"})

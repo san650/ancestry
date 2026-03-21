@@ -348,7 +348,7 @@ defmodule Ancestry.PeopleTest do
       {:ok, _} =
         Ancestry.Relationships.create_relationship(alice, bob, "parent", %{role: "mother"})
 
-      {:ok, _} = Ancestry.Relationships.create_relationship(alice, charlie, "partner")
+      {:ok, _} = Ancestry.Relationships.create_relationship(alice, charlie, "relationship")
 
       results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id)
 

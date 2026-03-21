@@ -218,6 +218,9 @@ defmodule Ancestry.Import.CSV do
               error = "#{type}: max 2 parents for \"#{target_eid}\""
               %{acc | errors: [error | acc.errors]}
 
+            {:error, :partner_relationship_exists} ->
+              %{acc | duplicates: acc.duplicates + 1}
+
             {:error, %Ecto.Changeset{} = changeset} ->
               if duplicate_relationship?(changeset) do
                 %{acc | duplicates: acc.duplicates + 1}

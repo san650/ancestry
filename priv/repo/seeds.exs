@@ -63,7 +63,7 @@ margaret =
   })
 
 {:ok, _} =
-  Relationships.create_relationship(harold, margaret, "partner", %{
+  Relationships.create_relationship(harold, margaret, "married", %{
     marriage_year: 1942,
     marriage_month: 6,
     marriage_day: 15
@@ -170,7 +170,7 @@ end
 
 # Robert & Patricia — married
 {:ok, _} =
-  Relationships.create_relationship(robert, patricia, "partner", %{
+  Relationships.create_relationship(robert, patricia, "married", %{
     marriage_year: 1965,
     marriage_month: 5,
     marriage_day: 22
@@ -178,7 +178,7 @@ end
 
 # Dorothy & George — married, George deceased (widowed & remarried scenario)
 {:ok, _} =
-  Relationships.create_relationship(dorothy, george, "partner", %{
+  Relationships.create_relationship(dorothy, george, "married", %{
     marriage_year: 1968,
     marriage_month: 9,
     marriage_day: 7
@@ -186,7 +186,7 @@ end
 
 # Dorothy & Frank — second marriage (childless couple)
 {:ok, _} =
-  Relationships.create_relationship(dorothy, frank, "partner", %{
+  Relationships.create_relationship(dorothy, frank, "married", %{
     marriage_year: 2012,
     marriage_month: 3,
     marriage_day: 20
@@ -194,7 +194,7 @@ end
 
 # William & Linda — divorced
 {:ok, _} =
-  Relationships.create_relationship(william, linda, "ex_partner", %{
+  Relationships.create_relationship(william, linda, "divorced", %{
     marriage_year: 1972,
     marriage_month: 4,
     marriage_day: 10,
@@ -204,7 +204,7 @@ end
 
 # William & Sandra — current marriage
 {:ok, _} =
-  Relationships.create_relationship(william, sandra, "partner", %{
+  Relationships.create_relationship(william, sandra, "married", %{
     marriage_year: 1980,
     marriage_month: 7,
     marriage_day: 5
@@ -356,7 +356,7 @@ end
 
 # James & Catherine
 {:ok, _} =
-  Relationships.create_relationship(james, catherine, "partner", %{
+  Relationships.create_relationship(james, catherine, "married", %{
     marriage_year: 1990,
     marriage_month: 8,
     marriage_day: 18
@@ -364,7 +364,7 @@ end
 
 # Karen & David
 {:ok, _} =
-  Relationships.create_relationship(karen, david, "partner", %{
+  Relationships.create_relationship(karen, david, "married", %{
     marriage_year: 1993,
     marriage_month: 6,
     marriage_day: 12
@@ -372,7 +372,7 @@ end
 
 # Michael & Rachel
 {:ok, _} =
-  Relationships.create_relationship(michael, rachel, "partner", %{
+  Relationships.create_relationship(michael, rachel, "married", %{
     marriage_year: 1998,
     marriage_month: 10,
     marriage_day: 3
@@ -380,7 +380,7 @@ end
 
 # Andrew & Jessica
 {:ok, _} =
-  Relationships.create_relationship(andrew, jessica, "partner", %{
+  Relationships.create_relationship(andrew, jessica, "married", %{
     marriage_year: 2008,
     marriage_month: 5,
     marriage_day: 24

@@ -23,8 +23,8 @@ defmodule Ancestry.RelationshipsTest do
         Relationship.changeset(%Relationship{}, %{
           person_a_id: 5,
           person_b_id: 3,
-          type: "partner",
-          metadata: %{__type__: "partner", marriage_year: 1920}
+          type: "married",
+          metadata: %{__type__: "married", marriage_year: 1920}
         })
 
       assert changeset.valid?
@@ -49,7 +49,7 @@ defmodule Ancestry.RelationshipsTest do
         Relationship.changeset(%Relationship{}, %{
           person_a_id: 1,
           person_b_id: 1,
-          type: "partner"
+          type: "married"
         })
 
       refute changeset.valid?
@@ -89,7 +89,7 @@ defmodule Ancestry.RelationshipsTest do
       {:ok, person_b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
 
       assert {:ok, rel} =
-               Relationships.create_relationship(person_b, person_a, "partner", %{
+               Relationships.create_relationship(person_b, person_a, "married", %{
                  marriage_year: 2020
                })
 
@@ -145,36 +145,81 @@ defmodule Ancestry.RelationshipsTest do
       family = family_fixture()
       {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
       {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
-      {:ok, rel} = Relationships.create_relationship(a, b, "partner", %{marriage_year: 2020})
+      {:ok, rel} = Relationships.create_relationship(a, b, "married", %{marriage_year: 2020})
 
       assert {:ok, updated} =
                Relationships.update_relationship(rel, %{
-                 metadata: %{__type__: "partner", marriage_year: 2021}
+                 metadata: %{__type__: "married", marriage_year: 2021}
                })
 
       assert updated.metadata.marriage_year == 2021
     end
   end
 
-  describe "convert_to_ex_partner/2" do
-    test "converts partner to ex_partner carrying marriage metadata" do
+  describe "update_partner_type/3" do
+    test "changes married to divorced carrying marriage metadata" do
       family = family_fixture()
       {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
       {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
 
       {:ok, rel} =
-        Relationships.create_relationship(a, b, "partner", %{
+        Relationships.create_relationship(a, b, "married", %{
           marriage_year: 2020,
           marriage_location: "Paris"
         })
 
-      assert {:ok, ex_rel} =
-               Relationships.convert_to_ex_partner(rel, %{divorce_year: 2023})
+      assert {:ok, updated} =
+               Relationships.update_partner_type(rel, "divorced", %{divorce_year: 2023})
 
-      assert ex_rel.type == "ex_partner"
-      assert ex_rel.metadata.marriage_year == 2020
-      assert ex_rel.metadata.marriage_location == "Paris"
-      assert ex_rel.metadata.divorce_year == 2023
+      assert updated.type == "divorced"
+      assert updated.metadata.marriage_year == 2020
+      assert updated.metadata.marriage_location == "Paris"
+      assert updated.metadata.divorce_year == 2023
+    end
+
+    test "changes relationship to separated" do
+      family = family_fixture()
+      {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+
+      {:ok, rel} = Relationships.create_relationship(a, b, "relationship")
+
+      assert {:ok, updated} =
+               Relationships.update_partner_type(rel, "separated", %{separated_year: 2023})
+
+      assert updated.type == "separated"
+      assert updated.metadata.separated_year == 2023
+    end
+
+    test "changes divorced back to married" do
+      family = family_fixture()
+      {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+
+      {:ok, rel} =
+        Relationships.create_relationship(a, b, "divorced", %{
+          marriage_year: 2015,
+          divorce_year: 2020
+        })
+
+      assert {:ok, updated} =
+               Relationships.update_partner_type(rel, "married", %{marriage_year: 2022})
+
+      assert updated.type == "married"
+      assert updated.metadata.marriage_year == 2022
+    end
+  end
+
+  describe "one partner-type relationship per pair" do
+    test "prevents creating a second partner-type relationship" do
+      family = family_fixture()
+      {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
+      {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
+
+      {:ok, _} = Relationships.create_relationship(a, b, "married", %{marriage_year: 2020})
+
+      assert {:error, :partner_relationship_exists} =
+               Relationships.create_relationship(a, b, "divorced")
     end
   end
 
@@ -264,20 +309,20 @@ defmodule Ancestry.RelationshipsTest do
     end
   end
 
-  describe "get_partners/1" do
+  describe "get_active_partners/1" do
     test "returns current partners from both sides" do
       family = family_fixture()
       {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
       {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
 
-      {:ok, _} = Relationships.create_relationship(a, b, "partner", %{marriage_year: 2020})
+      {:ok, _} = Relationships.create_relationship(a, b, "married", %{marriage_year: 2020})
 
-      partners_a = Relationships.get_partners(a.id)
+      partners_a = Relationships.get_active_partners(a.id)
       assert length(partners_a) == 1
       assert {partner, _rel} = hd(partners_a)
       assert partner.id == b.id
 
-      partners_b = Relationships.get_partners(b.id)
+      partners_b = Relationships.get_active_partners(b.id)
       assert length(partners_b) == 1
       assert {partner_b, _rel} = hd(partners_b)
       assert partner_b.id == a.id
@@ -292,37 +337,37 @@ defmodule Ancestry.RelationshipsTest do
       {:ok, partner1} = People.create_person(family1, %{given_name: "Partner1", surname: "P"})
       {:ok, partner2} = People.create_person(family2, %{given_name: "Partner2", surname: "P"})
 
-      {:ok, _} = Relationships.create_relationship(person, partner1, "partner")
-      {:ok, _} = Relationships.create_relationship(person, partner2, "partner")
+      {:ok, _} = Relationships.create_relationship(person, partner1, "married")
+      {:ok, _} = Relationships.create_relationship(person, partner2, "married")
 
-      assert length(Relationships.get_partners(person.id)) == 2
+      assert length(Relationships.get_active_partners(person.id)) == 2
 
-      f1_partners = Relationships.get_partners(person.id, family_id: family1.id)
+      f1_partners = Relationships.get_active_partners(person.id, family_id: family1.id)
       assert length(f1_partners) == 1
       assert {p, _} = hd(f1_partners)
       assert p.id == partner1.id
     end
   end
 
-  describe "get_ex_partners/1" do
-    test "returns ex-partners" do
+  describe "get_former_partners/1" do
+    test "returns former partners" do
       family = family_fixture()
       {:ok, a} = People.create_person(family, %{given_name: "Alice", surname: "A"})
       {:ok, b} = People.create_person(family, %{given_name: "Bob", surname: "B"})
 
       {:ok, _} =
-        Relationships.create_relationship(a, b, "ex_partner", %{
+        Relationships.create_relationship(a, b, "divorced", %{
           marriage_year: 2010,
           divorce_year: 2015
         })
 
-      exes = Relationships.get_ex_partners(a.id)
+      exes = Relationships.get_former_partners(a.id)
       assert length(exes) == 1
       assert {ex, _rel} = hd(exes)
       assert ex.id == b.id
     end
 
-    test "filters ex_partners by family_id" do
+    test "filters former partners by family_id" do
       family1 = family_fixture(%{name: "Family 1"})
       family2 = family_fixture(%{name: "Family 2"})
 
@@ -332,20 +377,20 @@ defmodule Ancestry.RelationshipsTest do
       {:ok, ex2} = People.create_person(family2, %{given_name: "Ex2", surname: "P"})
 
       {:ok, _} =
-        Relationships.create_relationship(person, ex1, "ex_partner", %{
+        Relationships.create_relationship(person, ex1, "divorced", %{
           marriage_year: 2010,
           divorce_year: 2015
         })
 
       {:ok, _} =
-        Relationships.create_relationship(person, ex2, "ex_partner", %{
+        Relationships.create_relationship(person, ex2, "divorced", %{
           marriage_year: 2012,
           divorce_year: 2016
         })
 
-      assert length(Relationships.get_ex_partners(person.id)) == 2
+      assert length(Relationships.get_former_partners(person.id)) == 2
 
-      f1_exes = Relationships.get_ex_partners(person.id, family_id: family1.id)
+      f1_exes = Relationships.get_former_partners(person.id, family_id: family1.id)
       assert length(f1_exes) == 1
       assert {ex, _} = hd(f1_exes)
       assert ex.id == ex1.id
@@ -572,7 +617,7 @@ defmodule Ancestry.RelationshipsTest do
       family = family_fixture()
       {:ok, alice} = People.create_person(family, %{given_name: "Alice", surname: "A"})
       {:ok, bob} = People.create_person(family, %{given_name: "Bob", surname: "B"})
-      {:ok, rel} = Relationships.create_relationship(alice, bob, "partner")
+      {:ok, rel} = Relationships.create_relationship(alice, bob, "married")
 
       results = Relationships.list_relationships_for_family(family.id)
       assert length(results) == 1
@@ -584,7 +629,7 @@ defmodule Ancestry.RelationshipsTest do
       family2 = family_fixture(%{name: "Family 2"})
       {:ok, alice} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
       {:ok, bob} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
-      {:ok, _rel} = Relationships.create_relationship(alice, bob, "partner")
+      {:ok, _rel} = Relationships.create_relationship(alice, bob, "married")
 
       assert Relationships.list_relationships_for_family(family1.id) == []
     end
@@ -595,12 +640,12 @@ defmodule Ancestry.RelationshipsTest do
       {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
       {:ok, partner} = People.create_person(family, %{given_name: "Partner", surname: "X"})
       {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
-      {:ok, _} = Relationships.create_relationship(parent, partner, "partner")
+      {:ok, _} = Relationships.create_relationship(parent, partner, "married")
 
       results = Relationships.list_relationships_for_family(family.id)
       assert length(results) == 2
       types = Enum.map(results, & &1.type) |> Enum.sort()
-      assert types == ["parent", "partner"]
+      assert types == ["married", "parent"]
     end
   end
 

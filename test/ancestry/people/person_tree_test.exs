@@ -66,11 +66,11 @@ defmodule Ancestry.People.PersonTreeTest do
 
       # First marriage (1985) — wife later died
       {:ok, _} =
-        Relationships.create_relationship(person, first_wife, "partner", %{marriage_year: 1985})
+        Relationships.create_relationship(person, first_wife, "married", %{marriage_year: 1985})
 
       # Second marriage (1995)
       {:ok, _} =
-        Relationships.create_relationship(person, second_wife, "partner", %{marriage_year: 1995})
+        Relationships.create_relationship(person, second_wife, "married", %{marriage_year: 1995})
 
       # Child with first wife
       {:ok, child1} = People.create_person(family, %{given_name: "Kid1", surname: "Doe"})
@@ -111,8 +111,8 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, second_wife} = People.create_person(family, %{given_name: "Mary", surname: "Doe"})
 
       # No marriage dates
-      {:ok, _} = Relationships.create_relationship(person, first_wife, "partner", %{})
-      {:ok, _} = Relationships.create_relationship(person, second_wife, "partner", %{})
+      {:ok, _} = Relationships.create_relationship(person, first_wife, "married", %{})
+      {:ok, _} = Relationships.create_relationship(person, second_wife, "married", %{})
 
       tree = PersonTree.build(person, family.id)
 
@@ -130,7 +130,7 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
       {:ok, wife} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
 
-      {:ok, _} = Relationships.create_relationship(person, wife, "partner", %{})
+      {:ok, _} = Relationships.create_relationship(person, wife, "married", %{})
 
       tree = PersonTree.build(person, family.id)
 

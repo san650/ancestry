@@ -40,15 +40,15 @@ defmodule Ancestry.People.PersonTree do
   and children grouped by couple. Recurses for descendant generations.
   """
   def build_family_unit_full(person, depth, opts \\ []) do
-    partners = Relationships.get_partners(person.id, opts)
-    ex_partners = Relationships.get_ex_partners(person.id, opts)
+    partners = Relationships.get_active_partners(person.id, opts)
+    ex_partners = Relationships.get_former_partners(person.id, opts)
 
     # Sort partners: latest marriage year first, then highest person id as tiebreaker
     sorted_partners =
       Enum.sort_by(
         partners,
         fn {p, rel} ->
-          year = if rel.metadata, do: rel.metadata.marriage_year, else: nil
+          year = if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
           {year || 0, p.id}
         end,
         :desc
@@ -114,7 +114,7 @@ defmodule Ancestry.People.PersonTree do
       if at_limit do
         # At the limit — just check if they have more, don't recurse
         has_more = Relationships.get_children(child.id, opts) != []
-        partners = Relationships.get_partners(child.id, opts)
+        partners = Relationships.get_active_partners(child.id, opts)
 
         partner =
           case partners do

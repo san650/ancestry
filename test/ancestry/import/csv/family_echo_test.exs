@@ -178,7 +178,7 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
 
       rels = FamilyEcho.parse_relationships(row)
       assert length(rels) == 1
-      assert {:partner, "family_echo_P1", "family_echo_P2", %{}} in rels
+      assert {:relationship, "family_echo_P1", "family_echo_P2", %{}} in rels
     end
 
     test "parses multiple ex-partners" do
@@ -192,9 +192,9 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
 
       rels = FamilyEcho.parse_relationships(row)
       assert length(rels) == 3
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX1", %{}} in rels
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX2", %{}} in rels
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX3", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX1", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX2", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX3", %{}} in rels
     end
 
     test "skips blank IDs" do
@@ -226,7 +226,7 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
       rels = FamilyEcho.parse_relationships(row)
       assert length(rels) == 2
       assert {:parent, "family_echo_MOM1", "family_echo_P1", %{role: "mother"}} in rels
-      assert {:partner, "family_echo_P1", "family_echo_PARTNER1", %{}} in rels
+      assert {:relationship, "family_echo_P1", "family_echo_PARTNER1", %{}} in rels
     end
 
     test "handles ex-partner IDs with extra whitespace" do
@@ -240,9 +240,9 @@ defmodule Ancestry.Import.CSV.FamilyEchoTest do
 
       rels = FamilyEcho.parse_relationships(row)
       assert length(rels) == 3
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX1", %{}} in rels
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX2", %{}} in rels
-      assert {:ex_partner, "family_echo_P1", "family_echo_EX3", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX1", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX2", %{}} in rels
+      assert {:separated, "family_echo_P1", "family_echo_EX3", %{}} in rels
     end
   end
 

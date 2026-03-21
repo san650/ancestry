@@ -33,7 +33,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, spouse} =
         People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
 
-      {:ok, _} = Relationships.create_relationship(person, spouse, "partner")
+      {:ok, _} = Relationships.create_relationship(person, spouse, "married")
 
       {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
       refute has_element?(view, "button[phx-value-type='partner']")

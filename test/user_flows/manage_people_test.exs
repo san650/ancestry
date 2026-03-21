@@ -51,7 +51,7 @@ defmodule Web.UserFlows.ManagePeopleTest do
     # Alice is parent of Bob (both in family) = 1 relationship each
     Ancestry.Relationships.create_relationship(alice, bob, "parent", %{role: "mother"})
     # Alice and Charlie are partners (both in family) = 1 more for alice, 1 for charlie
-    Ancestry.Relationships.create_relationship(alice, charlie, "partner")
+    Ancestry.Relationships.create_relationship(alice, charlie, "relationship")
     # Diana has no relationships = warning icon
 
     %{family: family, alice: alice, bob: bob, charlie: charlie, diana: diana}

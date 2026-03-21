@@ -52,7 +52,7 @@ defmodule Ancestry.Import.CSV.FamilyEcho do
     partner =
       case blank_to_nil(row["Partner ID"]) do
         nil -> []
-        partner_id -> [{:partner, person_eid, @prefix <> partner_id, %{}}]
+        partner_id -> [{:relationship, person_eid, @prefix <> partner_id, %{}}]
       end
 
     ex_partners =
@@ -65,7 +65,7 @@ defmodule Ancestry.Import.CSV.FamilyEcho do
           |> String.split(",")
           |> Enum.map(&String.trim/1)
           |> Enum.reject(&(&1 == ""))
-          |> Enum.map(fn ex_id -> {:ex_partner, person_eid, @prefix <> ex_id, %{}} end)
+          |> Enum.map(fn ex_id -> {:separated, person_eid, @prefix <> ex_id, %{}} end)
       end
 
     parents ++ partner ++ ex_partners

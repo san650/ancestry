@@ -25,11 +25,11 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
 
     # First marriage (1985) — wife later died
     {:ok, _} =
-      Relationships.create_relationship(person, first_wife, "partner", %{marriage_year: 1985})
+      Relationships.create_relationship(person, first_wife, "married", %{marriage_year: 1985})
 
     # Second marriage (1995)
     {:ok, _} =
-      Relationships.create_relationship(person, second_wife, "partner", %{marriage_year: 1995})
+      Relationships.create_relationship(person, second_wife, "married", %{marriage_year: 1995})
 
     %{family: family, person: person, first_wife: first_wife, second_wife: second_wife}
   end

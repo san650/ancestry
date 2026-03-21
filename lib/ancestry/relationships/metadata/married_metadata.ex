@@ -1,4 +1,4 @@
-defmodule Ancestry.Relationships.Metadata.PartnerMetadata do
+defmodule Ancestry.Relationships.Metadata.MarriedMetadata do
   use Ecto.Schema
   import Ecto.Changeset
 

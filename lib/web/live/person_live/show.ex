@@ -176,43 +176,6 @@ defmodule Web.PersonLive.Show do
      |> assign(:adding_partner_id, nil)}
   end
 
-  def handle_event("convert_to_ex", %{"id" => rel_id}, socket) do
-    rel = Ancestry.Repo.get!(Ancestry.Relationships.Relationship, rel_id)
-
-    {:noreply,
-     socket
-     |> assign(:converting_to_ex, rel)
-     |> assign(:ex_form, to_form(%{}, as: :divorce))}
-  end
-
-  def handle_event("cancel_convert_to_ex", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:converting_to_ex, nil)
-     |> assign(:ex_form, nil)}
-  end
-
-  def handle_event("save_convert_to_ex", %{"divorce" => divorce_params}, socket) do
-    rel = socket.assigns.converting_to_ex
-
-    divorce_attrs =
-      divorce_params
-      |> atomize_metadata()
-
-    case Relationships.convert_to_ex_partner(rel, divorce_attrs) do
-      {:ok, _} ->
-        {:noreply,
-         socket
-         |> load_relationships(socket.assigns.person)
-         |> assign(:converting_to_ex, nil)
-         |> assign(:ex_form, nil)
-         |> put_flash(:info, "Marked as ex-partner")}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to convert to ex-partner")}
-    end
-  end
-
   def handle_event("edit_relationship", %{"id" => rel_id}, socket) do
     rel = Ancestry.Repo.get!(Ancestry.Relationships.Relationship, rel_id)
 
@@ -223,24 +186,15 @@ defmodule Web.PersonLive.Show do
             "role" => rel.metadata && rel.metadata.role
           }
 
-        "partner" ->
-          %{
-            "marriage_day" => rel.metadata && rel.metadata.marriage_day,
-            "marriage_month" => rel.metadata && rel.metadata.marriage_month,
-            "marriage_year" => rel.metadata && rel.metadata.marriage_year,
-            "marriage_location" => rel.metadata && rel.metadata.marriage_location
-          }
+        type when type in ~w(married relationship divorced separated) ->
+          base =
+            if rel.metadata do
+              rel.metadata |> Map.from_struct() |> Map.new(fn {k, v} -> {to_string(k), v} end)
+            else
+              %{}
+            end
 
-        "ex_partner" ->
-          %{
-            "marriage_day" => rel.metadata && rel.metadata.marriage_day,
-            "marriage_month" => rel.metadata && rel.metadata.marriage_month,
-            "marriage_year" => rel.metadata && rel.metadata.marriage_year,
-            "marriage_location" => rel.metadata && rel.metadata.marriage_location,
-            "divorce_day" => rel.metadata && rel.metadata.divorce_day,
-            "divorce_month" => rel.metadata && rel.metadata.divorce_month,
-            "divorce_year" => rel.metadata && rel.metadata.divorce_year
-          }
+          Map.put(base, "partner_subtype", rel.type)
       end
 
     {:noreply,
@@ -259,11 +213,23 @@ defmodule Web.PersonLive.Show do
   def handle_event("save_edit_relationship", %{"metadata" => metadata_params}, socket) do
     rel = socket.assigns.editing_relationship
 
-    attrs = %{
-      metadata: Map.put(atomize_metadata(metadata_params), :__type__, rel.type)
-    }
+    result =
+      if Ancestry.Relationships.Relationship.partner_type?(rel.type) do
+        new_type = Map.get(metadata_params, "partner_subtype", rel.type)
+        metadata = metadata_params |> Map.delete("partner_subtype") |> atomize_metadata()
 
-    case Relationships.update_relationship(rel, attrs) do
+        if new_type != rel.type do
+          Relationships.update_partner_type(rel, new_type, metadata)
+        else
+          attrs = %{metadata: Map.put(metadata, :__type__, rel.type)}
+          Relationships.update_relationship(rel, attrs)
+        end
+      else
+        attrs = %{metadata: Map.put(atomize_metadata(metadata_params), :__type__, rel.type)}
+        Relationships.update_relationship(rel, attrs)
+      end
+
+    case result do
       {:ok, _} ->
         {:noreply,
          socket
@@ -275,6 +241,10 @@ defmodule Web.PersonLive.Show do
       {:error, _} ->
         {:noreply, put_flash(socket, :error, "Failed to update relationship")}
     end
+  end
+
+  def handle_event("validate_edit_relationship", %{"metadata" => metadata_params}, socket) do
+    {:noreply, assign(socket, :edit_relationship_form, to_form(metadata_params, as: :metadata))}
   end
 
   def handle_event("delete_relationship", %{"id" => rel_id}, socket) do
@@ -394,8 +364,8 @@ defmodule Web.PersonLive.Show do
   end
 
   defp load_relationships(socket, person) do
-    partners = Relationships.get_partners(person.id)
-    ex_partners = Relationships.get_ex_partners(person.id)
+    partners = Relationships.get_active_partners(person.id)
+    ex_partners = Relationships.get_former_partners(person.id)
     all_partner_rels = partners ++ ex_partners
 
     children_with_coparents = Relationships.get_children_with_coparents(person.id)
@@ -437,12 +407,7 @@ defmodule Web.PersonLive.Show do
     parents_marriage =
       case parents do
         [{p1, _}, {p2, _}] ->
-          case Relationships.get_partners(p1.id) do
-            partners ->
-              Enum.find_value(partners, fn {partner, rel} ->
-                if partner.id == p2.id, do: rel
-              end)
-          end
+          Relationships.get_partner_relationship(p1.id, p2.id)
 
         _ ->
           nil
@@ -458,8 +423,6 @@ defmodule Web.PersonLive.Show do
     |> assign(:adding_relationship, nil)
     |> assign(:adding_partner_id, nil)
     |> assign_new(:add_rel_key, fn -> 0 end)
-    |> assign(:converting_to_ex, nil)
-    |> assign(:ex_form, nil)
     |> assign(:editing_relationship, nil)
     |> assign(:edit_relationship_form, nil)
   end
@@ -489,7 +452,10 @@ defmodule Web.PersonLive.Show do
                :marriage_year,
                :divorce_day,
                :divorce_month,
-               :divorce_year
+               :divorce_year,
+               :separated_day,
+               :separated_month,
+               :separated_year
              ] do
           case Integer.parse(v) do
             {int, ""} -> int
@@ -534,17 +500,31 @@ defmodule Web.PersonLive.Show do
     end
   end
 
+  defp format_marriage_info(%Ancestry.Relationships.Metadata.RelationshipMetadata{}), do: nil
+
   defp format_marriage_info(metadata) do
     date =
-      format_partial_date(metadata.marriage_day, metadata.marriage_month, metadata.marriage_year)
+      format_partial_date(
+        Map.get(metadata, :marriage_day),
+        Map.get(metadata, :marriage_month),
+        Map.get(metadata, :marriage_year)
+      )
 
-    location = metadata.marriage_location
+    location = Map.get(metadata, :marriage_location)
 
     parts =
       [date, location]
       |> Enum.reject(&(is_nil(&1) or &1 == ""))
 
     if parts == [], do: nil, else: Enum.join(parts, " - ")
+  end
+
+  defp partner_section_title(rel, partner) do
+    cond do
+      Ancestry.Relationships.Relationship.former_partner_type?(rel.type) -> "Ex-partner"
+      partner.deceased -> "Late partner"
+      true -> "Partner"
+    end
   end
 
   defp sibling_type(sibling_tuple) do

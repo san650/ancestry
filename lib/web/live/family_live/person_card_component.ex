@@ -239,8 +239,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
             &Map.put(&1, :line_origin, "prev-#{prev_group.person.id}")
           )
         end) ++
-        Enum.map(assigns.unit.partner_children, &Map.put(&1, :line_origin, "partner")) ++
-        Enum.map(assigns.unit.solo_children, &Map.put(&1, :line_origin, "solo"))
+        Enum.map(assigns.unit.solo_children, &Map.put(&1, :line_origin, "solo")) ++
+        Enum.map(assigns.unit.partner_children, &Map.put(&1, :line_origin, "partner"))
 
     has_children =
       all_children != [] or assigns.unit.ex_partners != [] or previous_partners != []
