@@ -199,6 +199,11 @@
               id={"partner-group-#{partner.id}"}
               class="rounded-xl border border-base-300 p-4 space-y-3"
             >
+              <%!-- Partnership title --%>
+              <p class="text-xs text-base-content/50 px-2 italic">
+                {partner_section_title(rel, partner)}
+              </p>
+
               <%!-- Current person (highlighted) --%>
               <.person_card person={@person} highlighted={true} />
 
@@ -234,9 +239,6 @@
               </div>
 
               <%!-- Partnership info --%>
-              <p class="text-xs text-base-content/50 px-2 italic">
-                {partner_section_title(rel, partner)}
-              </p>
               <%= if rel.metadata do %>
                 <% info = format_marriage_info(rel.metadata) %>
                 <%= if info do %>
