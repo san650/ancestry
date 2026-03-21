@@ -43,11 +43,22 @@ defmodule Ancestry.People.PersonTree do
     partners = Relationships.get_partners(person.id, opts)
     ex_partners = Relationships.get_ex_partners(person.id, opts)
 
-    # Take the first current partner for the center pair
-    {partner, _partner_rel} =
-      case partners do
-        [{p, rel} | _] -> {p, rel}
-        [] -> {nil, nil}
+    # Sort partners: latest marriage year first, then highest person id as tiebreaker
+    sorted_partners =
+      Enum.sort_by(
+        partners,
+        fn {p, rel} ->
+          year = if rel.metadata, do: rel.metadata.marriage_year, else: nil
+          {year || 0, p.id}
+        end,
+        :desc
+      )
+
+    # Latest partner is the main couple partner; rest are previous partners
+    {partner, previous} =
+      case sorted_partners do
+        [{p, _rel} | rest] -> {p, rest}
+        [] -> {nil, []}
       end
 
     at_limit = depth + 1 >= @max_depth
@@ -60,6 +71,16 @@ defmodule Ancestry.People.PersonTree do
       else
         []
       end
+
+    # Children with each previous (non-ex) partner
+    previous_partner_groups =
+      Enum.map(previous, fn {prev, _rel} ->
+        children =
+          Relationships.get_children_of_pair(person.id, prev.id, opts)
+          |> build_child_units(depth, at_limit, opts)
+
+        %{person: prev, children: children}
+      end)
 
     # Children with each ex-partner
     ex_partner_groups =
@@ -79,6 +100,7 @@ defmodule Ancestry.People.PersonTree do
     %{
       focus: person,
       partner: partner,
+      previous_partners: previous_partner_groups,
       ex_partners: ex_partner_groups,
       partner_children: partner_children,
       solo_children: solo_children

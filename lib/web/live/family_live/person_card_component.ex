@@ -98,6 +98,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :person_a, :map, default: nil
   attr :person_b, :map, default: nil
   attr :ex_partners, :list, default: []
+  attr :previous_partners, :list, default: []
   attr :family_id, :integer, required: true
   attr :focused_person_id, :integer, default: nil
   attr :show_partner_placeholder, :boolean, default: false
@@ -111,7 +112,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       data-person-b-id={@person_b && @person_b.id}
       class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1"
     >
-      <%!-- Ex-partners on the sides --%>
+      <%!-- Ex-partners on the sides (dashed lines) --%>
       <%= for ex_group <- @ex_partners do %>
         <.person_card
           person={ex_group.person}
@@ -143,6 +144,41 @@ defmodule Web.FamilyLive.PersonCardComponent do
               stroke="rgba(128,128,128,0.2)"
               stroke-width="3"
               stroke-dasharray="5"
+            >
+            </line>
+          <% end %>
+        </svg>
+      <% end %>
+      <%!-- Previous partners on the sides (solid lines) --%>
+      <%= for prev_group <- @previous_partners do %>
+        <.person_card
+          person={prev_group.person}
+          family_id={@family_id}
+          focused={false}
+        />
+        <svg
+          data-previous-separator={prev_group.person.id}
+          class="w-2 h-1"
+          viewBox="0 0 40 123"
+          style="width: 40px; height: 123px;"
+        >
+          <line
+            x1="0"
+            y1="55"
+            x2="40"
+            y2="55"
+            stroke="rgba(128,128,128,0.2)"
+            stroke-width="3"
+          >
+          </line>
+          <%= if prev_group.children != [] do %>
+            <line
+              x1="20"
+              y1="55"
+              x2="20"
+              y2="123"
+              stroke="rgba(128,128,128,0.2)"
+              stroke-width="3"
             >
             </line>
           <% end %>
@@ -191,19 +227,29 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :is_root, :boolean, default: false
 
   def family_subtree(assigns) do
+    previous_partners = Map.get(assigns.unit, :previous_partners, [])
+
     all_children =
       Enum.flat_map(assigns.unit.ex_partners, fn ex_group ->
         Enum.map(ex_group.children, &Map.put(&1, :line_origin, "ex-#{ex_group.person.id}"))
       end) ++
+        Enum.flat_map(previous_partners, fn prev_group ->
+          Enum.map(
+            prev_group.children,
+            &Map.put(&1, :line_origin, "prev-#{prev_group.person.id}")
+          )
+        end) ++
         Enum.map(assigns.unit.partner_children, &Map.put(&1, :line_origin, "partner")) ++
         Enum.map(assigns.unit.solo_children, &Map.put(&1, :line_origin, "solo"))
 
-    has_children = all_children != [] or assigns.unit.ex_partners != []
+    has_children =
+      all_children != [] or assigns.unit.ex_partners != [] or previous_partners != []
 
     assigns =
       assign(assigns,
         all_children: all_children,
-        has_children: has_children
+        has_children: has_children,
+        previous_partners: previous_partners
       )
 
     ~H"""
@@ -217,6 +263,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           person_a={@unit.focus}
           person_b={@unit.partner}
           ex_partners={@unit.ex_partners}
+          previous_partners={@previous_partners}
           family_id={@family_id}
           focused_person_id={@focused_person_id}
           show_partner_placeholder={@is_root && is_nil(@unit.partner)}
