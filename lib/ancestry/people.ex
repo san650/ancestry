@@ -58,6 +58,65 @@ defmodule Ancestry.People do
     |> Repo.all()
   end
 
+  def list_people_for_org(org_id) do
+    base_org_people_query(org_id)
+    |> Repo.all()
+  end
+
+  def list_people_for_org(org_id, opts) when is_list(opts) do
+    no_family_only = Keyword.get(opts, :no_family_only, false)
+
+    base_org_people_query(org_id)
+    |> maybe_filter_no_family(no_family_only)
+    |> Repo.all()
+  end
+
+  def list_people_for_org(org_id, search_term) when is_binary(search_term) do
+    list_people_for_org(org_id, search_term, [])
+  end
+
+  def list_people_for_org(org_id, "", opts), do: list_people_for_org(org_id, opts)
+
+  def list_people_for_org(org_id, search_term, opts) do
+    no_family_only = Keyword.get(opts, :no_family_only, false)
+
+    escaped =
+      search_term
+      |> String.replace("\\", "\\\\")
+      |> String.replace("%", "\\%")
+      |> String.replace("_", "\\_")
+
+    like = "%#{escaped}%"
+
+    base_org_people_query(org_id)
+    |> where(
+      [p],
+      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
+        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
+        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
+    )
+    |> maybe_filter_no_family(no_family_only)
+    |> Repo.all()
+  end
+
+  defp base_org_people_query(org_id) do
+    from p in Person,
+      where: p.organization_id == ^org_id,
+      left_join: r in Relationship,
+      on: r.person_a_id == p.id or r.person_b_id == p.id,
+      group_by: p.id,
+      order_by: [asc: p.surname, asc: p.given_name],
+      select: {p, count(r.id, :distinct)}
+  end
+
+  defp maybe_filter_no_family(query, true) do
+    query
+    |> join(:left, [p], fm in FamilyMember, on: fm.person_id == p.id, as: :fm_no_family)
+    |> having([fm_no_family: fm], fragment("COUNT(DISTINCT ?) = 0", fm.family_id))
+  end
+
+  defp maybe_filter_no_family(query, false), do: query
+
   def get_person!(id), do: Repo.get!(Person, id) |> Repo.preload(:families)
 
   def create_person(family, attrs) do

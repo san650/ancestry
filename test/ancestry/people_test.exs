@@ -5,6 +5,7 @@ defmodule Ancestry.PeopleTest do
 
   alias Ancestry.People
   alias Ancestry.People.Person
+  alias Ancestry.Relationships
 
   describe "person changeset" do
     test "valid changeset with minimal fields" do
@@ -462,6 +463,76 @@ defmodule Ancestry.PeopleTest do
       # Empty search returns all
       results = Ancestry.People.list_people_for_family_with_relationship_counts(family.id, "")
       assert length(results) == 2
+    end
+  end
+
+  describe "list_people_for_org/1,2,3" do
+    setup do
+      org = insert(:organization, name: "Test Org")
+      family = insert(:family, name: "Fam A", organization: org)
+
+      alice = insert(:person, given_name: "Alice", surname: "Smith", organization: org)
+      bob = insert(:person, given_name: "Bob", surname: "Jones", organization: org)
+      orphan = insert(:person, given_name: "Orphan", surname: "Nobody", organization: org)
+
+      # Different org — should never appear
+      other_org = insert(:organization, name: "Other")
+
+      _outsider =
+        insert(:person, given_name: "Outside", surname: "Person", organization: other_org)
+
+      People.add_to_family(alice, family)
+      People.add_to_family(bob, family)
+      # orphan has no family
+
+      Relationships.create_relationship(alice, bob, "parent", %{role: "mother"})
+
+      %{org: org, family: family, alice: alice, bob: bob, orphan: orphan}
+    end
+
+    test "returns all people in the org with relationship counts", %{
+      org: org,
+      alice: alice,
+      bob: bob,
+      orphan: orphan
+    } do
+      results = People.list_people_for_org(org.id)
+      people_map = Map.new(results, fn {p, count} -> {p.id, count} end)
+
+      assert map_size(people_map) == 3
+      assert people_map[alice.id] == 1
+      assert people_map[bob.id] == 1
+      assert people_map[orphan.id] == 0
+    end
+
+    test "filters by search term with diacritics", %{org: org} do
+      results = People.list_people_for_org(org.id, "alice")
+      assert length(results) == 1
+      assert elem(hd(results), 0).given_name == "Alice"
+    end
+
+    test "returns empty for no match", %{org: org} do
+      assert People.list_people_for_org(org.id, "zzzzz") == []
+    end
+
+    test "no_family_only filters to people without families", %{org: org, orphan: orphan} do
+      results = People.list_people_for_org(org.id, no_family_only: true)
+      assert length(results) == 1
+      assert elem(hd(results), 0).id == orphan.id
+    end
+
+    test "no_family_only with search", %{org: org} do
+      results = People.list_people_for_org(org.id, "Orphan", no_family_only: true)
+      assert length(results) == 1
+
+      results = People.list_people_for_org(org.id, "Alice", no_family_only: true)
+      assert results == []
+    end
+
+    test "does not include people from other orgs", %{org: org} do
+      results = People.list_people_for_org(org.id)
+      given_names = Enum.map(results, fn {p, _} -> p.given_name end)
+      refute "Outside" in given_names
     end
   end
 
