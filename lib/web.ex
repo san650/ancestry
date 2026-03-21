@@ -52,10 +52,6 @@ defmodule Web do
     quote do
       use Phoenix.LiveView
 
-      if Application.compile_env(:ancestry, :sql_sandbox) do
-        on_mount Web.LiveAcceptance
-      end
-
       unquote(html_helpers())
     end
   end

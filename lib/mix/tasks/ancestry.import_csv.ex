@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Ancestry.ImportCsv do
     Mix.Task.run("app.start")
 
     case args do
-      [adapter_name, family_name, csv_path] ->
+      [adapter_name, family_name, csv_path | rest] ->
         adapter =
           try do
             String.to_existing_atom(adapter_name)
@@ -16,7 +16,19 @@ defmodule Mix.Tasks.Ancestry.ImportCsv do
             ArgumentError -> String.to_atom(adapter_name)
           end
 
-        case Ancestry.Import.import_from_csv(adapter, family_name, csv_path) do
+        org =
+          case rest do
+            [org_id] ->
+              Ancestry.Organizations.get_organization!(String.to_integer(org_id))
+
+            [] ->
+              case Ancestry.Organizations.list_organizations() do
+                [org | _] -> org
+                [] -> Mix.raise("No organizations exist. Create one first.")
+              end
+          end
+
+        case Ancestry.Import.import_from_csv(adapter, family_name, csv_path, org) do
           {:ok, summary} ->
             print_summary(summary)
 

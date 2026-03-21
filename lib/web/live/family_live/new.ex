@@ -30,12 +30,15 @@ defmodule Web.FamilyLive.New do
   end
 
   def handle_event("save", %{"family" => params}, socket) do
-    case Families.create_family(params) do
+    case Families.create_family(socket.assigns.organization, params) do
       {:ok, family} ->
         socket =
           maybe_process_cover(socket, family)
 
-        {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
+        {:noreply,
+         push_navigate(socket,
+           to: ~p"/org/#{socket.assigns.organization.id}/families/#{family.id}"
+         )}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

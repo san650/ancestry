@@ -3,27 +3,34 @@ defmodule Web.FamilyLive.IndexTest do
   import Phoenix.LiveViewTest
   alias Ancestry.Families
 
-  test "lists all families", %{conn: conn} do
-    {:ok, family} = Families.create_family(%{name: "The Smiths"})
-    {:ok, _view, html} = live(conn, ~p"/")
+  setup do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    %{org: org}
+  end
+
+  test "lists all families", %{conn: conn, org: org} do
+    {:ok, family} = Families.create_family(org, %{name: "The Smiths"})
+    {:ok, _view, html} = live(conn, ~p"/org/#{org.id}")
     assert html =~ family.name
   end
 
-  test "navigates to new family page", %{conn: conn} do
-    {:ok, view, _html} = live(conn, ~p"/")
+  test "navigates to new family page", %{conn: conn, org: org} do
+    {:ok, view, _html} = live(conn, ~p"/org/#{org.id}")
 
-    assert {:error, {:live_redirect, %{to: "/families/new"}}} =
+    expected_path = "/org/#{org.id}/families/new"
+
+    assert {:error, {:live_redirect, %{to: ^expected_path}}} =
              view |> element("#new-family-btn") |> render_click()
   end
 
-  test "shows empty state when no families", %{conn: conn} do
-    {:ok, _view, html} = live(conn, ~p"/")
+  test "shows empty state when no families", %{conn: conn, org: org} do
+    {:ok, _view, html} = live(conn, ~p"/org/#{org.id}")
     assert html =~ "No families yet"
   end
 
-  test "deletes a family after confirmation", %{conn: conn} do
-    {:ok, family} = Families.create_family(%{name: "To Delete"})
-    {:ok, view, _html} = live(conn, ~p"/")
+  test "deletes a family after confirmation", %{conn: conn, org: org} do
+    {:ok, family} = Families.create_family(org, %{name: "To Delete"})
+    {:ok, view, _html} = live(conn, ~p"/org/#{org.id}")
 
     view |> element("#delete-family-#{family.id}") |> render_click()
     assert has_element?(view, "#confirm-delete-family-modal")

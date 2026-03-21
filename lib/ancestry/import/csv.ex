@@ -33,9 +33,9 @@ defmodule Ancestry.Import.CSV do
   - `:relationships_duplicates` - count of duplicate relationships skipped
   - `:relationships_errors` - list of error descriptions for real failures
   """
-  def import(adapter_module, family_name, csv_path) do
+  def import(adapter_module, family_name, csv_path, org) do
     with :ok <- validate_file(csv_path),
-         {:ok, family} <- find_or_create_family(family_name),
+         {:ok, family} <- find_or_create_family(family_name, org),
          {:ok, rows} <- parse_csv(csv_path) do
       people_result = import_people(adapter_module, family, rows)
       relationships_result = import_relationships(adapter_module, rows)
@@ -57,10 +57,10 @@ defmodule Ancestry.Import.CSV do
     end
   end
 
-  defp find_or_create_family(name) do
+  defp find_or_create_family(name, org) do
     case Repo.get_by(Ancestry.Families.Family, name: name) do
       %Ancestry.Families.Family{} = family -> {:ok, family}
-      nil -> Families.create_family(%{name: name})
+      nil -> Families.create_family(org, %{name: name})
     end
   end
 

@@ -24,6 +24,7 @@ defmodule Ancestry.People.Person do
     field :photo, Ancestry.Uploaders.PersonPhoto.Type
     field :photo_status, :string
 
+    belongs_to :organization, Ancestry.Organizations.Organization
     many_to_many :families, Ancestry.Families.Family, join_through: "family_members"
 
     has_many :photo_people, Ancestry.Galleries.PhotoPerson

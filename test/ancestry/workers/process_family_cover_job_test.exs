@@ -6,7 +6,8 @@ defmodule Ancestry.Workers.ProcessFamilyCoverJobTest do
   alias Ancestry.Workers.ProcessFamilyCoverJob
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     tmp_dir = Path.join(System.tmp_dir!(), "cover_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(tmp_dir)

@@ -1,0 +1,27 @@
+<Layouts.app flash={@flash}>
+  <:toolbar>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-lg font-semibold text-base-content">Organizations</h1>
+    </div>
+  </:toolbar>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div
+      id="organizations"
+      phx-update="stream"
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <div class="hidden only:flex flex-col items-center justify-center py-24 text-base-content/50">
+        <p class="text-lg">No organizations yet</p>
+      </div>
+      <.link
+        :for={{id, org} <- @streams.organizations}
+        id={id}
+        navigate={~p"/org/#{org.id}"}
+        class="block rounded-xl border border-base-300 bg-base-100 shadow-sm hover:shadow-md transition-shadow p-6"
+      >
+        <h2 class="text-lg font-semibold text-base-content">{org.name}</h2>
+      </.link>
+    </div>
+  </div>
+</Layouts.app>

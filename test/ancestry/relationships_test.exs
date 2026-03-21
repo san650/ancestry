@@ -649,11 +649,16 @@ defmodule Ancestry.RelationshipsTest do
     end
   end
 
+  defp org_fixture do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    org
+  end
+
   defp family_fixture(attrs \\ %{}) do
+    org = org_fixture()
+
     {:ok, family} =
-      attrs
-      |> Enum.into(%{name: "Test Family"})
-      |> Ancestry.Families.create_family()
+      Ancestry.Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
 
     family
   end

@@ -2,7 +2,7 @@ defmodule Web.UserFlows.CreatePersonTest do
   use Web.E2ECase
 
   # Given an existing family
-  # When the user navigates to /families
+  # When the user navigates to the org families page
   # And clicks on the existing family
   # Then the family show screen is shown
   # And the empty state can be seen
@@ -17,14 +17,15 @@ defmodule Web.UserFlows.CreatePersonTest do
   # And the new person is listed on the sidebar
   setup do
     family = insert(:family, name: "Smith Family")
-    %{family: family}
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
+    %{family: family, org: org}
   end
 
-  test "create a new person in a family", %{conn: conn} do
+  test "create a new person in a family", %{conn: conn, org: org} do
     # Visit families page and click the family
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Smith Family")
       |> wait_liveview()

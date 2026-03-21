@@ -21,7 +21,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
           </button>
           <.link
             id="add-member-btn"
-            navigate={~p"/families/#{@family_id}/members/new"}
+            navigate={~p"/org/#{@organization.id}/families/#{@family_id}/members/new"}
             class="p-1 rounded text-base-content/40 hover:text-primary hover:bg-primary/10 transition-colors"
             title="New member"
             {test_id("person-add-btn")}
@@ -87,7 +87,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
               </span>
             </button>
             <.link
-              navigate={~p"/people/#{person.id}?from_family=#{@family_id}"}
+              navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family_id}"}
               class="p-1 rounded text-base-content/20 hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
               title="View details"
             >

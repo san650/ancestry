@@ -6,20 +6,24 @@ defmodule Web.PersonLive.QuickCreateTest do
   alias Ancestry.People
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     {:ok, person} =
       People.create_person(family, %{given_name: "John", surname: "Doe", gender: "male"})
 
-    %{family: family, person: person}
+    %{family: family, person: person, org: org}
   end
 
   test "shows create new person link in add relationship modal", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     assert has_element?(view, "#start-quick-create-btn")
   end
@@ -27,9 +31,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "switches to quick create form when clicking create new", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -41,9 +48,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "back to search returns to search view", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")
@@ -56,9 +66,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "validates given_name is required", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -73,9 +86,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "creates person and proceeds to parent metadata step", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -91,9 +107,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "creates person and proceeds to partner metadata step", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-partner-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -109,9 +128,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "creates person and saves child relationship directly", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-child-solo-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -126,9 +148,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "new person is added to the family", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
 
@@ -144,9 +169,11 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "full flow: quick create parent then save relationship", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     # Open add parent modal
     view |> element("#add-parent-btn") |> render_click()
@@ -172,9 +199,12 @@ defmodule Web.PersonLive.QuickCreateTest do
   test "closing modal resets quick_creating state", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#start-quick-create-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")

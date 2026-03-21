@@ -7,6 +7,7 @@ defmodule Ancestry.Families.Family do
     field :name, :string
     field :cover, Ancestry.Uploaders.FamilyCover.Type
     field :cover_status, :string
+    belongs_to :organization, Ancestry.Organizations.Organization
     has_many :galleries, Ancestry.Galleries.Gallery, on_delete: :delete_all
     many_to_many :members, Ancestry.People.Person, join_through: "family_members"
     timestamps()

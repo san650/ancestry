@@ -81,6 +81,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         id="gallery-list"
         galleries={@galleries}
         family_id={@family_id}
+        organization={@organization}
       />
 
       <div class="border-t border-base-200"></div>
@@ -90,6 +91,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         id="people-list"
         people={@people}
         family_id={@family_id}
+        organization={@organization}
         focus_person_id={@focus_person_id}
       />
     </aside>

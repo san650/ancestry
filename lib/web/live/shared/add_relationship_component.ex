@@ -53,7 +53,7 @@ defmodule Web.Shared.AddRelationshipComponent do
   def handle_event("search_members", %{"value" => query}, socket) do
     results =
       if String.length(query) >= 2 do
-        People.search_all_people(query, socket.assigns.person.id)
+        People.search_all_people(query, socket.assigns.person.id, socket.assigns.organization.id)
       else
         []
       end
@@ -440,8 +440,8 @@ defmodule Web.Shared.AddRelationshipComponent do
     People.create_person(family, params)
   end
 
-  defp create_quick_person(_assigns, params) do
-    People.create_person_without_family(params)
+  defp create_quick_person(%{organization: org}, params) do
+    People.create_person_without_family(org, params)
   end
 
   defp build_relationship_form(type, selected_person) do

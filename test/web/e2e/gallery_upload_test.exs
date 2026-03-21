@@ -9,22 +9,24 @@ defmodule Web.E2E.GalleryUploadTest do
   @moduletag ecto_sandbox_stop_owner_delay: 200
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     {:ok, gallery} =
       Galleries.create_gallery(%{name: "Upload Test Gallery", family_id: family.id})
 
-    %{gallery: gallery, family: family}
+    %{gallery: gallery, family: family, org: org}
   end
 
   test "upload button opens progress modal and adds photo to gallery", %{
     conn: conn,
     gallery: gallery,
-    family: family
+    family: family,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
       |> wait_liveview()
 
     conn
@@ -41,9 +43,9 @@ defmodule Web.E2E.GalleryUploadTest do
     )
   end
 
-  test "drag and drop uploads photos", %{conn: conn, gallery: gallery, family: family} do
+  test "drag and drop uploads photos", %{conn: conn, gallery: gallery, family: family, org: org} do
     conn
-    |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
+    |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()
     |> evaluate("""
       (function() {
@@ -70,10 +72,11 @@ defmodule Web.E2E.GalleryUploadTest do
   test "dragging over the page header shows the full-page drop overlay", %{
     conn: conn,
     gallery: gallery,
-    family: family
+    family: family,
+    org: org
   } do
     conn
-    |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
+    |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()
     |> evaluate("""
       const file = new File([''], 'photo.jpg', {type: 'image/jpeg'});

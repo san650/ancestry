@@ -3,14 +3,14 @@ defmodule Ancestry.Families do
   alias Ancestry.Repo
   alias Ancestry.Families.Family
 
-  def list_families do
-    Repo.all(from f in Family, order_by: [asc: f.name])
+  def list_families(org_id) do
+    Repo.all(from f in Family, where: f.organization_id == ^org_id, order_by: [asc: f.name])
   end
 
   def get_family!(id), do: Repo.get!(Family, id)
 
-  def create_family(attrs \\ %{}) do
-    %Family{}
+  def create_family(%Ancestry.Organizations.Organization{} = org, attrs) do
+    %Family{organization_id: org.id}
     |> Family.changeset(attrs)
     |> Repo.insert()
   end

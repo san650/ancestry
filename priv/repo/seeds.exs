@@ -10,15 +10,22 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+alias Ancestry.Organizations
 alias Ancestry.People
 alias Ancestry.Families
 alias Ancestry.Relationships
 
 # ---------------------------------------------------------------------------
+# Organization
+# ---------------------------------------------------------------------------
+
+{:ok, org} = Organizations.create_organization(%{name: "Default Organization"})
+
+# ---------------------------------------------------------------------------
 # Family
 # ---------------------------------------------------------------------------
 
-{:ok, family} = Families.create_family(%{name: "The Thompsons"})
+{:ok, family} = Families.create_family(org, %{name: "The Thompsons"})
 
 # ---------------------------------------------------------------------------
 # Helper — create a person in the family

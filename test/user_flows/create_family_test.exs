@@ -1,8 +1,8 @@
 defmodule Web.UserFlows.CreateFamilyTest do
   use Web.E2ECase
 
-  # Given a system with no data
-  # When the user clicks "New Family"
+  # Given a system with an organization
+  # When the user visits the org page and clicks "New Family"
   # Then the "New Family" form is displayed.
   #
   # When the user writes a name for the family
@@ -17,11 +17,16 @@ defmodule Web.UserFlows.CreateFamilyTest do
   #
   # When the user clicks on the family shown in the grid
   # Then the user can see the family show page
-  test "create a new family with cover photo and navigate back", %{conn: conn} do
-    # Visit the homepage — should see empty state
+  setup do
+    org = insert(:organization, name: "Test Org")
+    %{org: org}
+  end
+
+  test "create a new family with cover photo and navigate back", %{conn: conn, org: org} do
+    # Visit the org page — should see empty state
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> assert_has(test_id("families-empty"))
 

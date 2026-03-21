@@ -26,7 +26,7 @@ defmodule Web.FamilyLive.GalleryListComponent do
         <.link
           :for={gallery <- @galleries}
           id={"gallery-#{gallery.id}"}
-          navigate={~p"/families/#{@family_id}/galleries/#{gallery.id}"}
+          navigate={~p"/org/#{@organization.id}/families/#{@family_id}/galleries/#{gallery.id}"}
           class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-base-200 transition-colors text-sm text-base-content"
         >
           <.icon name="hero-photo" class="w-4 h-4 text-base-content/40" />

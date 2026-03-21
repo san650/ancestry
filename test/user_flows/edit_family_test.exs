@@ -1,27 +1,17 @@
 defmodule Web.UserFlows.EditFamilyTest do
   use Web.E2ECase
 
-  # Given a family
-  # When the user clicks on the family from the /families page
-  # Then the user navigates to the family show page
-  #
-  # When the user clicks "Edit" on the toolbar
-  # Then a modal is shown to edit the family name
-  #
-  # When the user enters a new family name in the modal
-  # And clicks "Save"
-  # Then the modal closes and the family show page is visible
-  # And the family name is updated
   setup do
     family = insert(:family, name: "Original Name")
-    %{family: family}
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
+    %{family: family, org: org}
   end
 
-  test "edit family name via modal", %{conn: conn, family: _family} do
+  test "edit family name via modal", %{conn: conn, family: _family, org: org} do
     # Visit families page and click the family
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Original Name")
       |> wait_liveview()

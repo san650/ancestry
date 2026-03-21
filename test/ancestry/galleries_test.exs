@@ -7,8 +7,9 @@ defmodule Ancestry.GalleriesTest do
   alias Ancestry.People
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
-    %{family: family}
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
+    %{family: family, org: org}
   end
 
   describe "galleries" do
@@ -129,7 +130,7 @@ defmodule Ancestry.GalleriesTest do
   end
 
   describe "photo_people" do
-    setup %{family: family} do
+    setup %{family: family, org: org} do
       {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
 
       {:ok, photo} =
@@ -141,7 +142,7 @@ defmodule Ancestry.GalleriesTest do
         })
 
       {:ok, person} =
-        Ancestry.People.create_person_without_family(%{given_name: "Alice", surname: "Smith"})
+        Ancestry.People.create_person_without_family(org, %{given_name: "Alice", surname: "Smith"})
 
       %{gallery: gallery, photo: photo, person: person}
     end
@@ -178,10 +179,11 @@ defmodule Ancestry.GalleriesTest do
 
     test "list_photo_people/1 returns tagged people with preloaded person", %{
       photo: photo,
-      person: person
+      person: person,
+      org: org
     } do
       {:ok, person2} =
-        Ancestry.People.create_person_without_family(%{given_name: "Bob", surname: "Jones"})
+        Ancestry.People.create_person_without_family(org, %{given_name: "Bob", surname: "Jones"})
 
       {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.3)
       {:ok, _} = Galleries.tag_person_in_photo(photo.id, person2.id, 0.8, 0.6)

@@ -11,6 +11,10 @@ defmodule Web.PersonLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     person = People.get_person!(id)
 
+    if person.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.People.Person
+    end
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "person:#{person.id}")
     end
@@ -128,7 +132,9 @@ defmodule Web.PersonLive.Show do
     person = socket.assigns.person
     family = socket.assigns.from_family
     {:ok, _} = People.remove_from_family(person, family)
-    {:noreply, push_navigate(socket, to: ~p"/families/#{family.id}")}
+
+    {:noreply,
+     push_navigate(socket, to: ~p"/org/#{socket.assigns.organization.id}/families/#{family.id}")}
   end
 
   def handle_event("request_delete", _, socket) do
@@ -144,9 +150,9 @@ defmodule Web.PersonLive.Show do
 
     redirect_to =
       if socket.assigns.from_family do
-        ~p"/families/#{socket.assigns.from_family.id}"
+        ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.from_family.id}"
       else
-        ~p"/"
+        ~p"/org/#{socket.assigns.organization.id}"
       end
 
     {:noreply, push_navigate(socket, to: redirect_to)}
@@ -427,11 +433,11 @@ defmodule Web.PersonLive.Show do
     |> assign(:edit_relationship_form, nil)
   end
 
-  defp person_path(person, from_family) do
+  defp person_path(person, from_family, org) do
     if from_family do
-      ~p"/people/#{person.id}?from_family=#{from_family.id}"
+      ~p"/org/#{org.id}/people/#{person.id}?from_family=#{from_family.id}"
     else
-      ~p"/people/#{person.id}"
+      ~p"/org/#{org.id}/people/#{person.id}"
     end
   end
 

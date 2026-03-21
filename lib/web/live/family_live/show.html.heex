@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} organization={@organization}>
   <:toolbar>
     <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/"}
+          navigate={~p"/org/#{@organization.id}"}
           class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
           {test_id("family-back-btn")}
         >
@@ -15,7 +15,7 @@
       </div>
       <div class="flex items-center gap-2">
         <.link
-          navigate={~p"/families/#{@family.id}/people"}
+          navigate={~p"/org/#{@organization.id}/families/#{@family.id}/people"}
           class="btn btn-ghost btn-sm"
           id="manage-people-btn"
           {test_id("family-manage-people-btn")}
@@ -25,8 +25,9 @@
         <.link
           navigate={
             if(@focus_person,
-              do: ~p"/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
-              else: ~p"/families/#{@family.id}/kinship"
+              do:
+                ~p"/org/#{@organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+              else: ~p"/org/#{@organization.id}/families/#{@family.id}/kinship"
             )
           }
           class="btn btn-ghost btn-sm"
@@ -64,6 +65,7 @@
         galleries={@galleries}
         people={@people}
         family_id={@family.id}
+        organization={@organization}
         focus_person_id={@focus_person && @focus_person.id}
         metrics={@metrics}
       />
@@ -82,6 +84,7 @@
             <.ancestor_subtree
               node={@tree.ancestors}
               family_id={@family.id}
+              organization={@organization}
               focused_person_id={@focus_person && @focus_person.id}
             />
           <% end %>
@@ -99,6 +102,7 @@
           <.family_subtree
             unit={@tree.center}
             family_id={@family.id}
+            organization={@organization}
             focused_person_id={@focus_person.id}
             is_root={true}
           />

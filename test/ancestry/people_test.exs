@@ -84,8 +84,9 @@ defmodule Ancestry.PeopleTest do
 
   describe "list_people_for_family/1" do
     test "returns only people in the given family" do
-      family1 = family_fixture(%{name: "Family One"})
-      family2 = family_fixture(%{name: "Family Two"})
+      {org, _} = org_fixture()
+      family1 = family_fixture(org, %{name: "Family One"})
+      family2 = family_fixture(org, %{name: "Family Two"})
       {:ok, person1} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
       {:ok, _person2} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
 
@@ -124,8 +125,9 @@ defmodule Ancestry.PeopleTest do
 
   describe "add_to_family/2 and remove_from_family/2" do
     test "adds an existing person to another family" do
-      family1 = family_fixture(%{name: "Family One"})
-      family2 = family_fixture(%{name: "Family Two"})
+      {org, _} = org_fixture()
+      family1 = family_fixture(org, %{name: "Family One"})
+      family2 = family_fixture(org, %{name: "Family Two"})
       {:ok, person} = People.create_person(family1, %{given_name: "Jane", surname: "Doe"})
 
       assert {:ok, _} = People.add_to_family(person, family2)
@@ -146,9 +148,10 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
-  describe "search_people/2" do
+  describe "search_people/3" do
     test "searches by given_name, surname, nickname" do
-      family = family_fixture()
+      {org, _} = org_fixture()
+      family = family_fixture(org)
 
       {:ok, _} =
         People.create_person(family, %{
@@ -159,13 +162,14 @@ defmodule Ancestry.PeopleTest do
 
       {:ok, _} = People.create_person(family, %{given_name: "Bob", surname: "Builder"})
 
-      assert length(People.search_people("alice", family.id)) == 0
-      assert length(People.search_people("bob", family.id)) == 0
+      assert length(People.search_people("alice", family.id, org.id)) == 0
+      assert length(People.search_people("bob", family.id, org.id)) == 0
     end
 
     test "searches by alternate_names" do
-      family1 = family_fixture(%{name: "Family One"})
-      family2 = family_fixture(%{name: "Family Two"})
+      {org, _} = org_fixture()
+      family1 = family_fixture(org, %{name: "Family One"})
+      family2 = family_fixture(org, %{name: "Family Two"})
 
       {:ok, _} =
         People.create_person(family1, %{
@@ -174,75 +178,80 @@ defmodule Ancestry.PeopleTest do
           alternate_names: ["Bobby", "Rob"]
         })
 
-      results = People.search_people("Bobby", family2.id)
+      results = People.search_people("Bobby", family2.id, org.id)
       assert length(results) == 1
       assert hd(results).given_name == "Robert"
 
-      results = People.search_people("Rob", family2.id)
+      results = People.search_people("Rob", family2.id, org.id)
       assert length(results) == 1
     end
 
     test "excludes people already in the family" do
-      family1 = family_fixture(%{name: "Family One"})
-      family2 = family_fixture(%{name: "Family Two"})
+      {org, _} = org_fixture()
+      family1 = family_fixture(org, %{name: "Family One"})
+      family2 = family_fixture(org, %{name: "Family Two"})
       {:ok, _} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
       {:ok, _} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
 
-      results = People.search_people("Bob", family1.id)
+      results = People.search_people("Bob", family1.id, org.id)
       assert length(results) == 1
       assert hd(results).given_name == "Bob"
 
-      results = People.search_people("Bob", family2.id)
+      results = People.search_people("Bob", family2.id, org.id)
       assert length(results) == 0
     end
 
     test "finds people with diacritics using unaccented search" do
-      family = family_fixture()
-      other_family = family_fixture(%{name: "Other Family"})
+      {org, _} = org_fixture()
+      family = family_fixture(org)
+      other_family = family_fixture(org, %{name: "Other Family"})
 
       {:ok, _} = People.create_person(other_family, %{given_name: "María", surname: "González"})
 
-      results = People.search_people("maria", family.id)
+      results = People.search_people("maria", family.id, org.id)
       assert length(results) == 1
       assert hd(results).given_name == "María"
 
-      results = People.search_people("gonzalez", family.id)
+      results = People.search_people("gonzalez", family.id, org.id)
       assert length(results) == 1
       assert hd(results).surname == "González"
     end
 
     test "finds people without diacritics using accented search" do
-      family = family_fixture()
-      other_family = family_fixture(%{name: "Other Family"})
+      {org, _} = org_fixture()
+      family = family_fixture(org)
+      other_family = family_fixture(org, %{name: "Other Family"})
 
       {:ok, _} = People.create_person(other_family, %{given_name: "Maria", surname: "Gonzalez"})
 
-      results = People.search_people("María", family.id)
+      results = People.search_people("María", family.id, org.id)
       assert length(results) == 1
 
-      results = People.search_people("González", family.id)
+      results = People.search_people("González", family.id, org.id)
       assert length(results) == 1
     end
   end
 
-  describe "search_all_people/1 diacritics" do
+  describe "search_all_people/2 diacritics" do
     test "finds people with diacritics using unaccented search" do
-      family = family_fixture()
+      {org, _} = org_fixture()
+      family = family_fixture(org)
       {:ok, _} = People.create_person(family, %{given_name: "José", surname: "García"})
 
-      results = People.search_all_people("jose")
+      results = People.search_all_people("jose", org.id)
       assert length(results) == 1
       assert hd(results).given_name == "José"
     end
   end
 
-  describe "search_all_people/2 diacritics" do
+  describe "search_all_people/3 diacritics" do
     test "finds people with diacritics, excluding a given person" do
-      family = family_fixture()
+      {org, _} = org_fixture()
+      family = family_fixture(org)
       {:ok, jose} = People.create_person(family, %{given_name: "José", surname: "García"})
       {:ok, _maria} = People.create_person(family, %{given_name: "María", surname: "García"})
 
-      results = People.search_all_people("garcia", jose.id)
+      results = People.search_all_people("garcia", jose.id, org.id)
       assert length(results) == 1
       refute hd(results).id == jose.id
     end
@@ -265,8 +274,9 @@ defmodule Ancestry.PeopleTest do
     end
 
     test "does not return people from other families" do
-      family1 = family_fixture(%{name: "Family One"})
-      family2 = family_fixture(%{name: "Family Two"})
+      {org, _} = org_fixture()
+      family1 = family_fixture(org, %{name: "Family One"})
+      family2 = family_fixture(org, %{name: "Family Two"})
       {:ok, alice} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
       {:ok, _bob} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
 
@@ -293,9 +303,10 @@ defmodule Ancestry.PeopleTest do
 
   describe "default member" do
     setup do
-      family = insert(:family)
-      person_a = insert(:person, given_name: "Alice", surname: "Smith")
-      person_b = insert(:person, given_name: "Bob", surname: "Smith")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      person_a = insert(:person, given_name: "Alice", surname: "Smith", organization: org)
+      person_b = insert(:person, given_name: "Bob", surname: "Smith", organization: org)
       People.add_to_family(person_a, family)
       People.add_to_family(person_b, family)
       %{family: family, person_a: person_a, person_b: person_b}
@@ -338,10 +349,11 @@ defmodule Ancestry.PeopleTest do
 
   describe "list_people_for_family_with_relationship_counts/1" do
     test "returns people with their relationship count within the family" do
-      family = insert(:family)
-      alice = insert(:person, given_name: "Alice", surname: "Smith")
-      bob = insert(:person, given_name: "Bob", surname: "Smith")
-      charlie = insert(:person, given_name: "Charlie", surname: "Smith")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      alice = insert(:person, given_name: "Alice", surname: "Smith", organization: org)
+      bob = insert(:person, given_name: "Bob", surname: "Smith", organization: org)
+      charlie = insert(:person, given_name: "Charlie", surname: "Smith", organization: org)
 
       for p <- [alice, bob, charlie], do: Ancestry.People.add_to_family(p, family)
 
@@ -364,8 +376,9 @@ defmodule Ancestry.PeopleTest do
     end
 
     test "returns 0 count for people with no relationships in the family" do
-      family = insert(:family)
-      alice = insert(:person, given_name: "Alice", surname: "Loner")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      alice = insert(:person, given_name: "Alice", surname: "Loner", organization: org)
       Ancestry.People.add_to_family(alice, family)
 
       [{person, count}] =
@@ -376,9 +389,10 @@ defmodule Ancestry.PeopleTest do
     end
 
     test "does not count relationships where the other person is outside the family" do
-      family = insert(:family)
-      alice = insert(:person, given_name: "Alice", surname: "Smith")
-      outsider = insert(:person, given_name: "Outsider", surname: "Jones")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      alice = insert(:person, given_name: "Alice", surname: "Smith", organization: org)
+      outsider = insert(:person, given_name: "Outsider", surname: "Jones", organization: org)
 
       Ancestry.People.add_to_family(alice, family)
 
@@ -393,10 +407,11 @@ defmodule Ancestry.PeopleTest do
     end
 
     test "sorts by surname then given name" do
-      family = insert(:family)
-      zara = insert(:person, given_name: "Zara", surname: "Adams")
-      bob = insert(:person, given_name: "Bob", surname: "Adams")
-      alice = insert(:person, given_name: "Alice", surname: "Brown")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      zara = insert(:person, given_name: "Zara", surname: "Adams", organization: org)
+      bob = insert(:person, given_name: "Bob", surname: "Adams", organization: org)
+      alice = insert(:person, given_name: "Alice", surname: "Brown", organization: org)
 
       for p <- [zara, bob, alice], do: Ancestry.People.add_to_family(p, family)
 
@@ -409,9 +424,18 @@ defmodule Ancestry.PeopleTest do
 
   describe "list_people_for_family_with_relationship_counts/2" do
     test "filters by given_name, surname, and nickname with diacritics support" do
-      family = insert(:family)
-      jose = insert(:person, given_name: "Jos\u00e9", surname: "Garc\u00eda", nickname: "Pepe")
-      maria = insert(:person, given_name: "Mar\u00eda", surname: "L\u00f3pez")
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+
+      jose =
+        insert(:person,
+          given_name: "Jos\u00e9",
+          surname: "Garc\u00eda",
+          nickname: "Pepe",
+          organization: org
+        )
+
+      maria = insert(:person, given_name: "Mar\u00eda", surname: "L\u00f3pez", organization: org)
 
       for p <- [jose, maria], do: Ancestry.People.add_to_family(p, family)
 
@@ -441,11 +465,24 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
-  defp family_fixture(attrs \\ %{}) do
+  defp org_fixture do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {org, org}
+  end
+
+  defp family_fixture(org \\ nil, attrs \\ %{}) do
+    org =
+      case org do
+        nil ->
+          {o, _} = org_fixture()
+          o
+
+        o ->
+          o
+      end
+
     {:ok, family} =
-      attrs
-      |> Enum.into(%{name: "Test Family"})
-      |> Ancestry.Families.create_family()
+      Ancestry.Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
 
     family
   end

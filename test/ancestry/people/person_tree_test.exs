@@ -150,10 +150,10 @@ defmodule Ancestry.People.PersonTreeTest do
   end
 
   defp family_fixture(attrs \\ %{}) do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+
     {:ok, family} =
-      attrs
-      |> Enum.into(%{name: "Test Family"})
-      |> Ancestry.Families.create_family()
+      Ancestry.Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
 
     family
   end

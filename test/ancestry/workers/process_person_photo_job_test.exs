@@ -6,7 +6,8 @@ defmodule Ancestry.Workers.ProcessPersonPhotoJobTest do
   alias Ancestry.Workers.ProcessPersonPhotoJob
 
   setup do
-    {:ok, family} = Ancestry.Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Ancestry.Families.create_family(org, %{name: "Test Family"})
     {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
 
     src = Path.absname("test/fixtures/test_image.jpg")

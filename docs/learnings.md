@@ -98,6 +98,35 @@ When server-side code tags elements with different `data-*` prefixes to distingu
 
 **Fix:** When adding a new data attribute variant on the server side, always grep the JS hooks that consume the attribute and add matching handlers. The server-side `data-*` attributes and the JS hook's conditional branches must stay in sync. Consider adding a comment in the JS listing all expected prefixes so the next person knows to update both sides.
 
+## Use router-level on_mount hooks for tenant enforcement across live_sessions
+
+When multiple LiveViews need the same cross-cutting concern — loading a tenant entity from URL params, enforcing sandbox access in tests — register `on_mount` hooks at the `live_session` level in the router, not inside individual LiveView modules. Router-level hooks run before module-level hooks, and their ordering is guaranteed: hooks listed first in the `on_mount:` list run first.
+
+This matters for hook ordering: if an Ecto sandbox hook must run before a tenant-loading hook (because the tenant hook queries the database), both must be at the router level with the sandbox hook listed first.
+
+**Fix:** Define on_mount hooks as standalone modules, then compose them in the router's `live_session`:
+
+```elixir
+# router.ex
+@sandbox_hooks if(Application.compile_env(:ancestry, :sql_sandbox),
+                 do: [Web.LiveAcceptance],
+                 else: []
+               )
+
+live_session :default, on_mount: @sandbox_hooks do
+  live "/", OrganizationLive.Index, :index
+end
+
+scope "/org/:org_id" do
+  live_session :organization, on_mount: @sandbox_hooks ++ [Web.EnsureOrganization] do
+    live "/", FamilyLive.Index, :index
+    ...
+  end
+end
+```
+
+This keeps LiveView modules free of boilerplate — they just access `socket.assigns.organization` which is guaranteed to be set by the hook before `mount/3` runs.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.

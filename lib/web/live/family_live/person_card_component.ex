@@ -7,6 +7,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :person, Person, required: true
   attr :family_id, :integer, required: true
+  attr :organization, :map, required: true
   attr :focused, :boolean, default: false
   attr :has_more, :boolean, default: false
 
@@ -24,7 +25,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       ]}
     >
       <.link
-        navigate={~p"/people/#{@person.id}?from_family=#{@family_id}"}
+        navigate={~p"/org/#{@organization.id}/people/#{@person.id}?from_family=#{@family_id}"}
         class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
         title="View details"
       >
@@ -100,6 +101,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :ex_partners, :list, default: []
   attr :previous_partners, :list, default: []
   attr :family_id, :integer, required: true
+  attr :organization, :map, required: true
   attr :focused_person_id, :integer, default: nil
   attr :show_partner_placeholder, :boolean, default: false
   attr :person_for_placeholder, :integer, default: nil
@@ -117,6 +119,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <.person_card
           person={ex_group.person}
           family_id={@family_id}
+          organization={@organization}
           focused={false}
         />
         <div data-ex-separator={ex_group.person.id} class="w-[40px] self-stretch"></div>
@@ -126,6 +129,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <.person_card
           person={prev_group.person}
           family_id={@family_id}
+          organization={@organization}
           focused={false}
         />
         <div data-previous-separator={prev_group.person.id} class="w-[40px] self-stretch"></div>
@@ -135,17 +139,20 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <.person_card
             person={@person_a}
             family_id={@family_id}
+            organization={@organization}
             focused={@person_a.id == @focused_person_id}
           />
           <.person_card
             person={@person_b}
             family_id={@family_id}
+            organization={@organization}
             focused={@person_b.id == @focused_person_id}
           />
         <% @person_a && @show_partner_placeholder -> %>
           <.person_card
             person={@person_a}
             family_id={@family_id}
+            organization={@organization}
             focused={@person_a.id == @focused_person_id}
           />
           <.placeholder_card
@@ -156,6 +163,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <.person_card
             person={@person_a}
             family_id={@family_id}
+            organization={@organization}
             focused={@person_a.id == @focused_person_id}
           />
         <% true -> %>
@@ -169,6 +177,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :unit, :map, required: true
   attr :family_id, :integer, required: true
+  attr :organization, :map, required: true
   attr :focused_person_id, :integer, default: nil
   attr :is_root, :boolean, default: false
 
@@ -211,6 +220,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           ex_partners={@unit.ex_partners}
           previous_partners={@previous_partners}
           family_id={@family_id}
+          organization={@organization}
           focused_person_id={@focused_person_id}
           show_partner_placeholder={@is_root && is_nil(@unit.partner)}
           person_for_placeholder={@unit.focus.id}
@@ -219,6 +229,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <.subtree_children
             children={@all_children}
             family_id={@family_id}
+            organization={@organization}
             focused_person_id={@focused_person_id}
           />
         <% end %>
@@ -236,6 +247,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :children, :list, required: true
   attr :family_id, :integer, required: true
+  attr :organization, :map, required: true
   attr :focused_person_id, :integer, default: nil
 
   def subtree_children(assigns) do
@@ -255,6 +267,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                   person_a={child.person}
                   person_b={child[:partner]}
                   family_id={@family_id}
+                  organization={@organization}
                   focused_person_id={@focused_person_id}
                 />
                 <div
@@ -268,6 +281,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.family_subtree
                   unit={child}
                   family_id={@family_id}
+                  organization={@organization}
                   focused_person_id={@focused_person_id}
                 />
               <% true -> %>
@@ -275,6 +289,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                   person_a={child.person}
                   person_b={child[:partner]}
                   family_id={@family_id}
+                  organization={@organization}
                   focused_person_id={@focused_person_id}
                 />
             <% end %>
@@ -289,6 +304,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :node, :map, required: true
   attr :family_id, :integer, required: true
+  attr :organization, :map, required: true
   attr :focused_person_id, :integer, default: nil
 
   def ancestor_subtree(assigns) do
@@ -301,6 +317,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
               <.ancestor_subtree
                 node={entry.tree}
                 family_id={@family_id}
+                organization={@organization}
                 focused_person_id={@focused_person_id}
               />
             </div>
@@ -311,6 +328,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         person_a={@node.couple.person_a}
         person_b={@node.couple.person_b}
         family_id={@family_id}
+        organization={@organization}
         focused_person_id={@focused_person_id}
       />
     </div>

@@ -62,7 +62,9 @@ defmodule Ancestry.People do
 
   def create_person(family, attrs) do
     Repo.transaction(fn ->
-      case %Person{} |> Person.changeset(attrs) |> Repo.insert() do
+      case %Person{organization_id: family.organization_id}
+           |> Person.changeset(attrs)
+           |> Repo.insert() do
         {:ok, person} ->
           %FamilyMember{family_id: family.id, person_id: person.id}
           |> FamilyMember.changeset(%{})
@@ -88,9 +90,13 @@ defmodule Ancestry.People do
   end
 
   def add_to_family(%Person{} = person, family) do
-    %FamilyMember{family_id: family.id, person_id: person.id}
-    |> FamilyMember.changeset(%{})
-    |> Repo.insert()
+    if person.organization_id != family.organization_id do
+      {:error, :organization_mismatch}
+    else
+      %FamilyMember{family_id: family.id, person_id: person.id}
+      |> FamilyMember.changeset(%{})
+      |> Repo.insert()
+    end
   end
 
   def remove_from_family(%Person{} = person, family) do
@@ -104,7 +110,7 @@ defmodule Ancestry.People do
     end
   end
 
-  def search_people(query, exclude_family_id) do
+  def search_people(query, exclude_family_id, org_id) do
     escaped =
       query
       |> String.replace("\\", "\\\\")
@@ -118,6 +124,7 @@ defmodule Ancestry.People do
         left_join: fm in FamilyMember,
         on: fm.person_id == p.id and fm.family_id == ^exclude_family_id,
         where: is_nil(fm.id),
+        where: p.organization_id == ^org_id,
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -133,7 +140,7 @@ defmodule Ancestry.People do
     )
   end
 
-  def search_all_people(query) do
+  def search_all_people(query, org_id) do
     escaped =
       query
       |> String.replace("\\", "\\\\")
@@ -144,6 +151,7 @@ defmodule Ancestry.People do
 
     Repo.all(
       from p in Person,
+        where: p.organization_id == ^org_id,
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -159,7 +167,7 @@ defmodule Ancestry.People do
     )
   end
 
-  def search_all_people(query, exclude_person_id) do
+  def search_all_people(query, exclude_person_id, org_id) do
     escaped =
       query
       |> String.replace("\\", "\\\\")
@@ -171,6 +179,7 @@ defmodule Ancestry.People do
     Repo.all(
       from p in Person,
         where: p.id != ^exclude_person_id,
+        where: p.organization_id == ^org_id,
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -210,8 +219,8 @@ defmodule Ancestry.People do
     )
   end
 
-  def create_person_without_family(attrs) do
-    %Person{}
+  def create_person_without_family(org, attrs) do
+    %Person{organization_id: org.id}
     |> Person.changeset(attrs)
     |> Repo.insert()
   end

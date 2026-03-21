@@ -1,36 +1,30 @@
 defmodule Web.UserFlows.CalculatingKinshipTest do
   use Web.E2ECase
 
-  # Given a family with known relationships (grandparent, two parents who are siblings,
-  #   two cousins, and one unrelated person)
-  # When the user navigates to the kinship page via the family show page
-  # And selects two cousins
-  # Then the relationship "First Cousin" is displayed with a path visualization
-  #
-  # When the user swaps the people
-  # Then the labels update correctly
-  #
-  # When the user clears a selection
-  # Then the result disappears
-  #
-  # When the user selects two unrelated people
-  # Then "No common ancestor found" is shown
-
   setup do
     family = insert(:family, name: "Kinship Family")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
 
     # Grandparent
-    grandpa = insert(:person, given_name: "George", surname: "Kinship")
+    grandpa =
+      insert(:person, given_name: "George", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(grandpa, family)
 
-    grandma = insert(:person, given_name: "Martha", surname: "Kinship")
+    grandma =
+      insert(:person, given_name: "Martha", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(grandma, family)
 
     # Two parents who are siblings (children of grandpa and grandma)
-    parent_a = insert(:person, given_name: "Alice", surname: "Kinship")
+    parent_a =
+      insert(:person, given_name: "Alice", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(parent_a, family)
 
-    parent_b = insert(:person, given_name: "Bob", surname: "Kinship")
+    parent_b =
+      insert(:person, given_name: "Bob", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(parent_b, family)
 
     # Make parents children of grandparents
@@ -40,17 +34,27 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     Ancestry.Relationships.create_relationship(grandma, parent_b, "parent", %{role: "mother"})
 
     # Two cousins (children of the two parents)
-    cousin_a = insert(:person, given_name: "Charlie", surname: "Kinship")
+    cousin_a =
+      insert(:person,
+        given_name: "Charlie",
+        surname: "Kinship",
+        organization: family.organization
+      )
+
     Ancestry.People.add_to_family(cousin_a, family)
 
-    cousin_b = insert(:person, given_name: "Diana", surname: "Kinship")
+    cousin_b =
+      insert(:person, given_name: "Diana", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(cousin_b, family)
 
     Ancestry.Relationships.create_relationship(parent_a, cousin_a, "parent", %{role: "father"})
     Ancestry.Relationships.create_relationship(parent_b, cousin_b, "parent", %{role: "father"})
 
     # Child of cousin_b (for testing "removed" relationships)
-    child_of_cousin = insert(:person, given_name: "Frank", surname: "Kinship")
+    child_of_cousin =
+      insert(:person, given_name: "Frank", surname: "Kinship", organization: family.organization)
+
     Ancestry.People.add_to_family(child_of_cousin, family)
 
     Ancestry.Relationships.create_relationship(cousin_b, child_of_cousin, "parent", %{
@@ -58,7 +62,9 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     })
 
     # One unrelated person
-    unrelated = insert(:person, given_name: "Eve", surname: "Stranger")
+    unrelated =
+      insert(:person, given_name: "Eve", surname: "Stranger", organization: family.organization)
+
     Ancestry.People.add_to_family(unrelated, family)
 
     %{
@@ -70,7 +76,8 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
       cousin_a: cousin_a,
       cousin_b: cousin_b,
       child_of_cousin: child_of_cousin,
-      unrelated: unrelated
+      unrelated: unrelated,
+      org: org
     }
   end
 
@@ -78,12 +85,13 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     conn: conn,
     cousin_a: cousin_a,
     cousin_b: cousin_b,
-    unrelated: unrelated
+    unrelated: unrelated,
+    org: org
   } do
     # Navigate to the family show page
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Kinship Family")
       |> wait_liveview()
@@ -185,21 +193,17 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     |> assert_has(test_id("kinship-no-result"), text: "No common ancestor found")
   end
 
-  # Given a family with known relationships including a child of a cousin
-  # When the user selects cousin_a and child_of_cousin on the kinship page
-  # Then the "First Cousin, Once Removed" relationship is displayed
-  # And the DNA percentage (6.25%) is shown
-  # And the "removed" footnote appears
   test "removed relationship shows footnote and DNA percentage", %{
     conn: conn,
     family: family,
     cousin_a: cousin_a,
-    child_of_cousin: child_of_cousin
+    child_of_cousin: child_of_cousin,
+    org: org
   } do
     # Navigate directly to the kinship page
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/kinship")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/kinship")
       |> wait_liveview()
 
     # Select cousin_a as Person A

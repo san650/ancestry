@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} organization={@organization}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/"}
+          navigate={~p"/org/#{@organization.id}"}
           class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
@@ -72,7 +72,7 @@
         <button type="submit" class="btn btn-primary flex-1" {test_id("family-create-btn")}>
           Create
         </button>
-        <.link navigate={~p"/"} class="btn btn-ghost flex-1">Cancel</.link>
+        <.link navigate={~p"/org/#{@organization.id}"} class="btn btn-ghost flex-1">Cancel</.link>
       </div>
     </.form>
   </div>

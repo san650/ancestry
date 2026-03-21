@@ -1,25 +1,34 @@
 defmodule Web.UserFlows.FamilyMetricsTest do
   use Web.E2ECase
 
-  # Given a family with several people, relationships, galleries with photos
-  # When the user navigates to the family show page
-  # Then the sidebar shows the people count and photo count
-  # And the generations metric shows root and leaf person cards with the generation count
-  # And the oldest person card is shown with their age
-  #
-  # When the user clicks the oldest person card
-  # Then the tree view loads that person
-  #
-  # When the user clicks the root ancestor card in the generations metric
-  # Then the tree view loads that person
-
   setup do
     family = insert(:family, name: "Metrics Family")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
 
     # 3-generation chain: grandpa -> parent -> child
-    grandpa = insert(:person, given_name: "George", surname: "Elder", birth_year: 1940)
-    parent = insert(:person, given_name: "Alice", surname: "Elder", birth_year: 1970)
-    child = insert(:person, given_name: "Charlie", surname: "Elder", birth_year: 2000)
+    grandpa =
+      insert(:person,
+        given_name: "George",
+        surname: "Elder",
+        birth_year: 1940,
+        organization: family.organization
+      )
+
+    parent =
+      insert(:person,
+        given_name: "Alice",
+        surname: "Elder",
+        birth_year: 1970,
+        organization: family.organization
+      )
+
+    child =
+      insert(:person,
+        given_name: "Charlie",
+        surname: "Elder",
+        birth_year: 2000,
+        organization: family.organization
+      )
 
     for p <- [grandpa, parent, child], do: Ancestry.People.add_to_family(p, family)
 
@@ -31,19 +40,20 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     insert(:photo, gallery: gallery) |> ensure_photo_file()
     insert(:photo, gallery: gallery) |> ensure_photo_file()
 
-    %{family: family, grandpa: grandpa, parent: parent, child: child}
+    %{family: family, grandpa: grandpa, parent: parent, child: child, org: org}
   end
 
   test "displays metrics and navigates via person cards", %{
     conn: conn,
     family: family,
     grandpa: grandpa,
-    child: child
+    child: child,
+    org: org
   } do
     # Navigate to the family show page
     conn =
       conn
-      |> visit(~p"/families/#{family.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
 
     # Verify people count
@@ -83,7 +93,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     # Navigate back to family show (no person focused)
     conn =
       conn
-      |> visit(~p"/families/#{family.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
 
     # Click root ancestor in generations — the first button in the generations metric is the root
@@ -99,7 +109,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     # Navigate back and click leaf descendant — the last button in the generations metric
     conn =
       conn
-      |> visit(~p"/families/#{family.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
       |> click(test_id("metric-generations") <> " button:last-of-type")
       |> wait_liveview()

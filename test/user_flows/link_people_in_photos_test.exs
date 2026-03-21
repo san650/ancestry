@@ -1,35 +1,26 @@
 defmodule Web.UserFlows.LinkPeopleInPhotosTest do
   use Web.E2ECase
 
-  # Given a family with a gallery containing a processed photo
-  # And two existing people in the system
-  #
-  # When the user opens the gallery and clicks on the photo
-  # Then the lightbox opens
-  #
-  # When the user opens the panel and clicks on the photo image
-  # Then a popover appears with a search input
-  #
-  # When the user searches for a person name
-  # Then matching results appear
-  #
-  # When the user selects a person from the results
-  # Then the person appears in the right panel people list
-  #
-  # When the user clicks X next to the person in the right panel
-  # Then the person is removed from the list
   setup do
     family = insert(:family, name: "Photo Tag Family")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
     gallery = insert(:gallery, name: "Summer 2025", family: family)
 
     photo =
       insert(:photo, gallery: gallery, original_filename: "beach.jpg")
       |> ensure_photo_file()
 
-    alice = insert(:person, given_name: "Alice", surname: "Wonderland")
-    bob = insert(:person, given_name: "Bob", surname: "Builder")
+    alice =
+      insert(:person,
+        given_name: "Alice",
+        surname: "Wonderland",
+        organization: family.organization
+      )
 
-    %{family: family, gallery: gallery, photo: photo, alice: alice, bob: bob}
+    bob =
+      insert(:person, given_name: "Bob", surname: "Builder", organization: family.organization)
+
+    %{family: family, gallery: gallery, photo: photo, alice: alice, bob: bob, org: org}
   end
 
   test "tag and untag people in a photo", %{
@@ -37,12 +28,13 @@ defmodule Web.UserFlows.LinkPeopleInPhotosTest do
     family: family,
     gallery: gallery,
     photo: photo,
-    alice: alice
+    alice: alice,
+    org: org
   } do
     # Navigate to the gallery show page
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/galleries/#{gallery.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
       |> wait_liveview()
 
     # Click the photo to open lightbox (use the stream DOM id for the photo)

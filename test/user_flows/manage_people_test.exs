@@ -1,37 +1,9 @@
 defmodule Web.UserFlows.ManagePeopleTest do
   use Web.E2ECase
 
-  # Given a family with people (some with relationships, some without, one deceased)
-  # When the user navigates to /families/:family_id/people
-  # Then the people table is shown with names, lifespans, estimated ages, link counts
-  # And deceased people show a gray indicator dot with "Deceased" tooltip
-  # And unlinked people show a warning icon in the links column
-  #
-  # When the user types in the search box
-  # Then the table narrows to matching people
-  #
-  # When the user clicks the "Unlinked" chip
-  # Then only people with 0 relationships are shown
-  #
-  # When the user clicks the per-row unlink button
-  # Then a confirmation modal appears for that single person
-  #
-  # When the user clicks "Edit"
-  # Then checkboxes appear and per-row unlink buttons are hidden
-  #
-  # When the user selects 2 people and clicks "Remove from family"
-  # Then a confirmation modal appears
-  #
-  # When the user confirms the removal
-  # Then the people are removed from the table
-  # And the page stays in edit mode
-  # And a flash message confirms the removal
-  #
-  # When the user clicks "Done"
-  # Then checkboxes disappear and per-row unlink buttons reappear
-
   setup do
     family = insert(:family, name: "Test Family")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
 
     alice =
       insert(:person,
@@ -39,12 +11,23 @@ defmodule Web.UserFlows.ManagePeopleTest do
         surname: "Smith",
         birth_year: 1950,
         death_year: 2020,
-        deceased: true
+        deceased: true,
+        organization: family.organization
       )
 
-    bob = insert(:person, given_name: "Bob", surname: "Smith", birth_year: 1955)
-    charlie = insert(:person, given_name: "Charlie", surname: "Jones")
-    diana = insert(:person, given_name: "Diana", surname: "Williams")
+    bob =
+      insert(:person,
+        given_name: "Bob",
+        surname: "Smith",
+        birth_year: 1955,
+        organization: family.organization
+      )
+
+    charlie =
+      insert(:person, given_name: "Charlie", surname: "Jones", organization: family.organization)
+
+    diana =
+      insert(:person, given_name: "Diana", surname: "Williams", organization: family.organization)
 
     for p <- [alice, bob, charlie, diana], do: Ancestry.People.add_to_family(p, family)
 
@@ -54,18 +37,19 @@ defmodule Web.UserFlows.ManagePeopleTest do
     Ancestry.Relationships.create_relationship(alice, charlie, "relationship")
     # Diana has no relationships = warning icon
 
-    %{family: family, alice: alice, bob: bob, charlie: charlie, diana: diana}
+    %{family: family, alice: alice, bob: bob, charlie: charlie, diana: diana, org: org}
   end
 
   test "view people table with correct data", %{
     conn: conn,
     family: family,
     alice: alice,
-    diana: diana
+    diana: diana,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Verify table shows all 4 people
@@ -90,10 +74,10 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-row-#{alice.id}") <> " .indicator-item[title='Deceased']")
   end
 
-  test "navigate from family show via toolbar", %{conn: conn, family: family} do
+  test "navigate from family show via toolbar", %{conn: conn, family: family, org: org} do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
       |> click(test_id("family-manage-people-btn"))
       |> wait_liveview()
@@ -102,10 +86,10 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-table"))
   end
 
-  test "search filters the table", %{conn: conn, family: family} do
+  test "search filters the table", %{conn: conn, family: family, org: org} do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Search for "Smith" -- should show Alice and Bob, hide Charlie and Diana
@@ -122,11 +106,12 @@ defmodule Web.UserFlows.ManagePeopleTest do
     conn: conn,
     family: family,
     charlie: charlie,
-    diana: diana
+    diana: diana,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Enter edit mode
@@ -177,10 +162,10 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-edit-btn"), text: "Done")
   end
 
-  test "exit edit mode hides checkboxes", %{conn: conn, family: family, alice: alice} do
+  test "exit edit mode hides checkboxes", %{conn: conn, family: family, alice: alice, org: org} do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Enter edit mode
@@ -209,10 +194,15 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-edit-btn"), text: "Edit")
   end
 
-  test "cancel removal dismisses modal", %{conn: conn, family: family, charlie: charlie} do
+  test "cancel removal dismisses modal", %{
+    conn: conn,
+    family: family,
+    charlie: charlie,
+    org: org
+  } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Enter edit mode and select Charlie
@@ -250,11 +240,12 @@ defmodule Web.UserFlows.ManagePeopleTest do
 
   test "unlinked chip filters to people with 0 relationships", %{
     conn: conn,
-    family: family
+    family: family,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Click the Unlinked chip
@@ -284,11 +275,12 @@ defmodule Web.UserFlows.ManagePeopleTest do
 
   test "unlinked filter composes with text search", %{
     conn: conn,
-    family: family
+    family: family,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Activate unlinked filter
@@ -309,11 +301,12 @@ defmodule Web.UserFlows.ManagePeopleTest do
   test "per-row unlink button removes person from family", %{
     conn: conn,
     family: family,
-    diana: diana
+    diana: diana,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Click the unlink button on Diana's row
@@ -339,17 +332,17 @@ defmodule Web.UserFlows.ManagePeopleTest do
     |> assert_has(test_id("people-table"), text: "Smith, Alice")
   end
 
-  test "estimated age displays correctly", %{conn: conn, family: family} do
+  test "estimated age displays correctly", %{conn: conn, family: family, org: org} do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
-    # Alice: deceased, birth_year: 1950, death_year: 2020 → ~70 (stable)
+    # Alice: deceased, birth_year: 1950, death_year: 2020 -> ~70 (stable)
     conn
     |> assert_has(test_id("people-table"), text: "~70")
 
-    # Bob: alive, birth_year: 1955 → dynamic age
+    # Bob: alive, birth_year: 1955 -> dynamic age
     expected_bob_age = Date.utc_today().year - 1955
 
     conn
@@ -359,11 +352,12 @@ defmodule Web.UserFlows.ManagePeopleTest do
   test "per-row unlink buttons hidden in edit mode", %{
     conn: conn,
     family: family,
-    diana: diana
+    diana: diana,
+    org: org
   } do
     conn =
       conn
-      |> visit(~p"/families/#{family.id}/people")
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
       |> wait_liveview()
 
     # Unlink button visible in normal mode

@@ -17,7 +17,8 @@ defmodule Web.UserFlows.PersonPhotosTest do
   # Then the lightbox closes and the person show page is visible again
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
     {:ok, gallery} = Galleries.create_gallery(%{name: "Summer 2024", family_id: family.id})
     {:ok, person} = People.create_person(family, %{given_name: "Alice", surname: "Smith"})
 
@@ -44,16 +45,19 @@ defmodule Web.UserFlows.PersonPhotosTest do
     {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
     {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.7)
 
-    %{family: family, person: person, photo1: photo1, photo2: photo2}
+    %{family: family, person: person, photo1: photo1, photo2: photo2, org: org}
   end
 
   test "person show page displays tagged photos and lightbox works", %{
     conn: conn,
     person: person,
     photo1: photo1,
-    photo2: photo2
+    photo2: photo2,
+    family: family,
+    org: org
   } do
-    {:ok, view, html} = live(conn, ~p"/people/#{person.id}")
+    {:ok, view, html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     # Photos section is visible with count badge showing "2"
     assert html =~ "Photos"
@@ -100,11 +104,12 @@ defmodule Web.UserFlows.PersonPhotosTest do
     assert has_element?(view, "#person-photos-section")
   end
 
-  test "person with no tagged photos does not show photos section", %{conn: conn} do
-    {:ok, family} = Families.create_family(%{name: "Another Family"})
+  test "person with no tagged photos does not show photos section", %{conn: conn, org: org} do
+    {:ok, family} = Families.create_family(org, %{name: "Another Family"})
     {:ok, person} = People.create_person(family, %{given_name: "Bob", surname: "Jones"})
 
-    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}")
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     refute html =~ "person-photos-section"
   end

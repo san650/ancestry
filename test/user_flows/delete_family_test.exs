@@ -3,34 +3,25 @@ defmodule Web.UserFlows.DeleteFamilyTest do
 
   alias Ancestry.People
 
-  # Given a family with some people and galleries
-  # When the user clicks on the family from the /families page
-  # Then the user navigates to the family show page
-  #
-  # When the user clicks "Delete" on the toolbar
-  # Then a confirmation modal is shown
-  #
-  # When the user clicks "Delete"
-  # Then the family is deleted with all its related galleries
-  # And people are not deleted, just detached from the family
-  # And the user is redirected to the /families page
   setup do
     family = insert(:family, name: "Doomed Family")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
     gallery = insert(:gallery, family: family, name: "Summer Photos")
     person = insert(:person, given_name: "Jane", surname: "Doe")
     People.add_to_family(person, family)
-    %{family: family, gallery: gallery, person: person}
+    %{family: family, gallery: gallery, person: person, org: org}
   end
 
   test "delete family keeps people but removes family and galleries", %{
     conn: conn,
     family: _family,
-    person: person
+    person: person,
+    org: org
   } do
     # Visit families page and click the family
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Doomed Family")
       |> wait_liveview()

@@ -1,10 +1,10 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} organization={@organization}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <h1 class="text-3xl font-bold tracking-tight text-base-content">Families</h1>
       <.link
         id="new-family-btn"
-        navigate={~p"/families/new"}
+        navigate={~p"/org/#{@organization.id}/families/new"}
         class="btn btn-primary"
         {test_id("family-new-btn")}
       >
@@ -32,7 +32,7 @@
         class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
         {test_id("family-card-#{family.id}")}
       >
-        <.link navigate={~p"/families/#{family.id}"} class="block">
+        <.link navigate={~p"/org/#{@organization.id}/families/#{family.id}"} class="block">
           <%= if family.cover do %>
             <div class="h-32 overflow-hidden">
               <img

@@ -3,9 +3,14 @@ defmodule Web.PersonLive.Index do
 
   alias Ancestry.Families
   alias Ancestry.People
+
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
+
+    if family.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
+    end
 
     {:ok,
      socket
@@ -35,7 +40,7 @@ defmodule Web.PersonLive.Index do
   def handle_event("search", %{"value" => query}, socket) do
     results =
       if String.length(String.trim(query)) >= 2 do
-        People.search_people(query, socket.assigns.family.id)
+        People.search_people(query, socket.assigns.family.id, socket.assigns.organization.id)
       else
         []
       end

@@ -6,7 +6,8 @@ defmodule Web.PersonLive.ShowTest do
   alias Ancestry.People
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     {:ok, person} =
       People.create_person(family, %{
@@ -16,17 +17,21 @@ defmodule Web.PersonLive.ShowTest do
         deceased: false
       })
 
-    %{family: family, person: person}
+    %{family: family, person: person, org: org}
   end
 
-  test "shows person details", %{conn: conn, family: family, person: person} do
-    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+  test "shows person details", %{conn: conn, family: family, person: person, org: org} do
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     assert html =~ "Jane"
     assert html =~ "Doe"
   end
 
-  test "edits person name", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+  test "edits person name", %{conn: conn, family: family, person: person, org: org} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#edit-person-btn") |> render_click()
 
     view
@@ -36,7 +41,11 @@ defmodule Web.PersonLive.ShowTest do
     assert render(view) =~ "Janet"
   end
 
-  test "edit form auto-expands when person has extra fields", %{conn: conn, family: family} do
+  test "edit form auto-expands when person has extra fields", %{
+    conn: conn,
+    family: family,
+    org: org
+  } do
     {:ok, person_with_nickname} =
       People.create_person(family, %{
         given_name: "Maria",
@@ -46,7 +55,7 @@ defmodule Web.PersonLive.ShowTest do
       })
 
     {:ok, view, _html} =
-      live(conn, ~p"/people/#{person_with_nickname.id}?from_family=#{family.id}")
+      live(conn, ~p"/org/#{org.id}/people/#{person_with_nickname.id}?from_family=#{family.id}")
 
     view |> element("#edit-person-btn") |> render_click()
 
@@ -58,9 +67,12 @@ defmodule Web.PersonLive.ShowTest do
   test "edit form shows compact when person has only basic fields", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#edit-person-btn") |> render_click()
 
     # Person only has given_name, surname, gender — should be compact
@@ -68,7 +80,7 @@ defmodule Web.PersonLive.ShowTest do
     refute has_element?(view, "#person_nickname")
   end
 
-  test "shows deceased status on detail page", %{conn: conn, family: family} do
+  test "shows deceased status on detail page", %{conn: conn, family: family, org: org} do
     {:ok, deceased_person} =
       People.create_person(family, %{
         given_name: "John",
@@ -77,7 +89,9 @@ defmodule Web.PersonLive.ShowTest do
         death_year: 1994
       })
 
-    {:ok, _view, html} = live(conn, ~p"/people/#{deceased_person.id}?from_family=#{family.id}")
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/people/#{deceased_person.id}?from_family=#{family.id}")
+
     assert html =~ "Deceased:"
     assert html =~ "Yes"
   end
@@ -85,7 +99,8 @@ defmodule Web.PersonLive.ShowTest do
   test "shows deceased indicator on person card for related people", %{
     conn: conn,
     family: family,
-    person: person
+    person: person,
+    org: org
   } do
     {:ok, deceased_parent} =
       People.create_person(family, %{
@@ -99,30 +114,41 @@ defmodule Web.PersonLive.ShowTest do
       role: "father"
     })
 
-    {:ok, _view, html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     assert html =~ "d. 1994"
     assert html =~ "This person is deceased."
   end
 
-  test "removes person from family", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+  test "removes person from family", %{conn: conn, family: family, person: person, org: org} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#remove-from-family-btn") |> render_click()
     view |> element("#confirm-remove-btn") |> render_click()
-    assert_redirect(view, ~p"/families/#{family.id}")
+    assert_redirect(view, ~p"/org/#{org.id}/families/#{family.id}")
   end
 
-  test "deletes person permanently", %{conn: conn, family: family, person: person} do
-    {:ok, view, _html} = live(conn, ~p"/people/#{person.id}?from_family=#{family.id}")
+  test "deletes person permanently", %{conn: conn, family: family, person: person, org: org} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
     view |> element("#delete-person-btn") |> render_click()
     assert has_element?(view, "#confirm-delete-person-modal")
 
     view |> element("#confirm-delete-btn") |> render_click()
-    assert_redirect(view, ~p"/families/#{family.id}")
+    assert_redirect(view, ~p"/org/#{org.id}/families/#{family.id}")
 
     assert_raise Ecto.NoResultsError, fn -> People.get_person!(person.id) end
   end
 
-  test "removes person photo from edit form", %{conn: conn, family: family, person: person} do
+  test "removes person photo from edit form", %{
+    conn: conn,
+    family: family,
+    person: person,
+    org: org
+  } do
     # Given a person with a processed photo
     {:ok, person_with_photo} =
       person
@@ -132,7 +158,8 @@ defmodule Web.PersonLive.ShowTest do
       })
       |> Ancestry.Repo.update()
 
-    {:ok, view, _html} = live(conn, ~p"/people/#{person_with_photo.id}?from_family=#{family.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person_with_photo.id}?from_family=#{family.id}")
 
     # When the user clicks edit and then remove photo
     view |> element("#edit-person-btn") |> render_click()

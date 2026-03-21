@@ -5,31 +5,60 @@ defmodule Web.GalleryLive.ShowTest do
   alias Ancestry.Galleries
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
-    %{gallery: gallery, family: family}
+    %{gallery: gallery, family: family, org: org}
   end
 
-  test "shows gallery name and upload button", %{conn: conn, gallery: gallery, family: family} do
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+  test "shows gallery name and upload button", %{
+    conn: conn,
+    gallery: gallery,
+    family: family,
+    org: org
+  } do
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
     assert html =~ gallery.name
     assert html =~ "upload-btn"
   end
 
-  test "shows empty state when no photos", %{conn: conn, gallery: gallery, family: family} do
-    {:ok, _view, html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+  test "shows empty state when no photos", %{
+    conn: conn,
+    gallery: gallery,
+    family: family,
+    org: org
+  } do
+    {:ok, _view, html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
     assert html =~ "No photos yet"
   end
 
-  test "toggles between masonry and uniform grid", %{conn: conn, gallery: gallery, family: family} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+  test "toggles between masonry and uniform grid", %{
+    conn: conn,
+    gallery: gallery,
+    family: family,
+    org: org
+  } do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
     assert has_element?(view, "#photo-grid.masonry-grid")
     view |> element("#layout-toggle") |> render_click()
     assert has_element?(view, "#photo-grid.uniform-grid")
   end
 
-  test "activates and cancels selection mode", %{conn: conn, gallery: gallery, family: family} do
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+  test "activates and cancels selection mode", %{
+    conn: conn,
+    gallery: gallery,
+    family: family,
+    org: org
+  } do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
     refute has_element?(view, "#selection-bar")
     view |> element("#select-btn") |> render_click()
     assert has_element?(view, "#selection-bar")
@@ -40,7 +69,8 @@ defmodule Web.GalleryLive.ShowTest do
   test "shows photo_processed message updates photo in grid", %{
     conn: conn,
     gallery: gallery,
-    family: family
+    family: family,
+    org: org
   } do
     {:ok, photo} =
       Galleries.create_photo(%{
@@ -50,7 +80,9 @@ defmodule Web.GalleryLive.ShowTest do
         content_type: "image/jpeg"
       })
 
-    {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
     assert has_element?(view, "#photos-#{photo.id}")
 
     {:ok, updated} = Galleries.update_photo_processed(photo, "original.jpg")
@@ -77,8 +109,9 @@ defmodule Web.GalleryLive.ShowTest do
     end
 
     test "clicking a photo in select mode toggles selection instead of opening lightbox",
-         %{conn: conn, gallery: gallery, family: family, photos: [p1 | _]} do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+         %{conn: conn, gallery: gallery, family: family, org: org, photos: [p1 | _]} do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       # Enter select mode
       view |> element("#select-btn") |> render_click()
@@ -91,8 +124,10 @@ defmodule Web.GalleryLive.ShowTest do
     end
 
     test "selecting and deselecting a photo toggles the count",
-         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2 | _]} do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+         %{conn: conn, gallery: gallery, family: family, org: org, photos: [p1, p2 | _]} do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
       view |> element("#select-btn") |> render_click()
 
       # Select two photos
@@ -106,8 +141,9 @@ defmodule Web.GalleryLive.ShowTest do
     end
 
     test "deleting selected photos removes only those photos",
-         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2, p3]} do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+         %{conn: conn, gallery: gallery, family: family, org: org, photos: [p1, p2, p3]} do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       # Enter select mode, select p1 and p3 only
       view |> element("#select-btn") |> render_click()
@@ -132,8 +168,9 @@ defmodule Web.GalleryLive.ShowTest do
     end
 
     test "cancelling delete keeps all photos",
-         %{conn: conn, gallery: gallery, family: family, photos: [p1, p2, p3]} do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+         %{conn: conn, gallery: gallery, family: family, org: org, photos: [p1, p2, p3]} do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#select-btn") |> render_click()
       view |> element("#photos-#{p1.id}") |> render_click()
@@ -153,9 +190,11 @@ defmodule Web.GalleryLive.ShowTest do
     test "uploading a file opens the modal and shows progress", %{
       conn: conn,
       gallery: gallery,
-      family: family
+      family: family,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       refute has_element?(view, "#upload-modal")
 
@@ -176,9 +215,11 @@ defmodule Web.GalleryLive.ShowTest do
     test "close_upload_modal closes the modal", %{
       conn: conn,
       gallery: gallery,
-      family: family
+      family: family,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       photo =
         file_input(view, "#upload-form", :photos, [

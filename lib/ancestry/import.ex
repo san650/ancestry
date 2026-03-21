@@ -25,10 +25,10 @@ defmodule Ancestry.Import do
   - `{:ok, summary}` on success with counts of created/skipped/errored records
   - `{:error, reason}` on failure
   """
-  def import_from_csv(adapter_name, family_name, csv_path) do
+  def import_from_csv(adapter_name, family_name, csv_path, org) do
     case Map.fetch(@adapters, adapter_name) do
       {:ok, adapter_module} ->
-        CSV.import(adapter_module, family_name, csv_path)
+        CSV.import(adapter_module, family_name, csv_path, org)
 
       :error ->
         available = @adapters |> Map.keys() |> Enum.join(", ")

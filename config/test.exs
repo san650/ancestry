@@ -48,4 +48,9 @@ config :ancestry, Oban, testing: :inline
 
 config :phoenix_test, otp_app: :ancestry
 
+config :phoenix_test,
+  playwright: [
+    ecto_sandbox_stop_owner_delay: 50
+  ]
+
 config :ancestry, :sql_sandbox, true

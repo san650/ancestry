@@ -8,7 +8,7 @@ defmodule Web.FamilyLive.Index do
     {:ok,
      socket
      |> assign(:confirm_delete_family, nil)
-     |> stream(:families, Families.list_families())}
+     |> stream(:families, Families.list_families(socket.assigns.organization.id))}
   end
 
   @impl true

@@ -7,7 +7,8 @@ defmodule Web.E2E.GalleryNavigationTest do
   alias Ancestry.Repo
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
 
     # Insert a processed photo directly — bypasses Oban job since no real
@@ -24,16 +25,17 @@ defmodule Web.E2E.GalleryNavigationTest do
       })
       |> Repo.insert()
 
-    %{gallery: gallery, family: family}
+    %{gallery: gallery, family: family, org: org}
   end
 
   test "navigate from gallery list to a gallery and open a photo", %{
     conn: conn,
     gallery: gallery,
-    family: family
+    family: family,
+    org: org
   } do
     conn
-    |> visit(~p"/families/#{family.id}")
+    |> visit(~p"/org/#{org.id}/families/#{family.id}")
     |> wait_liveview()
     |> click_link(gallery.name)
     |> wait_liveview()

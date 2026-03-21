@@ -7,7 +7,8 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
   alias Ancestry.Relationships
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     {:ok, person} =
       People.create_person(family, %{given_name: "John", surname: "Doe", gender: "male"})
@@ -31,7 +32,7 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
     {:ok, _} =
       Relationships.create_relationship(person, second_wife, "married", %{marriage_year: 1995})
 
-    %{family: family, person: person, first_wife: first_wife, second_wife: second_wife}
+    %{family: family, person: person, first_wife: first_wife, second_wife: second_wife, org: org}
   end
 
   describe "tree with multiple current partners" do
@@ -40,9 +41,11 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       family: family,
       person: person,
       first_wife: first_wife,
-      second_wife: second_wife
+      second_wife: second_wife,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       # All three people should be visible
       assert has_element?(view, "[data-person-id='#{person.id}']")
@@ -54,9 +57,11 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       conn: conn,
       family: family,
       person: person,
-      second_wife: second_wife
+      second_wife: second_wife,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       # The couple card should have the latest partner (second_wife) as person_b
       assert has_element?(
@@ -69,9 +74,11 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       conn: conn,
       family: family,
       person: person,
-      first_wife: first_wife
+      first_wife: first_wife,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       # Previous partner should have a solid separator (data-previous-separator)
       assert has_element?(view, "[data-previous-separator='#{first_wife.id}']")
@@ -84,7 +91,8 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       family: family,
       person: person,
       first_wife: first_wife,
-      second_wife: second_wife
+      second_wife: second_wife,
+      org: org
     } do
       # Add children for each partner
       {:ok, child_first} =
@@ -105,7 +113,8 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       {:ok, _} =
         Relationships.create_relationship(second_wife, child_second, "parent", %{role: "mother"})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       # Both children should be visible
       assert has_element?(view, "[data-person-id='#{child_first.id}']")

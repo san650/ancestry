@@ -9,12 +9,13 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "rendering" do
     test "shows existing comments for a photo", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
       {:ok, _} = Comments.create_photo_comment(%{text: "Great shot!", photo_id: photo.id})
       {:ok, _} = Comments.create_photo_comment(%{text: "Love it", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -25,9 +26,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "shows empty state when no comments", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -39,9 +41,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "creating comments" do
     test "submitting the form creates a comment", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -58,9 +61,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "submitting empty text does not create a comment", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -76,10 +80,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "editing comments" do
     test "edit and save updates the comment", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
       {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -103,10 +108,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "cancel edit hides the edit form", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
       {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -125,10 +131,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "deleting comments" do
     test "clicking delete removes the comment", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
       {:ok, comment} = Comments.create_photo_comment(%{text: "Delete me", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -147,9 +154,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "lightbox integration" do
     test "toggle button opens and closes comments panel", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
 
@@ -163,9 +171,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "closing lightbox closes comments panel", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -179,13 +188,17 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "navigating photos loads comments for the new photo", %{conn: conn} do
-      {family, gallery, photo1} = setup_gallery_with_photo()
+      {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
-      {:ok, _} = Comments.create_photo_comment(%{text: "Comment on photo 1", photo_id: photo1.id})
-      {:ok, _} = Comments.create_photo_comment(%{text: "Comment on photo 2", photo_id: photo2.id})
+      {:ok, _} =
+        Comments.create_photo_comment(%{text: "Comment on photo 1", photo_id: photo1.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, _} =
+        Comments.create_photo_comment(%{text: "Comment on photo 2", photo_id: photo2.id})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo1.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -202,12 +215,14 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "navigating to photo with no comments shows empty state", %{conn: conn} do
-      {family, gallery, photo1} = setup_gallery_with_photo()
+      {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
-      {:ok, _} = Comments.create_photo_comment(%{text: "Only on photo 1", photo_id: photo1.id})
+      {:ok, _} =
+        Comments.create_photo_comment(%{text: "Only on photo 1", photo_id: photo1.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo1.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -225,9 +240,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   describe "real-time updates" do
     test "receiving comment_created message adds comment to panel", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -245,10 +261,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "receiving comment_updated message updates comment in panel", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
       {:ok, comment} = Comments.create_photo_comment(%{text: "Before edit", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -263,10 +280,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     end
 
     test "receiving comment_deleted message removes comment from panel", %{conn: conn} do
-      {family, gallery, photo} = setup_gallery_with_photo()
+      {family, gallery, photo, org} = setup_gallery_with_photo()
       {:ok, comment} = Comments.create_photo_comment(%{text: "Will vanish", photo_id: photo.id})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}/galleries/#{gallery.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       view |> element("#photos-#{photo.id}") |> render_click()
       view |> element("#toggle-panel-btn") |> render_click()
@@ -284,17 +302,16 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   # -- Fixtures --
 
   defp setup_gallery_with_photo do
-    family = family_fixture()
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    family = family_fixture(org)
     gallery = gallery_fixture(family)
     photo = photo_fixture(gallery)
-    {family, gallery, photo}
+    {family, gallery, photo, org}
   end
 
-  defp family_fixture(attrs \\ %{}) do
+  defp family_fixture(org, attrs \\ %{}) do
     {:ok, family} =
-      attrs
-      |> Enum.into(%{name: "Test Family"})
-      |> Families.create_family()
+      Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
 
     family
   end

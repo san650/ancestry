@@ -1,17 +1,19 @@
-<Layouts.app flash={@flash}>
+<Layouts.app flash={@flash} organization={@organization}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
         <%= if @from_family do %>
           <.link
-            navigate={~p"/families/#{@from_family.id}?person=#{@person.id}"}
+            navigate={
+              ~p"/org/#{@organization.id}/families/#{@from_family.id}?person=#{@person.id}"
+            }
             class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
           >
             <.icon name="hero-arrow-left" class="w-5 h-5" />
           </.link>
         <% else %>
           <.link
-            navigate={~p"/"}
+            navigate={~p"/org/#{@organization.id}"}
             class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
           >
             <.icon name="hero-arrow-left" class="w-5 h-5" />
@@ -141,7 +143,7 @@
             <div class="flex flex-wrap gap-2">
               <%= for family <- @person.families do %>
                 <.link
-                  navigate={~p"/families/#{family.id}"}
+                  navigate={~p"/org/#{@organization.id}/families/#{family.id}"}
                   class="badge badge-primary badge-outline hover:bg-primary/10 transition-colors"
                 >
                   {family.name}
@@ -210,7 +212,7 @@
               <%!-- Partner card with relationship info --%>
               <div class="flex items-center gap-2">
                 <.link
-                  navigate={person_path(partner, @from_family)}
+                  navigate={person_path(partner, @from_family, @organization)}
                   class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={partner} highlighted={false} />
@@ -287,7 +289,7 @@
                   </p>
                   <%= for child <- children do %>
                     <.link
-                      navigate={person_path(child, @from_family)}
+                      navigate={person_path(child, @from_family, @organization)}
                       class="rounded-lg transition-colors hover:bg-base-200"
                     >
                       <.person_card person={child} highlighted={false} />
@@ -318,7 +320,7 @@
                 Children with
               </p>
               <.link
-                navigate={person_path(coparent, @from_family)}
+                navigate={person_path(coparent, @from_family, @organization)}
                 class="rounded-lg transition-colors hover:bg-base-200"
               >
                 <.person_card person={coparent} highlighted={false} />
@@ -326,7 +328,7 @@
               <div class="pl-4 border-l-2 border-base-200 space-y-1 mt-2">
                 <%= for child <- children do %>
                   <.link
-                    navigate={person_path(child, @from_family)}
+                    navigate={person_path(child, @from_family, @organization)}
                     class="rounded-lg transition-colors hover:bg-base-200"
                   >
                     <.person_card person={child} highlighted={false} />
@@ -347,7 +349,7 @@
               </p>
               <%= for child <- @solo_children do %>
                 <.link
-                  navigate={person_path(child, @from_family)}
+                  navigate={person_path(child, @from_family, @organization)}
                   class="rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={child} highlighted={false} />
@@ -388,7 +390,7 @@
             <%= for {parent, rel} <- @parents do %>
               <div class="flex items-center gap-2">
                 <.link
-                  navigate={person_path(parent, @from_family)}
+                  navigate={person_path(parent, @from_family, @organization)}
                   class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                 >
                   <.person_card person={parent} highlighted={false} />
@@ -459,7 +461,7 @@
               <%= for sib <- @siblings do %>
                 <div class="flex items-center gap-2">
                   <.link
-                    navigate={person_path(sibling_person(sib), @from_family)}
+                    navigate={person_path(sibling_person(sib), @from_family, @organization)}
                     class="flex-1 rounded-lg transition-colors hover:bg-base-200"
                   >
                     <.person_card person={sibling_person(sib)} highlighted={false} />

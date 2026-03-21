@@ -1,16 +1,24 @@
 defmodule Ancestry.Factory do
   use ExMachina.Ecto, repo: Ancestry.Repo
 
+  def organization_factory do
+    %Ancestry.Organizations.Organization{
+      name: sequence(:org_name, &"Organization #{&1}")
+    }
+  end
+
   def family_factory do
     %Ancestry.Families.Family{
-      name: sequence(:family_name, &"Family #{&1}")
+      name: sequence(:family_name, &"Family #{&1}"),
+      organization: build(:organization)
     }
   end
 
   def person_factory do
     %Ancestry.People.Person{
       given_name: sequence(:given_name, &"Person #{&1}"),
-      surname: "Test"
+      surname: "Test",
+      organization: build(:organization)
     }
   end
 

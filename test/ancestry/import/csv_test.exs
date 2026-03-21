@@ -79,8 +79,13 @@ defmodule Ancestry.Import.CSVTest do
     "Bio notes"
   ]
 
-  describe "import/3" do
-    test "happy path: creates people and relationships" do
+  setup do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    %{org: org}
+  end
+
+  describe "import/4" do
+    test "happy path: creates people and relationships", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "DAD1",
@@ -136,7 +141,7 @@ defmodule Ancestry.Import.CSVTest do
 
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Smith Family", path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Smith Family", path, org)
 
       assert summary.people_created == 4
       assert summary.people_skipped == 0
@@ -148,7 +153,7 @@ defmodule Ancestry.Import.CSVTest do
       assert summary.family.name == "Smith Family"
     end
 
-    test "skips rows with no name" do
+    test "skips rows with no name", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "P1",
@@ -161,13 +166,13 @@ defmodule Ancestry.Import.CSVTest do
 
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path, org)
 
       assert summary.people_created == 1
       assert summary.people_skipped == 1
     end
 
-    test "skips relationships when referenced person not found" do
+    test "skips relationships when referenced person not found", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "KID1",
@@ -181,19 +186,19 @@ defmodule Ancestry.Import.CSVTest do
 
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path, org)
 
       assert summary.people_created == 1
       assert summary.relationships_created == 0
       assert length(summary.relationships_errors) == 2
     end
 
-    test "returns error for file not found" do
-      assert {:error, message} = CSV.import(FamilyEcho, "Test", "/nonexistent/file.csv")
+    test "returns error for file not found", %{org: org} do
+      assert {:error, message} = CSV.import(FamilyEcho, "Test", "/nonexistent/file.csv", org)
       assert message =~ "File not found"
     end
 
-    test "deduplicates symmetric partner relationships" do
+    test "deduplicates symmetric partner relationships", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "P1",
@@ -215,7 +220,7 @@ defmodule Ancestry.Import.CSVTest do
 
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Test Family", path, org)
 
       assert summary.people_created == 2
       # First partner creates successfully, second is a duplicate
@@ -223,7 +228,7 @@ defmodule Ancestry.Import.CSVTest do
       assert summary.relationships_duplicates == 1
     end
 
-    test "creates people with correct attributes" do
+    test "creates people with correct attributes", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "P1",
@@ -248,7 +253,7 @@ defmodule Ancestry.Import.CSVTest do
 
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Attr Test", path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Attr Test", path, org)
       assert summary.people_created == 1
 
       person = Repo.get_by!(Person, external_id: "family_echo_P1")
@@ -270,29 +275,29 @@ defmodule Ancestry.Import.CSVTest do
   end
 
   describe "re-import" do
-    test "reuses existing family by name" do
+    test "reuses existing family by name", %{org: org} do
       rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, first} = CSV.import(FamilyEcho, "Doe Family", path)
-      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path)
+      assert {:ok, first} = CSV.import(FamilyEcho, "Doe Family", path, org)
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path, org)
 
       assert first.family.id == second.family.id
     end
 
-    test "reports unchanged people on re-import" do
+    test "reports unchanged people on re-import", %{org: org} do
       rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]
       path = write_tmp_csv(build_csv(rows))
 
-      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path)
-      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path)
+      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path, org)
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path, org)
 
       assert second.people_created == 0
       assert second.people_unchanged == 1
       assert "John Doe" in second.people_unchanged_names
     end
 
-    test "updates changed people on re-import" do
+    test "updates changed people on re-import", %{org: org} do
       rows = [
         csv_row(%{
           "ID" => "P1",
@@ -303,7 +308,7 @@ defmodule Ancestry.Import.CSVTest do
       ]
 
       path = write_tmp_csv(build_csv(rows))
-      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path)
+      assert {:ok, _first} = CSV.import(FamilyEcho, "Doe Family", path, org)
 
       updated_rows = [
         csv_row(%{
@@ -315,7 +320,7 @@ defmodule Ancestry.Import.CSVTest do
       ]
 
       updated_path = write_tmp_csv(build_csv(updated_rows))
-      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", updated_path)
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", updated_path, org)
 
       assert second.people_created == 0
       assert second.people_updated == 1
@@ -326,11 +331,11 @@ defmodule Ancestry.Import.CSVTest do
     end
   end
 
-  describe "import/3 with real FamilyEcho CSV" do
-    test "imports the full family.csv file" do
+  describe "import/4 with real FamilyEcho CSV" do
+    test "imports the full family.csv file", %{org: org} do
       csv_path = Path.absname("family.csv")
 
-      assert {:ok, summary} = CSV.import(FamilyEcho, "Ferreira Family", csv_path)
+      assert {:ok, summary} = CSV.import(FamilyEcho, "Ferreira Family", csv_path, org)
 
       assert summary.family.name == "Ferreira Family"
       assert summary.people_created > 0

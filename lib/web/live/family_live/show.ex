@@ -15,6 +15,10 @@ defmodule Web.FamilyLive.Show do
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
 
+    if family.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
+    end
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "family:#{family_id}")
     end
@@ -85,7 +89,8 @@ defmodule Web.FamilyLive.Show do
   def handle_event("focus_person", %{"id" => id}, socket) do
     {:noreply,
      push_patch(socket,
-       to: ~p"/families/#{socket.assigns.family.id}?person=#{id}"
+       to:
+         ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
      )}
   end
 
@@ -171,7 +176,7 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("confirm_delete", _, socket) do
     {:ok, _} = Families.delete_family(socket.assigns.family)
-    {:noreply, push_navigate(socket, to: ~p"/")}
+    {:noreply, push_navigate(socket, to: ~p"/org/#{socket.assigns.organization.id}")}
   end
 
   # Gallery management
@@ -253,7 +258,7 @@ defmodule Web.FamilyLive.Show do
   def handle_event("search", %{"value" => query}, socket) do
     results =
       if String.length(String.trim(query)) >= 2 do
-        People.search_people(query, socket.assigns.family.id)
+        People.search_people(query, socket.assigns.family.id, socket.assigns.organization.id)
       else
         []
       end
@@ -315,7 +320,8 @@ defmodule Web.FamilyLive.Show do
   def handle_info({:focus_person, person_id}, socket) do
     {:noreply,
      push_patch(socket,
-       to: ~p"/families/#{socket.assigns.family.id}?person=#{person_id}"
+       to:
+         ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}?person=#{person_id}"
      )}
   end
 

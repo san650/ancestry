@@ -14,19 +14,29 @@ defmodule Web.Router do
     plug :accepts, ["json"]
   end
 
+  @sandbox_hooks if(Application.compile_env(:ancestry, :sql_sandbox),
+                   do: [Web.LiveAcceptance],
+                   else: []
+                 )
+
   scope "/", Web do
     pipe_through :browser
 
-    live_session :default do
-      live "/", FamilyLive.Index, :index
-      live "/families/new", FamilyLive.New, :new
-      live "/families/:family_id", FamilyLive.Show, :show
-      live "/families/:family_id/galleries/:id", GalleryLive.Show, :show
+    live_session :default, on_mount: @sandbox_hooks do
+      live "/", OrganizationLive.Index, :index
+    end
 
-      live "/families/:family_id/members/new", PersonLive.New, :new
-      live "/people/:id", PersonLive.Show, :show
-      live "/families/:family_id/kinship", KinshipLive, :index
-      live "/families/:family_id/people", PeopleLive.Index, :index
+    scope "/org/:org_id" do
+      live_session :organization, on_mount: @sandbox_hooks ++ [Web.EnsureOrganization] do
+        live "/", FamilyLive.Index, :index
+        live "/families/new", FamilyLive.New, :new
+        live "/families/:family_id", FamilyLive.Show, :show
+        live "/families/:family_id/galleries/:id", GalleryLive.Show, :show
+        live "/families/:family_id/members/new", PersonLive.New, :new
+        live "/people/:id", PersonLive.Show, :show
+        live "/families/:family_id/kinship", KinshipLive, :index
+        live "/families/:family_id/people", PeopleLive.Index, :index
+      end
     end
   end
 

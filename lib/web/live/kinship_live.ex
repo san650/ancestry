@@ -9,6 +9,11 @@ defmodule Web.KinshipLive do
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
+
+    if family.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
+    end
+
     people = People.list_people_for_family(family_id)
 
     {:ok,

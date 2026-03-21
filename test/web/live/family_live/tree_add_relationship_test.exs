@@ -7,44 +7,54 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
   alias Ancestry.Relationships
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
     {:ok, person} =
       People.create_person(family, %{given_name: "John", surname: "Doe", gender: "male"})
 
-    %{family: family, person: person}
+    %{family: family, person: person, org: org}
   end
 
   describe "add partner from tree" do
     test "shows add partner placeholder when no partner", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       assert has_element?(view, "button[phx-value-type='partner']")
     end
 
     test "hides partner placeholder when partner exists", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
       {:ok, spouse} =
         People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
 
       {:ok, _} = Relationships.create_relationship(person, spouse, "married")
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       refute has_element?(view, "button[phx-value-type='partner']")
     end
 
     test "opens modal when clicking add partner placeholder", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       refute has_element?(view, "#add-relationship-modal")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
@@ -55,12 +65,14 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "searches and adds a partner via modal", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
       {:ok, candidate} =
         People.create_person(family, %{given_name: "Jane", surname: "Smith", gender: "female"})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
 
@@ -83,9 +95,11 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "quick creates a partner via modal", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
@@ -110,18 +124,23 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "shows add child placeholder when no children", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       assert has_element?(view, "button[phx-value-type='child']")
     end
 
     test "opens modal and creates child", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='child']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
@@ -143,16 +162,20 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "shows add parent placeholder when no parents", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       assert has_element?(view, "button[phx-value-type='parent']")
     end
 
     test "hides parent placeholder when 2 parents exist", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
       {:ok, father} =
         People.create_person(family, %{given_name: "Dad", surname: "Doe", gender: "male"})
@@ -163,16 +186,20 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(mother, person, "parent", %{role: "mother"})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
       refute has_element?(view, "button[phx-value-type='parent']")
     end
 
     test "opens modal and adds parent", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='parent']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
@@ -194,9 +221,11 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "closes modal on backdrop click", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
       assert has_element?(view, "#add-relationship-modal")
@@ -208,12 +237,14 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
     test "keeps focus person after adding relationship", %{
       conn: conn,
       family: family,
-      person: person
+      person: person,
+      org: org
     } do
       {:ok, candidate} =
         People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
 
-      {:ok, view, _html} = live(conn, ~p"/families/#{family.id}?person=#{person.id}")
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
 

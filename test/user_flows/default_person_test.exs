@@ -1,43 +1,26 @@
 defmodule Web.UserFlows.DefaultPersonTest do
   use Web.E2ECase
 
-  # Given a family with two members
-  # When the user navigates to the family page
-  # Then no tree is rendered (no default set)
-  #
-  # When the user clicks "Edit" on the toolbar
-  # Then the Edit Family modal is shown with a default person picker
-  #
-  # When the user filters and selects a person as default
-  # And clicks "Save"
-  # Then the modal closes
-  # And the tree is immediately rendered for the default person
-  #
-  # When the user navigates away and back to the family page
-  # Then the tree is still rendered for the default person
-  #
-  # When the user clicks "Edit" again
-  # And selects "None" as default person
-  # And clicks "Save"
-  # Then the modal closes
-  # And the tree is immediately cleared
-  #
-  # When the user navigates away and back to the family page
-  # Then the empty state / person selector is shown again
   setup do
     family = insert(:family, name: "Tree Family")
-    person_a = insert(:person, given_name: "Alice", surname: "Tree")
-    person_b = insert(:person, given_name: "Bob", surname: "Tree")
+    org = Ancestry.Organizations.get_organization!(family.organization_id)
+
+    person_a =
+      insert(:person, given_name: "Alice", surname: "Tree", organization: family.organization)
+
+    person_b =
+      insert(:person, given_name: "Bob", surname: "Tree", organization: family.organization)
+
     Ancestry.People.add_to_family(person_a, family)
     Ancestry.People.add_to_family(person_b, family)
-    %{family: family, person_a: person_a, person_b: person_b}
+    %{family: family, person_a: person_a, person_b: person_b, org: org}
   end
 
-  test "set and clear default person for a family", %{conn: conn, person_a: person_a} do
+  test "set and clear default person for a family", %{conn: conn, person_a: person_a, org: org} do
     # Visit the family page — no default, should show person selector (not the tree)
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Tree Family")
       |> wait_liveview()
@@ -76,7 +59,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
     # Navigate away and back — tree should still be rendered
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Tree Family")
       |> wait_liveview()
@@ -102,7 +85,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
     # Navigate away and back — should still show no tree
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
       |> click_link("Tree Family")
       |> wait_liveview()

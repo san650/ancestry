@@ -9,6 +9,10 @@ defmodule Web.PersonLive.New do
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
 
+    if family.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
+    end
+
     {:ok,
      socket
      |> assign(:family, family)
@@ -50,7 +54,11 @@ defmodule Web.PersonLive.New do
     case People.create_person(socket.assigns.family, params) do
       {:ok, person} ->
         socket = maybe_process_photo(socket, person)
-        {:noreply, push_navigate(socket, to: ~p"/families/#{socket.assigns.family.id}")}
+
+        {:noreply,
+         push_navigate(socket,
+           to: ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}"
+         )}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -62,7 +70,10 @@ defmodule Web.PersonLive.New do
   end
 
   def handle_event("cancel", _, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/families/#{socket.assigns.family.id}")}
+    {:noreply,
+     push_navigate(socket,
+       to: ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}"
+     )}
   end
 
   # --- Private helpers ---

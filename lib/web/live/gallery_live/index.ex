@@ -9,6 +9,10 @@ defmodule Web.GalleryLive.Index do
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
 
+    if family.organization_id != socket.assigns.organization.id do
+      raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
+    end
+
     {:ok,
      socket
      |> assign(:family, family)

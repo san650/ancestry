@@ -7,7 +7,8 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
   alias Ancestry.Galleries
 
   setup do
-    {:ok, family} = Families.create_family(%{name: "Test Family"})
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+    {:ok, family} = Families.create_family(org, %{name: "Test Family"})
     {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
 
     tmp_dir = Path.join(System.tmp_dir!(), "photo_test_#{System.unique_integer([:positive])}")
