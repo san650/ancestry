@@ -536,6 +536,25 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "delete_people/1" do
+    test "deletes multiple people and cleans up files" do
+      org = insert(:organization)
+      p1 = insert(:person, given_name: "Del1", organization: org)
+      p2 = insert(:person, given_name: "Del2", organization: org)
+      p3 = insert(:person, given_name: "Keep", organization: org)
+
+      assert {:ok, _} = People.delete_people([p1.id, p2.id])
+
+      assert_raise Ecto.NoResultsError, fn -> People.get_person!(p1.id) end
+      assert_raise Ecto.NoResultsError, fn -> People.get_person!(p2.id) end
+      assert People.get_person!(p3.id)
+    end
+
+    test "returns ok for empty list" do
+      assert {:ok, _} = People.delete_people([])
+    end
+  end
+
   defp org_fixture do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {org, org}

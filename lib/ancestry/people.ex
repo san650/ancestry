@@ -148,6 +148,15 @@ defmodule Ancestry.People do
     Repo.delete(person)
   end
 
+  def delete_people(person_ids) do
+    Repo.transaction(fn ->
+      for id <- person_ids do
+        person = get_person!(id)
+        {:ok, _} = delete_person(person)
+      end
+    end)
+  end
+
   def add_to_family(%Person{} = person, family) do
     if person.organization_id != family.organization_id do
       {:error, :organization_mismatch}
