@@ -33,7 +33,6 @@ const TreeConnector = {
       svg.style.inset = "0"
       svg.style.pointerEvents = "none"
       svg.style.overflow = "visible"
-      svg.style.zIndex = "-1"
       this.el.prepend(svg)
     }
     return svg
