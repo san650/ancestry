@@ -17,7 +17,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       id={if(@focused, do: "focus-person-card")}
       class={[
         "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all group",
-        "border border-base-content/10",
+        "bg-base-100 border border-base-content/10",
         gender_border_class(@person.gender),
         @focused && "ring-2 ring-primary",
         @person.deceased && "opacity-75"
