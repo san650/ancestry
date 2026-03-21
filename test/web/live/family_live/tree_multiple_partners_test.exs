@@ -47,6 +47,7 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       # All three people should be visible
       assert has_element?(view, "[data-person-id='#{person.id}']")
       assert has_element?(view, "[data-person-id='#{second_wife.id}']")
@@ -63,6 +64,7 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       # The couple card should have the latest partner (second_wife) as person_b
       assert has_element?(
                view,
@@ -80,6 +82,7 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       # Previous partner should have a solid separator (data-previous-separator)
       assert has_element?(view, "[data-previous-separator='#{first_wife.id}']")
       # Should NOT have a dashed ex-separator
@@ -116,6 +119,7 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       # Both children should be visible
       assert has_element?(view, "[data-person-id='#{child_first.id}']")
       assert has_element?(view, "[data-person-id='#{child_second.id}']")

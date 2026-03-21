@@ -12,7 +12,8 @@ defmodule Web.FamilyLive.ShowTest do
   end
 
   test "shows family name", %{conn: conn, family: family, org: org} do
-    {:ok, _view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    {:ok, view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     assert html =~ family.name
   end
 
@@ -21,6 +22,7 @@ defmodule Web.FamilyLive.ShowTest do
       People.create_person(family, %{given_name: "Jane", surname: "Doe", birth_year: 1985})
 
     {:ok, view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     assert html =~ "Doe"
     assert html =~ "Jane"
     assert html =~ "Select a person"
@@ -29,18 +31,21 @@ defmodule Web.FamilyLive.ShowTest do
 
   test "shows family galleries", %{conn: conn, family: family, org: org} do
     {:ok, _} = Galleries.create_gallery(%{name: "Summer 2025", family_id: family.id})
-    {:ok, _view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    {:ok, view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     assert html =~ "Summer 2025"
   end
 
   test "shows empty states when no members or galleries", %{conn: conn, family: family, org: org} do
-    {:ok, _view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    {:ok, view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     assert html =~ "No members yet"
     assert html =~ "No galleries yet"
   end
 
   test "updates family name", %{conn: conn, family: family, org: org} do
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     view |> element("#edit-family-btn") |> render_click()
 
     view
@@ -52,6 +57,7 @@ defmodule Web.FamilyLive.ShowTest do
 
   test "deletes family and redirects to index", %{conn: conn, family: family, org: org} do
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+    render_async(view)
     view |> element("#delete-family-btn") |> render_click()
     assert has_element?(view, "#confirm-delete-family-modal")
 
@@ -62,6 +68,7 @@ defmodule Web.FamilyLive.ShowTest do
   describe "gallery management" do
     test "opens new gallery modal", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
       refute has_element?(view, "#new-gallery-modal")
       view |> element("#open-new-gallery-btn") |> render_click()
       assert has_element?(view, "#new-gallery-modal")
@@ -69,6 +76,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "creates a gallery via the new gallery modal", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
       view |> element("#open-new-gallery-btn") |> render_click()
 
       view
@@ -80,6 +88,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "shows validation error for blank gallery name", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
       view |> element("#open-new-gallery-btn") |> render_click()
 
       view
@@ -92,6 +101,7 @@ defmodule Web.FamilyLive.ShowTest do
     test "deletes a gallery after confirmation", %{conn: conn, family: family, org: org} do
       {:ok, gallery} = Galleries.create_gallery(%{name: "To Delete", family_id: family.id})
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       # Gallery is shown in the side panel list
       assert has_element?(view, "#gallery-#{gallery.id}")
@@ -122,6 +132,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "opens search modal", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       refute has_element?(view, "#link-person-modal")
 
@@ -133,6 +144,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "searches for people by name", %{conn: conn, family: family, org: org, person: person} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       view |> element("#link-existing-btn") |> render_click()
 
@@ -143,6 +155,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "links person to family", %{conn: conn, family: family, org: org, person: person} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       view |> element("#link-existing-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "o", "value" => "Ignacio"})
@@ -158,6 +171,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "closes search modal", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       view |> element("#link-existing-btn") |> render_click()
       assert has_element?(view, "#link-person-modal")
@@ -174,6 +188,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, member} = People.create_person(family, %{given_name: "Ignacio", surname: "Familiar"})
 
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       view |> element("#link-existing-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "o", "value" => "Ignacio"})
@@ -183,6 +198,7 @@ defmodule Web.FamilyLive.ShowTest do
 
     test "does not search with fewer than 2 characters", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
+      render_async(view)
 
       view |> element("#link-existing-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "I", "value" => "I"})

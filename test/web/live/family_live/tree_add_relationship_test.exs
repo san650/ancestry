@@ -26,6 +26,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       assert has_element?(view, "button[phx-value-type='partner']")
     end
 
@@ -43,6 +44,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       refute has_element?(view, "button[phx-value-type='partner']")
     end
 
@@ -55,6 +57,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       refute has_element?(view, "#add-relationship-modal")
 
       view |> element("button[phx-value-type='partner']") |> render_click()
@@ -74,6 +77,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
 
       view
@@ -101,6 +105,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
 
@@ -130,6 +135,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       assert has_element?(view, "button[phx-value-type='child']")
     end
 
@@ -142,6 +148,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='child']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
 
@@ -168,6 +175,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       assert has_element?(view, "button[phx-value-type='parent']")
     end
 
@@ -189,6 +197,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       refute has_element?(view, "button[phx-value-type='parent']")
     end
 
@@ -201,6 +210,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='parent']") |> render_click()
       view |> element("#start-quick-create-btn") |> render_click()
 
@@ -227,6 +237,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
       assert has_element?(view, "#add-relationship-modal")
 
@@ -246,6 +257,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
+      render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
 
       view

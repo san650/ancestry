@@ -31,7 +31,9 @@ defmodule Web.FamilyLive.Show do
      |> assign(:family, family)
      |> assign(:people, people)
      |> assign(:galleries, galleries)
-     |> assign_async(:metrics, fn -> {:ok, %{metrics: Metrics.compute(family_id)}} end)
+     |> assign_async(:metrics, fn -> {:ok, %{metrics: Metrics.compute(family_id)}} end,
+       supervisor: Ancestry.TaskSupervisor
+     )
      |> assign(:tree, nil)
      |> assign(:focus_person, nil)
      |> assign(:editing, false)

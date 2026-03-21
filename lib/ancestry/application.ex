@@ -12,8 +12,7 @@ defmodule Ancestry.Application do
       Ancestry.Repo,
       {DNSCluster, query: Application.get_env(:ancestry, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Ancestry.PubSub},
-      # Start a worker by calling: Ancestry.Worker.start_link(arg)
-      # {Ancestry.Worker, arg},
+      {Task.Supervisor, name: Ancestry.TaskSupervisor},
       {Oban, Application.fetch_env!(:ancestry, Oban)},
       # Start to serve requests, typically the last entry
       Web.Endpoint

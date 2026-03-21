@@ -36,6 +36,7 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       assert has_element?(view, "#tree-canvas[phx-hook='TreeConnector']")
     end
 
@@ -45,9 +46,10 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       parent_a: parent_a,
       org: org
     } do
-      {:ok, _view, html} =
+      {:ok, view, html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       assert html =~ ~s(id="tree-canvas")
       assert html =~ "relative"
     end
@@ -64,6 +66,7 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       assert has_element?(view, "[data-couple-card][data-person-a-id='#{parent_a.id}']")
       assert has_element?(view, "[data-couple-card][data-person-b-id='#{parent_b.id}']")
     end
@@ -80,6 +83,7 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       assert has_element?(view, "[data-child-column][data-child-person-id='#{child.id}']")
       assert has_element?(view, "[data-line-origin='partner']")
     end
@@ -92,9 +96,10 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       parent_a: parent_a,
       org: org
     } do
-      {:ok, _view, html} =
+      {:ok, view, html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       refute html =~ "BranchConnector"
       refute html =~ "AncestorConnector"
       refute html =~ "ScrollToFocus"
@@ -108,9 +113,10 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       parent_a: parent_a,
       org: org
     } do
-      {:ok, _view, html} =
+      {:ok, view, html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       # The old inline SVGs had viewBox="0 0 40 123" - these should be gone
       refute html =~ "viewBox=\"0 0 40 123\""
     end
@@ -136,6 +142,7 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
+      render_async(view)
       assert has_element?(view, "div[data-ex-separator='#{ex.id}']")
       refute has_element?(view, "svg[data-ex-separator='#{ex.id}']")
     end

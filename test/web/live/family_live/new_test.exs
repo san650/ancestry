@@ -28,6 +28,7 @@ defmodule Web.FamilyLive.NewTest do
       |> render_submit()
 
     {:ok, show_view, _html} = follow_redirect(result, conn)
+    render_async(show_view)
 
     assert has_element?(show_view, "div", "The Johnsons")
   end
