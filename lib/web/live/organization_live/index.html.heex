@@ -2,6 +2,13 @@
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8">
       <h1 class="text-lg font-semibold text-base-content">Organizations</h1>
+      <button
+        phx-click="new_organization"
+        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-content shadow-sm hover:bg-primary/90 transition-colors"
+        {test_id("org-new-btn")}
+      >
+        <.icon name="hero-plus" class="w-4 h-4" /> New Organization
+      </button>
     </div>
   </:toolbar>
 
@@ -24,4 +31,44 @@
       </.link>
     </div>
   </div>
+
+  <%= if @show_create_modal do %>
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_create"
+        {test_id("org-create-backdrop")}
+      >
+      </div>
+      <div
+        id="create-organization-modal"
+        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        {test_id("org-create-modal")}
+      >
+        <h2 class="text-xl font-bold text-base-content mb-6">New Organization</h2>
+        <.form
+          for={@form}
+          id="create-organization-form"
+          phx-change="validate"
+          phx-submit="save"
+          {test_id("org-create-form")}
+        >
+          <.input field={@form[:name]} label="Organization name" autofocus />
+          <div class="flex gap-3 mt-6">
+            <button
+              type="submit"
+              class="btn btn-primary flex-1"
+              phx-disable-with="Creating..."
+              {test_id("org-create-submit-btn")}
+            >
+              Create
+            </button>
+            <button type="button" phx-click="cancel_create" class="btn btn-ghost flex-1">
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
 </Layouts.app>
