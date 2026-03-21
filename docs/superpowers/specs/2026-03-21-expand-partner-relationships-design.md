@@ -27,7 +27,9 @@ Replace the two partner relationship types (`partner`, `ex_partner`) with four d
 
 **`DivorcedMetadata`** — `marriage_day`, `marriage_month`, `marriage_year`, `marriage_location`, `divorce_day`, `divorce_month`, `divorce_year`
 
-**`SeparatedMetadata`** — `separated_day`, `separated_month`, `separated_year`
+**`SeparatedMetadata`** — `marriage_day`, `marriage_month`, `marriage_year`, `marriage_location`, `separated_day`, `separated_month`, `separated_year`
+
+> **Rationale**: Separation often follows marriage. Without marriage fields, changing type from `married` to `separated` would silently discard marriage data.
 
 ### Helper Functions (on `Relationship` schema)
 
@@ -42,16 +44,30 @@ Replace the two partner relationship types (`partner`, `ex_partner`) with four d
 ### DB Migration
 
 ```sql
+-- Forward migration
 UPDATE relationships
 SET type = 'relationship',
-    metadata = jsonb_set(metadata, '{__type__}', '"relationship"')
+    metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{__type__}', '"relationship"')
 WHERE type = 'partner';
 
 UPDATE relationships
 SET type = 'separated',
-    metadata = jsonb_set(metadata, '{__type__}', '"separated"')
+    metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{__type__}', '"separated"')
 WHERE type = 'ex_partner';
+
+-- Reverse migration (rollback)
+UPDATE relationships
+SET type = 'partner',
+    metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{__type__}', '"partner"')
+WHERE type IN ('married', 'relationship');
+
+UPDATE relationships
+SET type = 'ex_partner',
+    metadata = jsonb_set(COALESCE(metadata, '{}'::jsonb), '{__type__}', '"ex_partner"')
+WHERE type IN ('divorced', 'separated');
 ```
+
+> **Note**: `COALESCE` handles any records with `NULL` metadata to prevent `jsonb_set(NULL, ...)` returning `NULL`.
 
 ## Context Layer (`Ancestry.Relationships`)
 
@@ -71,6 +87,11 @@ Remove the delete+recreate transaction. Replace with `update_partner_type(relati
 - In-place update of `type` and `metadata`
 - Supports any type transition (e.g. `married` → `divorced`, `relationship` → `separated`, `separated` → `married`)
 - Check for unique constraint conflict (same pair already has a relationship of the target type) and return a clear error
+- **Metadata carry-over**: When changing types, automatically populate overlapping fields from the current metadata. For example, `married` → `divorced` carries over `marriage_day/month/year/location`. Fields that don't exist in the target schema are discarded. The UI pre-fills the edit modal with carried-over values so the user can review before saving.
+
+### One Partner-Type Relationship Per Pair
+
+A pair of people should only have one partner-type relationship at a time. Add a validation in `create_relationship/4` and `update_partner_type/3` that checks no other partner-type relationship exists between the same pair. This prevents semantically invalid states like Alice and Bob being both `married` and `divorced` simultaneously.
 
 ### Valid Types
 
@@ -99,11 +120,26 @@ Replace the separate `"partner"` and `"ex_partner"` template branches with a uni
    - **Married**: marriage date (day/month/year) + location
    - **Relationship**: no fields (note: "No additional details")
    - **Divorced**: marriage date + location + divorce date
-   - **Separated**: separated date (day/month/year)
+   - **Separated**: marriage date + location + separated date (day/month/year)
 
 ### Remove Convert-to-Ex Modal
 
 The "Convert to Ex-Partner" modal and its assigns (`converting_to_ex`, `ex_form`) are removed. Functionality absorbed into the edit relationship modal.
+
+### Parents' Relationship Display
+
+The `parents_marriage` lookup in `load_relationships/2` currently only checks `get_partners(p1.id)`. Update to check all partner-type relationships between the two parents (active and former). Display the relationship type label alongside metadata:
+- `married` → show "Marriage" + date/location
+- `relationship` → show "Relationship" (no metadata)
+- `divorced` → show "Divorced" + marriage info + divorce date
+- `separated` → show "Separated" + marriage info + separation date
+
+### Metadata Display Helpers
+
+- `format_marriage_info/1` must handle metadata structs that lack marriage fields (e.g. `RelationshipMetadata`). Use pattern matching or `Map.get/3` with defaults instead of direct field access.
+- `atomize_metadata/1` integer parsing whitelist must include `separated_day`, `separated_month`, `separated_year` in addition to the existing `marriage_*` and `divorce_*` fields.
+- For `relationship` type (empty metadata), display nothing in the metadata area.
+- For `separated` type, display marriage info (if present) + "Separated: {date}".
 
 ## Add Relationship Component
 
@@ -115,6 +151,8 @@ When `relationship_type == "partner"`, the metadata step shows:
 On save, passes the selected type (e.g. `"married"`) to `create_relationship/4` instead of always `"partner"`.
 
 `build_relationship_form/2` initializes with `partner_subtype: "relationship"` as default.
+
+Rename the "Add Spouse" button to **"Add Partner"** on the person show page for consistency with the broader relationship types (default is "Relationship", not "Married").
 
 ## Tree View (`PersonTree`)
 
@@ -128,6 +166,8 @@ No structural change to tree data — active types feed into partner sorting + p
 - `{:ex_partner, ...}` → `{:separated, ...}`
 
 The CSV orchestrator passes type as `Atom.to_string(type)` to `create_relationship/4`, so this flows through cleanly.
+
+Update the `Adapter` behaviour `@doc` on `parse_relationships/1` to list the new valid type atoms (`:parent`, `:married`, `:relationship`, `:divorced`, `:separated`).
 
 ## Seeds
 
