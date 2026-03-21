@@ -132,6 +132,13 @@ const BranchConnector = {
               const r = sep.getBoundingClientRect()
               return r.left + r.width / 2 - containerRect.left
             }
+          } else if (origin.startsWith("prev-")) {
+            const prevId = origin.replace("prev-", "")
+            const sep = coupleCard.querySelector(`[data-previous-separator="${prevId}"]`)
+            if (sep) {
+              const r = sep.getBoundingClientRect()
+              return r.left + r.width / 2 - containerRect.left
+            }
           }
         }
         return containerRect.width / 2
