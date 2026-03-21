@@ -112,77 +112,23 @@ defmodule Web.FamilyLive.PersonCardComponent do
       data-person-b-id={@person_b && @person_b.id}
       class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1"
     >
-      <%!-- Ex-partners on the sides (dashed lines) --%>
+      <%!-- Ex-partners on the sides --%>
       <%= for ex_group <- @ex_partners do %>
         <.person_card
           person={ex_group.person}
           family_id={@family_id}
           focused={false}
         />
-        <svg
-          data-ex-separator={ex_group.person.id}
-          class="w-2 h-1"
-          viewBox="0 0 40 123"
-          style="width: 40px; height: 123px;"
-        >
-          <line
-            x1="0"
-            y1="55"
-            x2="40"
-            y2="55"
-            stroke="rgba(128,128,128,0.2)"
-            stroke-width="3"
-            stroke-dasharray="5"
-          >
-          </line>
-          <%= if ex_group.children != [] do %>
-            <line
-              x1="20"
-              y1="55"
-              x2="20"
-              y2="123"
-              stroke="rgba(128,128,128,0.2)"
-              stroke-width="3"
-              stroke-dasharray="5"
-            >
-            </line>
-          <% end %>
-        </svg>
+        <div data-ex-separator={ex_group.person.id} class="w-[40px] self-stretch"></div>
       <% end %>
-      <%!-- Previous partners on the sides (solid lines) --%>
+      <%!-- Previous partners on the sides --%>
       <%= for prev_group <- @previous_partners do %>
         <.person_card
           person={prev_group.person}
           family_id={@family_id}
           focused={false}
         />
-        <svg
-          data-previous-separator={prev_group.person.id}
-          class="w-2 h-1"
-          viewBox="0 0 40 123"
-          style="width: 40px; height: 123px;"
-        >
-          <line
-            x1="0"
-            y1="55"
-            x2="40"
-            y2="55"
-            stroke="rgba(128,128,128,0.2)"
-            stroke-width="3"
-          >
-          </line>
-          <%= if prev_group.children != [] do %>
-            <line
-              x1="20"
-              y1="55"
-              x2="20"
-              y2="123"
-              stroke="rgba(128,128,128,0.2)"
-              stroke-width="3"
-            >
-            </line>
-          <% end %>
-        </svg>
+        <div data-previous-separator={prev_group.person.id} class="w-[40px] self-stretch"></div>
       <% end %>
       <%= cond do %>
         <% @person_a && @person_b -> %>
@@ -293,20 +239,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :focused_person_id, :integer, default: nil
 
   def subtree_children(assigns) do
-    assigns = assign(assigns, :connector_id, "conn-#{System.unique_integer([:positive])}")
-
     ~H"""
     <div class="flex flex-col items-center">
-      <%!-- SVG connector drawn by JS hook --%>
-      <div
-        id={@connector_id}
-        phx-hook="BranchConnector"
-        phx-update="ignore"
-        class="w-full"
-        style="height: 20px; position: relative;"
-      >
-        <svg class="absolute inset-0 w-full h-full overflow-visible"></svg>
-      </div>
       <div class="flex items-start gap-6" data-children-row>
         <%= for child <- @children do %>
           <div
@@ -358,12 +292,10 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :focused_person_id, :integer, default: nil
 
   def ancestor_subtree(assigns) do
-    assigns = assign(assigns, :connector_id, "anc-#{System.unique_integer([:positive])}")
-
     ~H"""
     <div class="flex flex-col items-center">
       <%= if @node.parent_trees != [] do %>
-        <div class="flex items-end justify-center gap-8" data-ancestor-parents-row>
+        <div class="flex items-end justify-center gap-8 mb-5" data-ancestor-parents-row>
           <%= for entry <- @node.parent_trees do %>
             <div data-ancestor-parent-column data-target-person-id={entry.for_person_id}>
               <.ancestor_subtree
@@ -373,15 +305,6 @@ defmodule Web.FamilyLive.PersonCardComponent do
               />
             </div>
           <% end %>
-        </div>
-        <div
-          id={@connector_id}
-          phx-hook="AncestorConnector"
-          phx-update="ignore"
-          class="w-full"
-          style="height: 20px; position: relative;"
-        >
-          <svg class="absolute inset-0 w-full h-full overflow-visible"></svg>
         </div>
       <% end %>
       <.couple_card
