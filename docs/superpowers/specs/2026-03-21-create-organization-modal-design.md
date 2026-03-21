@@ -27,10 +27,10 @@ Inline modal in `OrganizationLive.Index`, toggled by an assign. This follows the
 
 | Event | Trigger | Behavior |
 |-------|---------|----------|
-| `"new_organization"` | Toolbar button click | Sets `@show_create_modal = true` |
+| `"new_organization"` | Toolbar button click | Sets `@show_create_modal = true`, resets `@form` to fresh changeset |
 | `"cancel_create"` | Cancel button or backdrop click | Sets `@show_create_modal = false`, resets form |
 | `"validate"` | Form change | Runs changeset validation, updates `@form` with errors |
-| `"save"` | Form submit | Calls `Organizations.create_organization/1`. On success: streams new org, closes modal, sets flash. On error: updates `@form` with errors |
+| `"save"` | Form submit | Calls `Organizations.create_organization/1`. On success: streams new org (appends to end of grid), closes modal, sets flash `:info, "Organization created"`. On error: updates `@form` with errors |
 
 ## Template Changes
 
@@ -46,9 +46,14 @@ Conditionally rendered when `@show_create_modal` is true:
 - Backdrop click triggers `"cancel_create"` for click-away dismissal
 - Centered card with `id="create-organization-modal"`
 - `<.form>` with `phx-change="validate"` and `phx-submit="save"` containing:
-  - `<.input field={@form[:name]}>` for the organization name
+  - `<.input field={@form[:name]} autofocus>` for the organization name
   - Cancel button (triggers `"cancel_create"`)
-  - Submit button
+  - Submit button with `phx-disable-with="Creating..."`
+
+## Design Decisions
+
+- **Duplicate names allowed:** No uniqueness constraint exists on organization names. This is acceptable for now — if needed, it can be added in a separate migration.
+- **Stream insertion position:** New org appends to the end of the grid (default `stream_insert`), not in alphabetical position. Acceptable for initial implementation.
 
 ## Testing
 
@@ -68,3 +73,9 @@ User flow test at `test/user_flows/create_organization_test.exs`.
 
 **When** the user clicks the backdrop
 **Then** the modal closes without creating anything
+
+**When** the user clicks the Cancel button
+**Then** the modal closes without creating anything
+
+**When** the user opens the modal, types a partial name, cancels, then reopens
+**Then** the form is empty (no stale input or errors)
