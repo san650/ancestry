@@ -36,6 +36,7 @@ defmodule Web.Router do
         live "/people/:id", PersonLive.Show, :show
         live "/families/:family_id/kinship", KinshipLive, :index
         live "/families/:family_id/people", PeopleLive.Index, :index
+        live "/people", OrgPeopleLive.Index, :index
       end
     end
   end

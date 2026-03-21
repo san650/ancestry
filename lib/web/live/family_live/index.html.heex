@@ -2,14 +2,23 @@
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <h1 class="text-3xl font-bold tracking-tight text-base-content">Families</h1>
-      <.link
-        id="new-family-btn"
-        navigate={~p"/org/#{@organization.id}/families/new"}
-        class="btn btn-primary"
-        {test_id("family-new-btn")}
-      >
-        New Family
-      </.link>
+      <div class="flex items-center gap-2">
+        <.link
+          navigate={~p"/org/#{@organization.id}/people"}
+          class="btn btn-ghost"
+          {test_id("org-people-btn")}
+        >
+          <.icon name="hero-users" class="w-4 h-4" /> People
+        </.link>
+        <.link
+          id="new-family-btn"
+          navigate={~p"/org/#{@organization.id}/families/new"}
+          class="btn btn-primary"
+          {test_id("family-new-btn")}
+        >
+          New Family
+        </.link>
+      </div>
     </div>
   </:toolbar>
 
