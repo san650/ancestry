@@ -78,7 +78,7 @@ Replace the current `get_partners/2` and `get_ex_partners/2` with:
 - `get_active_partners(person_id, opts)` — fetches `married` + `relationship` types
 - `get_former_partners(person_id, opts)` — fetches `divorced` + `separated` types
 
-Both use the existing `get_relationship_partners/3` helper, passing a list of types instead of a single type.
+Both use the existing `get_relationship_partners/3` helper, modified to accept a list of types and use `r.type in ^types` instead of `r.type == ^type`.
 
 ### Replace `convert_to_ex_partner/2`
 
@@ -92,6 +92,8 @@ Remove the delete+recreate transaction. Replace with `update_partner_type(relati
 ### One Partner-Type Relationship Per Pair
 
 A pair of people should only have one partner-type relationship at a time. Add a validation in `create_relationship/4` and `update_partner_type/3` that checks no other partner-type relationship exists between the same pair. This prevents semantically invalid states like Alice and Bob being both `married` and `divorced` simultaneously.
+
+> **DB constraint note**: The existing unique index on `(person_a_id, person_b_id, type)` would still allow multiple partner-type records with different types. Application-level validation is sufficient here — this is a low-concurrency family tree app, not a high-throughput system. The theoretical race condition (two simultaneous requests both passing the check) is acceptable. A partial unique index could be added later if needed.
 
 ### Valid Types
 
@@ -136,7 +138,7 @@ The `parents_marriage` lookup in `load_relationships/2` currently only checks `g
 
 ### Metadata Display Helpers
 
-- `format_marriage_info/1` must handle metadata structs that lack marriage fields (e.g. `RelationshipMetadata`). Use pattern matching or `Map.get/3` with defaults instead of direct field access.
+- `format_marriage_info/1` must handle metadata structs that lack marriage fields (e.g. `RelationshipMetadata`). Add a function head that pattern-matches `%RelationshipMetadata{} -> nil` to return early. For other types, use `Map.get/3` with nil defaults for safe access. The template must also guard the `format_marriage_info` call in the parents section — check that `parents_marriage` relationship type is not `"relationship"` before calling it.
 - `atomize_metadata/1` integer parsing whitelist must include `separated_day`, `separated_month`, `separated_year` in addition to the existing `marriage_*` and `divorce_*` fields.
 - For `relationship` type (empty metadata), display nothing in the metadata area.
 - For `separated` type, display marriage info (if present) + "Separated: {date}".
@@ -152,6 +154,12 @@ On save, passes the selected type (e.g. `"married"`) to `create_relationship/4` 
 
 `build_relationship_form/2` initializes with `partner_subtype: "relationship"` as default.
 
+### Form Param Flow
+
+**Add modal**: The type dropdown is a form field named `metadata[partner_subtype]`. In `save_relationship`, extract `partner_subtype` from `params["metadata"]`, pop it from the metadata map, and pass it as the type argument to `create_relationship/4`. The remaining metadata params are the type-specific fields.
+
+**Edit modal**: The type dropdown is a form field named `metadata[partner_subtype]`. In `save_edit_relationship`, compare `params["metadata"]["partner_subtype"]` against `rel.type`. If different, call `update_partner_type/3` with the new type and metadata. If same, call `update_relationship/2` with just the metadata. The `__type__` discriminator is derived from the selected `partner_subtype`, not sent from the form.
+
 Rename the "Add Spouse" button to **"Add Partner"** on the person show page for consistency with the broader relationship types (default is "Relationship", not "Married").
 
 ## Tree View (`PersonTree`)
@@ -159,6 +167,8 @@ Rename the "Add Spouse" button to **"Add Partner"** on the person show page for 
 `build_family_unit_full/3` replaces `get_partners` → `get_active_partners` and `get_ex_partners` → `get_former_partners`.
 
 No structural change to tree data — active types feed into partner sorting + previous partners, former types feed into ex-partner groups. The tree template's `data-previous-separator` (solid) and `data-ex-separator` (dashed) still apply correctly.
+
+**Partner sorting fix**: The current sorting at `person_tree.ex:51` accesses `rel.metadata.marriage_year` directly. `RelationshipMetadata` has no `marriage_year` field, so this would crash. Use nil-safe access: `if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil`. Partners without a marriage year sort to the end (lowest priority).
 
 ## FamilyEcho Import
 
@@ -202,4 +212,7 @@ Update the `Adapter` behaviour `@doc` on `parse_relationships/1` to list the new
 ### Tests to Update
 - `test/ancestry/relationships_test.exs` — new type strings throughout
 - `test/web/live/family_live/tree_multiple_partners_test.exs` — type string updates
+- `test/web/live/person_live/relationships_test.exs` — partner/ex-partner flow updates
+- `test/web/live/family_live/tree_add_relationship_test.exs` — add relationship from tree
+- `test/ancestry/import/csv/family_echo_test.exs` — updated type atoms
 - User flow tests exercising partner add/edit/convert workflows
