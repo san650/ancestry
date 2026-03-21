@@ -92,6 +92,12 @@ When using `stroke="currentColor"` on SVG elements inside a Tailwind-styled cont
 
 **Fix:** Always verify SVG color classes against the actual background. Use a color that provides visible contrast (e.g., `text-base-300` or `text-base-content/30`). When replacing simple CSS connectors (borders, divs) with SVG connectors, test visibility visually — structural/DOM tests won't catch invisible-but-present elements.
 
+## JS hooks must handle all data attribute variants they consume
+
+When server-side code tags elements with different `data-*` prefixes to distinguish groups (e.g., `data-line-origin="partner"`, `data-line-origin="ex-{id}"`, `data-line-origin="prev-{id}"`), the JS hook that reads these attributes must have handlers for every variant. If a new variant is introduced on the server side (e.g., adding `"prev-"` for previous partners) but the JS hook's dispatch logic isn't updated, the new variant silently falls through to a default/fallback — producing incorrect behavior without any error.
+
+**Fix:** When adding a new data attribute variant on the server side, always grep the JS hooks that consume the attribute and add matching handlers. The server-side `data-*` attributes and the JS hook's conditional branches must stay in sync. Consider adding a comment in the JS listing all expected prefixes so the next person knows to update both sides.
+
 ## Parent click handlers close child dropdowns via event bubbling
 
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
