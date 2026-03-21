@@ -72,8 +72,8 @@
     <%!-- Tree Canvas: last on mobile, first on desktop --%>
     <div
       id="tree-canvas"
-      class="overflow-x-auto p-6 order-last lg:order-first"
-      phx-hook="ScrollToFocus"
+      class="relative overflow-x-auto p-6 order-last lg:order-first"
+      phx-hook="TreeConnector"
     >
       <%= if @tree do %>
         <div class="inline-flex flex-col items-center gap-0 min-w-full">
@@ -84,7 +84,6 @@
               family_id={@family.id}
               focused_person_id={@focus_person && @focus_person.id}
             />
-            <.vline height={24} />
           <% end %>
 
           <%!-- Add Parent placeholder (when fewer than 2 parents) --%>
