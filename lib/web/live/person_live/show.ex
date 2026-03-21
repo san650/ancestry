@@ -23,6 +23,7 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:person, person)
      |> assign(:from_family, nil)
+     |> assign(:from_org, false)
      |> assign(:editing, false)
      |> assign(:confirm_remove, false)
      |> assign(:confirm_delete, false)
@@ -47,9 +48,12 @@ defmodule Web.PersonLive.Show do
         _ -> nil
       end
 
+    from_org = params["from_org"] == "true"
+
     socket =
       socket
       |> assign(:from_family, from_family)
+      |> assign(:from_org, from_org)
       |> maybe_enter_edit_mode(params["edit"] == "true")
 
     {:noreply, socket}
@@ -149,10 +153,15 @@ defmodule Web.PersonLive.Show do
     {:ok, _} = People.delete_person(socket.assigns.person)
 
     redirect_to =
-      if socket.assigns.from_family do
-        ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.from_family.id}"
-      else
-        ~p"/org/#{socket.assigns.organization.id}"
+      cond do
+        socket.assigns.from_family ->
+          ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.from_family.id}"
+
+        socket.assigns.from_org ->
+          ~p"/org/#{socket.assigns.organization.id}/people"
+
+        true ->
+          ~p"/org/#{socket.assigns.organization.id}"
       end
 
     {:noreply, push_navigate(socket, to: redirect_to)}

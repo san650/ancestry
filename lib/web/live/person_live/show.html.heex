@@ -2,22 +2,30 @@
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
-        <%= if @from_family do %>
-          <.link
-            navigate={
-              ~p"/org/#{@organization.id}/families/#{@from_family.id}?person=#{@person.id}"
-            }
-            class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
-          >
-            <.icon name="hero-arrow-left" class="w-5 h-5" />
-          </.link>
-        <% else %>
-          <.link
-            navigate={~p"/org/#{@organization.id}"}
-            class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
-          >
-            <.icon name="hero-arrow-left" class="w-5 h-5" />
-          </.link>
+        <%= cond do %>
+          <% @from_family -> %>
+            <.link
+              navigate={
+                ~p"/org/#{@organization.id}/families/#{@from_family.id}?person=#{@person.id}"
+              }
+              class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+            >
+              <.icon name="hero-arrow-left" class="w-5 h-5" />
+            </.link>
+          <% @from_org -> %>
+            <.link
+              navigate={~p"/org/#{@organization.id}/people"}
+              class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+            >
+              <.icon name="hero-arrow-left" class="w-5 h-5" />
+            </.link>
+          <% true -> %>
+            <.link
+              navigate={~p"/org/#{@organization.id}"}
+              class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+            >
+              <.icon name="hero-arrow-left" class="w-5 h-5" />
+            </.link>
         <% end %>
         <h1 class="text-2xl font-bold text-base-content">
           {Ancestry.People.Person.display_name(@person)}
