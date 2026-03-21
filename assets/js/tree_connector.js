@@ -73,6 +73,7 @@ const TreeConnector = {
       this._drawBranchConnectors(svg)
       this._drawAncestorConnectors(svg)
       this._drawCoupleConnectors(svg)
+      this._drawRootAncestorConnection(svg)
     })
   },
 
@@ -309,6 +310,64 @@ const TreeConnector = {
     }
 
     this._makePath(svg, d, isDashed)
+  },
+
+  // --- Root ancestor → focus person connection ---
+  // Connects the parents' couple card (bottom of ancestor subtree) to the focus person
+  // card in the center row. This handles the top-level gap that the recursive
+  // ancestor_subtree connectors don't cover.
+
+  _drawRootAncestorConnection(svg) {
+    const focusPerson = this.el.querySelector("#focus-person-card")
+    if (!focusPerson) return
+
+    // The focus person is inside a couple card in a [data-primary-column]
+    const centerCoupleCard = focusPerson.closest("[data-couple-card]")
+    if (!centerCoupleCard) return
+
+    // Find the ancestor couple card: the closest [data-couple-card] that is NOT
+    // inside a [data-primary-column] and is positioned above the center couple card.
+    // This is the parents' couple card at the bottom of the ancestor subtree.
+    const allCoupleCards = this.el.querySelectorAll("[data-couple-card]")
+    const centerRect = this._toLocal(centerCoupleCard.getBoundingClientRect())
+
+    let parentsCoupleCard = null
+    let closestDistance = Infinity
+
+    for (const card of allCoupleCards) {
+      // Skip cards inside data-primary-column (those are center/descendant couple cards)
+      if (card.closest("[data-primary-column]")) continue
+      // Skip the card if it's the same as center (shouldn't happen, but guard)
+      if (card === centerCoupleCard) continue
+
+      const cardRect = this._toLocal(card.getBoundingClientRect())
+      const cardBottom = cardRect.top + cardRect.height
+
+      // Must be above the center couple card
+      if (cardBottom > centerRect.top) continue
+
+      // Find the closest one (smallest gap)
+      const distance = centerRect.top - cardBottom
+      if (distance < closestDistance) {
+        closestDistance = distance
+        parentsCoupleCard = card
+      }
+    }
+
+    if (!parentsCoupleCard) return
+
+    // Draw path from parents couple card bottom center → focus person top center
+    const parentsRect = this._toLocal(parentsCoupleCard.getBoundingClientRect())
+    const px = parentsRect.left + parentsRect.width / 2
+    const py = parentsRect.top + parentsRect.height
+
+    const focusRect = this._toLocal(focusPerson.getBoundingClientRect())
+    const cx = focusRect.left + focusRect.width / 2
+    const cy = focusRect.top
+
+    const barY = py + (cy - py) / 2
+    const d = `M ${px},${py} V ${barY} H ${cx} V ${cy}`
+    this._makePath(svg, d, false)
   },
 }
 
