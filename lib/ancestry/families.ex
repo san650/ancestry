@@ -105,55 +105,56 @@ defmodule Ancestry.Families do
 
   defp collect_connected_people(person_id, source_family_id, opts) do
     include_partner_ancestors = Keyword.get(opts, :include_partner_ancestors, false)
+    family_opts = [family_id: source_family_id]
 
-    bfs_traverse(
-      MapSet.new(),
-      [{person_id, :direct}],
-      source_family_id,
-      include_partner_ancestors
-    )
+    ancestors = collect_ancestors(person_id, MapSet.new(), family_opts)
+    descendants = collect_descendants(person_id, MapSet.new(), family_opts)
+
+    partners =
+      (Ancestry.Relationships.get_active_partners(person_id, family_opts) ++
+         Ancestry.Relationships.get_former_partners(person_id, family_opts))
+      |> Enum.map(fn {person, _rel} -> person.id end)
+
+    partner_ancestors =
+      if include_partner_ancestors do
+        Enum.reduce(partners, MapSet.new(), fn partner_id, acc ->
+          collect_ancestors(partner_id, acc, family_opts)
+        end)
+      else
+        MapSet.new()
+      end
+
+    MapSet.new([person_id])
+    |> MapSet.union(ancestors)
+    |> MapSet.union(descendants)
+    |> MapSet.union(MapSet.new(partners))
+    |> MapSet.union(partner_ancestors)
   end
 
-  defp bfs_traverse(visited, [], _family_id, _include_partner_ancestors), do: visited
+  defp collect_ancestors(person_id, visited, opts) do
+    if MapSet.member?(visited, person_id) do
+      visited
+    else
+      parents =
+        Ancestry.Relationships.get_parents(person_id, opts)
+        |> Enum.map(fn {person, _rel} -> person.id end)
 
-  defp bfs_traverse(visited, queue, family_id, include_partner_ancestors) do
-    opts = [family_id: family_id]
+      visited = Enum.reduce(parents, visited, &MapSet.put(&2, &1))
+      Enum.reduce(parents, visited, &collect_ancestors(&1, &2, opts))
+    end
+  end
 
-    {new_visited, new_queue} =
-      Enum.reduce(queue, {visited, []}, fn {person_id, traversal_type}, {vis, q} ->
-        if MapSet.member?(vis, person_id) do
-          {vis, q}
-        else
-          vis = MapSet.put(vis, person_id)
+  defp collect_descendants(person_id, visited, opts) do
+    if MapSet.member?(visited, person_id) do
+      visited
+    else
+      children =
+        Ancestry.Relationships.get_children(person_id, opts)
+        |> Enum.map(& &1.id)
 
-          parent_ids =
-            if traversal_type == :via_partner and not include_partner_ancestors do
-              []
-            else
-              Ancestry.Relationships.get_parents(person_id, opts)
-              |> Enum.map(fn {person, _rel} -> {person.id, :direct} end)
-            end
-
-          child_ids =
-            Ancestry.Relationships.get_children(person_id, opts)
-            |> Enum.map(fn child -> {child.id, :direct} end)
-
-          active_partner_ids =
-            Ancestry.Relationships.get_active_partners(person_id, opts)
-            |> Enum.map(fn {person, _rel} -> {person.id, :via_partner} end)
-
-          former_partner_ids =
-            Ancestry.Relationships.get_former_partners(person_id, opts)
-            |> Enum.map(fn {person, _rel} -> {person.id, :via_partner} end)
-
-          neighbors = parent_ids ++ child_ids ++ active_partner_ids ++ former_partner_ids
-          unvisited = Enum.reject(neighbors, fn {id, _type} -> MapSet.member?(vis, id) end)
-
-          {vis, q ++ unvisited}
-        end
-      end)
-
-    bfs_traverse(new_visited, new_queue, family_id, include_partner_ancestors)
+      visited = Enum.reduce(children, visited, &MapSet.put(&2, &1))
+      Enum.reduce(children, visited, &collect_descendants(&1, &2, opts))
+    end
   end
 
   defp cleanup_family_files(family) do

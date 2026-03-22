@@ -111,12 +111,13 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
       assert default.id == person.id
     end
 
-    test "partner's children from other relationships are included if in source family" do
+    test "partner's children from other relationships are NOT included" do
       org = org_fixture()
       family = family_fixture(org)
 
       alice = person_fixture(family, %{given_name: "Alice", surname: "Smith"})
       bob = person_fixture(family, %{given_name: "Bob", surname: "Jones"})
+      # Carol is Bob's child from a prior relationship — not Alice's descendant
       carol = person_fixture(family, %{given_name: "Carol", surname: "Jones"})
 
       {:ok, _} = Ancestry.Relationships.create_relationship(alice, bob, "married")
@@ -132,7 +133,37 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
 
       assert MapSet.member?(member_ids, alice.id)
       assert MapSet.member?(member_ids, bob.id)
-      assert MapSet.member?(member_ids, carol.id)
+      # Carol should NOT be included — she's Bob's child, not Alice's
+      refute MapSet.member?(member_ids, carol.id)
+      assert MapSet.size(member_ids) == 2
+    end
+
+    test "siblings are NOT included (only ascendants, descendants, partners)" do
+      org = org_fixture()
+      family = family_fixture(org)
+
+      parent = person_fixture(family, %{given_name: "Parent", surname: "Smith"})
+      person = person_fixture(family, %{given_name: "Alice", surname: "Smith"})
+      sibling = person_fixture(family, %{given_name: "Sibling", surname: "Smith"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(parent, person, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(parent, sibling, "parent", %{role: "father"})
+
+      {:ok, new_family} =
+        Families.create_family_from_person(org, "New", person, family.id, [])
+
+      member_ids =
+        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+
+      # Person and parent should be included (parent is an ascendant)
+      assert MapSet.member?(member_ids, person.id)
+      assert MapSet.member?(member_ids, parent.id)
+      # Sibling should NOT be included — they are not an ascendant, descendant, or partner
+      refute MapSet.member?(member_ids, sibling.id)
+      assert MapSet.size(member_ids) == 2
     end
 
     test "returns error changeset when family name is blank" do
