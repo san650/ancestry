@@ -17,6 +17,16 @@
         </h1>
       </div>
       <div class="flex items-center gap-2">
+        <%= if @people != [] do %>
+          <button
+            id="create-subfamily-btn"
+            phx-click="open_create_subfamily"
+            class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            {test_id("family-create-subfamily-btn")}
+          >
+            <.icon name="hero-square-2-stack" class="w-4 h-4" /> Create subfamily
+          </button>
+        <% end %>
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}/people"}
           class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
@@ -548,6 +558,108 @@
           family={@family}
           relationship_type={@adding_relationship.type}
         />
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Create Subfamily Modal --%>
+  <%= if @show_create_subfamily_modal do %>
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="close_create_subfamily"
+      phx-key="Escape"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="close_create_subfamily"
+      >
+      </div>
+      <div
+        id="create-subfamily-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-subfamily-title"
+        phx-mounted={JS.focus_first()}
+        {test_id("create-subfamily-modal")}
+      >
+        <h2
+          id="create-subfamily-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+        >
+          Create Subfamily
+        </h2>
+
+        <%!-- Person Selector --%>
+        <div class="mb-4">
+          <label class="label text-sm font-ds-body font-medium text-ds-on-surface mb-1 block">
+            Starting person
+          </label>
+          <.live_component
+            module={Web.FamilyLive.PersonSelectorComponent}
+            id="subfamily-person-selector"
+            people={@people}
+            family_id={@family.id}
+            focus_person={@subfamily_person}
+            on_select={:subfamily_person_selected}
+          />
+        </div>
+
+        <.form
+          for={@subfamily_form}
+          id="create-subfamily-form"
+          phx-submit="save_subfamily"
+          phx-change="validate_subfamily"
+          {test_id("create-subfamily-form")}
+        >
+          <.input
+            field={@subfamily_form[:name]}
+            label="Family name"
+            placeholder="e.g. Smith"
+            {test_id("create-subfamily-name-input")}
+          />
+
+          <div class="mt-4">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="include_partner_ancestors"
+                value="true"
+                checked={@subfamily_include_partner_ancestors}
+                phx-click="toggle_partner_ancestors"
+                phx-value-value={to_string(!@subfamily_include_partner_ancestors)}
+                class="mt-0.5 w-4 h-4 rounded-sm border-ds-outline-variant text-ds-primary focus:ring-ds-primary"
+                {test_id("create-subfamily-partner-ancestors-checkbox")}
+              />
+              <div>
+                <span class="text-sm font-ds-body font-medium text-ds-on-surface">
+                  Include partners' families
+                </span>
+                <p class="text-xs text-ds-on-surface-variant mt-0.5">
+                  When checked, ascendants of partners will also be included.
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              phx-disable-with="Creating..."
+              {test_id("create-subfamily-submit-btn")}
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              phx-click="close_create_subfamily"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </.form>
       </div>
     </div>
   <% end %>

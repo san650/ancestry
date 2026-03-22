@@ -47,7 +47,11 @@ defmodule Web.FamilyLive.Show do
      |> assign(:search_results, [])
      |> assign(:adding_relationship, nil)
      |> assign(:default_person_id, get_default_person_id(family_id))
-     |> assign(:default_person_filter, "")}
+     |> assign(:default_person_filter, "")
+     |> assign(:show_create_subfamily_modal, false)
+     |> assign(:subfamily_person, nil)
+     |> assign(:subfamily_form, to_form(Families.change_family(%Ancestry.Families.Family{})))
+     |> assign(:subfamily_include_partner_ancestors, false)}
   end
 
   @impl true
@@ -308,7 +312,83 @@ defmodule Web.FamilyLive.Show do
     {:noreply, assign(socket, :adding_relationship, nil)}
   end
 
+  # Create subfamily modal
+
+  def handle_event("open_create_subfamily", _, socket) do
+    person = socket.assigns.focus_person || hd(socket.assigns.people)
+    name = person.surname || ""
+
+    {:noreply,
+     socket
+     |> assign(:show_create_subfamily_modal, true)
+     |> assign(:subfamily_person, person)
+     |> assign(
+       :subfamily_form,
+       to_form(Families.change_family(%Ancestry.Families.Family{}, %{name: name}))
+     )
+     |> assign(:subfamily_include_partner_ancestors, false)}
+  end
+
+  def handle_event("close_create_subfamily", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_create_subfamily_modal, false)
+     |> assign(:subfamily_person, nil)}
+  end
+
+  def handle_event("validate_subfamily", %{"family" => params}, socket) do
+    changeset =
+      %Ancestry.Families.Family{}
+      |> Families.change_family(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :subfamily_form, to_form(changeset))}
+  end
+
+  def handle_event("toggle_partner_ancestors", %{"value" => value}, socket) do
+    {:noreply, assign(socket, :subfamily_include_partner_ancestors, value == "true")}
+  end
+
+  def handle_event("save_subfamily", %{"family" => params}, socket) do
+    person = socket.assigns.subfamily_person
+    family = socket.assigns.family
+    org = socket.assigns.organization
+    include = socket.assigns.subfamily_include_partner_ancestors
+
+    case Families.create_family_from_person(org, params["name"], person, family.id,
+           include_partner_ancestors: include
+         ) do
+      {:ok, new_family} ->
+        {:noreply,
+         socket
+         |> assign(:show_create_subfamily_modal, false)
+         |> push_navigate(to: ~p"/org/#{org.id}/families/#{new_family.id}?person=#{person.id}")}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :subfamily_form, to_form(changeset))}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to create subfamily")
+         |> assign(:show_create_subfamily_modal, false)}
+    end
+  end
+
   # PubSub
+
+  def handle_info({:subfamily_person_selected, person_id}, socket) do
+    person = find_person(socket.assigns.people, person_id)
+    name = person.surname || ""
+
+    {:noreply,
+     socket
+     |> assign(:subfamily_person, person)
+     |> assign(
+       :subfamily_form,
+       to_form(Families.change_family(%Ancestry.Families.Family{}, %{name: name}))
+     )}
+  end
 
   @impl true
   def handle_info({:cover_processed, family}, socket) do
