@@ -104,7 +104,8 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
   end
 
   def handle_event("select_person", %{"id" => id}, socket) do
-    send(self(), {:focus_person, String.to_integer(id)})
+    msg = Map.get(socket.assigns, :on_select, :focus_person)
+    send(self(), {msg, String.to_integer(id)})
     {:noreply, assign(socket, open: false, query: "")}
   end
 
