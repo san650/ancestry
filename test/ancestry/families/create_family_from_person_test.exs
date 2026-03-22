@@ -174,7 +174,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
     family
   end
 
-  defp person_fixture(family, attrs \\ %{}) do
+  defp person_fixture(family, attrs) do
     {:ok, person} =
       People.create_person(
         family,
