@@ -132,29 +132,33 @@ defmodule Ancestry.Families do
   end
 
   defp collect_ancestors(person_id, visited, opts) do
-    if MapSet.member?(visited, person_id) do
-      visited
-    else
-      parents =
-        Ancestry.Relationships.get_parents(person_id, opts)
-        |> Enum.map(fn {person, _rel} -> person.id end)
+    parents =
+      Ancestry.Relationships.get_parents(person_id, opts)
+      |> Enum.map(fn {person, _rel} -> person.id end)
+      |> Enum.reject(&MapSet.member?(visited, &1))
 
-      visited = Enum.reduce(parents, visited, &MapSet.put(&2, &1))
-      Enum.reduce(parents, visited, &collect_ancestors(&1, &2, opts))
-    end
+    visited = Enum.reduce(parents, visited, &MapSet.put(&2, &1))
+    Enum.reduce(parents, visited, &collect_ancestors(&1, &2, opts))
   end
 
   defp collect_descendants(person_id, visited, opts) do
-    if MapSet.member?(visited, person_id) do
-      visited
-    else
-      children =
-        Ancestry.Relationships.get_children(person_id, opts)
-        |> Enum.map(& &1.id)
+    # Include this person's partners (but don't recurse into their descendants)
+    partner_ids =
+      (Ancestry.Relationships.get_active_partners(person_id, opts) ++
+         Ancestry.Relationships.get_former_partners(person_id, opts))
+      |> Enum.map(fn {person, _rel} -> person.id end)
+      |> Enum.reject(&MapSet.member?(visited, &1))
 
-      visited = Enum.reduce(children, visited, &MapSet.put(&2, &1))
-      Enum.reduce(children, visited, &collect_descendants(&1, &2, opts))
-    end
+    visited = Enum.reduce(partner_ids, visited, &MapSet.put(&2, &1))
+
+    # Walk down through children only (not partner's children)
+    children =
+      Ancestry.Relationships.get_children(person_id, opts)
+      |> Enum.map(& &1.id)
+      |> Enum.reject(&MapSet.member?(visited, &1))
+
+    visited = Enum.reduce(children, visited, &MapSet.put(&2, &1))
+    Enum.reduce(children, visited, &collect_descendants(&1, &2, opts))
   end
 
   defp cleanup_family_files(family) do

@@ -166,6 +166,47 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
       assert MapSet.size(member_ids) == 2
     end
 
+    test "descendant's partner is included but not partner's own descendants" do
+      org = org_fixture()
+      family = family_fixture(org)
+
+      alice = person_fixture(family, %{given_name: "Alice", surname: "Smith"})
+      child = person_fixture(family, %{given_name: "Child", surname: "Smith"})
+      child_partner = person_fixture(family, %{given_name: "ChildPartner", surname: "Jones"})
+      # ChildPartner's child from another relationship (not with Child)
+      step_grandchild = person_fixture(family, %{given_name: "StepGrand", surname: "Jones"})
+      # Alice's grandchild (child of Child)
+      grandchild = person_fixture(family, %{given_name: "Grandchild", surname: "Smith"})
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(alice, child, "parent", %{role: "mother"})
+
+      {:ok, _} = Ancestry.Relationships.create_relationship(child, child_partner, "married")
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(child_partner, step_grandchild, "parent", %{
+          role: "father"
+        })
+
+      {:ok, _} =
+        Ancestry.Relationships.create_relationship(child, grandchild, "parent", %{
+          role: "father"
+        })
+
+      {:ok, new_family} =
+        Families.create_family_from_person(org, "New", alice, family.id, [])
+
+      member_ids =
+        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+
+      assert MapSet.member?(member_ids, alice.id)
+      assert MapSet.member?(member_ids, child.id)
+      assert MapSet.member?(member_ids, child_partner.id)
+      assert MapSet.member?(member_ids, grandchild.id)
+      # StepGrand is ChildPartner's child, not Alice's descendant
+      refute MapSet.member?(member_ids, step_grandchild.id)
+    end
+
     test "returns error changeset when family name is blank" do
       {org, family, person} = setup_single_person()
 
