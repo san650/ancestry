@@ -347,12 +347,12 @@ defmodule Web.FamilyLive.Show do
     {:noreply, assign(socket, :subfamily_form, to_form(changeset))}
   end
 
-  def handle_event("toggle_ancestors", %{"value" => value}, socket) do
-    {:noreply, assign(socket, :subfamily_include_ancestors, value == "true")}
+  def handle_event("toggle_ancestors", params, socket) do
+    {:noreply, assign(socket, :subfamily_include_ancestors, params["value"] == "true")}
   end
 
-  def handle_event("toggle_partner_ancestors", %{"value" => value}, socket) do
-    {:noreply, assign(socket, :subfamily_include_partner_ancestors, value == "true")}
+  def handle_event("toggle_partner_ancestors", params, socket) do
+    {:noreply, assign(socket, :subfamily_include_partner_ancestors, params["value"] == "true")}
   end
 
   def handle_event("save_subfamily", %{"family" => params}, socket) do
