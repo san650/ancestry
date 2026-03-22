@@ -14,10 +14,63 @@
    curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
    Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
 @plugin "../vendor/daisyui" {
-  themes: light --default, dark --prefersdark;
+  themes: light --default;
 }
 
 @import "../vendor/animate.css";
+
+/* === Design System: Font Loading === */
+@font-face {
+  font-family: 'Manrope';
+  src: url('/fonts/manrope-variable.woff2') format('woff2');
+  font-weight: 700 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-variable.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+/* === Design System: Theme Tokens (Precision Authority) === */
+@theme {
+  /* Surface Hierarchy (Tonal Layering) */
+  --color-ds-surface: #f8f9ff;
+  --color-ds-surface-low: #eff4ff;
+  --color-ds-surface-card: #ffffff;
+  --color-ds-surface-high: #dce9ff;
+  --color-ds-surface-highest: #d3e4fe;
+  --color-ds-surface-dim: #cbdbf5;
+
+  /* Text / On-Surface */
+  --color-ds-on-surface: #0b1c30;
+  --color-ds-on-surface-variant: #444748;
+  --color-ds-outline-variant: #c4c7c7;
+
+  /* Signal Colors (functional only) */
+  --color-ds-primary: #000000;
+  --color-ds-primary-container: #1c1b1b;
+  --color-ds-on-primary: #ffffff;
+  --color-ds-secondary: #006d35;
+  --color-ds-secondary-container: #8df9a8;
+  --color-ds-on-secondary-container: #007439;
+  --color-ds-tertiary: #ffb77d;
+  --color-ds-error: #ba1a1a;
+
+  /* Typography */
+  --font-ds-heading: 'Manrope', sans-serif;
+  --font-ds-body: 'Inter', sans-serif;
+
+  /* Radius (Brutalist) */
+  --radius-ds-sharp: 0.125rem;
+}
+
+/* === Design System: Ambient Shadow === */
+.shadow-ds-ambient {
+  box-shadow: 0 8px 32px rgba(11, 28, 48, 0.06);
+}
 
 /* Add variants based on LiveView classes */
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
