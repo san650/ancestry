@@ -138,6 +138,23 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
       assert MapSet.size(member_ids) == 2
     end
 
+    test "with include_ancestors: false, ascendants are excluded" do
+      {org, family, person, parent, child, partner} = setup_full_family()
+
+      {:ok, new_family} =
+        Families.create_family_from_person(org, "New", person, family.id,
+          include_ancestors: false
+        )
+
+      member_ids =
+        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+
+      assert MapSet.member?(member_ids, person.id)
+      assert MapSet.member?(member_ids, child.id)
+      assert MapSet.member?(member_ids, partner.id)
+      refute MapSet.member?(member_ids, parent.id)
+    end
+
     test "siblings are NOT included (only ascendants, descendants, partners)" do
       org = org_fixture()
       family = family_fixture(org)

@@ -51,6 +51,7 @@ defmodule Web.FamilyLive.Show do
      |> assign(:show_create_subfamily_modal, false)
      |> assign(:subfamily_person, nil)
      |> assign(:subfamily_form, to_form(Families.change_family(%Ancestry.Families.Family{})))
+     |> assign(:subfamily_include_ancestors, true)
      |> assign(:subfamily_include_partner_ancestors, false)}
   end
 
@@ -326,6 +327,7 @@ defmodule Web.FamilyLive.Show do
        :subfamily_form,
        to_form(Families.change_family(%Ancestry.Families.Family{}, %{name: name}))
      )
+     |> assign(:subfamily_include_ancestors, true)
      |> assign(:subfamily_include_partner_ancestors, false)}
   end
 
@@ -345,6 +347,10 @@ defmodule Web.FamilyLive.Show do
     {:noreply, assign(socket, :subfamily_form, to_form(changeset))}
   end
 
+  def handle_event("toggle_ancestors", %{"value" => value}, socket) do
+    {:noreply, assign(socket, :subfamily_include_ancestors, value == "true")}
+  end
+
   def handle_event("toggle_partner_ancestors", %{"value" => value}, socket) do
     {:noreply, assign(socket, :subfamily_include_partner_ancestors, value == "true")}
   end
@@ -353,10 +359,10 @@ defmodule Web.FamilyLive.Show do
     person = socket.assigns.subfamily_person
     family = socket.assigns.family
     org = socket.assigns.organization
-    include = socket.assigns.subfamily_include_partner_ancestors
 
     case Families.create_family_from_person(org, params["name"], person, family.id,
-           include_partner_ancestors: include
+           include_ancestors: socket.assigns.subfamily_include_ancestors,
+           include_partner_ancestors: socket.assigns.subfamily_include_partner_ancestors
          ) do
       {:ok, new_family} ->
         {:noreply,

@@ -69,6 +69,8 @@ defmodule Ancestry.Families do
 
   ## Options
 
+    * `:include_ancestors` - when `true`, includes the person's ascendants.
+      Defaults to `true`.
     * `:include_partner_ancestors` - when `true`, includes the parents of
       partners discovered during traversal. Defaults to `false`.
   """
@@ -104,10 +106,17 @@ defmodule Ancestry.Families do
   end
 
   defp collect_connected_people(person_id, source_family_id, opts) do
+    include_ancestors = Keyword.get(opts, :include_ancestors, true)
     include_partner_ancestors = Keyword.get(opts, :include_partner_ancestors, false)
     family_opts = [family_id: source_family_id]
 
-    ancestors = collect_ancestors(person_id, MapSet.new(), family_opts)
+    ancestors =
+      if include_ancestors do
+        collect_ancestors(person_id, MapSet.new(), family_opts)
+      else
+        MapSet.new()
+      end
+
     descendants = collect_descendants(person_id, MapSet.new(), family_opts)
 
     partners =
