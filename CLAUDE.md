@@ -65,6 +65,10 @@ lib/
 
 **Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), Phoenix PubSub (real-time updates)
 
+## Graphical Design
+
+MANDATORY: Use the design system and rules defined in ./DESIGN.md
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
