@@ -4,25 +4,27 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">{@gallery.name}</h1>
+        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+          {@gallery.name}
+        </h1>
       </div>
       <div class="flex items-center gap-2">
         <button
           id="upload-btn"
           type="button"
           onclick="document.querySelector('#upload-form [type=file]').click()"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-content hover:bg-primary/90 text-sm font-medium transition-colors"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-ds-sharp bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary hover:opacity-90 text-sm font-ds-body font-semibold transition-opacity"
         >
           <.icon name="hero-cloud-arrow-up" class="w-4 h-4" /> Upload
         </button>
         <button
           id="layout-toggle"
           phx-click="toggle_layout"
-          class="p-2 rounded-lg text-base-content/50 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           title={
             if @grid_layout == :masonry, do: "Switch to uniform grid", else: "Switch to masonry"
           }
@@ -37,10 +39,10 @@
           id="select-btn"
           phx-click="toggle_select_mode"
           class={[
-            "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+            "px-3 py-1.5 rounded-ds-sharp text-sm font-ds-body font-semibold transition-colors",
             if(@selection_mode,
-              do: "bg-primary text-primary-content",
-              else: "bg-base-200 text-base-content hover:bg-base-300"
+              do: "bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary",
+              else: "bg-ds-surface-low text-ds-on-surface hover:bg-ds-surface-highest"
             )
           ]}
         >
@@ -60,11 +62,13 @@
     id="drag-overlay"
     class="hidden fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
   >
-    <div class="absolute inset-4 rounded-3xl border-4 border-dashed border-primary/60 bg-primary/10 backdrop-blur-sm">
+    <div class="absolute inset-4 rounded-ds-sharp border-4 border-dashed border-ds-primary/60 bg-ds-primary/10 backdrop-blur-sm">
     </div>
     <div class="relative z-10 text-center">
-      <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-primary mx-auto mb-3" />
-      <p class="text-2xl font-bold text-primary" data-drag-count>Drop to upload photos</p>
+      <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-ds-primary mx-auto mb-3" />
+      <p class="text-2xl font-ds-heading font-bold text-ds-primary" data-drag-count>
+        Drop to upload photos
+      </p>
     </div>
   </div>
 
@@ -77,13 +81,13 @@
     <%= if @selection_mode do %>
       <div
         id="selection-bar"
-        class="mb-4 flex items-center justify-between bg-base-content text-base-100 rounded-xl px-5 py-3"
+        class="mb-4 flex items-center justify-between bg-ds-on-surface text-ds-on-primary rounded-ds-sharp px-5 py-3"
       >
         <span class="text-sm font-medium">{MapSet.size(@selected_ids)} selected</span>
         <button
           phx-click="request_delete_photos"
           disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-1.5 bg-error hover:bg-error/80 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors"
+          class="px-3 py-1.5 bg-ds-error hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-ds-sharp text-sm font-ds-body font-semibold transition-opacity"
         >
           Delete
         </button>
@@ -170,11 +174,11 @@
       class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      <div class="relative bg-base-100 rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[80vh]">
+      <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-lg flex flex-col max-h-[80vh]">
         <%!-- Modal header --%>
-        <div class="flex items-center justify-between px-6 py-4 border-b border-base-200 shrink-0">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-ds-outline-variant/20 shrink-0">
           <%= if @upload_results != [] do %>
-            <h2 class="text-lg font-semibold text-base-content">
+            <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
               <%= if Enum.any?(@upload_results, &(&1.status == :error)) do %>
                 Upload complete with errors
               <% else %>
@@ -184,7 +188,7 @@
           <% else %>
             <% done_count = Enum.count(@uploads.photos.entries, & &1.done?) %>
             <% total_count = length(@uploads.photos.entries) %>
-            <h2 class="text-lg font-semibold text-base-content">
+            <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
               Uploading photos ({done_count} of {total_count})
             </h2>
           <% end %>
@@ -192,7 +196,7 @@
             <button
               id="upload-modal-close"
               phx-click="close_upload_modal"
-              class="p-1.5 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
             >
               <.icon name="hero-x-mark" class="w-5 h-5" />
             </button>
@@ -204,49 +208,53 @@
           <%= if @upload_results != [] do %>
             <%!-- Done state: show results --%>
             <%= for file <- Enum.filter(@upload_results, &(&1.status == :error)) do %>
-              <div class="flex items-center gap-3 bg-error/5 border border-error/20 rounded-xl px-4 py-3">
-                <.icon name="hero-x-circle" class="w-5 h-5 text-error shrink-0" />
+              <div class="flex items-center gap-3 bg-ds-error/5 border border-ds-error/20 rounded-ds-sharp px-4 py-3">
+                <.icon name="hero-x-circle" class="w-5 h-5 text-ds-error shrink-0" />
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-base-content truncate">{file.name}</p>
-                  <p class="text-xs text-error mt-0.5">{file[:error] || "Upload failed"}</p>
+                  <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+                    {file.name}
+                  </p>
+                  <p class="text-xs text-ds-error mt-0.5">{file[:error] || "Upload failed"}</p>
                 </div>
               </div>
             <% end %>
             <%= for file <- Enum.filter(@upload_results, &(&1.status == :ok)) do %>
-              <div class="flex items-center gap-3 bg-success/5 border border-success/20 rounded-xl px-4 py-3">
-                <.icon name="hero-check-circle" class="w-5 h-5 text-success shrink-0" />
-                <p class="text-sm font-medium text-base-content truncate flex-1">{file.name}</p>
+              <div class="flex items-center gap-3 bg-ds-secondary/5 border border-ds-secondary/20 rounded-ds-sharp px-4 py-3">
+                <.icon name="hero-check-circle" class="w-5 h-5 text-ds-secondary shrink-0" />
+                <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate flex-1">
+                  {file.name}
+                </p>
               </div>
             <% end %>
           <% else %>
             <%!-- Uploading state: show progress --%>
             <%= for entry <- @uploads.photos.entries do %>
-              <div class="flex items-center gap-3 bg-base-100 rounded-xl border border-base-200 px-4 py-3">
+              <div class="flex items-center gap-3 bg-ds-surface-card rounded-ds-sharp border border-ds-outline-variant/20 px-4 py-3">
                 <%= cond do %>
                   <% entry.done? -> %>
-                    <.icon name="hero-check-circle" class="w-5 h-5 text-success shrink-0" />
-                    <p class="text-sm font-medium text-base-content truncate flex-1">
+                    <.icon name="hero-check-circle" class="w-5 h-5 text-ds-secondary shrink-0" />
+                    <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate flex-1">
                       {entry.client_name}
                     </p>
                   <% upload_errors(@uploads.photos, entry) != [] -> %>
-                    <.icon name="hero-x-circle" class="w-5 h-5 text-error shrink-0" />
+                    <.icon name="hero-x-circle" class="w-5 h-5 text-ds-error shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-base-content truncate">
+                      <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
                         {entry.client_name}
                       </p>
                       <%= for err <- upload_errors(@uploads.photos, entry) do %>
-                        <p class="text-xs text-error mt-1">{upload_error_to_string(err)}</p>
+                        <p class="text-xs text-ds-error mt-1">{upload_error_to_string(err)}</p>
                       <% end %>
                     </div>
                   <% true -> %>
-                    <.icon name="hero-arrow-up-tray" class="w-5 h-5 text-primary shrink-0" />
+                    <.icon name="hero-arrow-up-tray" class="w-5 h-5 text-ds-primary shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-medium text-base-content truncate">
+                      <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
                         {entry.client_name}
                       </p>
-                      <div class="mt-1.5 h-1.5 bg-base-200 rounded-full overflow-hidden">
+                      <div class="mt-1.5 h-1.5 bg-ds-surface-low rounded-full overflow-hidden">
                         <div
-                          class="h-full bg-primary rounded-full transition-all duration-300"
+                          class="h-full bg-ds-primary rounded-full transition-all duration-300"
                           style={"width: #{entry.progress}%"}
                         >
                         </div>
@@ -259,16 +267,16 @@
         </div>
 
         <%!-- Modal footer --%>
-        <div class="px-6 py-4 border-t border-base-200 shrink-0">
+        <div class="px-6 py-4 border-t border-ds-outline-variant/20 shrink-0">
           <%= if @upload_results != [] do %>
             <button
               phx-click="close_upload_modal"
-              class="w-full px-4 py-2 bg-primary text-primary-content rounded-xl font-medium hover:bg-primary/90 transition-colors"
+              class="w-full px-4 py-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp font-ds-body font-semibold hover:opacity-90 transition-opacity"
             >
               Done
             </button>
           <% else %>
-            <div class="text-center text-sm text-base-content/40">
+            <div class="text-center text-sm text-ds-on-surface-variant/50">
               Uploading...
             </div>
           <% end %>
@@ -291,14 +299,27 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_photos">
       </div>
-      <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
-        <h2 class="text-xl font-bold text-base-content mb-2">Delete Photos</h2>
-        <p class="text-base-content/60 mb-6">
+      <div
+        id="confirm-delete-photos-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+      >
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Photos</h2>
+        <p class="text-ds-on-surface-variant mb-6">
           Delete {MapSet.size(@selected_ids)} photo(s)? This cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button phx-click="confirm_delete_photos" class="btn btn-error flex-1">Delete</button>
-          <button phx-click="cancel_delete_photos" class="btn btn-ghost flex-1">Cancel</button>
+          <button
+            phx-click="confirm_delete_photos"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_photos"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>

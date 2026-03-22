@@ -4,20 +4,21 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("people-back-btn")}
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content truncate">
-          {@family.name} <span class="text-base-content/40 font-normal">&mdash; People</span>
+        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface truncate">
+          {@family.name}
+          <span class="text-ds-on-surface-variant font-normal">&mdash; People</span>
         </h1>
       </div>
       <div class="flex items-center gap-2">
         <%= if @editing && MapSet.size(@selected) > 0 do %>
           <button
             phx-click="request_remove"
-            class="btn btn-error btn-sm"
+            class="inline-flex items-center gap-1.5 bg-ds-error text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("people-remove-btn")}
           >
             <.icon name="hero-trash" class="w-4 h-4" /> Remove from family
@@ -26,8 +27,12 @@
         <button
           phx-click="toggle_edit"
           class={[
-            "btn btn-sm",
-            if(@editing, do: "btn-primary", else: "btn-ghost")
+            "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+            if(@editing,
+              do: "bg-ds-primary text-ds-on-primary",
+              else:
+                "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+            )
           ]}
           {test_id("people-edit-btn")}
         >
@@ -48,7 +53,7 @@
         <form phx-change="filter" phx-submit="filter">
           <.icon
             name="hero-magnifying-glass"
-            class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30 pointer-events-none"
+            class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-ds-on-surface-variant/50 pointer-events-none"
           />
           <input
             type="text"
@@ -56,15 +61,19 @@
             value={@filter}
             phx-debounce="300"
             placeholder="Search people..."
-            class="input input-bordered w-full pl-10"
+            class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm pl-10"
           />
         </form>
       </div>
       <button
         phx-click="toggle_unlinked"
         class={[
-          "btn btn-sm gap-1",
-          if(@unlinked_only, do: "btn-warning", else: "btn-ghost")
+          "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+          if(@unlinked_only,
+            do: "bg-ds-tertiary text-ds-on-surface",
+            else:
+              "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+          )
         ]}
         {test_id("people-unlinked-chip")}
       >
@@ -76,14 +85,14 @@
   <%!-- Select all / deselect all bar --%>
   <%= if @editing do %>
     <div class="px-4 pb-2 max-w-4xl mx-auto w-full">
-      <div class="flex items-center gap-3 text-sm text-base-content/60">
-        <button phx-click="select_all" class="link link-hover link-primary">Select all</button>
-        <span class="text-base-content/20">|</span>
-        <button phx-click="deselect_all" class="link link-hover link-primary">
+      <div class="flex items-center gap-3 text-sm text-ds-on-surface-variant">
+        <button phx-click="select_all" class="text-ds-primary hover:underline">Select all</button>
+        <span class="text-ds-on-surface-variant/50">|</span>
+        <button phx-click="deselect_all" class="text-ds-primary hover:underline">
           Deselect all
         </button>
         <%= if MapSet.size(@selected) > 0 do %>
-          <span class="text-base-content/40 ml-auto">
+          <span class="text-ds-on-surface-variant ml-auto">
             {MapSet.size(@selected)} selected
           </span>
         <% end %>
@@ -100,16 +109,16 @@
     )
   ]}>
     <%!-- Header cells (display:contents so they join the parent grid) --%>
-    <div class="contents text-sm font-medium text-base-content/50">
+    <div class="contents text-sm font-medium text-ds-on-surface-variant">
       <%= if @editing do %>
-        <div class="px-3 py-2.5 border-b border-base-200"></div>
+        <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
       <% end %>
-      <div class="px-3 py-2.5 border-b border-base-200"></div>
-      <div class="px-3 py-2.5 border-b border-base-200">Name</div>
-      <div class="px-3 py-2.5 border-b border-base-200">Est. Age</div>
-      <div class="px-3 py-2.5 border-b border-base-200">Lifespan</div>
-      <div class="px-3 py-2.5 border-b border-base-200">Links</div>
-      <div class="px-3 py-2.5 border-b border-base-200"></div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Name</div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Est. Age</div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Lifespan</div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Links</div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
     </div>
 
     <%!-- Stream rows (display:contents so children join parent grid) --%>
@@ -120,12 +129,12 @@
       {test_id("people-table")}
     >
       <div id="people-empty-state" class="hidden only:block col-span-full py-16 text-center">
-        <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-base-content/20" />
-        <p class="text-lg font-medium text-base-content/40">No people in this family</p>
-        <p class="text-sm text-base-content/30 mt-1">
+        <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-ds-on-surface-variant/50" />
+        <p class="text-lg font-medium text-ds-on-surface-variant">No people in this family</p>
+        <p class="text-sm text-ds-on-surface-variant/50 mt-1">
           <.link
             navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
-            class="link link-primary"
+            class="text-ds-primary hover:underline"
           >
             Go back to add members
           </.link>
@@ -148,8 +157,8 @@
               class={[
                 "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
                 if(MapSet.member?(@selected, person.id),
-                  do: "bg-primary border-primary text-primary-content",
-                  else: "border-base-300 hover:border-primary"
+                  do: "bg-ds-primary border-ds-primary text-ds-on-primary",
+                  else: "border-ds-outline-variant hover:border-ds-primary"
                 )
               ]}
               {test_id("people-checkbox-#{person.id}")}
@@ -166,13 +175,13 @@
           <div class="indicator">
             <%= if person.deceased do %>
               <span
-                class="indicator-item indicator- indicator-end badge badge-xs bg-transparent border-base-300"
+                class="indicator-item indicator- indicator-end badge badge-xs bg-transparent border-ds-outline-variant/20"
                 title="Deceased"
               >
                 d.
               </span>
             <% end %>
-            <div class="w-10 h-10 rounded-full overflow-hidden bg-base-200 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-ds-surface-low flex items-center justify-center">
               <%= if person.photo && person.photo_status == "processed" do %>
                 <img
                   src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -180,7 +189,7 @@
                   class="w-full h-full object-cover"
                 />
               <% else %>
-                <.icon name="hero-user" class="w-5 h-5 text-base-content/30" />
+                <.icon name="hero-user" class="w-5 h-5 text-ds-on-surface-variant/50" />
               <% end %>
             </div>
           </div>
@@ -190,7 +199,7 @@
         <div class="px-3 py-2.5 min-w-0">
           <.link
             navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family.id}"}
-            class="font-medium text-base-content hover:text-primary truncate block"
+            class="font-medium text-ds-on-surface hover:text-ds-primary truncate block"
           >
             <%= if person.surname && person.surname != "" do %>
               {person.surname}, {person.given_name}
@@ -201,7 +210,7 @@
         </div>
 
         <%!-- Estimated Age cell --%>
-        <div class="px-3 py-2.5 text-sm text-base-content/60">
+        <div class="px-3 py-2.5 text-sm text-ds-on-surface-variant">
           <%= case estimated_age(person) do %>
             <% nil -> %>
               &mdash;
@@ -211,7 +220,7 @@
         </div>
 
         <%!-- Lifespan cell --%>
-        <div class="px-3 py-2.5 text-sm text-base-content/60">
+        <div class="px-3 py-2.5 text-sm text-ds-on-surface-variant">
           <%= cond do %>
             <% person.birth_year && person.death_year -> %>
               b. {person.birth_year} &ndash; d. {person.death_year}
@@ -227,9 +236,9 @@
         <%!-- Links cell --%>
         <div class="px-3 py-2.5 text-sm" {test_id("people-links-#{person.id}")}>
           <%= if rel_count > 0 do %>
-            <span class="text-base-content/60">{rel_count}</span>
+            <span class="text-ds-on-surface-variant">{rel_count}</span>
           <% else %>
-            <.icon name="hero-exclamation-triangle" class="w-4 h-4 text-warning" />
+            <.icon name="hero-exclamation-triangle" class="w-4 h-4 text-ds-tertiary" />
           <% end %>
         </div>
 
@@ -240,7 +249,7 @@
               navigate={
                 ~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family.id}&edit=true"
               }
-              class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-primary"
+              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-primary transition-colors"
               title="Edit person"
               {test_id("people-edit-person-#{person.id}")}
             >
@@ -249,7 +258,7 @@
             <button
               phx-click="request_remove_one"
               phx-value-id={person.id}
-              class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-error"
+              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-error transition-colors"
               title="Remove from family"
               {test_id("people-unlink-#{person.id}")}
             >
@@ -267,25 +276,36 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
       <div
         id="confirm-remove-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-remove-modal-title"
+        phx-window-keydown="cancel_remove"
+        phx-key="Escape"
+        phx-mounted={JS.focus_first()}
         {test_id("people-confirm-remove-modal")}
       >
-        <h2 class="text-xl font-bold text-base-content mb-2">Remove from Family</h2>
-        <p class="text-base-content/60 mb-6">
+        <h2
+          id="confirm-remove-modal-title"
+          class="text-xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface mb-2"
+        >
+          Remove from Family
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6">
           Remove <span class="font-semibold">{MapSet.size(@selected)}</span>
           {if MapSet.size(@selected) == 1, do: "person", else: "people"} from <span class="font-semibold">&ldquo;{@family.name}&rdquo;</span>? They won't be deleted, just detached from this family.
         </p>
         <div class="flex gap-3">
           <button
             phx-click="confirm_remove"
-            class="btn btn-error flex-1"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("people-confirm-remove-btn")}
           >
             Remove
           </button>
           <button
             phx-click="cancel_remove"
-            class="btn btn-ghost flex-1"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             {test_id("people-cancel-remove-btn")}
           >
             Cancel

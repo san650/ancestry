@@ -8,46 +8,50 @@ defmodule Web.FamilyLive.SidePanelComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <aside id={@id} class="bg-base-100 flex flex-col p-4 gap-6">
+    <aside id={@id} class="bg-ds-surface-card flex flex-col p-4 gap-6">
       <%!-- Metrics Section --%>
       <%= if @metrics.ok? && @metrics.result.people_count > 0 do %>
         <div class="space-y-4">
           <%!-- People & Photo counts --%>
           <div class="grid grid-cols-2 gap-3">
             <div
-              class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
+              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
               {test_id("metric-people-count")}
             >
-              <.icon name="hero-users" class="w-5 h-5 text-primary mb-1" />
-              <span class="text-2xl font-bold text-base-content">{@metrics.result.people_count}</span>
-              <span class="text-xs text-base-content/50">Members</span>
+              <.icon name="hero-users" class="w-5 h-5 text-ds-primary mb-1" />
+              <span class="text-2xl font-bold text-ds-on-surface">
+                {@metrics.result.people_count}
+              </span>
+              <span class="text-xs text-ds-on-surface-variant">Members</span>
             </div>
             <div
-              class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
+              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
               {test_id("metric-photo-count")}
             >
-              <.icon name="hero-photo" class="w-5 h-5 text-secondary mb-1" />
-              <span class="text-2xl font-bold text-base-content">{@metrics.result.photo_count}</span>
-              <span class="text-xs text-base-content/50">Photos</span>
+              <.icon name="hero-photo" class="w-5 h-5 text-ds-secondary mb-1" />
+              <span class="text-2xl font-bold text-ds-on-surface">
+                {@metrics.result.photo_count}
+              </span>
+              <span class="text-xs text-ds-on-surface-variant">Photos</span>
             </div>
           </div>
 
           <%!-- Generations --%>
           <%= if @metrics.result.generations do %>
             <div
-              class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
+              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
               {test_id("metric-generations")}
             >
-              <span class="text-xs text-base-content/50 uppercase tracking-wider mb-2">
+              <span class="text-xs text-ds-on-surface-variant uppercase tracking-wider mb-2">
                 Lineage
               </span>
               <.metric_person_card person={@metrics.result.generations.root} label="Root ancestor" />
               <div class="flex flex-col items-center my-1">
-                <div class="w-px h-3 bg-base-content/20"></div>
-                <span class="text-sm font-semibold text-primary py-0.5">
+                <div class="w-px h-3 bg-ds-on-surface-variant/50"></div>
+                <span class="text-sm font-semibold text-ds-primary py-0.5">
                   {@metrics.result.generations.count} generations
                 </span>
-                <div class="w-px h-3 bg-base-content/20"></div>
+                <div class="w-px h-3 bg-ds-on-surface-variant/50"></div>
               </div>
               <.metric_person_card
                 person={@metrics.result.generations.leaf}
@@ -59,10 +63,10 @@ defmodule Web.FamilyLive.SidePanelComponent do
           <%!-- Oldest Person --%>
           <%= if @metrics.result.oldest_person do %>
             <div
-              class="flex flex-col items-center p-3 rounded-xl bg-base-200/50"
+              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
               {test_id("metric-oldest-person")}
             >
-              <span class="text-xs text-base-content/50 uppercase tracking-wider mb-2">
+              <span class="text-xs text-ds-on-surface-variant uppercase tracking-wider mb-2">
                 Oldest Record
               </span>
               <.metric_person_card
@@ -73,7 +77,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
           <% end %>
         </div>
 
-        <div class="border-t border-base-200"></div>
+        <div class="border-t border-ds-outline-variant/20"></div>
       <% end %>
 
       <.live_component
@@ -84,7 +88,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         organization={@organization}
       />
 
-      <div class="border-t border-base-200"></div>
+      <div class="border-t border-ds-outline-variant/20"></div>
 
       <.live_component
         module={PeopleListComponent}
@@ -106,9 +110,9 @@ defmodule Web.FamilyLive.SidePanelComponent do
     <button
       phx-click="focus_person"
       phx-value-id={@person.id}
-      class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-base-300/50 transition-colors w-full group"
+      class="flex items-center gap-2 px-3 py-2 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors w-full group"
     >
-      <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      <div class="w-8 h-8 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
         <%= if @person.photo && @person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
@@ -116,16 +120,16 @@ defmodule Web.FamilyLive.SidePanelComponent do
             class="w-full h-full object-cover"
           />
         <% else %>
-          <span class="text-xs font-semibold text-primary">
+          <span class="text-xs font-semibold text-ds-primary">
             {initials(@person)}
           </span>
         <% end %>
       </div>
       <div class="min-w-0 text-left">
-        <p class="text-sm font-medium text-base-content truncate group-hover:text-primary transition-colors">
+        <p class="text-sm font-medium text-ds-on-surface truncate group-hover:text-ds-primary transition-colors">
           {Person.display_name(@person)}
         </p>
-        <p class="text-xs text-base-content/50">{@label}</p>
+        <p class="text-xs text-ds-on-surface-variant">{@label}</p>
       </div>
     </button>
     """

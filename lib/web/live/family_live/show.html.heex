@@ -4,19 +4,22 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("family-back-btn")}
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content" {test_id("family-name")}>
+        <h1
+          class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface"
+          {test_id("family-name")}
+        >
           {@family.name}
         </h1>
       </div>
       <div class="flex items-center gap-2">
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}/people"}
-          class="btn btn-ghost btn-sm"
+          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           id="manage-people-btn"
           {test_id("family-manage-people-btn")}
         >
@@ -30,7 +33,7 @@
               else: ~p"/org/#{@organization.id}/families/#{@family.id}/kinship"
             )
           }
-          class="btn btn-ghost btn-sm"
+          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           id="kinship-btn"
           {test_id("family-kinship-btn")}
         >
@@ -39,7 +42,7 @@
         <button
           id="edit-family-btn"
           phx-click="edit"
-          class="btn btn-ghost btn-sm"
+          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           {test_id("family-edit-btn")}
         >
           <.icon name="hero-pencil" class="w-4 h-4" /> Edit
@@ -47,7 +50,7 @@
         <button
           id="delete-family-btn"
           phx-click="request_delete"
-          class="btn btn-ghost btn-sm text-error"
+          class="inline-flex items-center gap-1.5 text-ds-error rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-error/10 transition-colors"
           {test_id("family-delete-btn")}
         >
           <.icon name="hero-trash" class="w-4 h-4" /> Delete
@@ -58,7 +61,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] overflow-x-hidden">
     <%!-- Side Panel: first on mobile, last on desktop --%>
-    <div class="order-first lg:order-last border-b lg:border-b-0 lg:border-l border-base-200">
+    <div class="order-first lg:order-last bg-ds-surface-low">
       <.live_component
         module={Web.FamilyLive.SidePanelComponent}
         id="side-panel"
@@ -79,7 +82,7 @@
     >
       <%= if @tree do %>
         <div class="relative inline-flex flex-col items-center gap-6 min-w-full">
-          <%!-- Ancestor Tree (recursive: great-grandparents → parents) --%>
+          <%!-- Ancestor Tree (recursive: great-grandparents -> parents) --%>
           <%= if @tree.ancestors do %>
             <.ancestor_subtree
               node={@tree.ancestors}
@@ -111,11 +114,14 @@
         <div class="flex items-center justify-center h-full">
           <%= if @people != [] do %>
             <div class="text-center">
-              <.icon name="hero-share" class="w-16 h-16 mx-auto mb-4 text-base-content/20" />
-              <h2 class="text-xl font-semibold text-base-content mb-2">
+              <.icon
+                name="hero-share"
+                class="w-16 h-16 mx-auto mb-4 text-ds-on-surface-variant/50"
+              />
+              <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
                 Explore the Family Tree
               </h2>
-              <p class="text-base-content/50 mb-6 max-w-sm">
+              <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
                 Select a family member to see their ancestors and descendants
               </p>
               <.live_component
@@ -127,7 +133,7 @@
               />
             </div>
           <% else %>
-            <div class="text-center text-base-content/40" {test_id("family-empty-state")}>
+            <div class="text-center text-ds-on-surface-variant" {test_id("family-empty-state")}>
               <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
               <p class="text-lg font-medium">No family members yet</p>
               <p class="text-sm mt-1">Add members to start building the family tree</p>
@@ -140,10 +146,25 @@
 
   <%!-- Edit Family Modal --%>
   <%= if @editing do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="cancel_edit"
+      phx-key="Escape"
+    >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
-      <div class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8">
-        <h2 class="text-xl font-bold text-base-content mb-6">Edit Family</h2>
+      <div
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-family-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="edit-family-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+        >
+          Edit Family
+        </h2>
         <.form
           for={@form}
           id="edit-family-form"
@@ -155,13 +176,15 @@
 
           <%!-- Default Person Picker --%>
           <div class="mt-4" {test_id("default-person-picker")}>
-            <label class="label text-sm font-medium text-base-content">Default person</label>
+            <label class="label text-sm font-ds-body font-medium text-ds-on-surface">
+              Default person
+            </label>
 
             <%= if @default_person_id do %>
               <% selected = Enum.find(@people, &(&1.id == @default_person_id)) %>
               <%= if selected do %>
-                <div class="flex items-center gap-2 p-2 rounded-lg bg-base-200 mb-2">
-                  <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div class="flex items-center gap-2 p-2 rounded-ds-sharp bg-ds-surface-low mb-2">
+                  <div class="w-8 h-8 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <%= if selected.photo && selected.photo_status == "processed" do %>
                       <img
                         src={
@@ -174,14 +197,16 @@
                         class="w-full h-full object-cover"
                       />
                     <% else %>
-                      <.icon name="hero-user" class="w-4 h-4 text-primary" />
+                      <.icon name="hero-user" class="w-4 h-4 text-ds-primary" />
                     <% end %>
                   </div>
-                  <span class="text-sm font-medium flex-1">{Person.display_name(selected)}</span>
+                  <span class="text-sm font-ds-body font-medium flex-1">
+                    {Person.display_name(selected)}
+                  </span>
                   <button
                     type="button"
                     phx-click="clear_default_person"
-                    class="btn btn-ghost btn-xs"
+                    class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
                     {test_id("default-person-clear")}
                   >
                     <.icon name="hero-x-mark" class="w-4 h-4" />
@@ -198,7 +223,7 @@
               placeholder="Filter members..."
               phx-keyup="filter_default_person"
               phx-debounce="200"
-              class="input input-bordered input-sm w-full mb-2"
+              class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm mb-2"
               {test_id("default-person-filter")}
             />
             <div class="max-h-40 overflow-y-auto space-y-1">
@@ -206,13 +231,13 @@
                 type="button"
                 phx-click="clear_default_person"
                 class={[
-                  "w-full flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors text-left text-sm",
-                  is_nil(@default_person_id) && "bg-base-200 font-medium"
+                  "w-full flex items-center gap-2 p-2 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left text-sm",
+                  is_nil(@default_person_id) && "bg-ds-surface-low font-medium"
                 ]}
                 {test_id("default-person-none")}
               >
-                <.icon name="hero-no-symbol" class="w-4 h-4 text-base-content/40" />
-                <span class="text-base-content/60">None</span>
+                <.icon name="hero-no-symbol" class="w-4 h-4 text-ds-on-surface-variant" />
+                <span class="text-ds-on-surface-variant">None</span>
               </button>
               <%= for person <- filtered_people(@people, @default_person_filter) do %>
                 <button
@@ -221,12 +246,13 @@
                   phx-click="select_default_person"
                   phx-value-id={person.id}
                   class={[
-                    "w-full flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors text-left text-sm",
-                    @default_person_id == person.id && "bg-primary/10 ring-1 ring-primary/30"
+                    "w-full flex items-center gap-2 p-2 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left text-sm",
+                    @default_person_id == person.id &&
+                      "bg-ds-primary/10 ring-1 ring-ds-primary/30"
                   ]}
                   {test_id("default-person-option-#{person.id}")}
                 >
-                  <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <%= if person.photo && person.photo_status == "processed" do %>
                       <img
                         src={
@@ -236,7 +262,7 @@
                         class="w-full h-full object-cover"
                       />
                     <% else %>
-                      <.icon name="hero-user" class="w-3 h-3 text-primary" />
+                      <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
                     <% end %>
                   </div>
                   <span>{Person.display_name(person)}</span>
@@ -246,10 +272,18 @@
           </div>
 
           <div class="flex gap-3 mt-6">
-            <button type="submit" class="btn btn-primary flex-1" {test_id("family-edit-save-btn")}>
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              {test_id("family-edit-save-btn")}
+            >
               Save
             </button>
-            <button type="button" phx-click="cancel_edit" class="btn btn-ghost flex-1">
+            <button
+              type="button"
+              phx-click="cancel_edit"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            >
               Cancel
             </button>
           </div>
@@ -260,26 +294,44 @@
 
   <%!-- Delete Family Confirmation Modal --%>
   <%= if @confirm_delete do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="cancel_delete"
+      phx-key="Escape"
+    >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-family-title"
+        phx-mounted={JS.focus_first()}
         {test_id("family-delete-modal")}
       >
-        <h2 class="text-xl font-bold text-base-content mb-2">Delete Family</h2>
-        <p class="text-base-content/60 mb-6">
+        <h2
+          id="delete-family-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Family
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
           Delete <span class="font-semibold">"{@family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
         </p>
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="btn btn-error flex-1"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("family-delete-confirm-btn")}
           >
             Delete
           </button>
-          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
+          <button
+            phx-click="cancel_delete"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -287,7 +339,11 @@
 
   <%!-- New Gallery Modal --%>
   <%= if @show_new_gallery_modal do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="close_new_gallery_modal"
+      phx-key="Escape"
+    >
       <div
         class="absolute inset-0 bg-black/60 backdrop-blur-sm"
         phx-click="close_new_gallery_modal"
@@ -295,9 +351,18 @@
       </div>
       <div
         id="new-gallery-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-gallery-title"
+        phx-mounted={JS.focus_first()}
       >
-        <h2 class="text-xl font-bold text-base-content mb-6">New Gallery</h2>
+        <h2
+          id="new-gallery-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+        >
+          New Gallery
+        </h2>
         <.form
           for={@gallery_form}
           id="new-gallery-form"
@@ -311,8 +376,17 @@
             autofocus
           />
           <div class="flex gap-3 mt-6">
-            <button type="submit" class="btn btn-primary flex-1">Create</button>
-            <button type="button" phx-click="close_new_gallery_modal" class="btn btn-ghost flex-1">
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              phx-click="close_new_gallery_modal"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            >
               Cancel
             </button>
           </div>
@@ -323,20 +397,43 @@
 
   <%!-- Delete Gallery Confirmation Modal --%>
   <%= if @confirm_delete_gallery do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="cancel_delete_gallery"
+      phx-key="Escape"
+    >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_gallery">
       </div>
       <div
         id="confirm-delete-gallery-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-gallery-title"
+        phx-mounted={JS.focus_first()}
       >
-        <h2 class="text-xl font-bold text-base-content mb-2">Delete Gallery</h2>
-        <p class="text-base-content/60 mb-6">
+        <h2
+          id="delete-gallery-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Gallery
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
           Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? All photos will be permanently removed. This cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button phx-click="confirm_delete_gallery" class="btn btn-error flex-1">Delete</button>
-          <button phx-click="cancel_delete_gallery" class="btn btn-ghost flex-1">Cancel</button>
+          <button
+            phx-click="confirm_delete_gallery"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_gallery"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -344,14 +441,27 @@
 
   <%!-- Search/Link Existing Person Modal --%>
   <%= if @search_mode do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="close_search"
+      phx-key="Escape"
+    >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
       <div
         id="link-person-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="link-person-title"
+        phx-mounted={JS.focus_first()}
         {test_id("person-link-modal")}
       >
-        <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
+        <h2
+          id="link-person-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-4"
+        >
+          Link Existing Person
+        </h2>
         <label for="person-search-input" class="sr-only">Search people</label>
         <input
           id="person-search-input"
@@ -362,22 +472,22 @@
           phx-keyup="search"
           phx-debounce="300"
           autofocus
-          class="input input-bordered w-full mb-4"
+          class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm mb-4"
           {test_id("person-search-input")}
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
-            <p class="text-base-content/40 text-sm text-center py-4">No results found</p>
+            <p class="text-ds-on-surface-variant text-sm text-center py-4">No results found</p>
           <% end %>
           <%= for person <- @search_results do %>
             <button
               id={"link-person-#{person.id}"}
               phx-click="link_person"
               phx-value-id={person.id}
-              class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+              class="w-full flex items-center gap-3 p-3 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left"
               {test_id("person-link-result-#{person.id}")}
             >
-              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div class="w-10 h-10 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <%= if person.photo && person.photo_status == "processed" do %>
                   <img
                     src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -385,15 +495,15 @@
                     class="w-full h-full object-cover"
                   />
                 <% else %>
-                  <.icon name="hero-user" class="w-5 h-5 text-primary" />
+                  <.icon name="hero-user" class="w-5 h-5 text-ds-primary" />
                 <% end %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-base-content truncate">
+                <p class="font-medium text-ds-on-surface truncate">
                   {Ancestry.People.Person.display_name(person)}
                 </p>
                 <%= if person.families != [] do %>
-                  <p class="text-xs text-base-content/40 truncate">
+                  <p class="text-xs text-ds-on-surface-variant truncate">
                     {Enum.map_join(person.families, ", ", & &1.name)}
                   </p>
                 <% end %>
@@ -401,14 +511,23 @@
             </button>
           <% end %>
         </div>
-        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">Cancel</button>
+        <button
+          phx-click="close_search"
+          class="inline-flex items-center justify-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors w-full mt-4"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   <% end %>
 
   <%!-- Add Relationship Modal (from tree placeholders) --%>
   <%= if @adding_relationship do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="cancel_add_relationship"
+      phx-key="Escape"
+    >
       <div
         class="absolute inset-0 bg-black/60 backdrop-blur-sm"
         phx-click="cancel_add_relationship"
@@ -416,7 +535,11 @@
       </div>
       <div
         id="add-relationship-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="add-relationship-title"
+        phx-mounted={JS.focus_first()}
       >
         <.live_component
           module={Web.Shared.AddRelationshipComponent}

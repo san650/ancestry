@@ -4,11 +4,13 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">New Member</h1>
+        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+          New Member
+        </h1>
       </div>
     </div>
   </:toolbar>

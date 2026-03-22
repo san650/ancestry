@@ -17,15 +17,15 @@ defmodule Web.FamilyLive.PersonCardComponent do
       data-person-id={@person.id}
       id={if(@focused, do: "focus-person-card")}
       class={[
-        "relative flex flex-col items-center text-center w-28 rounded-lg p-2 transition-all group",
-        "bg-base-100 border border-base-content/10",
+        "relative flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 transition-all group",
+        "bg-ds-surface-card",
         gender_border_class(@person.gender),
-        @focused && "ring-2 ring-primary z-1"
+        @focused && "ring-2 ring-ds-primary z-1"
       ]}
     >
       <.link
         navigate={~p"/org/#{@organization.id}/people/#{@person.id}?from_family=#{@family_id}"}
-        class="absolute top-1 right-1 p-0.5 rounded text-base-content/30 hover:text-primary hover:bg-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
+        class="absolute top-1 right-1 p-0.5 rounded text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
         title="View details"
       >
         <.icon name="hero-arrow-top-right-on-square-mini" class="w-3 h-3" />
@@ -36,7 +36,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         phx-value-id={@person.id}
         class="flex flex-col items-center cursor-pointer group"
       >
-        <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-primary/50 transition-all">
+        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
           <%= if @person.photo && @person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
@@ -47,10 +47,10 @@ defmodule Web.FamilyLive.PersonCardComponent do
             <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@person.gender)]} />
           <% end %>
         </div>
-        <p class="text-xs font-medium text-base-content w-full group-hover:text-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
+        <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
           {Person.display_name(@person)}
         </p>
-        <p class="text-[10px] text-base-content/50">
+        <p class="text-[10px] text-ds-on-surface-variant">
           <%= if @person.birth_year do %>
             {format_life_span(@person)}
           <% else %>
@@ -59,7 +59,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         </p>
       </button>
       <%= if @has_more do %>
-        <div class="mt-1 text-base-content/30" title="Has more descendants">
+        <div class="mt-1 text-ds-on-surface-variant/50" title="Has more descendants">
           <.icon name="hero-chevron-down" class="w-3 h-3" />
         </div>
       <% end %>
@@ -78,15 +78,15 @@ defmodule Web.FamilyLive.PersonCardComponent do
       phx-click="add_relationship"
       phx-value-type={@type}
       phx-value-person-id={@person_id}
-      class="flex flex-col items-center text-center w-28 rounded-lg p-2 border border-dashed border-base-content/20 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group"
+      class="flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 border border-dashed border-ds-on-surface-variant/50 hover:border-ds-primary/50 hover:bg-ds-primary/5 transition-all cursor-pointer group"
     >
-      <div class="w-14 h-14 rounded-full bg-base-content/5 flex items-center justify-center mb-1 group-hover:bg-primary/10 transition-colors">
+      <div class="w-14 h-14 rounded-full bg-ds-on-surface/5 flex items-center justify-center mb-1 group-hover:bg-ds-primary/10 transition-colors">
         <.icon
           name="hero-plus"
-          class="w-6 h-6 text-base-content/30 group-hover:text-primary transition-colors"
+          class="w-6 h-6 text-ds-on-surface-variant/50 group-hover:text-ds-primary transition-colors"
         />
       </div>
-      <p class="text-xs text-base-content/40 group-hover:text-primary transition-colors">
+      <p class="text-xs text-ds-on-surface-variant group-hover:text-ds-primary transition-colors">
         {placeholder_label(@type)}
       </p>
     </button>
@@ -111,7 +111,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       data-couple-card
       data-person-a-id={@person_a && @person_a.id}
       data-person-b-id={@person_b && @person_b.id}
-      class="inline-flex items-stretch gap-0 rounded-lg bg-base-200/30 p-1"
+      class="inline-flex items-stretch gap-0 rounded-ds-sharp bg-ds-surface-low/30 p-1"
     >
       <%!-- Ex-partners on the sides --%>
       <%= for ex_group <- @ex_partners do %>
@@ -270,7 +270,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                   focused_person_id={@focused_person_id}
                 />
                 <div
-                  class="flex flex-col items-center mt-1 text-base-content/30"
+                  class="flex flex-col items-center mt-1 text-ds-on-surface-variant/50"
                   title="Has more descendants"
                 >
                   <.vline height={8} />
@@ -347,7 +347,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
         x2="1"
         y2={@height}
         stroke="currentColor"
-        class="text-base-content/20"
+        class="text-ds-on-surface-variant/50"
         stroke-width="3"
       />
     </svg>
@@ -358,11 +358,11 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   defp gender_border_class("male"), do: "border-t-2 border-t-blue-400"
   defp gender_border_class("female"), do: "border-t-2 border-t-pink-400"
-  defp gender_border_class(_), do: "border-t-2 border-t-base-content/20"
+  defp gender_border_class(_), do: "border-t-2 border-t-ds-on-surface-variant/50"
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"
-  defp gender_icon_class(_), do: "text-primary"
+  defp gender_icon_class(_), do: "text-ds-primary"
 
   defp format_life_span(person) do
     birth = person.birth_year

@@ -156,7 +156,7 @@ defmodule Web.GalleryLive.ShowTest do
       assert has_element?(view, "p", "This cannot be undone")
 
       # Confirm deletion
-      view |> element("button.btn-error", "Delete") |> render_click()
+      view |> element("#confirm-delete-photos-modal button", "Delete") |> render_click()
 
       # Selected photos are gone, unselected photo remains
       refute has_element?(view, "#photos-#{p1.id}")
@@ -177,7 +177,7 @@ defmodule Web.GalleryLive.ShowTest do
 
       # Request then cancel deletion
       view |> element("button", "Delete") |> render_click()
-      view |> element("button.btn-ghost", "Cancel") |> render_click()
+      view |> element("#confirm-delete-photos-modal button", "Cancel") |> render_click()
 
       # All photos still present
       assert has_element?(view, "#photos-#{p1.id}")

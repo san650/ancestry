@@ -4,12 +4,14 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("kinship-back-btn")}
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">Kinship</h1>
+        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+          Kinship
+        </h1>
       </div>
     </div>
   </:toolbar>
@@ -19,7 +21,7 @@
     <div class="flex items-start gap-4" {test_id("kinship-selectors")}>
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2 block">
+        <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
           Person A
         </label>
         <.person_selector
@@ -37,10 +39,10 @@
           id="kinship-swap-btn"
           phx-click="swap"
           class={[
-            "p-2 rounded-lg transition-colors",
+            "p-2 rounded-ds-sharp transition-colors",
             if(@person_a && @person_b,
-              do: "text-base-content/60 hover:text-primary hover:bg-primary/10",
-              else: "text-base-content/20 cursor-not-allowed"
+              do: "text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10",
+              else: "text-ds-on-surface-variant/50 cursor-not-allowed"
             )
           ]}
           disabled={!(@person_a && @person_b)}
@@ -52,7 +54,7 @@
 
       <%!-- Person B --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-base-content/40 mb-2 block">
+        <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
           Person B
         </label>
         <.person_selector
@@ -70,7 +72,7 @@
       <%= cond do %>
         <% is_nil(@person_a) or is_nil(@person_b) -> %>
           <div
-            class="text-center py-12 text-base-content/30"
+            class="text-center py-12 text-ds-on-surface-variant/50"
             {test_id("kinship-empty-state")}
           >
             <.icon name="hero-arrows-right-left" class="w-12 h-12 mx-auto mb-3" />
@@ -79,7 +81,7 @@
           </div>
         <% match?({:error, :same_person}, @result) -> %>
           <div
-            class="text-center py-12 text-base-content/40"
+            class="text-center py-12 text-ds-on-surface-variant"
             {test_id("kinship-same-person")}
           >
             <.icon name="hero-user" class="w-12 h-12 mx-auto mb-3" />
@@ -88,7 +90,7 @@
           </div>
         <% match?({:error, :no_common_ancestor}, @result) -> %>
           <div
-            class="text-center py-12 text-base-content/40"
+            class="text-center py-12 text-ds-on-surface-variant"
             {test_id("kinship-no-result")}
           >
             <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
@@ -103,7 +105,7 @@
             <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
-                class="text-3xl font-bold text-primary"
+                class="text-3xl font-ds-heading font-extrabold text-ds-primary"
                 {test_id("kinship-relationship-label")}
               >
                 {kinship.relationship}
@@ -113,7 +115,7 @@
             <%!-- DNA percentage --%>
             <div class="text-center mb-2">
               <span
-                class="text-sm text-base-content/50"
+                class="text-sm text-ds-on-surface-variant"
                 {test_id("kinship-dna-percentage")}
               >
                 ~{format_dna(kinship.dna_percentage)}% shared DNA
@@ -123,7 +125,7 @@
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
-                class="text-base text-base-content/60"
+                class="text-base text-ds-on-surface-variant"
                 {test_id("kinship-directional-label")}
               >
                 {Ancestry.People.Person.display_name(@person_a)} is {Ancestry.People.Person.display_name(
@@ -144,18 +146,18 @@
                     <% end %>
                     <% is_endpoint = index == 0 or index == length(direct_path) - 1 %>
                     <div class={[
-                      "flex items-center gap-3 px-4 py-3 rounded-xl border w-full max-w-sm",
+                      "flex items-center gap-3 px-4 py-3 rounded-ds-sharp border w-full max-w-sm",
                       if(is_endpoint,
-                        do: "bg-primary/10 border-primary/30",
-                        else: "bg-base-200/50 border-base-300"
+                        do: "bg-ds-primary/10 border-ds-primary/30",
+                        else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
                       )
                     ]}>
                       <.kinship_person_avatar person={node.person} />
                       <div class="min-w-0 flex-1">
-                        <p class="font-medium text-sm text-base-content truncate">
+                        <p class="font-medium text-sm text-ds-on-surface truncate">
                           {Ancestry.People.Person.display_name(node.person)}
                         </p>
-                        <p class="text-xs text-base-content/50">{node.label}</p>
+                        <p class="text-xs text-ds-on-surface-variant">{node.label}</p>
                       </div>
                     </div>
                   <% end %>
@@ -163,14 +165,14 @@
                   <%!-- Two-branch inverted-V tree --%>
                   <%!-- MRCA node at top --%>
                   <% mrca_node = List.first(@path_a) %>
-                  <div class="flex items-center gap-3 px-4 py-3 rounded-xl border bg-base-200 border-base-300 w-full max-w-sm">
+                  <div class="flex items-center gap-3 px-4 py-3 rounded-ds-sharp border bg-ds-surface-low border-ds-outline-variant/20 w-full max-w-sm">
                     <.kinship_person_avatar person={mrca_node.person} />
                     <div class="min-w-0 flex-1">
-                      <p class="font-medium text-sm text-base-content truncate">
+                      <p class="font-medium text-sm text-ds-on-surface truncate">
                         {Ancestry.People.Person.display_name(mrca_node.person)}
                       </p>
-                      <p class="text-xs text-base-content/50">{mrca_node.label}</p>
-                      <p class="text-xs text-base-content/40">(Common Ancestor)</p>
+                      <p class="text-xs text-ds-on-surface-variant">{mrca_node.label}</p>
+                      <p class="text-xs text-ds-on-surface-variant">(Common Ancestor)</p>
                     </div>
                   </div>
 
@@ -185,18 +187,18 @@
                         <.arrow_connector direction={:up} />
                         <% is_endpoint = index == length(@path_a) - 2 %>
                         <div class={[
-                          "flex items-center gap-3 px-3 py-2 rounded-xl border w-full",
+                          "flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full",
                           if(is_endpoint,
-                            do: "bg-primary/10 border-primary/30",
-                            else: "bg-base-200/50 border-base-300"
+                            do: "bg-ds-primary/10 border-ds-primary/30",
+                            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
                           )
                         ]}>
                           <.kinship_person_avatar person={node.person} />
                           <div class="min-w-0 flex-1">
-                            <p class="font-medium text-sm text-base-content truncate">
+                            <p class="font-medium text-sm text-ds-on-surface truncate">
                               {Ancestry.People.Person.display_name(node.person)}
                             </p>
-                            <p class="text-xs text-base-content/50">{node.label}</p>
+                            <p class="text-xs text-ds-on-surface-variant">{node.label}</p>
                           </div>
                         </div>
                       <% end %>
@@ -208,18 +210,18 @@
                         <.arrow_connector direction={:down} />
                         <% is_endpoint = index == length(@path_b) - 2 %>
                         <div class={[
-                          "flex items-center gap-3 px-3 py-2 rounded-xl border w-full",
+                          "flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full",
                           if(is_endpoint,
-                            do: "bg-primary/10 border-primary/30",
-                            else: "bg-base-200/50 border-base-300"
+                            do: "bg-ds-primary/10 border-ds-primary/30",
+                            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
                           )
                         ]}>
                           <.kinship_person_avatar person={node.person} />
                           <div class="min-w-0 flex-1">
-                            <p class="font-medium text-sm text-base-content truncate">
+                            <p class="font-medium text-sm text-ds-on-surface truncate">
                               {Ancestry.People.Person.display_name(node.person)}
                             </p>
-                            <p class="text-xs text-base-content/50">{node.label}</p>
+                            <p class="text-xs text-ds-on-surface-variant">{node.label}</p>
                           </div>
                         </div>
                       <% end %>
@@ -231,7 +233,7 @@
             <%!-- "Times Removed" footnote --%>
             <%= if String.contains?(kinship.relationship, "Removed") do %>
               <div
-                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-lg bg-base-200/50 text-xs text-base-content/50"
+                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-ds-sharp bg-ds-surface-low/50 text-xs text-ds-on-surface-variant"
                 {test_id("kinship-removed-footnote")}
               >
                 <.icon name="hero-information-circle" class="w-4 h-4 shrink-0 mt-0.5" />
@@ -244,7 +246,7 @@
             <% end %>
 
             <%!-- DNA disclaimer --%>
-            <div class="mt-4 text-center text-xs text-base-content/30">
+            <div class="mt-4 text-center text-xs text-ds-on-surface-variant/50">
               Percentages are approximate and may vary.
             </div>
           </div>

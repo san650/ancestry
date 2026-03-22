@@ -4,11 +4,13 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@organization.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">New Family</h1>
+        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+          New Family
+        </h1>
       </div>
     </div>
   </:toolbar>
@@ -30,23 +32,25 @@
       />
 
       <div class="mt-6">
-        <label class="block text-sm font-medium text-base-content mb-2">
-          Cover photo <span class="text-base-content/40">(optional)</span>
+        <label class="block text-sm font-ds-body font-medium text-ds-on-surface mb-2">
+          Cover photo <span class="text-ds-on-surface-variant">(optional)</span>
         </label>
         <.live_file_input
           upload={@uploads.cover}
-          class="file-input file-input-bordered w-full"
+          class="w-full text-sm font-ds-body file:bg-ds-primary file:text-ds-on-primary file:border-0 file:rounded-ds-sharp file:px-4 file:py-2 file:mr-4 file:font-semibold"
           {test_id("family-cover-input")}
         />
 
         <%= for entry <- @uploads.cover.entries do %>
           <div class="mt-3 flex items-center gap-3">
-            <.live_img_preview entry={entry} class="w-20 h-20 rounded-lg object-cover" />
+            <.live_img_preview entry={entry} class="w-20 h-20 rounded-ds-sharp object-cover" />
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-base-content truncate">{entry.client_name}</p>
-              <div class="mt-1 h-1.5 bg-base-200 rounded-full overflow-hidden">
+              <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+                {entry.client_name}
+              </p>
+              <div class="mt-1 h-1.5 bg-ds-surface-low rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-primary rounded-full transition-all duration-300"
+                  class="h-full bg-ds-primary rounded-full transition-all duration-300"
                   style={"width: #{entry.progress}%"}
                 >
                 </div>
@@ -56,7 +60,7 @@
               type="button"
               phx-click="cancel_upload"
               phx-value-ref={entry.ref}
-              class="p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 transition-all"
+              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
             >
               <.icon name="hero-x-mark" class="w-4 h-4" />
             </button>
@@ -64,15 +68,24 @@
         <% end %>
 
         <%= for err <- upload_errors(@uploads.cover) do %>
-          <p class="text-error text-sm mt-2">{upload_error_to_string(err)}</p>
+          <p class="text-ds-error text-sm mt-2">{upload_error_to_string(err)}</p>
         <% end %>
       </div>
 
       <div class="flex gap-3 mt-8">
-        <button type="submit" class="btn btn-primary flex-1" {test_id("family-create-btn")}>
+        <button
+          type="submit"
+          class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          {test_id("family-create-btn")}
+        >
           Create
         </button>
-        <.link navigate={~p"/org/#{@organization.id}"} class="btn btn-ghost flex-1">Cancel</.link>
+        <.link
+          navigate={~p"/org/#{@organization.id}"}
+          class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors text-center"
+        >
+          Cancel
+        </.link>
       </div>
     </.form>
   </div>

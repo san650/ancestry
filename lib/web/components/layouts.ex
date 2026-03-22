@@ -51,11 +51,11 @@ defmodule Web.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen">
-      <header class="navbar px-4 sm:px-6 lg:px-8">
+      <header class="flex items-center px-4 sm:px-6 lg:px-8 py-2">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
-            <span class="text-sm font-semibold">Ancestry</span>
+            <span class="text-sm font-ds-body font-semibold text-ds-on-surface">Ancestry</span>
           </a>
         </div>
         <div class="flex-none">
@@ -78,7 +78,7 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 border-b border-base-200 bg-base-100"
+          class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 bg-ds-surface-low"
         >
           {render_slot(@toolbar)}
         </div>
@@ -142,8 +142,8 @@ defmodule Web.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+    <div class="relative flex flex-row items-center bg-ds-surface-low rounded-full">
+      <div class="absolute w-1/3 h-full rounded-full bg-ds-surface-card brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"
