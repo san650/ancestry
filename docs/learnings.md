@@ -132,3 +132,23 @@ This keeps LiveView modules free of boilerplate — they just access `socket.ass
 Placing `phx-click="close"` on a parent container to implement click-away behavior causes clicks on child elements (like search inputs inside a dropdown) to bubble up and trigger the close event, immediately closing the dropdown the user is trying to interact with.
 
 **Fix:** Use `phx-click-away` on the dropdown element itself instead of `phx-click` on a parent container. `phx-click-away` fires only when the click is *outside* the annotated element, so clicks within the dropdown (search field, options) work normally. For autofocusing inputs that appear dynamically (via LiveView patching), use `phx-mounted={JS.focus()}` instead of the HTML `autofocus` attribute, which only works on initial page load.
+
+## Checkbox `phx-click` with `phx-value-*` sends empty params on uncheck
+
+When using `phx-click` with `phx-value-value` on a checkbox, unchecking sends an empty map `%{}` — not `%{"value" => "false"}`. The `phx-value-*` attributes are only included in the event payload when the element's click fires with a truthy interaction, but the uncheck action sends no value attributes.
+
+**Wrong** — pattern matching on `%{"value" => value}` crashes with `FunctionClauseError` on uncheck:
+
+```elixir
+def handle_event("toggle_option", %{"value" => value}, socket) do
+  {:noreply, assign(socket, :option, value == "true")}
+end
+```
+
+**Fix:** Accept any params and use bracket access (`params["value"]`), which returns `nil` for missing keys. `nil == "true"` evaluates to `false`, correctly representing an unchecked checkbox:
+
+```elixir
+def handle_event("toggle_option", params, socket) do
+  {:noreply, assign(socket, :option, params["value"] == "true")}
+end
+```
