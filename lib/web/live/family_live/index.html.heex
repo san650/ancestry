@@ -1,11 +1,13 @@
 <Layouts.app flash={@flash} organization={@organization}>
   <:toolbar>
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
-      <h1 class="text-3xl font-bold tracking-tight text-base-content">Families</h1>
+    <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+        Families
+      </h1>
       <div class="flex items-center gap-2">
         <.link
           navigate={~p"/org/#{@organization.id}/people"}
-          class="btn btn-ghost"
+          class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           {test_id("org-people-btn")}
         >
           <.icon name="hero-users" class="w-4 h-4" /> People
@@ -13,7 +15,7 @@
         <.link
           id="new-family-btn"
           navigate={~p"/org/#{@organization.id}/families/new"}
-          class="btn btn-primary"
+          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-5 py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
           {test_id("family-new-btn")}
         >
           New Family
@@ -22,75 +24,103 @@
     </div>
   </:toolbar>
 
-  <div id="family-index-root" class="max-w-7xl mx-auto">
-    <div
-      id="families"
-      phx-update="stream"
-      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
-    >
+  <div class="bg-ds-surface-low min-h-screen">
+    <div id="family-index-root" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div
-        id="families-empty"
-        class="hidden only:block col-span-full text-center py-20 text-base-content/40"
-        {test_id("families-empty")}
+        id="families"
+        phx-update="stream"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
       >
-        No families yet
-      </div>
-      <div
-        :for={{id, family} <- @streams.families}
-        id={id}
-        class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
-        {test_id("family-card-#{family.id}")}
-      >
-        <.link navigate={~p"/org/#{@organization.id}/families/#{family.id}"} class="block">
-          <%= if family.cover do %>
-            <div class="h-32 overflow-hidden">
-              <img
-                src={Ancestry.Uploaders.FamilyCover.url({family.cover, family}, :cover)}
-                alt={family.name}
-                class="w-full h-full object-cover"
-              />
-            </div>
-          <% else %>
-            <div class="h-32 bg-base-200 flex items-center justify-center">
-              <.icon name="hero-users" class="w-8 h-8 text-base-content/20" />
-            </div>
-          <% end %>
-          <div class="p-4">
-            <h2 data-family-name class="text-lg font-semibold text-base-content truncate">
-              {family.name}
-            </h2>
-            <p class="text-sm text-base-content/50 mt-1">
-              {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
-            </p>
-          </div>
-        </.link>
-        <button
-          id={"delete-family-#{family.id}"}
-          phx-click="request_delete"
-          phx-value-id={family.id}
-          class="absolute top-3 right-3 p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-all"
+        <div
+          id="families-empty"
+          class="hidden only:block col-span-full text-center py-20 bg-ds-surface-dim rounded-ds-sharp"
+          {test_id("families-empty")}
         >
-          <.icon name="hero-trash" class="w-4 h-4" />
-        </button>
+          <span class="text-ds-on-surface font-ds-heading font-bold">No families yet</span>
+        </div>
+        <div
+          :for={{id, family} <- @streams.families}
+          id={id}
+          class="group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden"
+          {test_id("family-card-#{family.id}")}
+        >
+          <.link navigate={~p"/org/#{@organization.id}/families/#{family.id}"} class="block">
+            <%= if family.cover do %>
+              <div class="h-32 overflow-hidden">
+                <img
+                  src={Ancestry.Uploaders.FamilyCover.url({family.cover, family}, :cover)}
+                  alt={family.name}
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            <% else %>
+              <div class="h-32 bg-ds-surface-low flex items-center justify-center">
+                <.icon name="hero-users" class="w-8 h-8 text-ds-on-surface-variant" />
+              </div>
+            <% end %>
+            <div class="p-4">
+              <h2
+                data-family-name
+                class="text-lg font-ds-heading font-bold text-ds-on-surface truncate"
+              >
+                {family.name}
+              </h2>
+              <p class="text-sm text-ds-on-surface-variant mt-1">
+                {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
+              </p>
+            </div>
+          </.link>
+          <button
+            id={"delete-family-#{family.id}"}
+            phx-click="request_delete"
+            phx-value-id={family.id}
+            class="absolute top-3 right-3 p-1.5 rounded-ds-sharp text-ds-on-surface-variant/30 hover:text-ds-error hover:bg-ds-error/10 opacity-0 group-hover:opacity-100 transition-all"
+          >
+            <.icon name="hero-trash" class="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <%!-- Delete Confirmation Modal --%>
   <%= if @confirm_delete_family do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      phx-window-keydown="cancel_delete"
+      phx-key="Escape"
+    >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-family-title"
+        phx-mounted={JS.focus_first()}
       >
-        <h2 class="text-xl font-bold text-base-content mb-2">Delete Family</h2>
-        <p class="text-base-content/60 mb-6">
-          Delete <span class="font-semibold">"{@confirm_delete_family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
+        <h2
+          id="delete-family-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Family
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          Delete <span class="font-semibold text-ds-on-surface">"{@confirm_delete_family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
-          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
+          <button
+            phx-click="confirm_delete"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>
