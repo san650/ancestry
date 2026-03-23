@@ -8,6 +8,7 @@ defmodule Web.Router do
     plug :put_root_layout, html: {Web.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_scope_for_account
   end
 
   pipeline :api do
@@ -51,5 +52,33 @@ defmodule Web.Router do
       live_dashboard "/dashboard", metrics: Web.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
+  end
+
+  ## Authentication routes
+
+  scope "/", Web do
+    pipe_through [:browser, :require_authenticated_account]
+
+    live_session :require_authenticated_account,
+      on_mount: [{Web.AccountAuth, :require_authenticated}] do
+      live "/accounts/settings", AccountLive.Settings, :edit
+      live "/accounts/settings/confirm-email/:token", AccountLive.Settings, :confirm_email
+    end
+
+    post "/accounts/update-password", AccountSessionController, :update_password
+  end
+
+  scope "/", Web do
+    pipe_through [:browser]
+
+    live_session :current_account,
+      on_mount: [{Web.AccountAuth, :mount_current_scope}] do
+      live "/accounts/register", AccountLive.Registration, :new
+      live "/accounts/log-in", AccountLive.Login, :new
+      live "/accounts/log-in/:token", AccountLive.Confirmation, :new
+    end
+
+    post "/accounts/log-in", AccountSessionController, :create
+    delete "/accounts/log-out", AccountSessionController, :delete
   end
 end

@@ -41,6 +41,7 @@ defmodule Ancestry.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix_test_playwright, "~> 0.13", only: :test, runtime: false},
       {:ex_machina, "~> 2.8", only: :test},
       {:claude, "~> 0.5", only: [:dev], runtime: false},
