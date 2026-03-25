@@ -33,16 +33,32 @@ jobs:
       with:
         version-file: '.tool-versions'
         version-type: 'strict'
+
     - name: Restore dependencies cache
       uses: actions/cache@v5
       with:
         path: deps
         key: ${{ runner.os }}-mix-deps-${{ hashFiles('**/mix.lock') }}
+
     - name: Restore compilation cache
       uses: actions/cache@v5
       with:
         path: _build
         key: ${{ runner.os }}-mix-build-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('**/mix.lock') }}
+
+    - name: Set up Node.js for Playwright CI
+      uses: actions/setup-node@6
+      with:
+        node-version: '24'
+
+    - name: Install Playwright system dependencies
+      run: sudo npx playwright install-deps
+      working-directory: ./assets
+
+    - name: Install Playwright browsers
+      run : npx playwright install
+      working-directory: ./assets
+
     - run: mix deps.get
     - run: mix deps.unlock --check-unused
     - run: mix compile --warnings-as-errors
