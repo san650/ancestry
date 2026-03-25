@@ -9,36 +9,6 @@ defmodule Web.AccountLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/accounts/log-in")
 
       assert html =~ "Log in"
-      assert html =~ "Log in with email"
-    end
-  end
-
-  describe "account login - magic link" do
-    test "sends magic link email when account exists", %{conn: conn} do
-      account = insert(:account)
-
-      {:ok, lv, _html} = live(conn, ~p"/accounts/log-in")
-
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", account: %{email: account.email})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/accounts/log-in")
-
-      assert html =~ "If your email is in our system"
-
-      assert Ancestry.Repo.get_by!(Ancestry.Identity.AccountToken, account_id: account.id).context ==
-               "login"
-    end
-
-    test "does not disclose if account is registered", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/log-in")
-
-      {:ok, _lv, html} =
-        form(lv, "#login_form_magic", account: %{email: "idonotexist@example.com"})
-        |> render_submit()
-        |> follow_redirect(conn, ~p"/accounts/log-in")
-
-      assert html =~ "If your email is in our system"
     end
   end
 
@@ -84,10 +54,9 @@ defmodule Web.AccountLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/accounts/log-in")
 
       assert html =~ "You need to reauthenticate"
-      assert html =~ "Log in with email"
 
       assert html =~
-               ~s(<input type="email" name="account[email]" id="login_form_magic_email" value="#{account.email}")
+               ~s(<input type="email" name="account[email]" id="login_form_password_email" value="#{account.email}")
     end
   end
 end

@@ -1,8 +1,6 @@
 defmodule Web.AccountLive.Login do
   use Web, :live_view
 
-  alias Ancestry.Identity
-
   @impl true
   def render(assigns) do
     ~H"""
