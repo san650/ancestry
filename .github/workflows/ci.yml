@@ -51,13 +51,12 @@ jobs:
       with:
         node-version: '24'
 
-    - name: Install Playwright system dependencies
-      run: sudo npx playwright install-deps
-      working-directory: ./assets
+    - name: Install Playwright Dependencies
+      run: npm ci --prefix assets
 
-    - name: Install Playwright browsers
-      run : npx playwright install
-      working-directory: ./assets
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+      working-directory: assets
 
     - run: mix deps.get
     - run: mix deps.unlock --check-unused
