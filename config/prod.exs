@@ -26,5 +26,10 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :waffle,
+  storage: Waffle.Storage.S3,
+  bucket: {:system, "AWS_S3_BUCKET"}
+  asset_host: {:system, "ASSET_HOST"}
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
