@@ -12,6 +12,8 @@ defmodule Web.UserFlows.LinkPersonTest do
   end
 
   test "link an existing person to a family", %{conn: conn, person: person, org: org} do
+    conn = log_in_e2e(conn)
+
     # Visit families page and click the family
     conn =
       conn

@@ -23,6 +23,8 @@ defmodule Web.UserFlows.CreateFamilyTest do
   end
 
   test "create a new family with cover photo and navigate back", %{conn: conn, org: org} do
+    conn = log_in_e2e(conn)
+
     # Visit the org page — should see empty state
     conn =
       conn

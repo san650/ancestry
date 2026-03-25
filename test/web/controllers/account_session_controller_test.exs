@@ -5,7 +5,7 @@ defmodule Web.AccountSessionControllerTest do
   alias Ancestry.Identity
 
   setup do
-    %{unconfirmed_account: unconfirmed_account_fixture(), account: account_fixture()}
+    %{unconfirmed_account: insert(:unconfirmed_account), account: insert(:account)}
   end
 
   describe "POST /accounts/log-in - email and password" do

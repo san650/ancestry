@@ -124,7 +124,9 @@ defmodule Ancestry.Identity do
            %AccountToken{sent_to: email} <- Repo.one(query),
            {:ok, account} <- Repo.update(Account.email_changeset(account, %{email: email})),
            {_count, _result} <-
-             Repo.delete_all(from(AccountToken, where: [account_id: ^account.id, context: ^context])) do
+             Repo.delete_all(
+               from(AccountToken, where: [account_id: ^account.id, context: ^context])
+             ) do
         {:ok, account}
       else
         _ -> {:error, :transaction_aborted}
@@ -255,12 +257,21 @@ defmodule Ancestry.Identity do
       {:ok, %{to: ..., body: ...}}
 
   """
-  def deliver_account_update_email_instructions(%Account{} = account, current_email, update_email_url_fun)
+  def deliver_account_update_email_instructions(
+        %Account{} = account,
+        current_email,
+        update_email_url_fun
+      )
       when is_function(update_email_url_fun, 1) do
-    {encoded_token, account_token} = AccountToken.build_email_token(account, "change:#{current_email}")
+    {encoded_token, account_token} =
+      AccountToken.build_email_token(account, "change:#{current_email}")
 
     Repo.insert!(account_token)
-    AccountNotifier.deliver_update_email_instructions(account, update_email_url_fun.(encoded_token))
+
+    AccountNotifier.deliver_update_email_instructions(
+      account,
+      update_email_url_fun.(encoded_token)
+    )
   end
 
   @doc """
@@ -288,7 +299,9 @@ defmodule Ancestry.Identity do
       with {:ok, account} <- Repo.update(changeset) do
         tokens_to_expire = Repo.all_by(AccountToken, account_id: account.id)
 
-        Repo.delete_all(from(t in AccountToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
+        Repo.delete_all(
+          from(t in AccountToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id))
+        )
 
         {:ok, {account, tokens_to_expire}}
       end

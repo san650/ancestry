@@ -47,6 +47,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     diana: diana,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -75,6 +77,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
   end
 
   test "navigate from family show via toolbar", %{conn: conn, family: family, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")
@@ -87,6 +91,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
   end
 
   test "search filters the table", %{conn: conn, family: family, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -109,6 +115,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     diana: diana,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -163,6 +171,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
   end
 
   test "exit edit mode hides checkboxes", %{conn: conn, family: family, alice: alice, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -200,6 +210,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     charlie: charlie,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -243,6 +255,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     family: family,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -278,6 +292,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     family: family,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -304,6 +320,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     diana: diana,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -333,6 +351,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
   end
 
   test "estimated age displays correctly", %{conn: conn, family: family, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")
@@ -355,6 +375,8 @@ defmodule Web.UserFlows.ManagePeopleTest do
     diana: diana,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/people")

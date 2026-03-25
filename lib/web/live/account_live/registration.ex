@@ -8,35 +8,41 @@ defmodule Web.AccountLive.Registration do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <div class="text-center">
-          <.header>
-            Register for an account
-            <:subtitle>
+      <div class="flex items-center justify-center min-h-[70vh] px-4">
+        <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
+          <div class="text-center">
+            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">Register</h1>
+            <p class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
               Already registered?
-              <.link navigate={~p"/accounts/log-in"} class="font-semibold text-brand hover:underline">
+              <.link
+                navigate={~p"/accounts/log-in"}
+                class="font-semibold text-ds-on-surface hover:underline"
+              >
                 Log in
               </.link>
-              to your account now.
-            </:subtitle>
-          </.header>
+            </p>
+          </div>
+
+          <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
+            <.input
+              field={@form[:email]}
+              type="email"
+              label="Email"
+              autocomplete="username"
+              spellcheck="false"
+              required
+              phx-mounted={JS.focus()}
+            />
+
+            <button
+              type="submit"
+              phx-disable-with="Creating account..."
+              class="w-full mt-4 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+            >
+              Create an account
+            </button>
+          </.form>
         </div>
-
-        <.form for={@form} id="registration_form" phx-submit="save" phx-change="validate">
-          <.input
-            field={@form[:email]}
-            type="email"
-            label="Email"
-            autocomplete="username"
-            spellcheck="false"
-            required
-            phx-mounted={JS.focus()}
-          />
-
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full">
-            Create an account
-          </.button>
-        </.form>
       </div>
     </Layouts.app>
     """

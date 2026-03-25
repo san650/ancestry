@@ -9,7 +9,7 @@ defmodule Web.AccountLive.SettingsTest do
     test "renders settings page", %{conn: conn} do
       {:ok, _lv, html} =
         conn
-        |> log_in_account(account_fixture())
+        |> log_in_account(insert(:account))
         |> live(~p"/accounts/settings")
 
       assert html =~ "Change Email"
@@ -27,7 +27,7 @@ defmodule Web.AccountLive.SettingsTest do
     test "redirects if account is not in sudo mode", %{conn: conn} do
       {:ok, conn} =
         conn
-        |> log_in_account(account_fixture(),
+        |> log_in_account(insert(:account),
           token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
         )
         |> live(~p"/accounts/settings")
@@ -39,7 +39,7 @@ defmodule Web.AccountLive.SettingsTest do
 
   describe "update email form" do
     setup %{conn: conn} do
-      account = account_fixture()
+      account = insert(:account)
       %{conn: log_in_account(conn, account), account: account}
     end
 
@@ -91,7 +91,7 @@ defmodule Web.AccountLive.SettingsTest do
 
   describe "update password form" do
     setup %{conn: conn} do
-      account = account_fixture()
+      account = insert(:account)
       %{conn: log_in_account(conn, account), account: account}
     end
 
@@ -162,18 +162,27 @@ defmodule Web.AccountLive.SettingsTest do
 
   describe "confirm email" do
     setup %{conn: conn} do
-      account = account_fixture()
+      account = insert(:account)
       email = unique_account_email()
 
       token =
         extract_account_token(fn url ->
-          Identity.deliver_account_update_email_instructions(%{account | email: email}, account.email, url)
+          Identity.deliver_account_update_email_instructions(
+            %{account | email: email},
+            account.email,
+            url
+          )
         end)
 
       %{conn: log_in_account(conn, account), token: token, email: email, account: account}
     end
 
-    test "updates the account email once", %{conn: conn, account: account, token: token, email: email} do
+    test "updates the account email once", %{
+      conn: conn,
+      account: account,
+      token: token,
+      email: email
+    } do
       {:error, redirect} = live(conn, ~p"/accounts/settings/confirm-email/#{token}")
 
       assert {:live_redirect, %{to: path, flash: flash}} = redirect

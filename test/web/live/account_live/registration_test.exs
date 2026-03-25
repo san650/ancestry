@@ -15,7 +15,7 @@ defmodule Web.AccountLive.RegistrationTest do
     test "redirects if already logged in", %{conn: conn} do
       result =
         conn
-        |> log_in_account(account_fixture())
+        |> log_in_account(insert(:account))
         |> live(~p"/accounts/register")
         |> follow_redirect(conn, ~p"/")
 
@@ -40,7 +40,7 @@ defmodule Web.AccountLive.RegistrationTest do
       {:ok, lv, _html} = live(conn, ~p"/accounts/register")
 
       email = unique_account_email()
-      form = form(lv, "#registration_form", account: valid_account_attributes(email: email))
+      form = form(lv, "#registration_form", account: %{email: email})
 
       {:ok, _lv, html} =
         render_submit(form)
@@ -53,7 +53,7 @@ defmodule Web.AccountLive.RegistrationTest do
     test "renders errors for duplicated email", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/accounts/register")
 
-      account = account_fixture(%{email: "test@email.com"})
+      account = insert(:account, %{email: "test@email.com"})
 
       result =
         lv

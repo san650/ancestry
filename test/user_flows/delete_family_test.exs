@@ -18,6 +18,8 @@ defmodule Web.UserFlows.DeleteFamilyTest do
     person: person,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     # Visit families page and click the family
     conn =
       conn

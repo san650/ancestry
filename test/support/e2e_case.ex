@@ -12,6 +12,20 @@ defmodule Web.E2ECase do
   end
 
   @doc """
+  Creates an account and logs in by visiting a test-only session endpoint
+  that sets the session cookie directly, avoiding the login UI.
+
+  Must be called at the start of each e2e test before visiting authenticated routes.
+  Returns the updated conn (now authenticated).
+  """
+  def log_in_e2e(conn) do
+    account = Ancestry.Factory.insert(:account)
+
+    conn
+    |> PhoenixTest.visit("/test/session/#{account.id}")
+  end
+
+  @doc """
   Returns a CSS attribute selector for `data-testid`.
 
       click(conn, test_id("family-new-btn"))

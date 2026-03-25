@@ -44,7 +44,9 @@ defmodule Ancestry.Identity.AccountToken do
   def build_session_token(account) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = account.authenticated_at || DateTime.utc_now(:second)
-    {token, %AccountToken{token: token, context: "session", account_id: account.id, authenticated_at: dt}}
+
+    {token,
+     %AccountToken{token: token, context: "session", account_id: account.id, authenticated_at: dt}}
   end
 
   @doc """

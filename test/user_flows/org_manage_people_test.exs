@@ -59,6 +59,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
   end
 
   test "navigate to org people page from family index", %{conn: conn, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}")
@@ -74,6 +76,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
   end
 
   test "search filters the table", %{conn: conn, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")
@@ -88,6 +92,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
   end
 
   test "no family chip filters to people without families", %{conn: conn, org: org} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")
@@ -112,6 +118,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
   end
 
   test "bulk delete people", %{conn: conn, org: org, orphan: orphan, bob: bob} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")
@@ -155,6 +163,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
     org: org,
     orphan: orphan
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")
@@ -179,6 +189,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
   end
 
   test "cancel delete dismisses modal", %{conn: conn, org: org, orphan: orphan} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")
@@ -211,6 +223,8 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
     org: org,
     alice: alice
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/people")

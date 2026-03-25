@@ -7,11 +7,14 @@ defmodule Web.AccountLive.ConfirmationTest do
   alias Ancestry.Identity
 
   setup do
-    %{unconfirmed_account: unconfirmed_account_fixture(), confirmed_account: account_fixture()}
+    %{unconfirmed_account: insert(:unconfirmed_account), confirmed_account: insert(:account)}
   end
 
   describe "Confirm account" do
-    test "renders confirmation page for unconfirmed account", %{conn: conn, unconfirmed_account: account} do
+    test "renders confirmation page for unconfirmed account", %{
+      conn: conn,
+      unconfirmed_account: account
+    } do
       token =
         extract_account_token(fn url ->
           Identity.deliver_login_instructions(account, url)
@@ -32,7 +35,10 @@ defmodule Web.AccountLive.ConfirmationTest do
       assert html =~ "Keep me logged in on this device"
     end
 
-    test "renders login page for already logged in account", %{conn: conn, confirmed_account: account} do
+    test "renders login page for already logged in account", %{
+      conn: conn,
+      confirmed_account: account
+    } do
       conn = log_in_account(conn, account)
 
       token =

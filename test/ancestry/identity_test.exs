@@ -12,7 +12,7 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "returns the account if the email exists" do
-      %{id: id} = account = account_fixture()
+      %{id: id} = account = insert(:account)
       assert %Account{id: ^id} = Identity.get_account_by_email(account.email)
     end
   end
@@ -23,12 +23,12 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "does not return the account if the password is not valid" do
-      account = account_fixture() |> set_password()
+      account = insert(:account) |> set_password()
       refute Identity.get_account_by_email_and_password(account.email, "invalid")
     end
 
     test "returns the account if the email and password are valid" do
-      %{id: id} = account = account_fixture() |> set_password()
+      %{id: id} = account = insert(:account) |> set_password()
 
       assert %Account{id: ^id} =
                Identity.get_account_by_email_and_password(account.email, valid_account_password())
@@ -43,7 +43,7 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "returns the account with the given id" do
-      %{id: id} = account = account_fixture()
+      %{id: id} = account = insert(:account)
       assert %Account{id: ^id} = Identity.get_account!(account.id)
     end
   end
@@ -68,7 +68,7 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "validates email uniqueness" do
-      %{email: email} = account_fixture()
+      %{email: email} = insert(:account)
       {:error, changeset} = Identity.register_account(%{email: email})
       assert "has already been taken" in errors_on(changeset).email
 
@@ -79,7 +79,7 @@ defmodule Ancestry.IdentityTest do
 
     test "registers accounts without password" do
       email = unique_account_email()
-      {:ok, account} = Identity.register_account(valid_account_attributes(email: email))
+      {:ok, account} = Identity.register_account(%{email: email})
       assert account.email == email
       assert is_nil(account.hashed_password)
       assert is_nil(account.confirmed_at)
@@ -115,7 +115,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "deliver_account_update_email_instructions/3" do
     setup do
-      %{account: account_fixture()}
+      %{account: insert(:account)}
     end
 
     test "sends token through notification", %{account: account} do
@@ -134,12 +134,16 @@ defmodule Ancestry.IdentityTest do
 
   describe "update_account_email/2" do
     setup do
-      account = unconfirmed_account_fixture()
+      account = insert(:unconfirmed_account)
       email = unique_account_email()
 
       token =
         extract_account_token(fn url ->
-          Identity.deliver_account_update_email_instructions(%{account | email: email}, account.email, url)
+          Identity.deliver_account_update_email_instructions(
+            %{account | email: email},
+            account.email,
+            url
+          )
         end)
 
       %{account: account, token: token, email: email}
@@ -204,7 +208,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "update_account_password/2" do
     setup do
-      %{account: account_fixture()}
+      %{account: insert(:account)}
     end
 
     test "validates password", %{account: account} do
@@ -254,7 +258,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "generate_account_session_token/1" do
     setup do
-      %{account: account_fixture()}
+      %{account: insert(:account)}
     end
 
     test "generates a token", %{account: account} do
@@ -267,7 +271,7 @@ defmodule Ancestry.IdentityTest do
       assert_raise Ecto.ConstraintError, fn ->
         Repo.insert!(%AccountToken{
           token: account_token.token,
-          account_id: account_fixture().id,
+          account_id: insert(:account).id,
           context: "session"
         })
       end
@@ -284,7 +288,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "get_account_by_session_token/1" do
     setup do
-      account = account_fixture()
+      account = insert(:account)
       token = Identity.generate_account_session_token(account)
       %{account: account, token: token}
     end
@@ -309,7 +313,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "get_account_by_magic_link_token/1" do
     setup do
-      account = account_fixture()
+      account = insert(:account)
       {encoded_token, _hashed_token} = generate_account_magic_link_token(account)
       %{account: account, token: encoded_token}
     end
@@ -331,7 +335,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "login_account_by_magic_link/1" do
     test "confirms account and expires tokens" do
-      account = unconfirmed_account_fixture()
+      account = insert(:unconfirmed_account)
       refute account.confirmed_at
       {encoded_token, hashed_token} = generate_account_magic_link_token(account)
 
@@ -342,7 +346,7 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "returns account and (deleted) token for confirmed account" do
-      account = account_fixture()
+      account = insert(:account)
       assert account.confirmed_at
       {encoded_token, _hashed_token} = generate_account_magic_link_token(account)
       assert {:ok, {^account, []}} = Identity.login_account_by_magic_link(encoded_token)
@@ -351,7 +355,7 @@ defmodule Ancestry.IdentityTest do
     end
 
     test "raises when unconfirmed account has password set" do
-      account = unconfirmed_account_fixture()
+      account = insert(:unconfirmed_account)
       {1, nil} = Repo.update_all(Account, set: [hashed_password: "hashed"])
       {encoded_token, _hashed_token} = generate_account_magic_link_token(account)
 
@@ -363,7 +367,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "delete_account_session_token/1" do
     test "deletes the token" do
-      account = account_fixture()
+      account = insert(:account)
       token = Identity.generate_account_session_token(account)
       assert Identity.delete_account_session_token(token) == :ok
       refute Identity.get_account_by_session_token(token)
@@ -372,7 +376,7 @@ defmodule Ancestry.IdentityTest do
 
   describe "deliver_login_instructions/2" do
     setup do
-      %{account: unconfirmed_account_fixture()}
+      %{account: insert(:unconfirmed_account)}
     end
 
     test "sends token through notification", %{account: account} do

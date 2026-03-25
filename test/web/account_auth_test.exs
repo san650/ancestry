@@ -17,7 +17,7 @@ defmodule Web.AccountAuthTest do
       |> Map.replace!(:secret_key_base, Web.Endpoint.config(:secret_key_base))
       |> init_test_session(%{})
 
-    %{account: %{account_fixture() | authenticated_at: DateTime.utc_now(:second)}, conn: conn}
+    %{account: %{insert(:account) | authenticated_at: DateTime.utc_now(:second)}, conn: conn}
   end
 
   describe "log_in_account/3" do
@@ -48,7 +48,7 @@ defmodule Web.AccountAuthTest do
       conn: conn,
       account: account
     } do
-      other_account = account_fixture()
+      other_account = insert(:account)
 
       conn =
         conn
@@ -60,12 +60,16 @@ defmodule Web.AccountAuthTest do
     end
 
     test "redirects to the configured path", %{conn: conn, account: account} do
-      conn = conn |> put_session(:account_return_to, "/hello") |> AccountAuth.log_in_account(account)
+      conn =
+        conn |> put_session(:account_return_to, "/hello") |> AccountAuth.log_in_account(account)
+
       assert redirected_to(conn) == "/hello"
     end
 
     test "writes a cookie if remember_me is configured", %{conn: conn, account: account} do
-      conn = conn |> fetch_cookies() |> AccountAuth.log_in_account(account, %{"remember_me" => "true"})
+      conn =
+        conn |> fetch_cookies() |> AccountAuth.log_in_account(account, %{"remember_me" => "true"})
+
       assert get_session(conn, :account_token) == conn.cookies[@remember_me_cookie]
       assert get_session(conn, :account_remember_me) == true
 
@@ -74,7 +78,10 @@ defmodule Web.AccountAuthTest do
       assert max_age == @remember_me_cookie_max_age
     end
 
-    test "redirects to settings when account is already logged in", %{conn: conn, account: account} do
+    test "redirects to settings when account is already logged in", %{
+      conn: conn,
+      account: account
+    } do
       conn =
         conn
         |> assign(:current_scope, Scope.for_account(account))
@@ -83,8 +90,13 @@ defmodule Web.AccountAuthTest do
       assert redirected_to(conn) == ~p"/accounts/settings"
     end
 
-    test "writes a cookie if remember_me was set in previous session", %{conn: conn, account: account} do
-      conn = conn |> fetch_cookies() |> AccountAuth.log_in_account(account, %{"remember_me" => "true"})
+    test "writes a cookie if remember_me was set in previous session", %{
+      conn: conn,
+      account: account
+    } do
+      conn =
+        conn |> fetch_cookies() |> AccountAuth.log_in_account(account, %{"remember_me" => "true"})
+
       assert get_session(conn, :account_token) == conn.cookies[@remember_me_cookie]
       assert get_session(conn, :account_remember_me) == true
 
@@ -148,7 +160,9 @@ defmodule Web.AccountAuthTest do
       account_token = Identity.generate_account_session_token(account)
 
       conn =
-        conn |> put_session(:account_token, account_token) |> AccountAuth.fetch_current_scope_for_account([])
+        conn
+        |> put_session(:account_token, account_token)
+        |> AccountAuth.fetch_current_scope_for_account([])
 
       assert conn.assigns.current_scope.account.id == account.id
       assert conn.assigns.current_scope.account.authenticated_at == account.authenticated_at
@@ -183,7 +197,10 @@ defmodule Web.AccountAuthTest do
       refute conn.assigns.current_scope
     end
 
-    test "reissues a new token after a few days and refreshes cookie", %{conn: conn, account: account} do
+    test "reissues a new token after a few days and refreshes cookie", %{
+      conn: conn,
+      account: account
+    } do
       logged_in_conn =
         conn |> fetch_cookies() |> AccountAuth.log_in_account(account, %{"remember_me" => "true"})
 
@@ -246,7 +263,10 @@ defmodule Web.AccountAuthTest do
   end
 
   describe "on_mount :require_authenticated" do
-    test "authenticates current_scope based on a valid account_token", %{conn: conn, account: account} do
+    test "authenticates current_scope based on a valid account_token", %{
+      conn: conn,
+      account: account
+    } do
       account_token = Identity.generate_account_session_token(account)
       session = conn |> put_session(:account_token, account_token) |> get_session()
 
@@ -283,7 +303,10 @@ defmodule Web.AccountAuthTest do
   end
 
   describe "on_mount :require_sudo_mode" do
-    test "allows accounts that have authenticated in the last 10 minutes", %{conn: conn, account: account} do
+    test "allows accounts that have authenticated in the last 10 minutes", %{
+      conn: conn,
+      account: account
+    } do
       account_token = Identity.generate_account_session_token(account)
       session = conn |> put_session(:account_token, account_token) |> get_session()
 

@@ -24,6 +24,8 @@ defmodule Web.E2E.GalleryUploadTest do
     family: family,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -44,6 +46,8 @@ defmodule Web.E2E.GalleryUploadTest do
   end
 
   test "drag and drop uploads photos", %{conn: conn, gallery: gallery, family: family, org: org} do
+    conn = log_in_e2e(conn)
+
     conn
     |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()
@@ -75,6 +79,8 @@ defmodule Web.E2E.GalleryUploadTest do
     family: family,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn
     |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
     |> wait_liveview()

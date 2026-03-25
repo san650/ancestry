@@ -59,16 +59,37 @@ defmodule Web.Layouts do
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-column px-1 space-x-4 items-center">
+          <ul class="flex flex-row px-1 space-x-4 items-center font-ds-body text-sm text-ds-on-surface-variant">
             <%= if @organization do %>
               <li>
-                <.link navigate={~p"/org/#{@organization.id}"} class="font-medium">
+                <.link navigate={~p"/org/#{@organization.id}"} class="font-medium text-ds-on-surface">
                   {@organization.name}
                 </.link>
               </li>
             <% else %>
               <li>
                 <.link href={~p"/"}>Organizations</.link>
+              </li>
+            <% end %>
+            <%= if @current_scope && @current_scope.account do %>
+              <li class="text-ds-outline-variant">|</li>
+              <li>{@current_scope.account.email}</li>
+              <li>
+                <.link
+                  href={~p"/accounts/settings"}
+                  class="hover:text-ds-on-surface transition-colors"
+                >
+                  Settings
+                </.link>
+              </li>
+              <li>
+                <.link
+                  href={~p"/accounts/log-out"}
+                  method="delete"
+                  class="hover:text-ds-on-surface transition-colors"
+                >
+                  Log out
+                </.link>
               </li>
             <% end %>
           </ul>

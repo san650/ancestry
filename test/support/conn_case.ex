@@ -46,7 +46,7 @@ defmodule Web.ConnCase do
   test context.
   """
   def register_and_log_in_account(%{conn: conn} = context) do
-    account = Ancestry.IdentityFixtures.account_fixture()
+    account = Ancestry.Factory.insert(:account)
     scope = Ancestry.Identity.Scope.for_account(account)
 
     opts =

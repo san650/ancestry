@@ -36,6 +36,8 @@ defmodule Web.UserFlows.CreateSubfamilyTest do
   end
 
   test "create subfamily from family show page", %{conn: conn, org: org, family: family} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")
@@ -58,6 +60,8 @@ defmodule Web.UserFlows.CreateSubfamilyTest do
   end
 
   test "modal closes on Escape without creating a family", %{conn: conn, org: org, family: family} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")

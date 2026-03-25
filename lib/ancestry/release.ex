@@ -3,6 +3,7 @@ defmodule Ancestry.Release do
   Used for executing DB release tasks when run in production without Mix
   installed.
   """
+  @app :ancestry
 
   def migrate do
     load_app()
@@ -18,10 +19,12 @@ defmodule Ancestry.Release do
   end
 
   defp repos do
-    Application.fetch_env!(:ancestry, :ecto_repos)
+    Application.fetch_env!(@app, :ecto_repos)
   end
 
   defp load_app do
-    Application.load(:ancestry)
+    # Many platforms require SSL when connecting to the database
+    Application.ensure_all_started(:ssl)
+    Application.ensure_loaded(@app)
   end
 end

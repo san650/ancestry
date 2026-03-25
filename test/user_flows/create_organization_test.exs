@@ -25,6 +25,8 @@ defmodule Web.UserFlows.CreateOrganizationTest do
   end
 
   test "create organization via modal", %{conn: conn, org: _org} do
+    conn = log_in_e2e(conn)
+
     # Visit the organizations index page
     conn =
       conn
@@ -68,6 +70,8 @@ defmodule Web.UserFlows.CreateOrganizationTest do
   end
 
   test "dismiss modal via backdrop click", %{conn: conn} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/")
@@ -93,6 +97,8 @@ defmodule Web.UserFlows.CreateOrganizationTest do
   end
 
   test "dismiss modal via cancel button", %{conn: conn} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/")
@@ -111,6 +117,8 @@ defmodule Web.UserFlows.CreateOrganizationTest do
   end
 
   test "reopening modal after cancel shows clean form", %{conn: conn} do
+    conn = log_in_e2e(conn)
+
     conn =
       conn
       |> visit(~p"/")

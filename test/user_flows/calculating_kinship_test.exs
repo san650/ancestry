@@ -88,6 +88,8 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     unrelated: unrelated,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     # Navigate to the family show page
     conn =
       conn
@@ -200,6 +202,8 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     child_of_cousin: child_of_cousin,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     # Navigate directly to the kinship page
     conn =
       conn

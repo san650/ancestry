@@ -9,14 +9,13 @@ defmodule Web.AccountLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/accounts/log-in")
 
       assert html =~ "Log in"
-      assert html =~ "Register"
       assert html =~ "Log in with email"
     end
   end
 
   describe "account login - magic link" do
     test "sends magic link email when account exists", %{conn: conn} do
-      account = account_fixture()
+      account = insert(:account)
 
       {:ok, lv, _html} = live(conn, ~p"/accounts/log-in")
 
@@ -45,7 +44,7 @@ defmodule Web.AccountLive.LoginTest do
 
   describe "account login - password" do
     test "redirects if account logs in with valid credentials", %{conn: conn} do
-      account = account_fixture() |> set_password()
+      account = insert(:account) |> set_password()
 
       {:ok, lv, _html} = live(conn, ~p"/accounts/log-in")
 
@@ -75,23 +74,9 @@ defmodule Web.AccountLive.LoginTest do
     end
   end
 
-  describe "login navigation" do
-    test "redirects to registration page when the Register button is clicked", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/log-in")
-
-      {:ok, _login_live, login_html} =
-        lv
-        |> element("main a", "Sign up")
-        |> render_click()
-        |> follow_redirect(conn, ~p"/accounts/register")
-
-      assert login_html =~ "Register"
-    end
-  end
-
   describe "re-authentication (sudo mode)" do
     setup %{conn: conn} do
-      account = account_fixture()
+      account = insert(:account)
       %{account: account, conn: log_in_account(conn, account)}
     end
 
@@ -99,7 +84,6 @@ defmodule Web.AccountLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/accounts/log-in")
 
       assert html =~ "You need to reauthenticate"
-      refute html =~ "Register"
       assert html =~ "Log in with email"
 
       assert html =~

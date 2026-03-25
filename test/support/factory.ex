@@ -38,4 +38,17 @@ defmodule Ancestry.Factory do
       status: "processed"
     }
   end
+
+  def account_factory do
+    %Ancestry.Identity.Account{
+      email: sequence(:account_email, &"account#{&1}@example.com"),
+      confirmed_at: DateTime.utc_now(:second)
+    }
+  end
+
+  def unconfirmed_account_factory do
+    %Ancestry.Identity.Account{
+      email: sequence(:account_email, &"account#{&1}@example.com")
+    }
+  end
 end
