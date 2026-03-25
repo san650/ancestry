@@ -29,6 +29,7 @@ lib/
     galleries/
       gallery.ex      # Gallery schema (belongs_to family)
       photo.ex        # Photo schema (uses Waffle.Ecto for file attachments)
+    storage.ex        # S3/local storage abstraction for original uploads
     uploaders/
       family_cover.ex # Waffle uploader — produces :original, :thumbnail for family cover photos
       photo.ex        # Waffle uploader — produces :original, :large, :thumbnail versions via ImageMagick
@@ -53,17 +54,34 @@ lib/
 
 **Photo processing flow:**
 1. User uploads via LiveView `allow_upload` (up to 10 files, 300MB each)
-2. `upload_photos` event copies temp file to `priv/static/uploads/originals/{uuid}/photo.ext`
+2. `consume_uploaded_entries` stores the original via `Ancestry.Storage.store_original/2` — in production this uploads directly to Tigris (S3), in dev it writes to `priv/static/uploads/originals/{uuid}/photo.ext`
 3. An `Oban.Job` (`ProcessPhotoJob`, queue: `:photos`) is inserted
-4. The job runs Waffle/ImageMagick to produce `:original`, `:large`, `:thumbnail` versions stored at `priv/static/uploads/photos/{gallery_id}/{photo_id}/`
-5. On completion/failure, the job broadcasts `{:photo_processed, photo}` or `{:photo_failed, photo}` over PubSub topic `"gallery:{id}"`
-6. The `GalleryLive.Show` LiveView subscribes to this topic and updates the stream
+4. The job fetches the original via `Ancestry.Storage.fetch_original/1` (downloads from S3 to `/tmp` in prod, reads local path in dev), runs Waffle/ImageMagick to produce `:original`, `:large`, `:thumbnail` versions, and stores them via Waffle's S3 adapter (prod) or local storage (dev)
+5. After processing, the job cleans up temp files and deletes the original from S3 (prod only)
+6. On completion/failure, the job broadcasts `{:photo_processed, photo}` or `{:photo_failed, photo}` over PubSub topic `"gallery:{id}"`
+7. The `GalleryLive.Show` LiveView subscribes to this topic and updates the stream
 
 **Family cover processing flow:** Parallel to photo processing — uploading a cover image on `FamilyLive.Show` inserts a `ProcessFamilyCoverJob` (queue: `:photos`). On completion/failure, it broadcasts `{:cover_processed, family}` or `{:cover_failed, family}` over PubSub topic `"family:{id}"`.
 
 **Photo statuses:** `"pending"` → `"processed"` or `"failed"`
 
-**Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), Phoenix PubSub (real-time updates)
+**Storage abstraction (`Ancestry.Storage`):** Provides `store_original/2`, `fetch_original/1`, `cleanup_original/1`, and `delete_original/1`. Routes to S3 or local disk based on the `Waffle` storage config. All LiveViews and Oban workers use this module instead of direct filesystem operations.
+
+**Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), ExAws + ExAws.S3 (S3 client for Tigris), Phoenix PubSub (real-time updates)
+
+## Production (Fly.io)
+
+**Deployment:** Deploys to Fly.io from `main` via GitHub Actions (`.github/workflows/fly-deploy.yml`). Primary region: `gru` (São Paulo). Uses `fly deploy --remote-only`.
+
+**Image storage:** Production uses [Tigris](https://www.tigrisdata.com/) (Fly's S3-compatible object storage) for all image uploads and processed versions. The bucket is public (no signed URLs). Images are served directly from Tigris at `https://<bucket>.fly.storage.tigris.dev/...`.
+
+**Configuration:** ExAws is configured in `config/prod.exs` with `{:system, "..."}` tuples. Fly secrets provide:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — Tigris credentials (auto-set by `fly storage create`)
+- `AWS_ENDPOINT_URL_S3` — Tigris endpoint (auto-set by `fly storage create`)
+- `AWS_S3_BUCKET` — bucket name
+- `AWS_REGION` — set to `auto`
+
+**Runtime:** Dockerfile uses a multi-stage build with ImageMagick installed in the runner stage for Waffle transforms. Release command runs migrations (`/app/bin/migrate`).
 
 ## Graphical Design
 
