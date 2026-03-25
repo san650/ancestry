@@ -30,7 +30,7 @@ defmodule Web.UserFlows.CreateOrganizationTest do
     # Visit the organizations index page
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org")
       |> wait_liveview()
       |> assert_has(test_id("org-new-btn"))
 
@@ -74,7 +74,7 @@ defmodule Web.UserFlows.CreateOrganizationTest do
 
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org")
       |> wait_liveview()
       |> click(test_id("org-new-btn"))
       |> assert_has(test_id("org-create-modal"))
@@ -101,7 +101,7 @@ defmodule Web.UserFlows.CreateOrganizationTest do
 
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org")
       |> wait_liveview()
       |> click(test_id("org-new-btn"))
       |> assert_has(test_id("org-create-modal"))
@@ -121,7 +121,7 @@ defmodule Web.UserFlows.CreateOrganizationTest do
 
     conn =
       conn
-      |> visit(~p"/")
+      |> visit(~p"/org")
       |> wait_liveview()
       |> click(test_id("org-new-btn"))
       |> assert_has(test_id("org-create-modal"))

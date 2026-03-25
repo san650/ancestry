@@ -18,10 +18,10 @@ defmodule Web.AccountSessionControllerTest do
         })
 
       assert get_session(conn, :account_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/org"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, ~p"/")
+      conn = get(conn, ~p"/org")
       response = html_response(conn, 200)
       assert response =~ account.email
       assert response =~ ~p"/accounts/settings"
@@ -41,7 +41,7 @@ defmodule Web.AccountSessionControllerTest do
         })
 
       assert conn.resp_cookies["_ancestry_web_account_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/org"
     end
 
     test "logs the account in with return to", %{conn: conn, account: account} do
@@ -82,10 +82,10 @@ defmodule Web.AccountSessionControllerTest do
         })
 
       assert get_session(conn, :account_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/org"
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, ~p"/")
+      conn = get(conn, ~p"/org")
       response = html_response(conn, 200)
       assert response =~ account.email
       assert response =~ ~p"/accounts/settings"
@@ -103,13 +103,13 @@ defmodule Web.AccountSessionControllerTest do
         })
 
       assert get_session(conn, :account_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/org"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Account confirmed successfully."
 
       assert Identity.get_account!(account.id).confirmed_at
 
       # Now do a logged in request and assert on the menu
-      conn = get(conn, ~p"/")
+      conn = get(conn, ~p"/org")
       response = html_response(conn, 200)
       assert response =~ account.email
       assert response =~ ~p"/accounts/settings"

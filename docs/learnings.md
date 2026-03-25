@@ -152,3 +152,9 @@ def handle_event("toggle_option", params, socket) do
   {:noreply, assign(socket, :option, params["value"] == "true")}
 end
 ```
+
+## Layout component attrs must be explicitly passed from every call site
+
+When a Phoenix layout component (e.g., `Layouts.app`) declares an attr with `default: nil`, any template that omits that attr will silently get `nil` instead of the socket assign. This causes conditional rendering blocks (like `if @current_scope && @current_scope.account`) to silently fail — the links simply don't appear, with no compile-time or runtime error.
+
+**Fix:** After adding a new attr to a shared layout component, grep all call sites (`Layouts.app` in templates) and ensure every one passes the attr. The `on_mount` hook assigns the value to the socket, but Phoenix components are explicit — socket assigns are not automatically forwarded to component attrs.

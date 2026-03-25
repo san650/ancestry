@@ -70,7 +70,7 @@ defmodule Web.AccountLive.ConfirmationTest do
       assert Identity.get_account!(account.id).confirmed_at
       # we are logged in now
       assert get_session(conn, :account_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/org"
 
       # log out, new conn
       conn = build_conn()

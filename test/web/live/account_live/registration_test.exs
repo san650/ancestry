@@ -17,7 +17,7 @@ defmodule Web.AccountLive.RegistrationTest do
         conn
         |> log_in_account(insert(:account))
         |> live(~p"/accounts/register")
-        |> follow_redirect(conn, ~p"/")
+        |> follow_redirect(conn, ~p"/org")
 
       assert {:ok, _conn} = result
     end
