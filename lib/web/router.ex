@@ -1,6 +1,8 @@
 defmodule Web.Router do
   use Web, :router
 
+  import Web.AccountAuth
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -21,14 +23,14 @@ defmodule Web.Router do
                  )
 
   scope "/", Web do
-    pipe_through :browser
+    pipe_through [:browser, :require_authenticated_account]
 
-    live_session :default, on_mount: @sandbox_hooks do
+    live_session :default, on_mount: [{Web.AccountAuth, :require_authenticated} | @sandbox_hooks] do
       live "/", OrganizationLive.Index, :index
     end
 
     scope "/org/:org_id" do
-      live_session :organization, on_mount: @sandbox_hooks ++ [Web.EnsureOrganization] do
+      live_session :organization, on_mount: [{Web.AccountAuth, :require_authenticated}, Web.EnsureOrganization | @sandbox_hooks] do
         live "/", FamilyLive.Index, :index
         live "/families/new", FamilyLive.New, :new
         live "/families/:family_id", FamilyLive.Show, :show
