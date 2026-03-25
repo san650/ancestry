@@ -52,11 +52,10 @@ jobs:
         node-version: '24'
 
     - name: Install Playwright Dependencies
-      run: npm ci --prefix assets
+      run: npm --prefix assets i -D playwright
 
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
-      working-directory: assets
+      run: npx --prefix assets playwright install chromium --with-deps
 
     - run: mix deps.get
     - run: mix deps.unlock --check-unused
