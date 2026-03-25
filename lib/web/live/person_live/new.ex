@@ -83,11 +83,9 @@ defmodule Web.PersonLive.New do
       consume_uploaded_entries(socket, :photo, fn %{path: tmp_path}, entry ->
         uuid = Ecto.UUID.generate()
         ext = Path.extname(entry.client_name)
-        dest_dir = Path.join(["priv", "static", "uploads", "originals", uuid])
-        File.mkdir_p!(dest_dir)
-        dest_path = Path.join(dest_dir, "photo#{ext}")
-        File.cp!(tmp_path, dest_path)
-        {:ok, dest_path}
+        dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
+        original_path = Ancestry.Storage.store_original(tmp_path, dest_key)
+        {:ok, original_path}
       end)
 
     case uploaded do

@@ -224,14 +224,12 @@ defmodule Web.GalleryLive.Show do
       consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
         uuid = Ecto.UUID.generate()
         ext = ext_from_content_type(entry.client_type)
-        dest_dir = Path.join(["priv", "static", "uploads", "originals", uuid])
-        File.mkdir_p!(dest_dir)
-        dest_path = Path.join(dest_dir, "photo#{ext}")
-        File.cp!(tmp_path, dest_path)
+        dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
+        original_path = Ancestry.Storage.store_original(tmp_path, dest_key)
 
         case Galleries.create_photo(%{
                gallery_id: gallery.id,
-               original_path: dest_path,
+               original_path: original_path,
                original_filename: entry.client_name,
                content_type: entry.client_type
              }) do

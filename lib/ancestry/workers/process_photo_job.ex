@@ -32,14 +32,22 @@ defmodule Ancestry.Workers.ProcessPhotoJob do
   end
 
   defp process_photo(photo) do
+    {:ok, local_path, tmp_dir} = Ancestry.Storage.fetch_original(photo.original_path)
+
     waffle_file = %{
-      filename: Path.basename(photo.original_path),
-      path: photo.original_path
+      filename: Path.basename(local_path),
+      path: local_path
     }
 
-    case Uploaders.Photo.store({waffle_file, photo}) do
-      {:ok, filename} -> Galleries.update_photo_processed(photo, filename)
-      {:error, reason} -> {:error, reason}
-    end
+    result =
+      case Uploaders.Photo.store({waffle_file, photo}) do
+        {:ok, filename} -> Galleries.update_photo_processed(photo, filename)
+        {:error, reason} -> {:error, reason}
+      end
+
+    Ancestry.Storage.cleanup_original(tmp_dir)
+    Ancestry.Storage.delete_original(photo.original_path)
+
+    result
   end
 end
