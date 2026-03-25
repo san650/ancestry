@@ -3,6 +3,8 @@ defmodule Web.FamilyLive.IndexTest do
   import Phoenix.LiveViewTest
   alias Ancestry.Families
 
+  setup :register_and_log_in_account
+
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     %{org: org}

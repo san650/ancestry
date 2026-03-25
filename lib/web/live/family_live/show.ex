@@ -15,7 +15,7 @@ defmodule Web.FamilyLive.Show do
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
 
-    if family.organization_id != socket.assigns.organization.id do
+    if family.organization_id != socket.assigns.current_scope.organization.id do
       raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
     end
 
@@ -97,7 +97,7 @@ defmodule Web.FamilyLive.Show do
     {:noreply,
      push_patch(socket,
        to:
-         ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
+         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
      )}
   end
 
@@ -183,7 +183,9 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("confirm_delete", _, socket) do
     {:ok, _} = Families.delete_family(socket.assigns.family)
-    {:noreply, push_navigate(socket, to: ~p"/org/#{socket.assigns.organization.id}")}
+
+    {:noreply,
+     push_navigate(socket, to: ~p"/org/#{socket.assigns.current_scope.organization.id}")}
   end
 
   # Gallery management
@@ -265,7 +267,11 @@ defmodule Web.FamilyLive.Show do
   def handle_event("search", %{"value" => query}, socket) do
     results =
       if String.length(String.trim(query)) >= 2 do
-        People.search_people(query, socket.assigns.family.id, socket.assigns.organization.id)
+        People.search_people(
+          query,
+          socket.assigns.family.id,
+          socket.assigns.current_scope.organization.id
+        )
       else
         []
       end
@@ -358,7 +364,7 @@ defmodule Web.FamilyLive.Show do
   def handle_event("save_subfamily", %{"family" => params}, socket) do
     person = socket.assigns.subfamily_person
     family = socket.assigns.family
-    org = socket.assigns.organization
+    org = socket.assigns.current_scope.organization
 
     case Families.create_family_from_person(org, params["name"], person, family.id,
            include_ancestors: socket.assigns.subfamily_include_ancestors,
@@ -409,7 +415,7 @@ defmodule Web.FamilyLive.Show do
     {:noreply,
      push_patch(socket,
        to:
-         ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}?person=#{person_id}"
+         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{person_id}"
      )}
   end
 

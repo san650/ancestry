@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
           class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
@@ -20,7 +20,7 @@
         </button>
         <.link
           id="add-member-btn"
-          navigate={~p"/org/#{@organization.id}/families/#{@family.id}/members/new"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/members/new"}
           class="btn btn-primary btn-sm"
         >
           <.icon name="hero-plus" class="w-4 h-4" /> Add Member
@@ -44,7 +44,9 @@
       <.link
         :for={{id, person} <- @streams.members}
         id={id}
-        navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family.id}"}
+        navigate={
+          ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_family=#{@family.id}"
+        }
         class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
       >
         <div class="flex items-center gap-4">

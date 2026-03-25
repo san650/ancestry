@@ -8,6 +8,8 @@ defmodule Web.UserFlows.EditFamilyTest do
   end
 
   test "edit family name via modal", %{conn: conn, family: _family, org: org} do
+    conn = log_in_e2e(conn)
+
     # Visit families page and click the family
     conn =
       conn

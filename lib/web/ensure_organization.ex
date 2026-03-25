@@ -10,7 +10,8 @@ defmodule Web.EnsureOrganization do
 
   def on_mount(:default, params, _session, socket) do
     organization = Ancestry.Organizations.get_organization!(params["org_id"])
+    scope = %{socket.assigns.current_scope | organization: organization}
 
-    {:cont, assign(socket, :organization, organization)}
+    {:cont, assign(socket, :current_scope, scope)}
   end
 end

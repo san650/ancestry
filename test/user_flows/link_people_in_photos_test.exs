@@ -31,6 +31,8 @@ defmodule Web.UserFlows.LinkPeopleInPhotosTest do
     alice: alice,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     # Navigate to the gallery show page
     conn =
       conn

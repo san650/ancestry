@@ -22,6 +22,8 @@ defmodule Web.UserFlows.CreatePersonTest do
   end
 
   test "create a new person in a family", %{conn: conn, org: org} do
+    conn = log_in_e2e(conn)
+
     # Visit families page and click the family
     conn =
       conn

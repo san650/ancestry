@@ -16,6 +16,8 @@ defmodule Web.UserFlows.PersonPhotosTest do
   # When the user presses Escape
   # Then the lightbox closes and the person show page is visible again
 
+  setup :register_and_log_in_account
+
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})

@@ -1,5 +1,5 @@
 ---
-name: phoenix-framework
+name: elixir
 description: "Use this skill working with Phoenix Framework. Consult this when working with the web layer, controllers, views, liveviews etc."
 metadata:
   managed-by: usage-rules

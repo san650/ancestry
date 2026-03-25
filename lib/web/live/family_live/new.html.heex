@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/org/#{@organization.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}"}
           class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
@@ -81,7 +81,7 @@
           Create
         </button>
         <.link
-          navigate={~p"/org/#{@organization.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}"}
           class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors text-center"
         >
           Cancel

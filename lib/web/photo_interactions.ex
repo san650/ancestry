@@ -99,7 +99,7 @@ defmodule Web.PhotoInteractions do
   def search_people_for_tag(socket, query) do
     results =
       if String.length(query) >= 2 do
-        Ancestry.People.search_all_people(query, socket.assigns.organization.id)
+        Ancestry.People.search_all_people(query, socket.assigns.current_scope.organization.id)
       else
         []
       end

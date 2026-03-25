@@ -17,6 +17,8 @@ defmodule Web.UserFlows.DefaultPersonTest do
   end
 
   test "set and clear default person for a family", %{conn: conn, person_a: person_a, org: org} do
+    conn = log_in_e2e(conn)
+
     # Visit the family page — no default, should show person selector (not the tree)
     conn =
       conn

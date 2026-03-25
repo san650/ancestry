@@ -50,6 +50,8 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     child: child,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     # Navigate to the family show page
     conn =
       conn

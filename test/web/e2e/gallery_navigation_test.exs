@@ -34,6 +34,8 @@ defmodule Web.E2E.GalleryNavigationTest do
     family: family,
     org: org
   } do
+    conn = log_in_e2e(conn)
+
     conn
     |> visit(~p"/org/#{org.id}/families/#{family.id}")
     |> wait_liveview()

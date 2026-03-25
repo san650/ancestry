@@ -43,8 +43,6 @@ defmodule Web.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  attr :organization, :map, default: nil, doc: "the current organization (nil on org index page)"
-
   slot :inner_block, required: true
   slot :toolbar, doc: "optional toolbar rendered below the navbar"
 
@@ -59,16 +57,40 @@ defmodule Web.Layouts do
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-column px-1 space-x-4 items-center">
-            <%= if @organization do %>
+          <ul class="flex flex-row px-1 space-x-4 items-center font-ds-body text-sm text-ds-on-surface-variant">
+            <%= if @current_scope && @current_scope.account do %>
+              <%= if @current_scope.organization do %>
+                <li>
+                  <.link
+                    navigate={~p"/org/#{@current_scope.organization.id}"}
+                    class="font-medium text-ds-on-surface"
+                  >
+                    {@current_scope.organization.name}
+                  </.link>
+                </li>
+              <% else %>
+                <li>
+                  <.link href={~p"/org"}>Organizations</.link>
+                </li>
+              <% end %>
+              <li class="text-ds-outline-variant">|</li>
+              <li>{@current_scope.account.email}</li>
               <li>
-                <.link navigate={~p"/org/#{@organization.id}"} class="font-medium">
-                  {@organization.name}
+                <.link
+                  href={~p"/accounts/settings"}
+                  class="hover:text-ds-on-surface transition-colors"
+                >
+                  Settings
                 </.link>
               </li>
-            <% else %>
               <li>
-                <.link href={~p"/"}>Organizations</.link>
+                <.link
+                  href={~p"/accounts/log-out"}
+                  method="delete"
+                  class="hover:text-ds-on-surface transition-colors"
+                >
+                  Log out
+                </.link>
               </li>
             <% end %>
           </ul>

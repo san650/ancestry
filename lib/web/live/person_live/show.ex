@@ -11,7 +11,7 @@ defmodule Web.PersonLive.Show do
   def mount(%{"id" => id}, _session, socket) do
     person = People.get_person!(id)
 
-    if person.organization_id != socket.assigns.organization.id do
+    if person.organization_id != socket.assigns.current_scope.organization.id do
       raise Ecto.NoResultsError, queryable: Ancestry.People.Person
     end
 
@@ -138,7 +138,9 @@ defmodule Web.PersonLive.Show do
     {:ok, _} = People.remove_from_family(person, family)
 
     {:noreply,
-     push_navigate(socket, to: ~p"/org/#{socket.assigns.organization.id}/families/#{family.id}")}
+     push_navigate(socket,
+       to: ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{family.id}"
+     )}
   end
 
   def handle_event("request_delete", _, socket) do
@@ -155,13 +157,13 @@ defmodule Web.PersonLive.Show do
     redirect_to =
       cond do
         socket.assigns.from_family ->
-          ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.from_family.id}"
+          ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.from_family.id}"
 
         socket.assigns.from_org ->
-          ~p"/org/#{socket.assigns.organization.id}/people"
+          ~p"/org/#{socket.assigns.current_scope.organization.id}/people"
 
         true ->
-          ~p"/org/#{socket.assigns.organization.id}"
+          ~p"/org/#{socket.assigns.current_scope.organization.id}"
       end
 
     {:noreply, push_navigate(socket, to: redirect_to)}

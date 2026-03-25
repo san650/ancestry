@@ -7,6 +7,8 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   alias Ancestry.Families
   alias Ancestry.Galleries
 
+  setup :register_and_log_in_account
+
   describe "rendering" do
     test "shows existing comments for a photo", %{conn: conn} do
       {family, gallery, photo, org} = setup_gallery_with_photo()

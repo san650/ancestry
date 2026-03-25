@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/org/#{@organization.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}"}
           class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("family-back-btn")}
         >
@@ -28,7 +28,7 @@
           </button>
         <% end %>
         <.link
-          navigate={~p"/org/#{@organization.id}/families/#{@family.id}/people"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
           class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           id="manage-people-btn"
           {test_id("family-manage-people-btn")}
@@ -39,8 +39,8 @@
           navigate={
             if(@focus_person,
               do:
-                ~p"/org/#{@organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
-              else: ~p"/org/#{@organization.id}/families/#{@family.id}/kinship"
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+              else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
             )
           }
           class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
@@ -78,7 +78,7 @@
         galleries={@galleries}
         people={@people}
         family_id={@family.id}
-        organization={@organization}
+        organization={@current_scope.organization}
         focus_person_id={@focus_person && @focus_person.id}
         metrics={@metrics}
       />
@@ -97,7 +97,7 @@
             <.ancestor_subtree
               node={@tree.ancestors}
               family_id={@family.id}
-              organization={@organization}
+              organization={@current_scope.organization}
               focused_person_id={@focus_person && @focus_person.id}
             />
           <% end %>
@@ -115,7 +115,7 @@
           <.family_subtree
             unit={@tree.center}
             family_id={@family.id}
-            organization={@organization}
+            organization={@current_scope.organization}
             focused_person_id={@focus_person.id}
             is_root={true}
           />

@@ -41,6 +41,7 @@ defmodule Ancestry.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:bcrypt_elixir, "~> 3.0"},
       {:phoenix_test_playwright, "~> 0.13", only: :test, runtime: false},
       {:ex_machina, "~> 2.8", only: :test},
       {:claude, "~> 0.5", only: [:dev], runtime: false},
@@ -110,14 +111,18 @@ defmodule Ancestry.MixProject do
   defp usage_rules do
     [
       file: "CLAUDE.md",
-      usage_rules: :all,
       skills: [
         location: ".claude/skills",
         build: [
-          "phoenix-framework": [
+          elixir: [
             description:
               "Use this skill working with Phoenix Framework. Consult this when working with the web layer, controllers, views, liveviews etc.",
-            usage_rules: [:phoenix, ~r/^phoenix_/]
+            usage_rules: [
+              :elixir,
+              :otp,
+              :phoenix,
+              ~r/^phoenix_/
+            ]
           ]
         ]
       ]

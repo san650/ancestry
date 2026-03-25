@@ -9,7 +9,7 @@ defmodule Web.PersonLive.New do
   def mount(%{"family_id" => family_id}, _session, socket) do
     family = Families.get_family!(family_id)
 
-    if family.organization_id != socket.assigns.organization.id do
+    if family.organization_id != socket.assigns.current_scope.organization.id do
       raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
     end
 
@@ -57,7 +57,8 @@ defmodule Web.PersonLive.New do
 
         {:noreply,
          push_navigate(socket,
-           to: ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}"
+           to:
+             ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}"
          )}
 
       {:error, changeset} ->
@@ -72,7 +73,8 @@ defmodule Web.PersonLive.New do
   def handle_event("cancel", _, socket) do
     {:noreply,
      push_navigate(socket,
-       to: ~p"/org/#{socket.assigns.organization.id}/families/#{socket.assigns.family.id}"
+       to:
+         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}"
      )}
   end
 
