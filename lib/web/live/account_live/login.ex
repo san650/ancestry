@@ -16,57 +16,6 @@ defmodule Web.AccountLive.Login do
             </p>
           </div>
 
-          <div
-            :if={local_mail_adapter?()}
-            class="bg-ds-surface-low rounded-ds-sharp p-4 flex items-start gap-3"
-          >
-            <.icon
-              name="hero-information-circle"
-              class="size-5 shrink-0 text-ds-on-surface-variant mt-0.5"
-            />
-            <div class="text-sm font-ds-body text-ds-on-surface-variant">
-              <p>Local mail adapter is active.</p>
-              <p>
-                Visit
-                <.link href="/dev/mailbox" class="underline text-ds-on-surface">the mailbox</.link>
-                to see sent emails.
-              </p>
-            </div>
-          </div>
-
-          <.form
-            :let={f}
-            for={@form}
-            id="login_form_magic"
-            action={~p"/accounts/log-in"}
-            phx-submit="submit_magic"
-          >
-            <.input
-              readonly={!!@current_scope}
-              field={f[:email]}
-              type="email"
-              label="Email"
-              autocomplete="username"
-              spellcheck="false"
-              required
-              phx-mounted={JS.focus()}
-            />
-            <button
-              type="submit"
-              class="w-full mt-4 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
-            >
-              Log in with email <span aria-hidden="true">&rarr;</span>
-            </button>
-          </.form>
-
-          <div class="flex items-center gap-4">
-            <div class="flex-1 h-px bg-ds-surface-high"></div>
-            <span class="text-xs font-ds-body text-ds-on-surface-variant uppercase tracking-wider">
-              or
-            </span>
-            <div class="flex-1 h-px bg-ds-surface-high"></div>
-          </div>
-
           <.form
             :let={f}
             for={@form}
@@ -126,26 +75,5 @@ defmodule Web.AccountLive.Login do
   @impl true
   def handle_event("submit_password", _params, socket) do
     {:noreply, assign(socket, :trigger_submit, true)}
-  end
-
-  def handle_event("submit_magic", %{"account" => %{"email" => email}}, socket) do
-    if account = Identity.get_account_by_email(email) do
-      Identity.deliver_login_instructions(
-        account,
-        &url(~p"/accounts/log-in/#{&1}")
-      )
-    end
-
-    info =
-      "If your email is in our system, you will receive instructions for logging in shortly."
-
-    {:noreply,
-     socket
-     |> put_flash(:info, info)
-     |> push_navigate(to: ~p"/accounts/log-in")}
-  end
-
-  defp local_mail_adapter? do
-    Application.get_env(:ancestry, Ancestry.Mailer)[:adapter] == Swoosh.Adapters.Local
   end
 end

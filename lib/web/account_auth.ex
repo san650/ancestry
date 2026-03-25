@@ -283,4 +283,8 @@ defmodule Web.AccountAuth do
   end
 
   defp maybe_store_return_to(conn), do: conn
+
+  def authenticated?(conn) do
+    conn.assigns.current_scope && conn.assigns.current_scope.account
+  end
 end

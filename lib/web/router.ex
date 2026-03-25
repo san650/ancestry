@@ -17,13 +17,17 @@ defmodule Web.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :maybe_authenticated do
+    plug Web.Plugs.RedirectIfAuthenticated
+  end
+
   @sandbox_hooks if(Application.compile_env(:ancestry, :sql_sandbox),
                    do: [Web.LiveAcceptance],
                    else: []
                  )
 
   scope "/", Web do
-    pipe_through [:browser]
+    pipe_through [:browser, :maybe_authenticated]
 
     get "/", PageController, :landing
   end
