@@ -1,42 +1,58 @@
-# Graph
+# Ancestry
 
-In the narrow sense, a "genealogy" or a "family tree" traces the descendants of
-one person, whereas a "family history" traces the ancestors of one person, but
-the terms are often used interchangeably. A family history may include
-additional biographical information, family traditions, and the like.
+A family tree and photo gallery application. Map out your family relationships and preserve memories through organized photo galleries with real-time updates and background image processing.
 
+![App Screenshot](./screenshot.png)
 
-Concepts
-========
-Genealogy
-* Person
-* Family Tree
-* Family History
+## Reporting Issues
 
-Data Types
-==========
-* Gender (unset | male | female | other)
-* Person Identifier (simple hash e.g. PMS9-XB6) 7 characters P[A-Z0-9]{6}
-* Date Range (Day | Day and, Month | Day and, Month and Year | Month and Year | Year | Month)
-* RelationshipType (
+Please report bugs and feature requests by opening an issue on this repository's [GitHub Issues](https://github.com/san650/ancestry/issues) page.
 
-Models
-==========
-* Vitals
-    - Id (Person Identifier)
-    - Given Names (Nullable String)
-    - Surnames now (Nullable String)
-    - Surnames at birth (Nullable String)
-    - Gender (Gender)
-    - Birth Date (Date Range)
-    - Death Date (Date Range)
-    - IsDead (Boolean)
+## Development
 
-* Relationship
-    - PersonId
-    - Type
+### Software Dependencies
 
-* create_genealogy(identifier)
-* add_person(vitals)
-* add_parent(mother(vitals))
-* add_parent(father(vitals))
+- [Elixir](https://elixir-lang.org/) ~> 1.15
+- [PostgreSQL](https://www.postgresql.org/)
+- [ImageMagick](https://imagemagick.org/) (used for photo processing)
+- [Node.js](https://nodejs.org/) (for asset building)
+
+### Getting Started
+
+Install dependencies and set up the database:
+
+```sh
+mix setup
+```
+
+Start the development server:
+
+```sh
+iex -S mix phx.server
+```
+
+The app will be available at [http://localhost:4000](http://localhost:4000).
+
+### Running Tests
+
+```sh
+mix test
+```
+
+### Pre-commit Checks
+
+```sh
+mix precommit
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b my-feature`)
+3. Make sure `mix precommit` passes
+4. Commit your changes
+5. Push to the branch and open a Pull Request
+
+## Copyright
+
+Copyright (c) Santiago Ferreira. See [LICENSE](./LICENSE) for details.
