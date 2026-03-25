@@ -18,7 +18,7 @@ defmodule Ancestry.Identity.Scope do
 
   alias Ancestry.Identity.Account
 
-  defstruct account: nil
+  defstruct account: nil, organization: nil
 
   @doc """
   Creates a scope for the given account.

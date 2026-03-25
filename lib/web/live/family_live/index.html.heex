@@ -1,4 +1,4 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8">
       <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
@@ -6,7 +6,7 @@
       </h1>
       <div class="flex items-center gap-2">
         <.link
-          navigate={~p"/org/#{@organization.id}/people"}
+          navigate={~p"/org/#{@current_scope.organization.id}/people"}
           class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           {test_id("org-people-btn")}
         >
@@ -14,7 +14,7 @@
         </.link>
         <.link
           id="new-family-btn"
-          navigate={~p"/org/#{@organization.id}/families/new"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/new"}
           class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-5 py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
           {test_id("family-new-btn")}
         >
@@ -44,7 +44,10 @@
           class="group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden"
           {test_id("family-card-#{family.id}")}
         >
-          <.link navigate={~p"/org/#{@organization.id}/families/#{family.id}"} class="block">
+          <.link
+            navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
+            class="block"
+          >
             <%= if family.cover do %>
               <div class="h-32 overflow-hidden">
                 <img

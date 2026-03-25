@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
           class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("kinship-back-btn")}
         >

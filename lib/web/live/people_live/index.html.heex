@@ -1,9 +1,9 @@
-<Layouts.app flash={@flash} current_scope={@current_scope} organization={@organization}>
+<Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
         <.link
-          navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
           class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("people-back-btn")}
         >
@@ -133,7 +133,7 @@
         <p class="text-lg font-medium text-ds-on-surface-variant">No people in this family</p>
         <p class="text-sm text-ds-on-surface-variant/50 mt-1">
           <.link
-            navigate={~p"/org/#{@organization.id}/families/#{@family.id}"}
+            navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
             class="text-ds-primary hover:underline"
           >
             Go back to add members
@@ -198,7 +198,9 @@
         <%!-- Name cell (links to person show page) --%>
         <div class="px-3 py-2.5 min-w-0">
           <.link
-            navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family.id}"}
+            navigate={
+              ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_family=#{@family.id}"
+            }
             class="font-medium text-ds-on-surface hover:text-ds-primary truncate block"
           >
             <%= if person.surname && person.surname != "" do %>
@@ -247,7 +249,7 @@
           <%= unless @editing do %>
             <.link
               navigate={
-                ~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family.id}&edit=true"
+                ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_family=#{@family.id}&edit=true"
               }
               class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-primary transition-colors"
               title="Edit person"

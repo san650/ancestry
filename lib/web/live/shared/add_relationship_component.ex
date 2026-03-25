@@ -53,7 +53,11 @@ defmodule Web.Shared.AddRelationshipComponent do
   def handle_event("search_members", %{"value" => query}, socket) do
     results =
       if String.length(query) >= 2 do
-        People.search_all_people(query, socket.assigns.person.id, socket.assigns.organization.id)
+        People.search_all_people(
+          query,
+          socket.assigns.person.id,
+          socket.assigns.current_scope.organization.id
+        )
       else
         []
       end

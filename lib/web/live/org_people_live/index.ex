@@ -5,7 +5,7 @@ defmodule Web.OrgPeopleLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    org = socket.assigns.organization
+    org = socket.assigns.current_scope.organization
     people = People.list_people_for_org(org.id)
 
     {:ok,
@@ -25,7 +25,7 @@ defmodule Web.OrgPeopleLive.Index do
 
   @impl true
   def handle_event("filter", %{"filter" => query}, socket) do
-    org_id = socket.assigns.organization.id
+    org_id = socket.assigns.current_scope.organization.id
 
     people =
       People.list_people_for_org(org_id, query, no_family_only: socket.assigns.no_family_only)
@@ -144,7 +144,7 @@ defmodule Web.OrgPeopleLive.Index do
     no_family_only = Keyword.get(opts, :no_family_only, socket.assigns.no_family_only)
 
     People.list_people_for_org(
-      socket.assigns.organization.id,
+      socket.assigns.current_scope.organization.id,
       socket.assigns.filter,
       no_family_only: no_family_only
     )

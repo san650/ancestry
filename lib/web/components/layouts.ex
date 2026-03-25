@@ -43,8 +43,6 @@ defmodule Web.Layouts do
     default: nil,
     doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
 
-  attr :organization, :map, default: nil, doc: "the current organization (nil on org index page)"
-
   slot :inner_block, required: true
   slot :toolbar, doc: "optional toolbar rendered below the navbar"
 
@@ -60,18 +58,21 @@ defmodule Web.Layouts do
         </div>
         <div class="flex-none">
           <ul class="flex flex-row px-1 space-x-4 items-center font-ds-body text-sm text-ds-on-surface-variant">
-            <%= if @organization do %>
-              <li>
-                <.link navigate={~p"/org/#{@organization.id}"} class="font-medium text-ds-on-surface">
-                  {@organization.name}
-                </.link>
-              </li>
-            <% else %>
-              <li>
-                <.link href={~p"/"}>Organizations</.link>
-              </li>
-            <% end %>
             <%= if @current_scope && @current_scope.account do %>
+              <%= if @current_scope.organization do %>
+                <li>
+                  <.link
+                    navigate={~p"/org/#{@current_scope.organization.id}"}
+                    class="font-medium text-ds-on-surface"
+                  >
+                    {@current_scope.organization.name}
+                  </.link>
+                </li>
+              <% else %>
+                <li>
+                  <.link href={~p"/org"}>Organizations</.link>
+                </li>
+              <% end %>
               <li class="text-ds-outline-variant">|</li>
               <li>{@current_scope.account.email}</li>
               <li>
