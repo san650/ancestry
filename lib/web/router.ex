@@ -23,11 +23,17 @@ defmodule Web.Router do
                  )
 
   scope "/", Web do
+    pipe_through [:browser]
+
+    get "/", PageController, :landing
+  end
+
+  scope "/", Web do
     pipe_through [:browser, :require_authenticated_account]
 
     live_session :default,
       on_mount: @sandbox_hooks ++ [{Web.AccountAuth, :require_authenticated}] do
-      live "/", OrganizationLive.Index, :index
+      live "/org", OrganizationLive.Index, :index
     end
 
     scope "/org/:org_id" do

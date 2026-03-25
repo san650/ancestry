@@ -257,12 +257,11 @@ defmodule Web.AccountAuth do
   end
 
   @doc "Returns the path to redirect to after log in."
-  # the account was already logged in, redirect to settings
   def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{account: %Identity.Account{}}}}) do
-    ~p"/accounts/settings"
+    ~p"/org"
   end
 
-  def signed_in_path(_), do: ~p"/"
+  def signed_in_path(_), do: ~p"/org"
 
   @doc """
   Plug for routes that require the account to be authenticated.
