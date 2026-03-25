@@ -40,3 +40,4 @@ npm-debug.log
 /.hex-docs/
 /.worktrees/
 /.superpowers/
+/rel/
