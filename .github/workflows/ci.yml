@@ -47,7 +47,7 @@ jobs:
         key: ${{ runner.os }}-mix-build-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-${{ hashFiles('**/mix.lock') }}
 
     - name: Set up Node.js for Playwright CI
-      uses: actions/setup-node@6
+      uses: actions/setup-node@v6
       with:
         node-version: '24'
 
