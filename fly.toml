@@ -14,7 +14,7 @@ console_command = "/app/bin/ancestry remote"
   release_command = '/app/bin/migrate'
 
 [env]
-  PHX_HOST = 'ancestry.fly.dev'
+  PHX_HOST = 'ancestry.42.uy'
   PORT = '8080'
 
 [http_service]
