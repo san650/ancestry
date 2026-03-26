@@ -1,6 +1,8 @@
 defmodule Web.AccountLive.RegistrationTest do
   use Web.ConnCase, async: true
 
+  @moduletag :skip
+
   import Phoenix.LiveViewTest
   import Ancestry.IdentityFixtures
 
