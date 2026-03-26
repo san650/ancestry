@@ -97,7 +97,8 @@ defmodule Web.Router do
 
     live_session :current_account,
       on_mount: [{Web.AccountAuth, :mount_current_scope}] do
-      live "/accounts/register", AccountLive.Registration, :new
+      # Registration temporarily disabled — uncomment when ready
+      # live "/accounts/register", AccountLive.Registration, :new
       live "/accounts/log-in", AccountLive.Login, :new
       live "/accounts/log-in/:token", AccountLive.Confirmation, :new
     end
