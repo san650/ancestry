@@ -51,11 +51,25 @@ jobs:
       with:
         node-version: '24'
 
-    - name: Install Playwright Dependencies
-      run: npm --prefix assets i -D playwright
+    - name: Restore Node modules cache
+      uses: actions/cache@v5
+      with:
+        path: assets/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('assets/package-lock.json') }}
+
+    - name: Install Playwright package
+      run: npm --prefix assets install
+
+    - name: Restore Playwright browsers cache
+      id: playwright-cache
+      uses: actions/cache@v5
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('assets/package-lock.json') }}
 
     - name: Install Playwright Browsers
-      run: npx --prefix assets playwright install chromium --with-deps
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx --prefix assets playwright install chromium
 
     - run: mix deps.get
     - run: mix deps.unlock --check-unused
