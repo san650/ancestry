@@ -31,6 +31,6 @@ console_command = "/app/bin/ancestry remote"
     soft_limit = 1000
 
 [[vm]]
+  cpu_kind = 'shared'
   memory = '512mb'
   cpus = 1
-  memory_mb = 512

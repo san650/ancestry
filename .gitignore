@@ -41,3 +41,4 @@ npm-debug.log
 /.worktrees/
 /.superpowers/
 /rel/
+.env
