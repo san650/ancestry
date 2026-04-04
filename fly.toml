@@ -34,4 +34,3 @@ console_command = "/app/bin/ancestry remote"
   cpu_kind = 'shared'
   memory = '512mb'
   cpus = 1
-  memory_mb = 512
