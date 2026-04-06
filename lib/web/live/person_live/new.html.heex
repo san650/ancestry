@@ -2,9 +2,19 @@
   <:toolbar>
     <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
       <div class="flex items-center gap-3">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+          class="hidden lg:flex p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
@@ -14,6 +24,26 @@
       </div>
     </div>
   </:toolbar>
+
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <.link
+      href={~p"/org"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">Organizations</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Back FAB (mobile only) --%>
+  <.link
+    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
+    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
+    aria-label="Back"
+  >
+    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+  </.link>
 
   <div class="max-w-2xl mx-auto mt-8">
     <Web.Shared.PersonFormComponent.person_form_component
