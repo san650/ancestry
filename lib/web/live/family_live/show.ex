@@ -94,11 +94,23 @@ defmodule Web.FamilyLive.Show do
 
   @impl true
   def handle_event("focus_person", %{"id" => id}, socket) do
-    {:noreply,
-     push_patch(socket,
-       to:
-         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
-     )}
+    person_id = String.to_integer(id)
+
+    if socket.assigns.focus_person && socket.assigns.focus_person.id == person_id do
+      # Already focused — navigate to profile (second tap)
+      {:noreply,
+       push_navigate(socket,
+         to:
+           ~p"/org/#{socket.assigns.current_scope.organization.id}/people/#{person_id}?from_family=#{socket.assigns.family.id}"
+       )}
+    else
+      # First tap — focus this person
+      {:noreply,
+       push_patch(socket,
+         to:
+           ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
+       )}
+    end
   end
 
   # Family editing

@@ -89,6 +89,14 @@
   break-inside: avoid;
 }
 
+/* Scrollbar hiding — preserves scroll functionality */
+.hide-scrollbar {
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* People table zebra striping — rows use display:contents so we target cells via data-row */
 #people-table > [data-row]:nth-child(even) > * {
   background-color: var(--color-base-200);

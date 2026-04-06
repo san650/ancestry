@@ -10,7 +10,7 @@ defmodule Web.AccountLive.Confirmation do
       <div class="flex items-center justify-center min-h-[70vh] px-4">
         <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
           <div class="text-center">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">
+            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">
               Welcome {@account.email}
             </h1>
           </div>

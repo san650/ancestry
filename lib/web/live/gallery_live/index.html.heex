@@ -4,16 +4,18 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-bold text-base-content">{@family.name} — Galleries</h1>
+        <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+          {@family.name} — Galleries
+        </h1>
       </div>
       <button
         id="open-new-gallery-btn"
         phx-click="open_new_modal"
-        class="btn btn-primary"
+        class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-5 py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
       >
         New Gallery
       </button>
@@ -28,7 +30,7 @@
     >
       <div
         id="galleries-empty"
-        class="hidden only:block col-span-full text-center py-20 text-base-content/40"
+        class="hidden only:block col-span-full text-center py-20 text-ds-on-surface-variant"
       >
         No galleries yet. Create your first one.
       </div>
@@ -36,21 +38,24 @@
         :for={{id, gallery} <- @streams.galleries}
         id={id}
         data-gallery-id={gallery.id}
-        class="group relative card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200"
+        class="group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden"
       >
         <.link
           navigate={
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/galleries/#{gallery.id}"
           }
-          class="block p-6"
+          class="block p-4"
         >
-          <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-            <.icon name="hero-photo" class="w-6 h-6 text-primary" />
+          <div class="w-12 h-12 rounded-ds-sharp bg-ds-primary/10 flex items-center justify-center mb-4">
+            <.icon name="hero-photo" class="w-6 h-6 text-ds-primary" />
           </div>
-          <h2 data-gallery-name class="text-lg font-semibold text-base-content truncate">
+          <h2
+            data-gallery-name
+            class="text-lg font-ds-heading font-bold text-ds-on-surface truncate"
+          >
             {gallery.name}
           </h2>
-          <p class="text-sm text-base-content/50 mt-1">
+          <p class="text-sm text-ds-on-surface-variant mt-1">
             {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
           </p>
         </.link>
@@ -58,7 +63,7 @@
           id={"delete-gallery-#{gallery.id}"}
           phx-click="request_delete"
           phx-value-id={gallery.id}
-          class="absolute top-3 right-3 p-1.5 rounded-lg text-base-content/30 hover:text-error hover:bg-error/10 opacity-0 group-hover:opacity-100 transition-all"
+          class="absolute top-3 right-3 p-1.5 rounded-ds-sharp text-ds-on-surface-variant/30 hover:text-ds-error hover:bg-ds-error/10 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
         >
           <.icon name="hero-trash" class="w-4 h-4" />
         </button>
@@ -68,14 +73,14 @@
 
   <%!-- New Gallery Modal --%>
   <%= if @show_new_modal do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_new_modal">
       </div>
       <div
         id="new-gallery-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-bold text-base-content mb-6">New Gallery</h2>
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">New Gallery</h2>
         <.form
           for={@form}
           id="new-gallery-form"
@@ -89,8 +94,17 @@
             autofocus
           />
           <div class="flex gap-3 mt-6">
-            <button type="submit" class="btn btn-primary flex-1">Create</button>
-            <button type="button" phx-click="close_new_modal" class="btn btn-ghost flex-1">
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              phx-click="close_new_modal"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            >
               Cancel
             </button>
           </div>
@@ -101,19 +115,29 @@
 
   <%!-- Delete Confirmation Modal --%>
   <%= if @confirm_delete_gallery do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-bold text-base-content mb-2">Delete Gallery</h2>
-        <p class="text-base-content/60 mb-6">
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Gallery</h2>
+        <p class="text-ds-on-surface-variant mb-6">
           Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? All photos will be permanently removed. This cannot be undone.
         </p>
         <div class="flex gap-3">
-          <button phx-click="confirm_delete" class="btn btn-error flex-1">Delete</button>
-          <button phx-click="cancel_delete" class="btn btn-ghost flex-1">Cancel</button>
+          <button
+            phx-click="confirm_delete"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     </div>

@@ -4,6 +4,9 @@
 
 const PhotoTagger = {
   mounted() {
+    // Disable on mobile viewports
+    if (window.innerWidth < 1024) return
+
     this.image = this.el
     this.pendingClick = null
     this.people = []

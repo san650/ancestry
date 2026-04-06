@@ -13,29 +13,43 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   def person_card(assigns) do
     ~H"""
-    <div
+    <button
+      type="button"
       data-person-id={@person.id}
-      id={if(@focused, do: "focus-person-card")}
+      id={if(@focused, do: "focus-person-card", else: "person-card-#{@person.id}")}
+      phx-click="focus_person"
+      phx-value-id={@person.id}
       class={[
-        "relative flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 transition-all group",
+        "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
         "bg-ds-surface-card",
         gender_border_class(@person.gender),
-        @focused && "ring-2 ring-ds-primary z-1"
+        if(@focused, do: "ring-2 ring-ds-primary scale-105 z-1", else: "hover:bg-ds-surface-high"),
+        "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
+        "w-[72px] lg:w-28 lg:p-2"
       ]}
+      aria-label={"#{Person.display_name(@person)}"}
     >
-      <.link
-        navigate={~p"/org/#{@organization.id}/people/#{@person.id}?from_family=#{@family_id}"}
-        class="absolute top-1 right-1 p-0.5 rounded text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
-        title="View details"
-      >
-        <.icon name="hero-arrow-top-right-on-square-mini" class="w-3 h-3" />
-      </.link>
-
-      <button
-        phx-click="focus_person"
-        phx-value-id={@person.id}
-        class="flex flex-col items-center cursor-pointer group"
-      >
+      <%!-- Mobile: photo fills card with name overlay --%>
+      <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
+        <%= if @person.photo && @person.photo_status == "processed" do %>
+          <img
+            src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
+            alt={Person.display_name(@person)}
+            class="w-full h-[72px] object-cover"
+          />
+        <% else %>
+          <div class={["w-full h-[72px] flex items-center justify-center", "bg-ds-surface-low"]}>
+            <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@person.gender)]} />
+          </div>
+        <% end %>
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1 py-0.5">
+          <p class="text-[9px] font-semibold text-white leading-tight line-clamp-2">
+            {Person.display_name(@person)}
+          </p>
+        </div>
+      </div>
+      <%!-- Desktop: circular photo, name below, dates below name --%>
+      <div class="hidden lg:flex lg:flex-col lg:items-center">
         <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
           <%= if @person.photo && @person.photo_status == "processed" do %>
             <img
@@ -57,13 +71,13 @@ defmodule Web.FamilyLive.PersonCardComponent do
             &nbsp;
           <% end %>
         </p>
-      </button>
-      <%= if @has_more do %>
-        <div class="mt-1 text-ds-on-surface-variant/50" title="Has more descendants">
-          <.icon name="hero-chevron-down" class="w-3 h-3" />
-        </div>
-      <% end %>
-    </div>
+        <%= if @has_more do %>
+          <div class="mt-1 text-ds-on-surface-variant/50" title="Has more descendants">
+            <.icon name="hero-chevron-down" class="w-3 h-3" />
+          </div>
+        <% end %>
+      </div>
+    </button>
     """
   end
 
@@ -78,15 +92,15 @@ defmodule Web.FamilyLive.PersonCardComponent do
       phx-click="add_relationship"
       phx-value-type={@type}
       phx-value-person-id={@person_id}
-      class="flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 border border-dashed border-ds-on-surface-variant/50 hover:border-ds-primary/50 hover:bg-ds-primary/5 transition-all cursor-pointer group"
+      class="flex flex-col items-center justify-center text-center w-[72px] h-[72px] lg:w-28 lg:h-auto lg:p-2 rounded-ds-sharp border border-dashed border-ds-on-surface-variant/50 hover:border-ds-primary/50 hover:bg-ds-primary/5 transition-all cursor-pointer group"
     >
-      <div class="w-14 h-14 rounded-full bg-ds-on-surface/5 flex items-center justify-center mb-1 group-hover:bg-ds-primary/10 transition-colors">
+      <div class="w-8 h-8 lg:w-14 lg:h-14 rounded-full bg-ds-on-surface/5 flex items-center justify-center mb-1 group-hover:bg-ds-primary/10 transition-colors">
         <.icon
           name="hero-plus"
-          class="w-6 h-6 text-ds-on-surface-variant/50 group-hover:text-ds-primary transition-colors"
+          class="w-4 h-4 lg:w-6 lg:h-6 text-ds-on-surface-variant/50 group-hover:text-ds-primary transition-colors"
         />
       </div>
-      <p class="text-xs text-ds-on-surface-variant group-hover:text-ds-primary transition-colors">
+      <p class="text-[9px] lg:text-xs text-ds-on-surface-variant group-hover:text-ds-primary transition-colors">
         {placeholder_label(@type)}
       </p>
     </button>
@@ -207,7 +221,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
       )
 
     ~H"""
-    <div class="flex items-start justify-center gap-8">
+    <div class="flex items-start justify-center gap-4 lg:gap-8">
       <%!-- Main person + partner --%>
       <div
         class={["flex flex-col items-center", @is_root && "scroll-mt-4"]}
@@ -252,7 +266,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   def subtree_children(assigns) do
     ~H"""
     <div class="flex flex-col items-center">
-      <div class="flex items-start gap-6" data-children-row>
+      <div class="flex items-start gap-3 lg:gap-6" data-children-row>
         <%= for child <- @children do %>
           <div
             class="flex flex-col items-center"
@@ -310,7 +324,10 @@ defmodule Web.FamilyLive.PersonCardComponent do
     ~H"""
     <div class="flex flex-col items-center">
       <%= if @node.parent_trees != [] do %>
-        <div class="flex items-end justify-center gap-8 mb-5" data-ancestor-parents-row>
+        <div
+          class="flex items-end justify-center gap-4 lg:gap-8 mb-3 lg:mb-5"
+          data-ancestor-parents-row
+        >
           <%= for entry <- @node.parent_trees do %>
             <div data-ancestor-parent-column data-target-person-id={entry.for_person_id}>
               <.ancestor_subtree

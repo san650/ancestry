@@ -2,23 +2,56 @@
   <:toolbar>
     <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
       <div class="flex items-center gap-3">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+          class="hidden lg:flex p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
           {test_id("kinship-back-btn")}
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+        <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
           Kinship
         </h1>
       </div>
     </div>
   </:toolbar>
 
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <.link
+      href={~p"/org"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">Organizations</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Back FAB (mobile only) --%>
+  <.link
+    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
+    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
+    aria-label="Back"
+  >
+    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+  </.link>
+
   <div class="max-w-2xl mx-auto p-6">
     <%!-- Person selectors --%>
-    <div class="flex items-start gap-4" {test_id("kinship-selectors")}>
+    <div
+      class="flex flex-col sm:flex-row items-stretch sm:items-start gap-4"
+      {test_id("kinship-selectors")}
+    >
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
         <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
@@ -34,7 +67,7 @@
       </div>
 
       <%!-- Swap button --%>
-      <div class="pt-7">
+      <div class="flex justify-center sm:pt-7">
         <button
           id="kinship-swap-btn"
           phx-click="swap"
@@ -48,7 +81,7 @@
           disabled={!(@person_a && @person_b)}
           {test_id("kinship-swap-btn")}
         >
-          <.icon name="hero-arrows-right-left" class="w-5 h-5" />
+          <.icon name="hero-arrows-right-left" class="w-5 h-5 rotate-90 sm:rotate-0" />
         </button>
       </div>
 
@@ -180,7 +213,7 @@
                   <.fork_connector />
 
                   <%!-- Two branches side by side --%>
-                  <div class="flex w-full max-w-2xl gap-4">
+                  <div class="flex flex-col md:flex-row w-full max-w-2xl gap-4">
                     <%!-- Left branch: Person A's lineage (skip MRCA, already shown) --%>
                     <div class="flex-1 flex flex-col items-center">
                       <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>

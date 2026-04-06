@@ -239,10 +239,10 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
     # Should be on person show page
     conn = assert_has(conn, "h1", text: "Alice Smith")
 
-    # Click back arrow (navigates to org people page because from_org=true)
+    # Click back arrow in toolbar (desktop, navigates to org people page because from_org=true)
     conn =
       conn
-      |> click("a[href='/org/#{org.id}/people']")
+      |> click(test_id("person-back-btn"))
       |> wait_liveview()
 
     # Should be back on org people page

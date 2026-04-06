@@ -8,10 +8,10 @@ defmodule Web.FamilyLive.SidePanelComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <aside id={@id} class="bg-ds-surface-card flex flex-col p-4 gap-6">
-      <%!-- Metrics Section --%>
+    <div id={@id} class="flex flex-col p-4 gap-6">
+      <%!-- Metrics Section: desktop only --%>
       <%= if @metrics.ok? && @metrics.result.people_count > 0 do %>
-        <div class="space-y-4">
+        <div class="hidden lg:block space-y-4">
           <%!-- People & Photo counts --%>
           <div class="grid grid-cols-2 gap-3">
             <div
@@ -82,7 +82,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
       <.live_component
         module={GalleryListComponent}
-        id="gallery-list"
+        id={"#{@id}-gallery-list"}
         galleries={@galleries}
         family_id={@family_id}
         organization={@organization}
@@ -92,13 +92,13 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
       <.live_component
         module={PeopleListComponent}
-        id="people-list"
+        id={"#{@id}-people-list"}
         people={@people}
         family_id={@family_id}
         organization={@organization}
         focus_person_id={@focus_person_id}
       />
-    </aside>
+    </div>
     """
   end
 

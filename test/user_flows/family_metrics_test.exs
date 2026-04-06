@@ -84,7 +84,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     # Click oldest person card — should load tree view for George
     conn =
       conn
-      |> click(test_id("metric-oldest-person") <> " button")
+      |> click(test_id("metric-oldest-person") <> ":visible button")
       |> wait_liveview()
 
     # Verify the tree loaded for grandpa
@@ -101,7 +101,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     # Click root ancestor in generations — the first button in the generations metric is the root
     conn =
       conn
-      |> click(test_id("metric-generations") <> " button:first-of-type")
+      |> click(test_id("metric-generations") <> ":visible button:first-of-type")
       |> wait_liveview()
 
     conn =
@@ -113,7 +113,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
-      |> click(test_id("metric-generations") <> " button:last-of-type")
+      |> click(test_id("metric-generations") <> ":visible button:last-of-type")
       |> wait_liveview()
 
     conn

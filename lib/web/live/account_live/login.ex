@@ -5,11 +5,15 @@ defmodule Web.AccountLive.Login do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="flex items-center justify-center min-h-[70vh] px-4">
-        <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
-          <div class="text-center">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">Log in</h1>
-            <p :if={@current_scope} class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
+      <div class="flex flex-col items-center justify-center min-h-[80svh] px-6">
+        <div class="w-full max-w-sm">
+          <%!-- Logo --%>
+          <div class="flex flex-col items-center pt-16 pb-8 lg:pt-8">
+            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">Log in</h1>
+            <p
+              :if={@current_scope}
+              class="mt-2 text-sm font-ds-body text-ds-on-surface-variant text-center"
+            >
               You need to reauthenticate to perform sensitive actions on your account.
             </p>
           </div>
@@ -22,36 +26,41 @@ defmodule Web.AccountLive.Login do
             phx-submit="submit_password"
             phx-trigger-action={@trigger_submit}
           >
-            <.input
-              readonly={!!@current_scope}
-              field={f[:email]}
-              type="email"
-              label="Email"
-              autocomplete="username"
-              spellcheck="false"
-              required
-            />
-            <.input
-              field={@form[:password]}
-              type="password"
-              label="Password"
-              autocomplete="current-password"
-              spellcheck="false"
-            />
-            <button
-              type="submit"
-              name={@form[:remember_me].name}
-              value="true"
-              class="w-full mt-4 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
-            >
-              Log in and stay logged in <span aria-hidden="true">&rarr;</span>
-            </button>
-            <button
-              type="submit"
-              class="w-full mt-2 py-2.5 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
-            >
-              Log in only this time
-            </button>
+            <div class="flex flex-col gap-4">
+              <.input
+                readonly={!!@current_scope}
+                field={f[:email]}
+                type="email"
+                label="Email"
+                autocomplete="username"
+                spellcheck="false"
+                required
+                class="w-full px-4 py-3 bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp text-base font-ds-body text-ds-on-surface placeholder:text-ds-on-surface-variant/50 focus:border-ds-primary focus:ring-1 focus:ring-ds-primary"
+              />
+              <.input
+                field={@form[:password]}
+                type="password"
+                label="Password"
+                autocomplete="current-password"
+                spellcheck="false"
+                class="w-full px-4 py-3 bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp text-base font-ds-body text-ds-on-surface placeholder:text-ds-on-surface-variant/50 focus:border-ds-primary focus:ring-1 focus:ring-ds-primary"
+              />
+
+              <button
+                type="submit"
+                name={@form[:remember_me].name}
+                value="true"
+                class="w-full py-3 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary font-ds-heading font-bold text-sm rounded-ds-sharp transition-all hover:brightness-110 focus:ring-2 focus:ring-ds-primary focus:ring-offset-2 cursor-pointer"
+              >
+                Log in and stay logged in
+              </button>
+              <button
+                type="submit"
+                class="w-full py-3 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
+              >
+                Log in only this time
+              </button>
+            </div>
           </.form>
         </div>
       </div>

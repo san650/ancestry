@@ -12,7 +12,7 @@ defmodule Web.AccountLive.Settings do
       <div class="flex items-start justify-center min-h-[70vh] px-4 pt-12">
         <div class="w-full max-w-md space-y-8">
           <div class="text-center">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">Account Settings</h1>
+            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">Account Settings</h1>
             <p class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
               Manage your account email address and password settings
             </p>

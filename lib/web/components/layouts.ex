@@ -49,7 +49,7 @@ defmodule Web.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen">
-      <header class="flex items-center px-4 sm:px-6 lg:px-8 py-2">
+      <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
@@ -57,7 +57,7 @@ defmodule Web.Layouts do
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-row px-1 space-x-4 items-center font-ds-body text-sm text-ds-on-surface-variant">
+          <ul class="flex flex-row px-1 items-center gap-2 lg:gap-4 font-ds-body text-sm text-ds-on-surface-variant">
             <%= if @current_scope && @current_scope.account do %>
               <%= if @current_scope.organization do %>
                 <li>
@@ -78,7 +78,7 @@ defmodule Web.Layouts do
               <li>
                 <.link
                   href={~p"/accounts/settings"}
-                  class="hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-ds-on-surface transition-colors"
                 >
                   Settings
                 </.link>
@@ -87,7 +87,7 @@ defmodule Web.Layouts do
                 <.link
                   href={~p"/accounts/log-out"}
                   method="delete"
-                  class="hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-ds-on-surface transition-colors"
                 >
                   Log out
                 </.link>
@@ -100,7 +100,7 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 bg-ds-surface-low"
+          class="sticky z-1 top-0 bg-ds-surface-low"
         >
           {render_slot(@toolbar)}
         </div>

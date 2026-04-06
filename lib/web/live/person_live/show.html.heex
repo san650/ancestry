@@ -1,63 +1,154 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <%= cond do %>
           <% @from_family -> %>
             <.link
               navigate={
                 ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
               }
-              class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label="Back"
+              {test_id("person-back-btn")}
             >
-              <.icon name="hero-arrow-left" class="w-5 h-5" />
+              <.icon name="hero-arrow-left" class="size-5" />
             </.link>
           <% @from_org -> %>
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}/people"}
-              class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label="Back"
+              {test_id("person-back-btn")}
             >
-              <.icon name="hero-arrow-left" class="w-5 h-5" />
+              <.icon name="hero-arrow-left" class="size-5" />
             </.link>
           <% true -> %>
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}"}
-              class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label="Back"
+              {test_id("person-back-btn")}
             >
-              <.icon name="hero-arrow-left" class="w-5 h-5" />
+              <.icon name="hero-arrow-left" class="size-5" />
             </.link>
         <% end %>
-        <h1 class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface">
+        <%!-- Name in toolbar: desktop only (mobile has it on the hero photo) --%>
+        <h1 class="hidden lg:block font-ds-heading font-bold text-lg text-ds-on-surface truncate">
           {Ancestry.People.Person.display_name(@person)}
         </h1>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          id="edit-person-btn"
-          phx-click="edit"
-          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
-        >
-          <.icon name="hero-pencil" class="w-4 h-4" /> Edit
-        </button>
-        <%= if @from_family do %>
+
+      <div class="flex items-center gap-1">
+        <%!-- Desktop actions --%>
+        <div class="hidden lg:flex items-center gap-1">
           <button
-            id="remove-from-family-btn"
-            phx-click="request_remove"
-            class="inline-flex items-center gap-1.5 text-ds-error rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-error/10 transition-colors"
+            type="button"
+            id="edit-person-btn"
+            phx-click="edit"
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Edit person"
           >
-            <.icon name="hero-user-minus" class="w-4 h-4" /> Remove
+            <.icon name="hero-pencil-square" class="size-5" />
           </button>
-        <% end %>
-        <button
-          id="delete-person-btn"
-          phx-click="request_delete"
-          class="inline-flex items-center gap-1.5 text-ds-error rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-error/10 transition-colors"
-        >
-          <.icon name="hero-trash" class="w-4 h-4" /> Delete
-        </button>
+          <%= if @from_family do %>
+            <button
+              type="button"
+              id="remove-from-family-btn"
+              phx-click="request_remove"
+              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label="Remove from family"
+            >
+              <.icon name="hero-link-slash" class="size-5" />
+            </button>
+          <% end %>
+          <button
+            type="button"
+            id="delete-person-btn"
+            phx-click="request_delete"
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Delete person"
+          >
+            <.icon name="hero-trash" class="size-5" />
+          </button>
+        </div>
       </div>
     </div>
   </:toolbar>
+
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        icon="hero-pencil-square"
+        label="Edit"
+        phx-click={toggle_nav_drawer() |> JS.push("edit")}
+      />
+      <%= if @from_family do %>
+        <.nav_action
+          icon="hero-link-slash"
+          label="Remove from family"
+          phx-click={toggle_nav_drawer() |> JS.push("request_remove")}
+        />
+      <% end %>
+      <.nav_action
+        icon="hero-trash"
+        label="Delete person"
+        danger
+        phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
+      />
+    </:page_actions>
+    <.link
+      navigate={~p"/org/#{@current_scope.organization.id}"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Floating back FAB: mobile only --%>
+  <%= cond do %>
+    <% @from_family -> %>
+      <.link
+        navigate={
+          ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
+        }
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+    <% @from_org -> %>
+      <.link
+        navigate={~p"/org/#{@current_scope.organization.id}/people"}
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+    <% true -> %>
+      <.link
+        navigate={~p"/org/#{@current_scope.organization.id}"}
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+  <% end %>
 
   <%= if @editing do %>
     <div class="max-w-2xl mx-auto">
@@ -71,136 +162,142 @@
     </div>
   <% else %>
     <%!-- Detail view --%>
-    <div class="max-w-4xl mx-auto">
-      <div class="flex flex-col md:flex-row gap-8">
-        <%!-- Photo --%>
-        <div class="flex-shrink-0">
-          <div class="w-48 h-48 rounded-ds-sharp bg-ds-surface-low flex items-center justify-center overflow-hidden">
-            <%= if @person.photo && @person.photo_status == "processed" do %>
-              <img
-                src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
-                alt={Ancestry.People.Person.display_name(@person)}
-                class="w-full h-full object-cover"
-              />
-            <% else %>
-              <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+    <%!-- Hero photo header: mobile shows overlay name, desktop shows side-by-side --%>
+    <div class="lg:flex lg:gap-8 lg:px-8 lg:py-6 lg:max-w-4xl lg:mx-auto">
+      <%!-- Photo container --%>
+      <div class="relative lg:w-48 lg:h-48 lg:shrink-0">
+        <%= if @person.photo && @person.photo_status == "processed" do %>
+          <img
+            src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
+            alt={Ancestry.People.Person.display_name(@person)}
+            class="w-full max-h-64 object-cover lg:w-48 lg:h-48 lg:rounded-ds-sharp"
+          />
+        <% else %>
+          <div class="w-full h-48 bg-ds-surface-low flex items-center justify-center lg:w-48 lg:h-48 lg:rounded-ds-sharp">
+            <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+          </div>
+        <% end %>
+
+        <%!-- Name overlay: mobile only --%>
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 lg:hidden">
+          <h1 class="text-white font-ds-heading text-xl font-bold">
+            {Ancestry.People.Person.display_name(@person)}
+          </h1>
+        </div>
+      </div>
+
+      <%!-- Details --%>
+      <div class="px-4 py-4 lg:px-0 lg:py-0 lg:flex-1 space-y-6">
+        <div>
+          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
+            Name
+          </h2>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
+            <%= if @person.title do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Title:</span> {@person.title}
+              </div>
+            <% end %>
+            <%= if @person.given_name do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Given name:</span> {@person.given_name}
+              </div>
+            <% end %>
+            <%= if @person.surname do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Surname:</span> {@person.surname}
+              </div>
+            <% end %>
+            <%= if @person.nickname do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Nickname:</span> {@person.nickname}
+              </div>
+            <% end %>
+            <%= if @person.suffix do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Suffix:</span> {@person.suffix}
+              </div>
+            <% end %>
+            <%= if @person.given_name_at_birth && @person.given_name_at_birth != @person.given_name do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Given name at birth:</span>
+                {@person.given_name_at_birth}
+              </div>
+            <% end %>
+            <%= if @person.surname_at_birth && @person.surname_at_birth != @person.surname do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Surname at birth:</span>
+                {@person.surname_at_birth}
+              </div>
             <% end %>
           </div>
         </div>
 
-        <%!-- Details --%>
-        <div class="flex-1 space-y-6">
+        <%= if @person.alternate_names != [] do %>
           <div>
             <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-              Name
-            </h2>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
-              <%= if @person.title do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Title:</span> {@person.title}
-                </div>
-              <% end %>
-              <%= if @person.given_name do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Given name:</span> {@person.given_name}
-                </div>
-              <% end %>
-              <%= if @person.surname do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Surname:</span> {@person.surname}
-                </div>
-              <% end %>
-              <%= if @person.nickname do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Nickname:</span> {@person.nickname}
-                </div>
-              <% end %>
-              <%= if @person.suffix do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Suffix:</span> {@person.suffix}
-                </div>
-              <% end %>
-              <%= if @person.given_name_at_birth && @person.given_name_at_birth != @person.given_name do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Given name at birth:</span>
-                  {@person.given_name_at_birth}
-                </div>
-              <% end %>
-              <%= if @person.surname_at_birth && @person.surname_at_birth != @person.surname do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Surname at birth:</span>
-                  {@person.surname_at_birth}
-                </div>
-              <% end %>
-            </div>
-          </div>
-
-          <%= if @person.alternate_names != [] do %>
-            <div>
-              <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-                Also Known As
-              </h2>
-              <div class="flex flex-wrap gap-2">
-                <%= for name <- @person.alternate_names do %>
-                  <span class="px-2 py-0.5 rounded-full bg-ds-surface-low text-ds-on-surface-variant text-xs">
-                    {name}
-                  </span>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-
-          <div>
-            <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-              Families
+              Also Known As
             </h2>
             <div class="flex flex-wrap gap-2">
-              <%= for family <- @person.families do %>
-                <.link
-                  navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
-                  class="px-2 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
-                >
-                  {family.name}
-                </.link>
+              <%= for name <- @person.alternate_names do %>
+                <span class="px-2 py-0.5 rounded-full bg-ds-surface-low text-ds-on-surface-variant text-xs">
+                  {name}
+                </span>
               <% end %>
             </div>
           </div>
+        <% end %>
 
-          <div>
-            <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-              Details
-            </h2>
-            <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
-              <%= if @person.birth_year || @person.birth_month || @person.birth_day do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Born:</span>
-                  {format_partial_date(@person.birth_day, @person.birth_month, @person.birth_year)}
-                </div>
-              <% end %>
-              <%= if @person.death_year || @person.death_month || @person.death_day do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Died:</span>
-                  {format_partial_date(@person.death_day, @person.death_month, @person.death_year)}
-                </div>
-              <% end %>
+        <div>
+          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
+            Families
+          </h2>
+          <div class="flex flex-wrap gap-2">
+            <%= for family <- @person.families do %>
+              <.link
+                navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
+                class="px-2 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
+              >
+                {family.name}
+              </.link>
+            <% end %>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
+            Details
+          </h2>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
+            <%= if @person.birth_year || @person.birth_month || @person.birth_day do %>
               <div>
-                <span class="text-ds-on-surface-variant text-sm">Deceased:</span>
-                {if @person.deceased, do: "Yes", else: "No"}
+                <span class="text-ds-on-surface-variant text-sm">Born:</span>
+                {format_partial_date(@person.birth_day, @person.birth_month, @person.birth_year)}
               </div>
-              <%= if @person.gender do %>
-                <div>
-                  <span class="text-ds-on-surface-variant text-sm">Gender:</span>
-                  {String.capitalize(@person.gender)}
-                </div>
-              <% end %>
+            <% end %>
+            <%= if @person.death_year || @person.death_month || @person.death_day do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Died:</span>
+                {format_partial_date(@person.death_day, @person.death_month, @person.death_year)}
+              </div>
+            <% end %>
+            <div>
+              <span class="text-ds-on-surface-variant text-sm">Deceased:</span>
+              {if @person.deceased, do: "Yes", else: "No"}
             </div>
+            <%= if @person.gender do %>
+              <div>
+                <span class="text-ds-on-surface-variant text-sm">Gender:</span>
+                {String.capitalize(@person.gender)}
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
     </div>
 
     <%!-- Relationships Section --%>
-    <div id="relationships-section" class="max-w-5xl mx-auto mt-12">
+    <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 lg:max-w-5xl lg:mx-auto">
       <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">Relationships</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <%!-- Left Column: Spouses and Children --%>
@@ -525,9 +622,9 @@
 
   <%!-- Remove Confirmation Modal --%>
   <%= if @confirm_remove do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
-      <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8">
+      <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8">
         <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
           Remove from Family
         </h2>
@@ -557,11 +654,11 @@
 
   <%!-- Delete Confirmation Modal --%>
   <%= if @confirm_delete do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-person-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
         <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Person</h2>
         <p class="text-ds-on-surface-variant mb-6">
@@ -589,7 +686,7 @@
 
   <%!-- Add Relationship Modal --%>
   <%= if @adding_relationship do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div
         class="absolute inset-0 bg-black/60 backdrop-blur-sm"
         phx-click="cancel_add_relationship"
@@ -597,7 +694,7 @@
       </div>
       <div
         id="add-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8 max-h-[90vh] overflow-y-auto"
       >
         <.live_component
           module={Web.Shared.AddRelationshipComponent}
@@ -613,7 +710,7 @@
 
   <%!-- Edit Relationship Modal --%>
   <%= if @editing_relationship do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div
         class="absolute inset-0 bg-black/60 backdrop-blur-sm"
         phx-click="cancel_edit_relationship"
@@ -621,7 +718,7 @@
       </div>
       <div
         id="edit-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
         <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-4">
           Edit Relationship

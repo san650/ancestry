@@ -26,6 +26,7 @@ import { hooks as colocatedHooks } from "phoenix-colocated/ancestry"
 import topbar from "../vendor/topbar"
 import { PhotoTagger, PersonHighlight } from "./photo_tagger"
 import { TreeConnector } from "./tree_connector"
+import Swipe from "./swipe"
 
 function stripDiacritics(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -54,7 +55,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, FuzzyFilter, TreeConnector, PhotoTagger, PersonHighlight },
+  hooks: { ...colocatedHooks, FuzzyFilter, TreeConnector, PhotoTagger, PersonHighlight, Swipe },
 })
 
 // Show progress bar on live navigation and form submits
