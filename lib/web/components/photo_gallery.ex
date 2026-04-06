@@ -201,78 +201,112 @@ defmodule Web.Components.PhotoGallery do
         </div>
 
         <%= if @panel_open do %>
-          <div class="hidden lg:flex flex-col w-80 shrink-0 border-l border-white/10 bg-black/80 text-white">
-            <%!-- People section --%>
-            <div class="shrink-0 border-b border-white/10">
-              <div class="flex items-center justify-between px-4 py-3">
-                <div class="flex items-center gap-2">
-                  <h3 class="text-sm font-semibold text-white/90 tracking-wide">People</h3>
+          <%!-- Info panel: full-screen overlay on mobile, side panel on desktop --%>
+          <div class={[
+            "fixed inset-0 z-50 flex flex-col bg-black/95 text-white",
+            "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:border-l lg:border-white/10 lg:bg-black/80"
+          ]}>
+            <%!-- Mobile header with close button --%>
+            <div class="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
+              <h3 class="text-base font-ds-heading font-bold text-white lg:text-sm lg:font-semibold lg:text-white/90">
+                <span class="lg:hidden">Photo Info</span>
+                <span class="hidden lg:inline">People</span>
+              </h3>
+              <button
+                type="button"
+                phx-click="toggle_panel"
+                class="p-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/10 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 lg:text-white/40 flex items-center justify-center"
+                aria-label="Close info"
+              >
+                <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
+              </button>
+            </div>
+
+            <%!-- Scrollable content --%>
+            <div class="flex-1 overflow-y-auto min-h-0">
+              <%!-- People section --%>
+              <div class="shrink-0 border-b border-white/10">
+                <div class="flex items-center gap-2 px-4 py-3 lg:hidden">
+                  <h4 class="text-sm font-semibold text-white/90">People</h4>
                   <%= if @photo_people != [] do %>
                     <span class="text-xs bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full">
                       {length(@photo_people)}
                     </span>
                   <% end %>
                 </div>
-                <button
-                  phx-click="toggle_panel"
-                  class="p-1.5 rounded-ds-sharp text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-                >
-                  <.icon name="hero-x-mark" class="w-4 h-4" />
-                </button>
-              </div>
-              <div id="photo-person-list" class="px-4 pb-3 max-h-48 overflow-y-auto">
-                <%= if @photo_people == [] do %>
-                  <p class="text-sm text-white/30 py-2">Click on the photo to tag people</p>
-                <% else %>
-                  <div class="space-y-1">
-                    <%= for pp <- @photo_people do %>
-                      <div
-                        id={"photo-person-#{pp.id}"}
-                        class="flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp hover:bg-white/10 transition-colors group"
-                        data-person-id={pp.person_id}
-                        phx-hook="PersonHighlight"
-                      >
-                        <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
-                          <img
-                            src={
-                              Ancestry.Uploaders.PersonPhoto.url(
-                                {pp.person.photo, pp.person},
-                                :thumbnail
-                              )
-                            }
-                            class="w-6 h-6 rounded-full object-cover shrink-0"
-                          />
-                        <% else %>
-                          <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-                            <.icon name="hero-user" class="w-3.5 h-3.5 text-white/40" />
-                          </div>
-                        <% end %>
-                        <span class="text-sm text-white/80 truncate flex-1">
-                          {Ancestry.People.Person.display_name(pp.person)}
-                        </span>
-                        <button
-                          phx-click="untag_person"
-                          phx-value-photo-id={pp.photo_id}
-                          phx-value-person-id={pp.person_id}
-                          class="p-1 rounded text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                          title="Remove tag"
+                <div id="photo-person-list" class="px-4 pb-3 max-h-48 lg:max-h-none overflow-y-auto">
+                  <%= if @photo_people == [] do %>
+                    <p class="text-sm text-white/30 py-2">
+                      <span class="lg:hidden">No people tagged in this photo</span>
+                      <span class="hidden lg:inline">Click on the photo to tag people</span>
+                    </p>
+                  <% else %>
+                    <div class="space-y-1">
+                      <%= for pp <- @photo_people do %>
+                        <div
+                          id={"photo-person-#{pp.id}"}
+                          class="flex items-center gap-3 lg:gap-2 px-2 py-2.5 lg:py-1.5 rounded-ds-sharp hover:bg-white/10 transition-colors group"
+                          data-person-id={pp.person_id}
+                          phx-hook="PersonHighlight"
                         >
-                          <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
+                          <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
+                            <img
+                              src={
+                                Ancestry.Uploaders.PersonPhoto.url(
+                                  {pp.person.photo, pp.person},
+                                  :thumbnail
+                                )
+                              }
+                              class="w-8 h-8 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
+                            />
+                          <% else %>
+                            <div class="w-8 h-8 lg:w-6 lg:h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                              <.icon name="hero-user" class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white/40" />
+                            </div>
+                          <% end %>
+                          <span class="text-sm text-white/80 truncate flex-1">
+                            {Ancestry.People.Person.display_name(pp.person)}
+                          </span>
+                          <button
+                            phx-click="untag_person"
+                            phx-value-photo-id={pp.photo_id}
+                            phx-value-person-id={pp.person_id}
+                            class="p-1 rounded text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0 hidden lg:block"
+                            title="Remove tag"
+                          >
+                            <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+
+              <%!-- Comments section --%>
+              <div class="flex-1 min-h-0">
+                <.live_component
+                  module={PhotoCommentsComponent}
+                  id="photo-comments"
+                  photo_id={@selected_photo.id}
+                />
               </div>
             </div>
 
-            <%!-- Comments section --%>
-            <div class="flex-1 min-h-0">
-              <.live_component
-                module={PhotoCommentsComponent}
-                id="photo-comments"
-                photo_id={@selected_photo.id}
-              />
+            <%!-- Download button: mobile only --%>
+            <div class="shrink-0 px-4 py-3 border-t border-white/10 lg:hidden">
+              <a
+                href={
+                  Ancestry.Uploaders.Photo.url(
+                    {@selected_photo.image, @selected_photo},
+                    :original
+                  )
+                }
+                download={@selected_photo.original_filename}
+                class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/10 text-white rounded-ds-sharp text-sm font-ds-body font-semibold hover:bg-white/20 transition-colors"
+              >
+                <.icon name="hero-arrow-down-tray" class="size-5" /> Download
+              </a>
             </div>
           </div>
         <% end %>
