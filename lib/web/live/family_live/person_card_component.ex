@@ -13,57 +13,48 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   def person_card(assigns) do
     ~H"""
-    <div
+    <button
+      type="button"
       data-person-id={@person.id}
-      id={if(@focused, do: "focus-person-card")}
+      id={if(@focused, do: "focus-person-card", else: "person-card-#{@person.id}")}
+      phx-click="focus_person"
+      phx-value-id={@person.id}
       class={[
-        "relative flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 transition-all group",
+        "relative flex flex-col items-center text-center w-28 rounded-ds-sharp p-2 transition-all duration-150 group",
         "bg-ds-surface-card",
         gender_border_class(@person.gender),
-        @focused && "ring-2 ring-ds-primary z-1"
+        if(@focused, do: "ring-2 ring-ds-primary scale-105 z-1", else: "hover:bg-ds-surface-high"),
+        "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2"
       ]}
+      aria-label={"#{Person.display_name(@person)}"}
     >
-      <.link
-        navigate={~p"/org/#{@organization.id}/people/#{@person.id}?from_family=#{@family_id}"}
-        class="absolute top-1 right-1 p-0.5 rounded text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-colors z-10 opacity-0 group-hover:opacity-100"
-        title="View details"
-      >
-        <.icon name="hero-arrow-top-right-on-square-mini" class="w-3 h-3" />
-      </.link>
-
-      <button
-        phx-click="focus_person"
-        phx-value-id={@person.id}
-        class="flex flex-col items-center cursor-pointer group"
-      >
-        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
-          <%= if @person.photo && @person.photo_status == "processed" do %>
-            <img
-              src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
-              alt={Person.display_name(@person)}
-              class="w-full h-full object-cover"
-            />
-          <% else %>
-            <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@person.gender)]} />
-          <% end %>
-        </div>
-        <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
-          {Person.display_name(@person)}
-        </p>
-        <p class="text-[10px] text-ds-on-surface-variant">
-          <%= if @person.birth_year do %>
-            {format_life_span(@person)}
-          <% else %>
-            &nbsp;
-          <% end %>
-        </p>
-      </button>
+      <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
+        <%= if @person.photo && @person.photo_status == "processed" do %>
+          <img
+            src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
+            alt={Person.display_name(@person)}
+            class="w-full h-full object-cover"
+          />
+        <% else %>
+          <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@person.gender)]} />
+        <% end %>
+      </div>
+      <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
+        {Person.display_name(@person)}
+      </p>
+      <p class="text-[10px] text-ds-on-surface-variant">
+        <%= if @person.birth_year do %>
+          {format_life_span(@person)}
+        <% else %>
+          &nbsp;
+        <% end %>
+      </p>
       <%= if @has_more do %>
         <div class="mt-1 text-ds-on-surface-variant/50" title="Has more descendants">
           <.icon name="hero-chevron-down" class="w-3 h-3" />
         </div>
       <% end %>
-    </div>
+    </button>
     """
   end
 
