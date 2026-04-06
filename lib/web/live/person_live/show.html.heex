@@ -2,30 +2,43 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <%= cond do %>
           <% @from_family -> %>
             <.link
               navigate={
                 ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
               }
-              class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
               aria-label="Back"
+              {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
             </.link>
           <% @from_org -> %>
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}/people"}
-              class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
               aria-label="Back"
+              {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
             </.link>
           <% true -> %>
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}"}
-              class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
               aria-label="Back"
+              {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
             </.link>
@@ -69,41 +82,73 @@
             <.icon name="hero-trash" class="size-5" />
           </button>
         </div>
-
-        <%!-- Bottom sheet: mobile only --%>
-        <button
-          type="button"
-          phx-click={toggle_bottom_sheet("person-actions")}
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="More actions"
-        >
-          <.icon name="hero-ellipsis-vertical" class="size-5" />
-        </button>
       </div>
     </div>
   </:toolbar>
 
-  <%!-- Mobile bottom sheet for actions --%>
-  <.bottom_sheet id="person-actions">
-    <.sheet_action
-      icon="hero-pencil-square"
-      label="Edit"
-      phx-click={toggle_bottom_sheet("person-actions") |> JS.push("edit")}
-    />
-    <%= if @from_family do %>
-      <.sheet_action
-        icon="hero-link-slash"
-        label="Remove from family"
-        phx-click={toggle_bottom_sheet("person-actions") |> JS.push("request_remove")}
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        icon="hero-pencil-square"
+        label="Edit"
+        phx-click={toggle_nav_drawer() |> JS.push("edit")}
       />
-    <% end %>
-    <.sheet_action
-      icon="hero-trash"
-      label="Delete person"
-      danger
-      phx-click={toggle_bottom_sheet("person-actions") |> JS.push("request_delete")}
-    />
-  </.bottom_sheet>
+      <%= if @from_family do %>
+        <.nav_action
+          icon="hero-link-slash"
+          label="Remove from family"
+          phx-click={toggle_nav_drawer() |> JS.push("request_remove")}
+        />
+      <% end %>
+      <.nav_action
+        icon="hero-trash"
+        label="Delete person"
+        danger
+        phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
+      />
+    </:page_actions>
+    <.link
+      navigate={~p"/org/#{@current_scope.organization.id}"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Floating back FAB: mobile only --%>
+  <%= cond do %>
+    <% @from_family -> %>
+      <.link
+        navigate={
+          ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
+        }
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+    <% @from_org -> %>
+      <.link
+        navigate={~p"/org/#{@current_scope.organization.id}/people"}
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+    <% true -> %>
+      <.link
+        navigate={~p"/org/#{@current_scope.organization.id}"}
+        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+        aria-label="Back"
+        {test_id("person-back-fab")}
+      >
+        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+      </.link>
+  <% end %>
 
   <%= if @editing do %>
     <div class="max-w-2xl mx-auto">

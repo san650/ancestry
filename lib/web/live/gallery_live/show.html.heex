@@ -2,9 +2,19 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
           aria-label="Back to family"
         >
           <.icon name="hero-arrow-left" class="size-5" />
@@ -58,36 +68,43 @@
             />
           </button>
         </div>
-
-        <%!-- Bottom sheet trigger: mobile only --%>
-        <button
-          type="button"
-          phx-click={toggle_bottom_sheet("gallery-actions")}
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="More actions"
-        >
-          <.icon name="hero-ellipsis-vertical" class="size-5" />
-        </button>
       </div>
     </div>
   </:toolbar>
 
-  <%!-- Mobile bottom sheet for actions --%>
-  <.bottom_sheet id="gallery-actions">
-    <.sheet_action
-      icon="hero-arrow-up-tray"
-      label="Upload photos"
-      phx-click={
-        toggle_bottom_sheet("gallery-actions")
-        |> JS.dispatch("click", to: "#upload-form input[type=file]")
-      }
-    />
-    <.sheet_action
-      icon={if(@grid_layout == :masonry, do: "hero-squares-2x2", else: "hero-view-columns")}
-      label={if(@grid_layout == :masonry, do: "Uniform grid", else: "Masonry layout")}
-      phx-click={toggle_bottom_sheet("gallery-actions") |> JS.push("toggle_layout")}
-    />
-  </.bottom_sheet>
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        icon="hero-arrow-up-tray"
+        label="Upload photos"
+        phx-click={
+          toggle_nav_drawer() |> JS.dispatch("click", to: "#upload-form input[type=file]")
+        }
+      />
+      <.nav_action
+        icon={if(@grid_layout == :masonry, do: "hero-squares-2x2", else: "hero-view-columns")}
+        label={if(@grid_layout == :masonry, do: "Uniform grid", else: "Masonry layout")}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_layout")}
+      />
+    </:page_actions>
+    <.link
+      navigate={~p"/org/#{@current_scope.organization.id}"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Floating back FAB: mobile only --%>
+  <.link
+    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
+    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+    aria-label="Back to family"
+  >
+    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+  </.link>
 
   <%!-- Hidden form required by LiveView for file uploads --%>
   <form id="upload-form" phx-change="validate" phx-submit="upload_photos" class="hidden">
