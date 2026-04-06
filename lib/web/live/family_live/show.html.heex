@@ -1,11 +1,21 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
-      <%!-- Left: back + title --%>
+      <%!-- Left: hamburger (mobile) / back arrow (desktop) + title --%>
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open menu"
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
+        <%!-- Back arrow: desktop only --%>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}"}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
           aria-label="Back to families"
           {test_id("family-back-btn")}
         >
@@ -19,119 +29,126 @@
         </h1>
       </div>
 
-      <%!-- Right: actions --%>
-      <div class="flex items-center gap-1">
-        <%!-- Drawer toggle: mobile only --%>
+      <%!-- Right: desktop-only actions --%>
+      <div class="hidden lg:flex items-center gap-1">
+        <.link
+          navigate={
+            if(@focus_person,
+              do:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+              else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
+            )
+          }
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Kinship calculator"
+          id="kinship-btn"
+          {test_id("family-kinship-btn")}
+        >
+          <.icon name="hero-arrows-right-left" class="size-5" />
+        </.link>
         <button
           type="button"
-          phx-click={toggle_drawer("family-drawer")}
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open side panel"
+          id="edit-family-btn"
+          phx-click="edit"
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Edit family"
+          {test_id("family-edit-btn")}
         >
-          <.icon name="hero-bars-3" class="size-5" />
+          <.icon name="hero-pencil-square" class="size-5" />
         </button>
-
-        <%!-- Desktop-only actions --%>
-        <div class="hidden lg:flex items-center gap-1">
-          <.link
-            navigate={
-              if(@focus_person,
-                do:
-                  ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
-                else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
-              )
-            }
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Kinship calculator"
-            id="kinship-btn"
-            {test_id("family-kinship-btn")}
-          >
-            <.icon name="hero-arrows-right-left" class="size-5" />
-          </.link>
-          <button
-            type="button"
-            id="edit-family-btn"
-            phx-click="edit"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Edit family"
-            {test_id("family-edit-btn")}
-          >
-            <.icon name="hero-pencil-square" class="size-5" />
-          </button>
-          <button
-            type="button"
-            id="delete-family-btn"
-            phx-click="request_delete"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Delete family"
-            {test_id("family-delete-btn")}
-          >
-            <.icon name="hero-trash" class="size-5" />
-          </button>
-          <.link
-            navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Manage people"
-            id="manage-people-btn"
-            {test_id("family-manage-people-btn")}
-          >
-            <.icon name="hero-user-group" class="size-5" />
-          </.link>
-          <%= if @people != [] do %>
-            <button
-              type="button"
-              id="create-subfamily-btn"
-              phx-click="open_create_subfamily"
-              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label="Create subfamily"
-              {test_id("family-create-subfamily-btn")}
-            >
-              <.icon name="hero-square-2-stack" class="size-5" />
-            </button>
-          <% end %>
-        </div>
-
-        <%!-- Bottom sheet trigger: mobile only --%>
         <button
           type="button"
-          phx-click={toggle_bottom_sheet("family-actions")}
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="More actions"
+          id="delete-family-btn"
+          phx-click="request_delete"
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Delete family"
+          {test_id("family-delete-btn")}
         >
-          <.icon name="hero-ellipsis-vertical" class="size-5" />
+          <.icon name="hero-trash" class="size-5" />
         </button>
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Manage people"
+          id="manage-people-btn"
+          {test_id("family-manage-people-btn")}
+        >
+          <.icon name="hero-user-group" class="size-5" />
+        </.link>
+        <%= if @people != [] do %>
+          <button
+            type="button"
+            id="create-subfamily-btn"
+            phx-click="open_create_subfamily"
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Create subfamily"
+            {test_id("family-create-subfamily-btn")}
+          >
+            <.icon name="hero-square-2-stack" class="size-5" />
+          </button>
+        <% end %>
       </div>
     </div>
   </:toolbar>
 
-  <%!-- Mobile bottom sheet for actions --%>
-  <.bottom_sheet id="family-actions">
-    <.sheet_action
-      icon="hero-pencil-square"
-      label="Edit family"
-      phx-click={toggle_bottom_sheet("family-actions") |> JS.push("edit")}
-    />
-    <.sheet_action
-      icon="hero-arrows-right-left"
-      label="Kinship calculator"
-      phx-click={
-        toggle_bottom_sheet("family-actions")
-        |> JS.navigate(
-          if(@focus_person,
-            do:
-              ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
-            else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        icon="hero-pencil-square"
+        label="Edit family"
+        phx-click={toggle_nav_drawer() |> JS.push("edit")}
+      />
+      <.nav_action
+        icon="hero-arrows-right-left"
+        label="Kinship calculator"
+        phx-click={
+          toggle_nav_drawer()
+          |> JS.navigate(
+            if(@focus_person,
+              do:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+              else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
+            )
           )
-        )
-      }
-    />
-    <.sheet_action
-      icon="hero-trash"
-      label="Delete family"
-      danger
-      phx-click={toggle_bottom_sheet("family-actions") |> JS.push("request_delete")}
-    />
-  </.bottom_sheet>
+        }
+      />
+      <.nav_action
+        icon="hero-trash"
+        label="Delete family"
+        danger
+        phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
+      />
+    </:page_actions>
+    <:page_panel>
+      <.live_component
+        module={Web.FamilyLive.SidePanelComponent}
+        id="side-panel"
+        galleries={@galleries}
+        people={@people}
+        family_id={@family.id}
+        organization={@current_scope.organization}
+        focus_person_id={@focus_person && @focus_person.id}
+        metrics={@metrics}
+      />
+    </:page_panel>
+    <.link
+      navigate={~p"/org/#{@current_scope.organization.id}"}
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+    >
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
+      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+    </.link>
+  </.nav_drawer>
+
+  <%!-- Floating back FAB: mobile only --%>
+  <.link
+    navigate={~p"/org/#{@current_scope.organization.id}"}
+    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
+    aria-label="Back to families"
+  >
+    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
+  </.link>
 
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-0 lg:gap-4 overflow-x-hidden">
     <%!-- Tree Canvas: always visible, full width on mobile --%>
@@ -203,11 +220,11 @@
       <% end %>
     </div>
 
-    <%!-- Side panel: drawer on mobile, inline on desktop --%>
-    <.drawer id="family-drawer">
+    <%!-- Side panel: desktop only (mobile uses nav drawer) --%>
+    <div class="hidden lg:block">
       <.live_component
         module={Web.FamilyLive.SidePanelComponent}
-        id="side-panel"
+        id="side-panel-desktop"
         galleries={@galleries}
         people={@people}
         family_id={@family.id}
@@ -215,7 +232,7 @@
         focus_person_id={@focus_person && @focus_person.id}
         metrics={@metrics}
       />
-    </.drawer>
+    </div>
   </div>
 
   <%!-- Edit Family Modal --%>

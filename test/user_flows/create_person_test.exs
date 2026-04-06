@@ -36,7 +36,7 @@ defmodule Web.UserFlows.CreatePersonTest do
     # Click "Add member" button — should navigate to new member page
     conn =
       conn
-      |> click(test_id("person-add-btn"))
+      |> click(test_id("person-add-btn") <> ":visible")
       |> wait_liveview()
       |> assert_has(test_id("person-form"))
 

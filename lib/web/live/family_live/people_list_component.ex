@@ -13,7 +13,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
         </h3>
         <div class="flex items-center gap-1">
           <button
-            id="link-existing-btn"
+            id={"#{@id}-link-btn"}
             phx-click="open_search"
             class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
             title="Link existing person"
@@ -22,7 +22,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
           </button>
           <.link
-            id="add-member-btn"
+            id={"#{@id}-add-btn"}
             navigate={~p"/org/#{@organization.id}/families/#{@family_id}/members/new"}
             class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
             title="New member"
@@ -35,18 +35,18 @@ defmodule Web.FamilyLive.PeopleListComponent do
 
       <div class="mb-3">
         <input
-          id="people-filter-input"
+          id={"#{@id}-filter"}
           type="text"
           placeholder="Filter people..."
           class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm"
           phx-hook="FuzzyFilter"
-          data-target="people-list-items"
+          data-target={"#{@id}-items"}
           phx-update="ignore"
         />
       </div>
 
       <div
-        id="people-list-items"
+        id={"#{@id}-items"}
         class="space-y-0.5 max-h-96 overflow-y-auto"
         {test_id("person-list")}
       >

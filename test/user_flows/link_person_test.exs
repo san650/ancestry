@@ -26,7 +26,7 @@ defmodule Web.UserFlows.LinkPersonTest do
     # Click "Link existing person" button — modal should appear
     conn =
       conn
-      |> click(test_id("person-link-btn"))
+      |> click(test_id("person-link-btn") <> ":visible")
       |> assert_has(test_id("person-link-modal"))
 
     # Type the person's name to search — uses phx-keyup so we need actual typing

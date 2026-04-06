@@ -10,14 +10,14 @@ defmodule Web.FamilyLive.GalleryListComponent do
           Galleries
         </h3>
         <button
-          id="open-new-gallery-btn"
+          id={"#{@id}-new-btn"}
           phx-click="open_new_gallery_modal"
           class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
         >
           <.icon name="hero-plus" class="w-4 h-4" />
         </button>
       </div>
-      <div id="galleries" class="space-y-1">
+      <div id={"#{@id}-items"} class="space-y-1">
         <%= if @galleries == [] do %>
           <div class="text-sm text-ds-on-surface-variant py-2">
             No galleries yet.
@@ -25,7 +25,7 @@ defmodule Web.FamilyLive.GalleryListComponent do
         <% end %>
         <.link
           :for={gallery <- @galleries}
-          id={"gallery-#{gallery.id}"}
+          id={"#{@id}-#{gallery.id}"}
           navigate={~p"/org/#{@organization.id}/families/#{@family_id}/galleries/#{gallery.id}"}
           class="flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-sm text-ds-on-surface"
         >

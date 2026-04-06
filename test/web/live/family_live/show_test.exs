@@ -72,14 +72,14 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
       refute has_element?(view, "#new-gallery-modal")
-      view |> element("#open-new-gallery-btn") |> render_click()
+      view |> element("#side-panel-desktop-gallery-list-new-btn") |> render_click()
       assert has_element?(view, "#new-gallery-modal")
     end
 
     test "creates a gallery via the new gallery modal", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
-      view |> element("#open-new-gallery-btn") |> render_click()
+      view |> element("#side-panel-desktop-gallery-list-new-btn") |> render_click()
 
       view
       |> form("#new-gallery-form", gallery: %{name: "Winter 2025"})
@@ -91,7 +91,7 @@ defmodule Web.FamilyLive.ShowTest do
     test "shows validation error for blank gallery name", %{conn: conn, family: family, org: org} do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
-      view |> element("#open-new-gallery-btn") |> render_click()
+      view |> element("#side-panel-desktop-gallery-list-new-btn") |> render_click()
 
       view
       |> form("#new-gallery-form", gallery: %{name: ""})
@@ -106,7 +106,7 @@ defmodule Web.FamilyLive.ShowTest do
       render_async(view)
 
       # Gallery is shown in the side panel list
-      assert has_element?(view, "#gallery-#{gallery.id}")
+      assert has_element?(view, "#side-panel-desktop-gallery-list-#{gallery.id}")
 
       # The gallery list no longer has inline delete buttons.
       # Test the gallery modal flow for deletion instead.
@@ -118,7 +118,7 @@ defmodule Web.FamilyLive.ShowTest do
       |> element("#confirm-delete-gallery-modal [phx-click='confirm_delete_gallery']")
       |> render_click()
 
-      refute has_element?(view, "#gallery-#{gallery.id}")
+      refute has_element?(view, "#side-panel-desktop-gallery-list-#{gallery.id}")
     end
   end
 
@@ -138,7 +138,7 @@ defmodule Web.FamilyLive.ShowTest do
 
       refute has_element?(view, "#link-person-modal")
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
 
       assert has_element?(view, "#link-person-modal")
       assert has_element?(view, "#person-search-input")
@@ -148,7 +148,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
 
       render_keyup(view, "search", %{"key" => "o", "value" => "Ign"})
 
@@ -159,7 +159,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "o", "value" => "Ignacio"})
 
       view |> element("#link-person-#{person.id}") |> render_click()
@@ -175,7 +175,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
       assert has_element?(view, "#link-person-modal")
 
       view |> element("button", "Cancel") |> render_click()
@@ -192,7 +192,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "o", "value" => "Ignacio"})
 
       refute has_element?(view, "#link-person-#{member.id}")
@@ -202,7 +202,7 @@ defmodule Web.FamilyLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
-      view |> element("#link-existing-btn") |> render_click()
+      view |> element("#side-panel-desktop-people-list-link-btn") |> render_click()
       render_keyup(view, "search", %{"key" => "I", "value" => "I"})
 
       refute has_element?(view, "button[phx-click=link_person]")

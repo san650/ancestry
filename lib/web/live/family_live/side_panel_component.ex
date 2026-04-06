@@ -82,7 +82,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
       <.live_component
         module={GalleryListComponent}
-        id="gallery-list"
+        id={"#{@id}-gallery-list"}
         galleries={@galleries}
         family_id={@family_id}
         organization={@organization}
@@ -92,7 +92,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
       <.live_component
         module={PeopleListComponent}
-        id="people-list"
+        id={"#{@id}-people-list"}
         people={@people}
         family_id={@family_id}
         organization={@organization}
