@@ -1,93 +1,143 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
-      <div class="flex items-center gap-3">
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <%!-- Left: back + title --%>
+      <div class="flex items-center gap-2 min-w-0">
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}"}
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Back to families"
           {test_id("family-back-btn")}
         >
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
+          <.icon name="hero-arrow-left" class="size-5" />
         </.link>
         <h1
-          class="text-2xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface"
+          class="font-ds-heading font-bold text-lg text-ds-on-surface truncate"
           {test_id("family-name")}
         >
           {@family.name}
         </h1>
       </div>
-      <div class="flex items-center gap-2">
-        <%= if @people != [] do %>
-          <button
-            id="create-subfamily-btn"
-            phx-click="open_create_subfamily"
-            class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
-            {test_id("family-create-subfamily-btn")}
-          >
-            <.icon name="hero-square-2-stack" class="w-4 h-4" /> Create subfamily
-          </button>
-        <% end %>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
-          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
-          id="manage-people-btn"
-          {test_id("family-manage-people-btn")}
-        >
-          <.icon name="hero-users" class="w-4 h-4" /> Manage people
-        </.link>
-        <.link
-          navigate={
-            if(@focus_person,
-              do:
-                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
-              else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
-            )
-          }
-          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
-          id="kinship-btn"
-          {test_id("family-kinship-btn")}
-        >
-          <.icon name="hero-arrows-right-left" class="w-4 h-4" /> Kinship
-        </.link>
+
+      <%!-- Right: actions --%>
+      <div class="flex items-center gap-1">
+        <%!-- Drawer toggle: mobile only --%>
         <button
-          id="edit-family-btn"
-          phx-click="edit"
-          class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
-          {test_id("family-edit-btn")}
+          type="button"
+          phx-click={toggle_drawer("family-drawer")}
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="Open side panel"
         >
-          <.icon name="hero-pencil" class="w-4 h-4" /> Edit
+          <.icon name="hero-bars-3" class="size-5" />
         </button>
+
+        <%!-- Desktop-only actions --%>
+        <div class="hidden lg:flex items-center gap-1">
+          <.link
+            navigate={
+              if(@focus_person,
+                do:
+                  ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+                else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
+              )
+            }
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Kinship calculator"
+            id="kinship-btn"
+            {test_id("family-kinship-btn")}
+          >
+            <.icon name="hero-arrows-right-left" class="size-5" />
+          </.link>
+          <button
+            type="button"
+            id="edit-family-btn"
+            phx-click="edit"
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Edit family"
+            {test_id("family-edit-btn")}
+          >
+            <.icon name="hero-pencil-square" class="size-5" />
+          </button>
+          <button
+            type="button"
+            id="delete-family-btn"
+            phx-click="request_delete"
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Delete family"
+            {test_id("family-delete-btn")}
+          >
+            <.icon name="hero-trash" class="size-5" />
+          </button>
+          <.link
+            navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
+            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            aria-label="Manage people"
+            id="manage-people-btn"
+            {test_id("family-manage-people-btn")}
+          >
+            <.icon name="hero-user-group" class="size-5" />
+          </.link>
+          <%= if @people != [] do %>
+            <button
+              type="button"
+              id="create-subfamily-btn"
+              phx-click="open_create_subfamily"
+              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label="Create subfamily"
+              {test_id("family-create-subfamily-btn")}
+            >
+              <.icon name="hero-square-2-stack" class="size-5" />
+            </button>
+          <% end %>
+        </div>
+
+        <%!-- Bottom sheet trigger: mobile only --%>
         <button
-          id="delete-family-btn"
-          phx-click="request_delete"
-          class="inline-flex items-center gap-1.5 text-ds-error rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-error/10 transition-colors"
-          {test_id("family-delete-btn")}
+          type="button"
+          phx-click={toggle_bottom_sheet("family-actions")}
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label="More actions"
         >
-          <.icon name="hero-trash" class="w-4 h-4" /> Delete
+          <.icon name="hero-ellipsis-vertical" class="size-5" />
         </button>
       </div>
     </div>
   </:toolbar>
 
-  <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] overflow-x-hidden">
-    <%!-- Side Panel: first on mobile, last on desktop --%>
-    <div class="order-first lg:order-last bg-ds-surface-low">
-      <.live_component
-        module={Web.FamilyLive.SidePanelComponent}
-        id="side-panel"
-        galleries={@galleries}
-        people={@people}
-        family_id={@family.id}
-        organization={@current_scope.organization}
-        focus_person_id={@focus_person && @focus_person.id}
-        metrics={@metrics}
-      />
-    </div>
+  <%!-- Mobile bottom sheet for actions --%>
+  <.bottom_sheet id="family-actions">
+    <.sheet_action
+      icon="hero-pencil-square"
+      label="Edit family"
+      phx-click={toggle_bottom_sheet("family-actions") |> JS.push("edit")}
+    />
+    <.sheet_action
+      icon="hero-arrows-right-left"
+      label="Kinship calculator"
+      phx-click={
+        toggle_bottom_sheet("family-actions")
+        |> JS.navigate(
+          if(@focus_person,
+            do:
+              ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship?person_a=#{@focus_person.id}",
+            else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
+          )
+        )
+      }
+    />
+    <.sheet_action
+      icon="hero-trash"
+      label="Delete family"
+      danger
+      phx-click={toggle_bottom_sheet("family-actions") |> JS.push("request_delete")}
+    />
+  </.bottom_sheet>
 
-    <%!-- Tree Canvas: last on mobile, first on desktop --%>
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-0 lg:gap-4 overflow-x-hidden">
+    <%!-- Tree Canvas: always visible, full width on mobile --%>
     <div
       id="tree-canvas"
-      class="relative overflow-x-auto p-6 order-last lg:order-first"
+      class="relative overflow-auto hide-scrollbar p-6 order-last lg:order-first min-h-[60vh]"
       phx-hook="TreeConnector"
     >
       <%= if @tree do %>
@@ -152,18 +202,32 @@
         </div>
       <% end %>
     </div>
+
+    <%!-- Side panel: drawer on mobile, inline on desktop --%>
+    <.drawer id="family-drawer">
+      <.live_component
+        module={Web.FamilyLive.SidePanelComponent}
+        id="side-panel"
+        galleries={@galleries}
+        people={@people}
+        family_id={@family.id}
+        organization={@current_scope.organization}
+        focus_person_id={@focus_person && @focus_person.id}
+        metrics={@metrics}
+      />
+    </.drawer>
   </div>
 
   <%!-- Edit Family Modal --%>
   <%= if @editing do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_edit"
       phx-key="Escape"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
       <div
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-family-title"
@@ -305,14 +369,14 @@
   <%!-- Delete Family Confirmation Modal --%>
   <%= if @confirm_delete do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_delete"
       phx-key="Escape"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-family-title"
@@ -350,7 +414,7 @@
   <%!-- New Gallery Modal --%>
   <%= if @show_new_gallery_modal do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="close_new_gallery_modal"
       phx-key="Escape"
     >
@@ -361,7 +425,7 @@
       </div>
       <div
         id="new-gallery-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-gallery-title"
@@ -408,7 +472,7 @@
   <%!-- Delete Gallery Confirmation Modal --%>
   <%= if @confirm_delete_gallery do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_delete_gallery"
       phx-key="Escape"
     >
@@ -416,7 +480,7 @@
       </div>
       <div
         id="confirm-delete-gallery-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-gallery-title"
@@ -452,14 +516,14 @@
   <%!-- Search/Link Existing Person Modal --%>
   <%= if @search_mode do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="close_search"
       phx-key="Escape"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
       <div
         id="link-person-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="link-person-title"
@@ -534,7 +598,7 @@
   <%!-- Add Relationship Modal (from tree placeholders) --%>
   <%= if @adding_relationship do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_add_relationship"
       phx-key="Escape"
     >
@@ -545,7 +609,7 @@
       </div>
       <div
         id="add-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-lg mx-4 p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-relationship-title"
@@ -565,7 +629,7 @@
   <%!-- Create Subfamily Modal --%>
   <%= if @show_create_subfamily_modal do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="close_create_subfamily"
       phx-key="Escape"
     >
@@ -576,7 +640,7 @@
       </div>
       <div
         id="create-subfamily-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-subfamily-title"
