@@ -103,6 +103,14 @@ defmodule Web.Components.PhotoGallery do
   attr :photo_people, :list, default: []
 
   def lightbox(assigns) do
+    current_index = Enum.find_index(assigns.photos, &(&1.id == assigns.selected_photo.id)) || 0
+    total_photos = length(assigns.photos)
+
+    assigns =
+      assigns
+      |> assign(:current_index, current_index)
+      |> assign(:total_photos, total_photos)
+
     ~H"""
     <div
       id="lightbox"
@@ -110,48 +118,68 @@ defmodule Web.Components.PhotoGallery do
       phx-window-keydown="lightbox_keydown"
     >
       <%!-- Lightbox top bar --%>
-      <div class="flex items-center justify-between px-6 py-4 shrink-0">
-        <p class="text-white/50 text-sm truncate max-w-xs">{@selected_photo.original_filename}</p>
-        <div class="flex items-center gap-3">
+      <div class="shrink-0 flex items-center justify-between px-4 py-3 text-white">
+        <%!-- Close button --%>
+        <button
+          type="button"
+          phx-click="close_lightbox"
+          class="p-2 hover:bg-white/10 rounded-ds-sharp"
+          aria-label="Close"
+        >
+          <.icon name="hero-x-mark" class="size-6" />
+        </button>
+
+        <%!-- Position indicator: mobile only --%>
+        <span :if={@total_photos > 1} class="text-sm text-white/70 font-ds-body lg:hidden">
+          {@current_index + 1} of {@total_photos}
+        </span>
+
+        <%!-- Desktop: filename --%>
+        <span class="hidden lg:block text-sm text-white/70 font-ds-body truncate max-w-xs">
+          {@selected_photo.original_filename}
+        </span>
+
+        <%!-- Right actions --%>
+        <div class="flex items-center gap-1">
+          <%!-- Info/comments toggle --%>
+          <button
+            id="toggle-panel-btn"
+            type="button"
+            phx-click="toggle_panel"
+            class={[
+              "p-2 hover:bg-white/10 rounded-ds-sharp",
+              if(@panel_open, do: "text-ds-primary bg-white/10", else: "text-white/50")
+            ]}
+            aria-label="Photo info"
+          >
+            <.icon name="hero-information-circle" class="size-6" />
+          </button>
+          <%!-- Download: desktop only --%>
           <a
             href={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)}
             download={@selected_photo.original_filename}
-            class="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-ds-sharp text-sm font-ds-body font-medium transition-colors"
+            class="p-2 hover:bg-white/10 rounded-ds-sharp hidden lg:block text-white/50 hover:text-white"
+            aria-label="Download"
           >
-            <.icon name="hero-arrow-down-tray" class="w-4 h-4" /> Download original
+            <.icon name="hero-arrow-down-tray" class="size-6" />
           </a>
-          <button
-            id="toggle-panel-btn"
-            phx-click="toggle_panel"
-            class={[
-              "p-2 rounded-ds-sharp transition-colors",
-              if(@panel_open,
-                do: "text-ds-primary bg-white/10",
-                else: "text-white/50 hover:text-white hover:bg-white/10"
-              )
-            ]}
-            title="Toggle panel"
-          >
-            <.icon name="hero-information-circle" class="w-5 h-5" />
-          </button>
-          <button
-            phx-click="close_lightbox"
-            class="p-2 text-white/50 hover:text-white rounded-ds-sharp hover:bg-white/10 transition-colors"
-          >
-            <.icon name="hero-x-mark" class="w-5 h-5" />
-          </button>
         </div>
       </div>
 
       <%!-- Main image area + comments panel --%>
       <div class="flex-1 flex min-h-0">
-        <div class={[
-          "flex-1 flex items-center justify-center relative min-h-0 px-16",
-          @panel_open && "lg:flex-[2]"
-        ]}>
+        <div
+          id="lightbox-swipe"
+          phx-hook="Swipe"
+          class={[
+            "flex-1 flex items-center justify-center relative min-h-0 px-4 lg:px-16",
+            @panel_open && "lg:flex-[2]"
+          ]}
+        >
+          <%!-- Navigation arrows: desktop only --%>
           <button
             phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowLeft"})}
-            class="absolute left-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+            class="hidden lg:block absolute left-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
           >
             <.icon name="hero-chevron-left" class="w-7 h-7" />
           </button>
@@ -166,7 +194,7 @@ defmodule Web.Components.PhotoGallery do
 
           <button
             phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowRight"})}
-            class="absolute right-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+            class="hidden lg:block absolute right-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
           >
             <.icon name="hero-chevron-right" class="w-7 h-7" />
           </button>
@@ -250,8 +278,8 @@ defmodule Web.Components.PhotoGallery do
         <% end %>
       </div>
 
-      <%!-- Thumbnail strip --%>
-      <div class="shrink-0 flex gap-2 px-6 py-4 overflow-x-auto">
+      <%!-- Thumbnail strip: desktop only --%>
+      <div class="hidden lg:flex shrink-0 gap-2 px-6 py-4 overflow-x-auto">
         <%= for photo <- @photos do %>
           <button
             phx-click="lightbox_select"
