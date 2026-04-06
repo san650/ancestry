@@ -87,6 +87,10 @@ lib/
 
 MANDATORY: Use the design system and rules defined in ./DESIGN.md
 
+## Plans and specs
+
+**MANDATORY:** All design specs, brainstorming outputs, and implementation plans MUST be saved to `docs/plans/`. Do not use `docs/superpowers/specs/` or any other location. When using the brainstorming skill, write the design document to `docs/plans/YYYY-MM-DD-<topic>.md`.
+
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
