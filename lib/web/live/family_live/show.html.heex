@@ -66,27 +66,56 @@
         >
           <.icon name="hero-trash" class="size-5" />
         </button>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Manage people"
-          id="manage-people-btn"
-          {test_id("family-manage-people-btn")}
-        >
-          <.icon name="hero-user-group" class="size-5" />
-        </.link>
-        <%= if @people != [] do %>
+        <%!-- Meatball menu --%>
+        <div class="relative" {test_id("meatball-menu")}>
           <button
             type="button"
-            id="create-subfamily-btn"
-            phx-click="open_create_subfamily"
+            phx-click="toggle_menu"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Create subfamily"
-            {test_id("family-create-subfamily-btn")}
+            aria-label="More actions"
+            {test_id("meatball-btn")}
           >
-            <.icon name="hero-square-2-stack" class="size-5" />
+            <.icon name="hero-ellipsis-horizontal" class="size-5" />
           </button>
-        <% end %>
+
+          <div
+            :if={@show_menu}
+            phx-click-away="close_menu"
+            class="absolute right-0 top-full mt-1 w-56 bg-ds-surface-card rounded-lg shadow-ds-ambient border border-ds-outline-variant py-1 z-50"
+            {test_id("meatball-dropdown")}
+          >
+            <.link
+              navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              {test_id("family-manage-people-btn")}
+            >
+              <.icon name="hero-user-group" class="size-4 text-ds-on-surface-variant" />
+              <span>Manage people</span>
+            </.link>
+
+            <%= if @people != [] do %>
+              <button
+                type="button"
+                phx-click={JS.push("close_menu") |> JS.push("open_create_subfamily")}
+                class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+                {test_id("family-create-subfamily-btn")}
+              >
+                <.icon name="hero-square-2-stack" class="size-4 text-ds-on-surface-variant" />
+                <span>Create subfamily</span>
+              </button>
+            <% end %>
+
+            <button
+              type="button"
+              phx-click={JS.push("close_menu") |> JS.push("open_import")}
+              class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              {test_id("import-csv-btn")}
+            >
+              <.icon name="hero-arrow-up-tray" class="size-4 text-ds-on-surface-variant" />
+              <span>Import from CSV</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </:toolbar>

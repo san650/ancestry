@@ -52,7 +52,8 @@ defmodule Web.FamilyLive.Show do
      |> assign(:subfamily_person, nil)
      |> assign(:subfamily_form, to_form(Families.change_family(%Ancestry.Families.Family{})))
      |> assign(:subfamily_include_ancestors, true)
-     |> assign(:subfamily_include_partner_ancestors, false)}
+     |> assign(:subfamily_include_partner_ancestors, false)
+     |> assign(:show_menu, false)}
   end
 
   @impl true
@@ -329,6 +330,16 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("cancel_add_relationship", _, socket) do
     {:noreply, assign(socket, :adding_relationship, nil)}
+  end
+
+  # Meatball menu
+
+  def handle_event("toggle_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, !socket.assigns.show_menu)}
+  end
+
+  def handle_event("close_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, false)}
   end
 
   # Create subfamily modal
