@@ -99,6 +99,8 @@ defmodule Web.Components.NavDrawer do
         "-translate-x-full"
       ]}
       aria-label="Navigation"
+      phx-window-keydown={toggle_nav_drawer(@id)}
+      phx-key="Escape"
     >
       <%!-- Header: logo + close --%>
       <div class="flex items-center justify-between p-4 border-b border-ds-outline-variant/20">
@@ -240,7 +242,7 @@ The layout needs to display the user's organizations in the nav drawer. Since `l
 Check what `Web.EnsureOrganization` does:
 
 ```bash
-grep -n "assign\|organizations" lib/web/live/ensure_organization.ex
+grep -n "assign\|organizations" lib/web/ensure_organization.ex
 ```
 
 If orgs aren't available, add a `nav_organizations` assign in the `on_mount` callback that fetches the user's organizations. If this is too complex, the nav drawer's org section can use a simple link to `/org` instead of listing all orgs inline.
@@ -330,7 +332,7 @@ In `lib/web/components/layouts.ex`, replace the `app/1` function's `~H` template
 </div>
 ```
 
-Note: The nav drawer itself and the hamburger trigger are NOT in layouts.ex — they are rendered by each page's template (or by a shared toolbar component). This keeps the layout simple and lets each page control its drawer content via slots.
+Note: The nav drawer itself and the hamburger trigger are NOT in layouts.ex — they are rendered by each page's template. This deviates from the spec's technical note ("drawer is rendered in layouts.ex") but is intentional: each page needs to pass different `page_actions` and `page_panel` slot content, which requires the drawer to be co-located with the page template. Putting it in layouts.ex would require a complex mechanism for pages to inject their actions into the layout. The trade-off is some boilerplate duplication across templates, but each page's drawer content is clear and self-contained.
 
 - [ ] **Step 3: Verify app compiles and desktop header still works**
 
