@@ -133,8 +133,8 @@
   <div class={[
     "px-4 pb-8 max-w-4xl mx-auto w-full grid items-center",
     if(@editing,
-      do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
-      else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
+      do: "grid-cols-[auto_auto_1fr] md:grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
+      else: "grid-cols-[auto_1fr] md:grid-cols-[auto_auto_auto_auto_auto_1fr]"
     )
   ]}>
     <%!-- Header cells --%>
@@ -144,10 +144,14 @@
       <% end %>
       <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
       <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Name</div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Est. Age</div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Lifespan</div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Links</div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+        Est. Age
+      </div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+        Lifespan
+      </div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">Links</div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
     </div>
 
     <%!-- Stream rows --%>
@@ -195,10 +199,10 @@
 
         <%!-- Photo cell with alive/deceased indicator --%>
         <div class="px-3 py-2.5">
-          <div class="indicator">
+          <div class="relative">
             <%= if person.deceased do %>
               <span
-                class="indicator-item indicator-end badge badge-xs bg-transparent border-ds-outline-variant/20"
+                class="absolute -top-1 -right-1 text-[10px] text-ds-on-surface-variant bg-ds-surface-card px-1 rounded-full border border-ds-outline-variant/20 z-10"
                 title="Deceased"
               >
                 d.
@@ -235,7 +239,7 @@
         </div>
 
         <%!-- Estimated Age cell --%>
-        <div class="px-3 py-2.5 text-sm text-ds-on-surface-variant">
+        <div class="hidden md:block px-3 py-2.5 text-sm text-ds-on-surface-variant">
           <%= case estimated_age(person) do %>
             <% nil -> %>
               &mdash;
@@ -245,7 +249,7 @@
         </div>
 
         <%!-- Lifespan cell --%>
-        <div class="px-3 py-2.5 text-sm text-ds-on-surface-variant">
+        <div class="hidden md:block px-3 py-2.5 text-sm text-ds-on-surface-variant">
           <%= cond do %>
             <% person.birth_year && person.death_year -> %>
               b. {person.birth_year} &ndash; d. {person.death_year}
@@ -259,7 +263,10 @@
         </div>
 
         <%!-- Links cell --%>
-        <div class="px-3 py-2.5 text-sm" {test_id("org-people-links-#{person.id}")}>
+        <div
+          class="hidden md:block px-3 py-2.5 text-sm"
+          {test_id("org-people-links-#{person.id}")}
+        >
           <%= if rel_count > 0 do %>
             <span class="text-ds-on-surface-variant">{rel_count}</span>
           <% else %>
@@ -268,7 +275,7 @@
         </div>
 
         <%!-- Actions cell --%>
-        <div class="px-3 py-2.5 flex items-center justify-end gap-1">
+        <div class="hidden md:block px-3 py-2.5 flex items-center justify-end gap-1">
           <%= unless @editing do %>
             <.link
               navigate={
