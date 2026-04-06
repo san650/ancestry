@@ -49,7 +49,7 @@ defmodule Web.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen">
-      <header class="flex items-center px-4 sm:px-6 lg:px-8 py-2">
+      <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
@@ -73,16 +73,14 @@ defmodule Web.Layouts do
                   <.link href={~p"/org"}>Organizations</.link>
                 </li>
               <% end %>
-              <%!-- Secondary items: hidden on mobile --%>
-              <li class="hidden lg:block text-ds-outline-variant">|</li>
-              <li class="hidden lg:block">{@current_scope.account.email}</li>
-              <li class="hidden sm:block">
+              <li class="text-ds-outline-variant">|</li>
+              <li>{@current_scope.account.email}</li>
+              <li>
                 <.link
                   href={~p"/accounts/settings"}
                   class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  <span class="hidden lg:inline">Settings</span>
-                  <.icon name="hero-cog-6-tooth" class="size-5 lg:hidden" />
+                  Settings
                 </.link>
               </li>
               <li>
@@ -91,8 +89,7 @@ defmodule Web.Layouts do
                   method="delete"
                   class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  <span class="hidden lg:inline">Log out</span>
-                  <.icon name="hero-arrow-right-start-on-rectangle" class="size-5 lg:hidden" />
+                  Log out
                 </.link>
               </li>
             <% end %>
