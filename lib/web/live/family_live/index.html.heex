@@ -98,7 +98,7 @@
             id={"delete-family-#{family.id}"}
             phx-click="request_delete"
             phx-value-id={family.id}
-            class="absolute top-3 right-3 p-1.5 rounded-ds-sharp text-ds-on-surface-variant/30 hover:text-ds-error hover:bg-ds-error/10 opacity-0 group-hover:opacity-100 transition-all"
+            class="absolute top-3 right-3 p-1.5 rounded-ds-sharp text-ds-on-surface-variant/30 hover:text-ds-error hover:bg-ds-error/10 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
           >
             <.icon name="hero-trash" class="w-4 h-4" />
           </button>
@@ -110,14 +110,14 @@
   <%!-- Delete Confirmation Modal --%>
   <%= if @confirm_delete_family do %>
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_delete"
       phx-key="Escape"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-family-title"

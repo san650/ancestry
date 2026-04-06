@@ -16,10 +16,11 @@
       </div>
       <button
         phx-click="new_organization"
-        class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-5 py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+        class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-2 lg:px-5 lg:py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
         {test_id("org-new-btn")}
       >
-        <.icon name="hero-plus" class="w-4 h-4" /> New Organization
+        <.icon name="hero-plus" class="w-4 h-4" />
+        <span class="hidden sm:inline">New Organization</span>
       </button>
     </div>
   </:toolbar>
@@ -52,11 +53,16 @@
           :for={{id, org} <- @streams.organizations}
           id={id}
           navigate={~p"/org/#{org.id}"}
-          class="block bg-ds-surface-card rounded-ds-sharp p-6 hover:bg-ds-surface-highest transition-colors"
+          class="block bg-ds-surface-card rounded-ds-sharp p-5 hover:bg-ds-surface-highest transition-colors"
         >
-          <h2 class="text-base font-ds-heading font-bold text-ds-on-surface tracking-tight">
-            {org.name}
-          </h2>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-ds-sharp bg-ds-primary/10 flex items-center justify-center flex-shrink-0">
+              <.icon name="hero-building-office-2" class="w-5 h-5 text-ds-primary" />
+            </div>
+            <h2 class="text-base font-ds-heading font-bold text-ds-on-surface tracking-tight truncate">
+              {org.name}
+            </h2>
+          </div>
         </.link>
       </div>
     </div>
@@ -65,7 +71,7 @@
   <%= if @show_create_modal do %>
     <div
       id="create-org-overlay"
-      class="fixed inset-0 z-50 flex items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_create"
       phx-key="Escape"
       phx-mounted={JS.focus_first()}
@@ -81,7 +87,7 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-org-title"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         {test_id("org-create-modal")}
       >
         <h2
