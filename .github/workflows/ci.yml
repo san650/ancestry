@@ -71,6 +71,7 @@ jobs:
       if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx --prefix assets playwright install chromium
 
+    - run: npm --prefix assets audit
     - run: mix deps.get
     - run: mix deps.unlock --check-unused
     - run: mix assets.setup
