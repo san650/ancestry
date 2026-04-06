@@ -9,7 +9,7 @@ defmodule Web.AccountLive.Login do
         <div class="w-full max-w-sm">
           <%!-- Logo --%>
           <div class="flex flex-col items-center pt-16 pb-8 lg:pt-8">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">Log in</h1>
+            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">Log in</h1>
             <p
               :if={@current_scope}
               class="mt-2 text-sm font-ds-body text-ds-on-surface-variant text-center"
