@@ -78,11 +78,11 @@
 
   <%!-- Search/Link Existing Modal --%>
   <%= if @search_mode do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
       <div
         id="link-person-modal"
-        class="relative card bg-base-100 shadow-2xl w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-t-lg lg:rounded-ds-sharp w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
       >
         <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
         <input

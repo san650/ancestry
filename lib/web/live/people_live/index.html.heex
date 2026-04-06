@@ -304,11 +304,11 @@
 
   <%!-- Confirmation modal --%>
   <%= if @confirm_remove do %>
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
       <div
         id="confirm-remove-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-ds-sharp w-full max-w-md mx-4 p-8"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-t-lg lg:rounded-ds-sharp w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-remove-modal-title"
