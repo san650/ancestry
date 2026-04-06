@@ -57,7 +57,7 @@ defmodule Web.Layouts do
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-row px-1 space-x-4 items-center font-ds-body text-sm text-ds-on-surface-variant">
+          <ul class="flex flex-row px-1 items-center gap-2 lg:gap-4 font-ds-body text-sm text-ds-on-surface-variant">
             <%= if @current_scope && @current_scope.account do %>
               <%= if @current_scope.organization do %>
                 <li>
@@ -73,23 +73,26 @@ defmodule Web.Layouts do
                   <.link href={~p"/org"}>Organizations</.link>
                 </li>
               <% end %>
-              <li class="text-ds-outline-variant">|</li>
-              <li>{@current_scope.account.email}</li>
-              <li>
+              <%!-- Secondary items: hidden on mobile --%>
+              <li class="hidden lg:block text-ds-outline-variant">|</li>
+              <li class="hidden lg:block">{@current_scope.account.email}</li>
+              <li class="hidden sm:block">
                 <.link
                   href={~p"/accounts/settings"}
-                  class="hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  Settings
+                  <span class="hidden lg:inline">Settings</span>
+                  <.icon name="hero-cog-6-tooth" class="size-5 lg:hidden" />
                 </.link>
               </li>
               <li>
                 <.link
                   href={~p"/accounts/log-out"}
                   method="delete"
-                  class="hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  Log out
+                  <span class="hidden lg:inline">Log out</span>
+                  <.icon name="hero-arrow-right-start-on-rectangle" class="size-5 lg:hidden" />
                 </.link>
               </li>
             <% end %>
@@ -100,7 +103,7 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 px-4 sm:px-6 lg:px-8 bg-ds-surface-low"
+          class="sticky z-1 top-0 bg-ds-surface-low"
         >
           {render_slot(@toolbar)}
         </div>
