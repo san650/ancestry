@@ -37,6 +37,22 @@ defmodule Ancestry.Import do
   end
 
   @doc """
+  Import people and relationships from a CSV file into an existing family.
+
+  Like `import_from_csv/4` but accepts a family struct directly.
+  """
+  def import_csv_for_family(adapter_name, family, csv_path) do
+    case Map.fetch(@adapters, adapter_name) do
+      {:ok, adapter_module} ->
+        CSV.import_for_family(adapter_module, family, csv_path)
+
+      :error ->
+        available = @adapters |> Map.keys() |> Enum.join(", ")
+        {:error, "Unknown adapter: #{adapter_name}. Available: #{available}"}
+    end
+  end
+
+  @doc """
   Returns the list of available adapter names.
   """
   def available_adapters, do: Map.keys(@adapters)

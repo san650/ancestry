@@ -274,6 +274,43 @@ defmodule Ancestry.Import.CSVTest do
     end
   end
 
+  describe "import_for_family/3" do
+    test "imports people into an existing family" do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+
+      rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "Alice",
+          "Surname now" => "Smith",
+          "Gender" => "Female"
+        }),
+        csv_row(%{
+          "ID" => "P2",
+          "Given names" => "Bob",
+          "Surname now" => "Smith",
+          "Gender" => "Male"
+        })
+      ]
+
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, summary} = CSV.import_for_family(FamilyEcho, family, path)
+      assert summary.family.id == family.id
+      assert summary.people_created == 2
+      assert summary.people_skipped == 0
+    end
+
+    test "returns error for missing file" do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+
+      assert {:error, "File not found:" <> _} =
+               CSV.import_for_family(FamilyEcho, family, "/nonexistent.csv")
+    end
+  end
+
   describe "re-import" do
     test "reuses existing family by name", %{org: org} do
       rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]

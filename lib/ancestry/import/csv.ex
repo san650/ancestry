@@ -40,21 +40,40 @@ defmodule Ancestry.Import.CSV do
       people_result = import_people(adapter_module, family, rows)
       relationships_result = import_relationships(adapter_module, rows)
 
-      {:ok,
-       %{
-         family: family,
-         people_created: people_result.created,
-         people_updated: people_result.updated,
-         people_unchanged: people_result.unchanged,
-         people_skipped: people_result.skipped,
-         people_errors: people_result.errors,
-         people_unchanged_names: people_result.unchanged_names,
-         people_updated_names: people_result.updated_names,
-         relationships_created: relationships_result.created,
-         relationships_duplicates: relationships_result.duplicates,
-         relationships_errors: relationships_result.errors
-       }}
+      {:ok, build_summary(family, people_result, relationships_result)}
     end
+  end
+
+  @doc """
+  Import people and relationships from a CSV file into an existing family.
+
+  Unlike `import/4`, this accepts a family struct directly — no name-based lookup.
+  Returns `{:ok, summary}` on success or `{:error, reason}` on failure.
+  """
+  def import_for_family(adapter_module, %Ancestry.Families.Family{} = family, csv_path) do
+    with :ok <- validate_file(csv_path),
+         {:ok, rows} <- parse_csv(csv_path) do
+      people_result = import_people(adapter_module, family, rows)
+      relationships_result = import_relationships(adapter_module, rows)
+
+      {:ok, build_summary(family, people_result, relationships_result)}
+    end
+  end
+
+  defp build_summary(family, people_result, relationships_result) do
+    %{
+      family: family,
+      people_created: people_result.created,
+      people_updated: people_result.updated,
+      people_unchanged: people_result.unchanged,
+      people_skipped: people_result.skipped,
+      people_errors: people_result.errors,
+      people_unchanged_names: people_result.unchanged_names,
+      people_updated_names: people_result.updated_names,
+      relationships_created: relationships_result.created,
+      relationships_duplicates: relationships_result.duplicates,
+      relationships_errors: relationships_result.errors
+    }
   end
 
   defp find_or_create_family(name, org) do
