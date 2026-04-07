@@ -793,4 +793,130 @@
       </div>
     </div>
   <% end %>
+
+  <%!-- Import CSV modal --%>
+  <div
+    :if={@show_import_modal}
+    class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+    {test_id("import-modal")}
+  >
+    <%!-- Backdrop --%>
+    <div class="absolute inset-0 bg-black/50" phx-click="close_import" />
+
+    <%!-- Modal --%>
+    <div class="relative w-full max-w-none lg:max-w-md bg-ds-surface-card rounded-t-lg lg:rounded-ds-sharp shadow-ds-ambient p-6">
+      <%= if @import_error do %>
+        <%!-- Error state --%>
+        <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">Import failed</h2>
+        <p class="text-sm text-ds-signal-error mb-6">{@import_error}</p>
+        <button
+          type="button"
+          phx-click="close_import"
+          class="w-full py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+        >
+          Close
+        </button>
+      <% else %>
+        <%= if @import_summary do %>
+          <%!-- Results state --%>
+          <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+            Import complete
+          </h2>
+          <dl class="space-y-2 mb-4">
+            <div class="flex justify-between">
+              <dt class="text-sm text-ds-on-surface-variant">People added</dt>
+              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-created")}>
+                {@import_summary.people_created}
+              </dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm text-ds-on-surface-variant">Already existing</dt>
+              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-existing")}>
+                {@import_summary.people_unchanged + @import_summary.people_updated}
+              </dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm text-ds-on-surface-variant">Errors</dt>
+              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-errors")}>
+                {@import_summary.people_skipped}
+              </dd>
+            </div>
+          </dl>
+
+          <%= if @import_summary.people_errors != [] do %>
+            <div class="mb-4">
+              <h3 class="text-sm font-medium text-ds-on-surface mb-2">Error details</h3>
+              <ul
+                class="max-h-60 overflow-y-auto space-y-1 text-xs text-ds-on-surface-variant bg-ds-surface-low rounded-lg p-3"
+                {test_id("import-error-list")}
+              >
+                <%= for error <- @import_summary.people_errors do %>
+                  <li>{error}</li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <button
+            type="button"
+            phx-click="close_import"
+            class="w-full py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+            {test_id("import-close-btn")}
+          >
+            Close
+          </button>
+        <% else %>
+          <%!-- Upload form state --%>
+          <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+            Import from CSV
+          </h2>
+
+          <form id="import-form" phx-change="validate_import" phx-submit="import_csv">
+            <div class="mb-4">
+              <.input
+                type="select"
+                name="format"
+                label="Format"
+                value="family_echo"
+                options={[{"Family Echo", "family_echo"}]}
+              />
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-ds-on-surface mb-1">CSV file</label>
+              <.live_file_input
+                upload={@uploads.csv_file}
+                class="block w-full text-sm text-ds-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-ds-surface-low file:text-ds-on-surface hover:file:bg-ds-surface-high"
+                {test_id("import-file-input")}
+              />
+              <%= for entry <- @uploads.csv_file.entries do %>
+                <p class="text-xs text-ds-on-surface-variant mt-1">{entry.client_name}</p>
+                <%= for err <- upload_errors(@uploads.csv_file, entry) do %>
+                  <p class="text-xs text-ds-signal-error mt-1">{upload_error_to_string(err)}</p>
+                <% end %>
+              <% end %>
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                type="button"
+                phx-click="close_import"
+                class="flex-1 py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={@uploads.csv_file.entries == []}
+                class="flex-1 py-2.5 px-4 bg-ds-on-surface text-ds-surface text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                {test_id("import-submit-btn")}
+              >
+                Import
+              </button>
+            </div>
+          </form>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 </Layouts.app>

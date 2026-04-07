@@ -53,7 +53,15 @@ defmodule Web.FamilyLive.Show do
      |> assign(:subfamily_form, to_form(Families.change_family(%Ancestry.Families.Family{})))
      |> assign(:subfamily_include_ancestors, true)
      |> assign(:subfamily_include_partner_ancestors, false)
-     |> assign(:show_menu, false)}
+     |> assign(:show_menu, false)
+     |> assign(:show_import_modal, false)
+     |> assign(:import_summary, nil)
+     |> assign(:import_error, nil)
+     |> allow_upload(:csv_file,
+       accept: ~w(.csv),
+       max_entries: 1,
+       max_file_size: 10_000_000
+     )}
   end
 
   @impl true
@@ -342,6 +350,48 @@ defmodule Web.FamilyLive.Show do
     {:noreply, assign(socket, :show_menu, false)}
   end
 
+  # CSV import
+
+  def handle_event("open_import", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_import_modal, true)
+     |> assign(:import_summary, nil)
+     |> assign(:import_error, nil)}
+  end
+
+  def handle_event("close_import", _, socket) do
+    family = socket.assigns.family
+    people = People.list_people_for_family(family.id)
+    metrics = Metrics.compute(family.id)
+    focus_person = socket.assigns.focus_person
+
+    # Refresh focus_person from updated list (same pattern as handle_info :relationship_saved)
+    focus_person =
+      if focus_person do
+        Enum.find(people, &(&1.id == focus_person.id))
+      end
+
+    tree =
+      if focus_person do
+        PersonTree.build(focus_person, family.id)
+      end
+
+    {:noreply,
+     socket
+     |> assign(:show_import_modal, false)
+     |> assign(:import_summary, nil)
+     |> assign(:import_error, nil)
+     |> assign(:people, people)
+     |> assign(:focus_person, focus_person)
+     |> assign(:tree, tree)
+     |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+  end
+
+  def handle_event("validate_import", _params, socket) do
+    {:noreply, socket}
+  end
+
   # Create subfamily modal
 
   def handle_event("open_create_subfamily", _, socket) do
@@ -494,6 +544,11 @@ defmodule Web.FamilyLive.Show do
       person -> person.id
     end
   end
+
+  defp upload_error_to_string(:too_large), do: "File is too large (max 10MB)"
+  defp upload_error_to_string(:not_accepted), do: "Only .csv files are accepted"
+  defp upload_error_to_string(:too_many_files), do: "Only one file can be uploaded"
+  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
 
   defp filtered_people(people, filter) do
     if String.trim(filter) == "" do
