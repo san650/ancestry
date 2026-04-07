@@ -174,6 +174,10 @@ defmodule Web.PersonLive.RelationshipsTest do
 
     view |> element("#add-parent-btn") |> render_click()
     assert has_element?(view, "#add-relationship-modal")
+    assert has_element?(view, "#add-rel-link-existing-btn")
+    assert has_element?(view, "#add-rel-create-new-btn")
+
+    view |> element("#add-rel-link-existing-btn") |> render_click()
     assert has_element?(view, "#relationship-search-input")
   end
 
@@ -190,6 +194,7 @@ defmodule Web.PersonLive.RelationshipsTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
+    view |> element("#add-rel-link-existing-btn") |> render_click()
 
     html = view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
     assert html =~ "Alice"
@@ -306,7 +311,8 @@ defmodule Web.PersonLive.RelationshipsTest do
     view |> element("#add-parent-btn") |> render_click()
     assert has_element?(view, "#add-relationship-modal")
 
-    # Search for candidate
+    # Choose link existing then search for candidate
+    view |> element("#add-rel-link-existing-btn") |> render_click()
     view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
     assert has_element?(view, "#search-result-#{candidate.id}")
 

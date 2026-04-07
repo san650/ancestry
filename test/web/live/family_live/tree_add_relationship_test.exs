@@ -64,6 +64,10 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       view |> element("button[phx-value-type='partner']") |> render_click()
       assert has_element?(view, "#add-relationship-modal")
+      assert has_element?(view, "#add-rel-link-existing-btn")
+      assert has_element?(view, "#add-rel-create-new-btn")
+
+      view |> element("#add-rel-link-existing-btn") |> render_click()
       assert has_element?(view, "#relationship-search-input")
     end
 
@@ -81,6 +85,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
       |> element("#relationship-search-input")
@@ -109,7 +114,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
-      view |> element("#start-quick-create-btn") |> render_click()
+      view |> element("#add-rel-create-new-btn") |> render_click()
 
       assert has_element?(view, "#quick-create-person-form")
 
@@ -152,7 +157,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       render_async(view)
       view |> element("button[phx-value-type='child']") |> render_click()
-      view |> element("#start-quick-create-btn") |> render_click()
+      view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
       |> form("#quick-create-person-form", person: %{given_name: "ChildName", surname: "Doe"})
@@ -214,7 +219,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       render_async(view)
       view |> element("button[phx-value-type='parent']") |> render_click()
-      view |> element("#start-quick-create-btn") |> render_click()
+      view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
       |> form("#quick-create-person-form",
@@ -261,6 +266,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       render_async(view)
       view |> element("button[phx-value-type='partner']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
       |> element("#relationship-search-input")
@@ -273,6 +279,139 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       assert has_element?(view, "#focus-person-card")
       html = render(view)
       assert html =~ "John"
+    end
+  end
+
+  describe "choose entry step" do
+    # Given a family with at least one person
+    # When the user opens the Add Parent modal
+    # Then a Choose step is shown with two options: Link existing / Create new
+    test "modal opens on the choose step with link/create options", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+
+      assert has_element?(view, "#add-relationship-modal")
+      assert has_element?(view, "#add-rel-link-existing-btn")
+      assert has_element?(view, "#add-rel-create-new-btn")
+      # Search input is NOT shown yet
+      refute has_element?(view, "#relationship-search-input")
+      refute has_element?(view, "#quick-create-person-form")
+    end
+
+    # When the user clicks Link existing
+    # Then the search step is shown with the search input
+    test "clicking link existing shows the search step", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='partner']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      assert has_element?(view, "#relationship-search-input")
+      assert has_element?(view, "#add-rel-back-to-choose-from-search-btn")
+    end
+
+    # When the user clicks Back from the search step
+    # Then the Choose step is shown again
+    # And the search query state is cleared
+    test "back from search returns to choose and clears state", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, candidate} =
+        People.create_person(family, %{given_name: "Alice", surname: "Smith", gender: "female"})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
+      assert has_element?(view, "#search-result-#{candidate.id}")
+
+      view |> element("#add-rel-back-to-choose-from-search-btn") |> render_click()
+
+      # Choose step shown again
+      assert has_element?(view, "#add-rel-link-existing-btn")
+      assert has_element?(view, "#add-rel-create-new-btn")
+      refute has_element?(view, "#relationship-search-input")
+
+      # Re-enter the search step — previous query and results should be cleared
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+      assert has_element?(view, "#relationship-search-input")
+      refute has_element?(view, "#search-result-#{candidate.id}")
+    end
+
+    # When the user clicks Create new from the Choose step
+    # Then the quick-create form is shown with empty fields
+    test "clicking create new shows the quick-create form", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-create-new-btn") |> render_click()
+
+      assert has_element?(view, "#quick-create-person-form")
+      assert has_element?(view, "#add-rel-back-to-choose-from-quick-create-btn")
+      refute has_element?(view, "#relationship-search-input")
+    end
+
+    # When the user clicks Back from the quick-create form
+    # Then the Choose step is shown again
+    test "back from quick-create returns to choose and clears form", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-create-new-btn") |> render_click()
+
+      # Fill in some data
+      view
+      |> form("#quick-create-person-form", person: %{given_name: "Tmp", surname: "User"})
+      |> render_change()
+
+      view |> element("#add-rel-back-to-choose-from-quick-create-btn") |> render_click()
+
+      # Choose step shown again
+      assert has_element?(view, "#add-rel-link-existing-btn")
+      assert has_element?(view, "#add-rel-create-new-btn")
+      refute has_element?(view, "#quick-create-person-form")
+
+      # Re-enter the quick create form — previous fields should be empty
+      view |> element("#add-rel-create-new-btn") |> render_click()
+      html = render(view)
+      refute html =~ ~s(value="Tmp")
+      refute html =~ ~s(value="User")
     end
   end
 end

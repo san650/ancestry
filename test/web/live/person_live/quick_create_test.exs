@@ -17,7 +17,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     %{family: family, person: person, org: org}
   end
 
-  test "shows create new person link in add relationship modal", %{
+  test "shows create new person option in add relationship modal", %{
     conn: conn,
     family: family,
     person: person,
@@ -27,7 +27,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    assert has_element?(view, "#start-quick-create-btn")
+    assert has_element?(view, "#add-rel-create-new-btn")
   end
 
   test "switches to quick create form when clicking create new", %{
@@ -40,14 +40,14 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     assert has_element?(view, "#quick-create-person")
     assert has_element?(view, "#quick-create-person-form")
     refute has_element?(view, "#relationship-search-input")
   end
 
-  test "back to search returns to search view", %{
+  test "back from quick create returns to choose step", %{
     conn: conn,
     family: family,
     person: person,
@@ -57,12 +57,13 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")
 
-    view |> element("#cancel-quick-create-btn") |> render_click()
+    view |> element("#add-rel-back-to-choose-from-quick-create-btn") |> render_click()
     refute has_element?(view, "#quick-create-person-form")
-    assert has_element?(view, "#relationship-search-input")
+    assert has_element?(view, "#add-rel-link-existing-btn")
+    assert has_element?(view, "#add-rel-create-new-btn")
   end
 
   test "validates given_name is required", %{
@@ -75,7 +76,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     html =
       view
@@ -95,7 +96,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
     |> form("#quick-create-person-form", person: %{given_name: "NewDad", surname: "Smith"})
@@ -116,7 +117,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-partner-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
     |> form("#quick-create-person-form", person: %{given_name: "NewWife", surname: "Jones"})
@@ -137,7 +138,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-child-solo-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
     |> form("#quick-create-person-form", person: %{given_name: "NewKid", surname: "Doe"})
@@ -157,7 +158,7 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
     |> form("#quick-create-person-form", person: %{given_name: "NewMom", surname: "Lee"})
@@ -181,7 +182,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-parent-btn") |> render_click()
 
     # Switch to quick create
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
 
     # Create new person
     view
@@ -208,14 +209,15 @@ defmodule Web.PersonLive.QuickCreateTest do
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
     view |> element("#add-parent-btn") |> render_click()
-    view |> element("#start-quick-create-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
     assert has_element?(view, "#quick-create-person-form")
 
     # Reopen the modal (this triggers add_relationship which resets state)
     view |> element("#add-parent-btn") |> render_click()
 
-    # Should be back to search, not quick create
+    # Should be back to the choose step, not quick create
     refute has_element?(view, "#quick-create-person-form")
-    assert has_element?(view, "#relationship-search-input")
+    assert has_element?(view, "#add-rel-link-existing-btn")
+    assert has_element?(view, "#add-rel-create-new-btn")
   end
 end
