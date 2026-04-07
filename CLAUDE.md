@@ -17,44 +17,84 @@ This is a family photo gallery web application built with Phoenix LiveView.
 
 ## Architecture
 
-**Module naming:** The web layer uses `Web` (not `AncestryWeb`) as the module namespace. Business logic lives under `Ancestry.*`.
+**Module naming:** The web layer is namespaced as `Web` (not `AncestryWeb`). This is intentional — `phx.new` was generated with `--module Web` to keep templates and aliases shorter. Business logic lives under `Ancestry.*`.
+
+**Tenant model:** `Organization` is the top-level tenant. An organization has many `families`, a family has many `people` (via `family_members`) and many `galleries`, and a gallery has many `photos`. Most authenticated routes are scoped under `/org/:org_id/`.
 
 ```
 lib/
-  ancestry/           # Business logic (contexts, schemas, workers)
-    families.ex       # Families context — CRUD for families + cover photos
-    families/
-      family.ex       # Family schema (tenant entity, has_many galleries)
-    galleries.ex      # Galleries context — primary public API for photos and galleries
-    galleries/
-      gallery.ex      # Gallery schema (belongs_to family)
-      photo.ex        # Photo schema (uses Waffle.Ecto for file attachments)
-    storage.ex        # S3/local storage abstraction for original uploads
-    uploaders/
-      family_cover.ex # Waffle uploader — produces :original, :thumbnail for family cover photos
-      photo.ex        # Waffle uploader — produces :original, :large, :thumbnail versions via ImageMagick
-    workers/
-      process_family_cover_job.ex  # Oban job for family cover image processing
-      process_photo_job.ex         # Oban job that runs ImageMagick and broadcasts via PubSub
-  web/                # Phoenix web layer
+  ancestry/                # Business logic (contexts, schemas, workers)
+    organizations.ex       # Organizations context — top-level tenant
+    organizations/organization.ex
+    identity.ex            # Auth context — accounts, tokens, scopes
+    identity/{account, account_token, account_notifier, scope}.ex
+    families.ex            # Families context — CRUD for families + cover photos
+    families/family.ex
+    people.ex              # People context — persons and family memberships
+    people/{person, family_member, person_tree}.ex
+    relationships.ex       # Person-to-person relationships (parent, partner, etc.)
+    relationships/relationship.ex
+    relationships/metadata/  # Type-specific metadata embeds (married, divorced, parent, …)
+    kinship.ex             # Bidirectional BFS to find MRCA + classify kinship
+    galleries.ex           # Galleries context — photos and galleries API
+    galleries/{gallery, photo}.ex
+    comments.ex            # Photo comments
+    comments/photo_comment.ex
+    import.ex              # External-data import dispatcher
+    import/csv/{adapter, family_echo}.ex
+    storage.ex             # S3/local storage abstraction for original uploads
+    string_utils.ex
+    uploaders/             # Waffle uploaders (family_cover, person_photo, photo)
+    workers/               # Oban jobs (process_{family_cover,person_photo,photo}_job)
+  web/                     # Phoenix web layer (namespace: Web)
     live/
-      family_live/    # FamilyLive.Index, FamilyLive.New, FamilyLive.Show
-      gallery_live/   # GalleryLive.Index and GalleryLive.Show
+      account_live/        # Login, registration, settings, confirmation
+      family_live/         # Index, New, Show
+      gallery_live/        # Show
+      person_live/         # Index, New, Show
+      people_live/         # Family-scoped people index
+      org_people_live/     # Organization-scoped people index
+      organization_live/   # Organization index
+      kinship_live.ex      # Kinship calculator
+      comments/            # Photo comments component
+      shared/              # person_form_component, add_relationship_component
     router.ex
 ```
 
-**URL structure:** All routes are nested under families:
-- `/` — family index (homepage)
-- `/families/new` — create a new family
-- `/families/:family_id` — family detail page
-- `/families/:family_id/galleries` — galleries for a family
-- `/families/:family_id/galleries/:id` — gallery detail with photos
+> The list above is a snapshot. When in doubt, run `ls lib/ancestry/` and `ls lib/web/live/` — the source of truth is the filesystem.
 
-**Family as tenant:** Family is the top-level entity. Galleries belong to a family, and photos belong to a gallery. All gallery routes are scoped under `/families/:family_id/`.
+**URL structure:** Routes live in `lib/web/router.ex`. Authenticated routes use a `live_session :organization` block scoped under `/org/:org_id/` with the `Web.EnsureOrganization` on_mount hook:
+
+- `/` — landing page (public)
+- `/accounts/log-in` — login (public)
+- `/org` — organization picker
+- `/org/:org_id` — family index for the organization
+- `/org/:org_id/families/new` — new family form
+- `/org/:org_id/families/:family_id` — family show
+- `/org/:org_id/families/:family_id/galleries/:id` — gallery show with photos
+- `/org/:org_id/families/:family_id/members/new` — add a new person to a family
+- `/org/:org_id/families/:family_id/people` — people in a family
+- `/org/:org_id/families/:family_id/kinship` — kinship calculator
+- `/org/:org_id/people/:id` — person detail
+- `/org/:org_id/people` — all people in the organization
+
+**Important schema/table mismatches:** the `Person` schema maps to the `persons` table (not `people`), and `AccountToken` maps to `accounts_tokens`. Keep this in mind when writing raw SQL.
+
+## Authentication
+
+Auth is built on top of `phx.gen.auth`, with `Account` (not `User`) as the principal:
+
+- `Ancestry.Identity` is the auth context. Schemas: `Account`, `AccountToken`, `Scope`. Notifier: `AccountNotifier`.
+- `Web.AccountAuth` provides plugs (`fetch_current_scope_for_account`, `require_authenticated_account`) and `on_mount` callbacks (`:mount_current_scope`, `:require_authenticated`).
+- `Web.EnsureOrganization` is the second `on_mount` hook used by every `/org/:org_id/...` route — it loads the organization into `current_scope` and authorises the account.
+- All authenticated LiveViews receive `current_scope` in their assigns. **Always pass it to `<Layouts.app current_scope={@current_scope} ...>`** — `current_scope` errors mean a route is in the wrong `live_session` or is missing the assign in the layout.
+- Account registration is currently commented out in `router.ex`; only login and email confirmation are wired up.
+
+## Image processing
 
 **Photo processing flow:**
 1. User uploads via LiveView `allow_upload` (up to 10 files, 300MB each)
-2. `consume_uploaded_entries` stores the original via `Ancestry.Storage.store_original/2` — in production this uploads directly to Tigris (S3), in dev it writes to `priv/static/uploads/originals/{uuid}/photo.ext`
+2. `consume_uploaded_entries` stores the original via `Ancestry.Storage.store_original/2` — in production this uploads directly to S3-compatible (S3), in dev it writes to `priv/static/uploads/originals/{uuid}/photo.ext`
 3. An `Oban.Job` (`ProcessPhotoJob`, queue: `:photos`) is inserted
 4. The job fetches the original via `Ancestry.Storage.fetch_original/1` (downloads from S3 to `/tmp` in prod, reads local path in dev), runs Waffle/ImageMagick to produce `:original`, `:large`, `:thumbnail` versions, and stores them via Waffle's S3 adapter (prod) or local storage (dev)
 5. After processing, the job cleans up temp files and deletes the original from S3 (prod only)
@@ -67,49 +107,54 @@ lib/
 
 **Storage abstraction (`Ancestry.Storage`):** Provides `store_original/2`, `fetch_original/1`, `cleanup_original/1`, and `delete_original/1`. Routes to S3 or local disk based on the `Waffle` storage config. All LiveViews and Oban workers use this module instead of direct filesystem operations.
 
-**Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), ExAws + ExAws.S3 (S3 client for Tigris), Phoenix PubSub (real-time updates)
+**Key dependencies:** Oban (background jobs), Waffle + Waffle.Ecto (file uploads/storage), ExAws + ExAws.S3 (S3 client for S3-compatible), Phoenix PubSub (real-time updates)
 
-## Production (Fly.io)
+## Production
 
-**Deployment:** Deploys to Fly.io from `main` via GitHub Actions (`.github/workflows/fly-deploy.yml`). Primary region: `gru` (São Paulo). Uses `fly deploy --remote-only`.
+**Image storage:** Production uses an S3-compatible object storage for all image uploads and processed versions.
 
-**Image storage:** Production uses [Tigris](https://www.tigrisdata.com/) (Fly's S3-compatible object storage) for all image uploads and processed versions. The bucket is public (no signed URLs). Images are served directly from Tigris at `https://<bucket>.fly.storage.tigris.dev/...`.
-
-**Configuration:** ExAws is configured in `config/prod.exs` with `{:system, "..."}` tuples. Fly secrets provide:
-- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — Tigris credentials (auto-set by `fly storage create`)
-- `AWS_ENDPOINT_URL_S3` — Tigris endpoint (auto-set by `fly storage create`)
+**Configuration:** ExAws is configured in `config/prod.exs` with `{:system, "..."}` tuples. The production server's secrets provide:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` — S3-compatible credentials (auto-set by the production server)
+- `AWS_ENDPOINT_URL_S3` — S3-compatible endpoint (auto-set by the production server)
 - `AWS_S3_BUCKET` — bucket name
 - `AWS_REGION` — set to `auto`
+- ASSET_HOST - public host for assets
 
 **Runtime:** Dockerfile uses a multi-stage build with ImageMagick installed in the runner stage for Waffle transforms. Release command runs migrations (`/app/bin/migrate`).
 
-## Graphical Design
+## UI/UX Graphical Design
 
 MANDATORY: Use the design system and rules defined in ./DESIGN.md
 
 ## Plans and specs
 
-**MANDATORY:** All design specs, brainstorming outputs, and implementation plans MUST be saved to `docs/plans/`. Do not use `docs/superpowers/specs/` or any other location. When using the brainstorming skill, write the design document to `docs/plans/YYYY-MM-DD-<topic>.md`.
+**MANDATORY:** Save all design specs, brainstorming outputs, and implementation plans to `docs/plans/YYYY-MM-DD-<topic>.md`. This is the only location used for plans.
 
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
-- Read the document `doc/learnings.md` file to gather previous information about recurrent issues to avoid them
+- **Learnings:** `docs/learnings.jsonl` contains structured lessons from past issues (one JSON object per line with `id`, `tags`, `title`, `problem`, `fix` fields). Grep by tag or keyword instead of reading the whole file:
+  - `grep "liveview" docs/learnings.jsonl` — all LiveView-related learnings
+  - `grep "js-hooks" docs/learnings.jsonl` — JS hook pitfalls
+  - `grep "silent-failure" docs/learnings.jsonl` — bugs that fail without errors
+  - `grep "testing" docs/learnings.jsonl` — test-related learnings
+  - `grep "security" docs/learnings.jsonl` — security-related learnings
+  - `docs/learnings.md` contains a human-readable index table of all learnings — consult it for a quick overview
+  - After fixing a recurring issue or completing a recurring refactor, append a new entry to the JSONL file **and** update the index in `docs/learnings.md` to keep them in sync
 - When writing a new feature use the elixir:elixir-thinking and elixir:phoenix-thinking skills
 
 ### Phoenix v1.8 guidelines
 
 - **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
-- The `MyAppWeb.Layouts` module is aliased in the `my_app_web.ex` file, so you can use it without needing to alias it again
+- The `Web.Layouts` module is aliased in `lib/web.ex`, so you can use it without needing to alias it again
 - Anytime you run into errors with no `current_scope` assign:
   - You failed to follow the Authenticated Routes guidelines, or you failed to pass `current_scope` to `<Layouts.app>`
   - **Always** fix the `current_scope` error by moving your routes to the proper `live_session` and ensure you pass `current_scope` as needed
 - Phoenix v1.8 moved the `<.flash_group>` component to the `Layouts` module. You are **forbidden** from calling `<.flash_group>` outside of the `layouts.ex` module
 - Out of the box, `core_components.ex` imports an `<.icon name="hero-x-mark" class="w-5 h-5"/>` component for hero icons. **Always** use the `<.icon>` component for icons, **never** use `Heroicons` modules or similar
 - **Always** use the imported `<.input>` component for form inputs from `core_components.ex` when available. `<.input>` is imported and using it will save steps and prevent errors
-- If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your
-custom classes must fully style the input
+- If you override the default input classes (`<.input class="myclass px-2 py-1 rounded-lg">)`) class with your own values, no default classes are inherited, so your custom classes must fully style the input
 
 ### JS and CSS guidelines
 
@@ -119,7 +164,7 @@ custom classes must fully style the input
       @import "tailwindcss" source(none);
       @source "../css";
       @source "../js";
-      @source "../../lib/my_app_web";
+      @source "../../lib/web";
 
 - **Always use and maintain this import syntax** in the app.css file for projects generated with `phx.new`
 - **Never** use `@apply` when writing raw css
@@ -129,194 +174,95 @@ custom classes must fully style the input
   - You must import the vendor deps into app.js and app.css to use them
   - **Never write inline <script>custom js</script> tags within templates**
 
-### UI/UX & design guidelines
-
-- **Produce world-class UI designs** with a focus on usability, aesthetics, and modern design principles
-- Implement **subtle micro-interactions** (e.g., button hover effects, and smooth transitions)
-- Ensure **clean typography, spacing, and layout balance** for a refined, premium look
-- Focus on **delightful details** like hover effects, loading states, and smooth page transitions
-
 ## Tidewave Phoenix
 
-This project exposes Tidewave Phoenix MCP tools. Prefer Tidewave tools over guessing, raw grep, or manual inspection whenever possible.
+This project exposes Tidewave Phoenix MCP tools. **Always prefer Tidewave over grep, file inspection, or memory** when one of these tools can answer the question. Never invent module APIs, schema fields, routes, assigns, database columns, or runtime config — verify with Tidewave first.
 
-### Use these Tidewave tools first
+| Tool | Use for |
+|---|---|
+| `get_ecto_schemas` | List schemas, fields, associations |
+| `get_source_location` | Find where a module/function/macro is defined |
+| `get_docs` | Read docs for installed modules/functions |
+| `search_package_docs` | Search HexDocs scoped to this project's deps |
+| `project_eval` | Run Elixir in the running app — validate runtime, config, macros, business logic |
+| `execute_sql_query` | Inspect dev DB state (read queries unless writes are required) |
+| `get_logs` | Check server logs after a request, LiveView interaction, or background job |
 
-- `get_docs`
-  - Use for Elixir/Phoenix/Ecto/LiveView docs for modules, functions, and dependencies actually installed in this project.
-  - Prefer this over general web search for library usage inside the app.
-  - Examples
-    - `get_docs Oban.Job.new/1` get package documentation for the function
-    - `get_docs Ecto.Schema` get package documentation for the module
+**Recommended workflow** when implementing or debugging:
 
-- `get_source_location`
-  - Use to locate the source of modules/functions/macros quickly.
-  - Prefer this before broad codebase searches when trying to find where something is defined.
-  - Examples
-    - `get_source_location Ancestry.People` get the exact file and line number where the module is defined
-    - `get_source_location Ancestry.People.Person.changeset/2` get the exact file and line number where the function is defined
+1. `get_ecto_schemas` to discover the data model
+2. `get_docs` / `search_package_docs` for framework or dependency questions
+3. `get_source_location` to jump to definitions
+4. `project_eval` to validate runtime assumptions
+5. `execute_sql_query` to confirm persisted state
+6. `get_logs` after running the flow
 
+## Patterns to use in the project
 
-- `get_ecto_schemas`
-  - Use when working with Ecto schemas, associations, fields, or database-backed domain modeling.
-  - Prefer this before inferring schema structure from scattered files.
-  - Only available when the project uses Ecto.
-  - Examples
-    - `get_ecto_schemas` list all schemas defined in the project
+### Ecto
 
-- `execute_sql_query`
-  - Use to inspect development database state, validate assumptions, and confirm the effect of changes.
-  - Prefer read queries unless the task explicitly requires writes.
-  - Examples
-    -`execute_sql_query "SELECT * FROM persons"` execute the SQL query in the development database
+- **Always** use Ecto.Multi if you're inserting, updating and/or deleting several schemas in the same operations with a transaction.
 
-- `project_eval`
-  - Use to evaluate Elixir code inside the running application context.
-  - Prefer this for checking runtime behavior, inspecting modules, testing expressions, calling app functions, and validating business logic.
-  - Use this instead of guessing how macros, config, or runtime wiring behave.
-  - Examples 
-    - `project_evel "Ancestry.Repo.all(Ancestry.People.Person)"` get all the people structs from the db
+Don't do this
 
-- `get_logs`
-  - Use to inspect server logs after requests, LiveView interactions, background jobs, or runtime failures.
-  - Always check logs when behavior differs from expectations.
-  - Examples
-    - `get_logs level: DEBUG, tail: 10` get the last 10 logs with DEBUG level or higher
-    - `get_logs tail: 10, grep: QUERY` get the last 10 logs containing the word "QUERY"
+<bad-example>
+def create_person(family, attrs) do
+  Repo.transaction(fn ->
+    case %Person{organization_id: family.organization_id}
+         |> Person.changeset(attrs)
+         |> Repo.insert() do
+      {:ok, person} ->
+        %FamilyMember{family_id: family.id, person_id: person.id}
+        |> FamilyMember.changeset(%{})
+        |> Repo.insert!()
 
-- `search_package_docs`
-  - Use to search HexDocs constrained to the exact dependencies in this project.
-  - Prefer this over broad documentation search when looking for dependency APIs.
-  - Examples
-    - `search_package_docs insert!/3` search documentation for insert/3 function across all project dependencies
+        person
 
-### Expected workflow
+      {:error, changeset} ->
+        Repo.rollback(changeset)
+    end
+  end)
+end
+</bad-example>
 
-When implementing or debugging features in this Phoenix app, prefer this order:
+Do this instead
 
-1. Discover relevant modules with `get_ecto_schemas`
-2. Read dependency or framework docs with `get_docs` or `search_package_docs`.
-3. Find definitions with `get_source_location`.
-4. Validate runtime assumptions with `project_eval`.
-5. Inspect persisted data with `execute_sql_query`.
-6. Check `get_logs` after running flows that hit the server.
+<good-example>
+alias Ecto.Multi
 
-### Phoenix-specific guidance
+def create_person(family, attrs) do
+  case do_create_person(family, attrs) do
+    {:ok, %{person: person}} ->
+      person 
+    {:error, _failed_operation, failed_value, _changes_so_far} ->
+      # The error tuple to return will depend on the use case.
+      {:error, failed_value}
+  end
+end
 
-- For routes, controllers, LiveViews, components, contexts, schemas, and changesets, use Tidewave before making assumptions.
-- For Ecto queries, schema fields, and associations, validate with `get_ecto_schemas`, `project_eval`, and `execute_sql_query`.
-- For LiveView or request issues, inspect `get_logs` after reproducing the flow.
-- For dependency usage, prefer `get_docs` and `search_package_docs` over memory.
+defp do_create_person(family, attrs) do
+  # We can see at a glance all the operations of the transaction
+  # in a nice and compact way. Easier to add or remove operations
+  # in the future.
+  Multi.new()
+  |> Multi.put(:family, family)
+  |> Multi.put(:person_attrs, attrs) 
+  |> Multi.insert(:person, &insert_person/1)
+  |> Multi.insert(:family_member, &insert_family_member/1)
+  |> Repo.transaction()
+end
 
-### Rules
+defp insert_person(%{family: family, person_attrs: attrs}) do
+  %Person{}
+  |> Person.changeset(Map.put(attrs, :organization_id, family.organization_id))
+end
 
-- Do not invent module APIs, schema fields, routes, assigns, or database columns when Tidewave can verify them.
-- Do not assume runtime configuration or macro expansion details; verify with `project_eval`.
-- Do not assume database contents; verify with `execute_sql_query`.
-- If a Tidewave tool can answer the question, use it before falling back to generic search.
+defp insert_family_member(%{family: family, person: person}) do
+  %FamilyMember{}
+  |> FamilyMember.changeset(%{family_id: family.id, person_id: person.id})
+end
+</good-example>
 
 ## Feature testing
 
-When creating a new feature or fixing an existing feature make sure there is a test that covers the new/edited user flow to make sure there are no regression on the features. The main focus is to test using interactions.
-
-Store this tests in the `test/user_flows/` folder. E.g. `test/user_flows/create-new-family.eex`.
-
-To decide between LiveView tests and or e2e test have into account if the functionality is using javascript which can't be tested with LiveView tests. Prefer e2e tests where possible.
-
-For each test for a user flow write a Given/When/Then comment on top of the test and then make sure the test follows all the specifications. If a feature changes a feature, update the Given/When/Then instructions and update the tests accordingly. Evaluate if it's better to add a new test or extend an existing test. The decision should be based on how related is the new functionality to any of the existing tests and how large the test already is. Accept large tests of a maximum of ~1000 lines.
-
-The description of the tests use the Given/When/Then format. Below are some examples of test specifications you have to build for the application. Think on the test cases before writing these tests and don't mind if there is a bit of superposition between the tests (doesn't matter if several test test the same part of the application whenever it makes sense from a user flow stand of point).
-
-Creating a new family
-<test_case>
-Given a system with no data
-When the user clicks "New Family"
-Then the "New Family" form is displayed.
-
-When the user writes a name for the family
-And selects a cover photo
-And clicks "Create"
-Then a new family is created
-And the application navigates automatically to the family show page
-And the empty state is shown
-
-When the user clicks the navigate back arrow in the gallery
-Then the grid with the list of families is shown
-
-When the user clicks on the family shown in the grid
-Then the user can see the family show page
-</test_case>
-Makes sure that all navigation and modals work as expected.
-
-Edit family metadata
-<test_case>
-Given a family
-When the user clicks on the family from the /families page
-Then the user navigates to the family show page
-
-When the user clicks "Edit" on the toolbar
-Then a modal is shown to edit the family name
-
-When the user enters a new family name in the modal
-And clicks "Save"
-Then the modal closes and the gallery show page is visible
-And the gallery name is updated
-</test_case>
-Makes sure that all navigation and modals work as expected.
-
-Delete family
-<test_case>
-Given a family with some people and galleries
-When the user clicks on the family from the /families page
-Then the user navigates to the family show page
-
-When the user clicks "Delete" on the toolbar
-Then a confirmation modal is shown
-
-When the user clicks "Delete"
-Then the gallery is deleted with all it's related galleries
-And people is not deleted, just detached from the gallery
-And the user is redirected to the /galleries page
-</test_case>
-Makes sure that all navigation and modals work as expected.
-
-Creating people in a family
-<test_case>
-Given an existing family
-When the user navigates to /families
-And clicks on the existing family
-Then the family show screen is shown
-And the empty state can be seen
-
-When the user clicks the add person button
-Then the page navigates to the new member page
-
-When the user fills the form with the user information
-And uploads a photo for the user
-And clicks "Create"
-Then the page navigates to the family show page
-And the new person is listed on the sidebar
-</test_case>
-Makes sure that all navigation and modals work as expected.
-
-Linking people in a family
-<test_case>
-Given an existing family
-And an existing person that's not associated to the family
-When the user navigates to /families
-And clicks on the existing family
-Then the family show screen is shown
-And the empty state can be seen
-
-When the user clicks the link people
-Then a modal is shown to search for an existing person
-
-When the user search the existing user in the search form
-Then the user appears as an option
-
-When the user selects the person from the search form
-Then the person is added to the family
-And the page navigates to the family show page
-And the new person is listed on the sidebar
-</test_case>
-Makes sure that all navigation and modals work as expected.
+Every new or changed user flow needs an interaction-driven test in `test/user_flows/`. See [`test/user_flows/CLAUDE.md`](test/user_flows/CLAUDE.md) for conventions, file naming, and example Given/When/Then specs to model new tests on.

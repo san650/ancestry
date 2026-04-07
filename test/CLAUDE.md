@@ -13,18 +13,7 @@ Use `async: false` only when the test touches shared global state (e.g. the file
 
 ## Fixtures
 
-Fixtures are defined as plain functions at the bottom of the test module — there is no shared factory library. Follow the existing pattern:
-
-```elixir
-def gallery_fixture(attrs \\ %{}) do
-  {:ok, gallery} =
-    attrs
-    |> Enum.into(%{name: "Test Gallery"})
-    |> Galleries.create_gallery()
-
-  gallery
-end
-```
+Use `ex_machina` for factories.
 
 The test image at `test/fixtures/test_image.jpg` is used by Oban worker tests that exercise real ImageMagick processing.
 
