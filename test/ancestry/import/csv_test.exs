@@ -3,6 +3,7 @@ defmodule Ancestry.Import.CSVTest do
 
   alias Ancestry.Import.CSV
   alias Ancestry.Import.CSV.FamilyEcho
+  alias Ancestry.People
   alias Ancestry.People.Person
 
   @headers [
@@ -453,6 +454,55 @@ defmodule Ancestry.Import.CSVTest do
       assert person.birth_year == 1991
       family_b_people = Ancestry.People.list_people_for_family(family_b.id)
       assert Enum.any?(family_b_people, &(&1.id == person.id))
+    end
+  end
+
+  describe "importing into a fresh organization with previously-used external_ids" do
+    test "people from one org are not reused in another org" do
+      org_a = insert(:organization)
+      org_b = insert(:organization)
+      family_a = insert(:family, organization: org_a)
+      family_b = insert(:family, organization: org_b)
+
+      rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "Adriana",
+          "Surname now" => "Smith",
+          "Gender" => "Female"
+        }),
+        csv_row(%{
+          "ID" => "P2",
+          "Given names" => "Bruno",
+          "Surname now" => "Smith",
+          "Gender" => "Male"
+        })
+      ]
+
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, summary_a} = CSV.import_for_family(FamilyEcho, family_a, path)
+      assert summary_a.people_created == 2
+
+      assert {:ok, summary_b} = CSV.import_for_family(FamilyEcho, family_b, path)
+      assert summary_b.people_created == 2
+      assert summary_b.people_skipped == 0
+      assert summary_b.people_added_to_family == 0
+      refute Enum.any?(summary_b.people_errors, &(&1 =~ "organization_mismatch"))
+
+      person_a =
+        Repo.get_by!(Person, organization_id: org_a.id, external_id: "family_echo_P1")
+
+      person_b =
+        Repo.get_by!(Person, organization_id: org_b.id, external_id: "family_echo_P1")
+
+      assert person_a.id != person_b.id
+
+      {:ok, _updated} =
+        People.update_person(person_b, %{given_name: "Adriana B"})
+
+      refreshed_a = Repo.get!(Person, person_a.id)
+      assert refreshed_a.given_name == "Adriana"
     end
   end
 

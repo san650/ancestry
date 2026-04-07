@@ -167,7 +167,7 @@ defmodule Ancestry.Import.CSV do
   end
 
   defp import_or_update_person(family, attrs, row_num, acc) do
-    case Repo.get_by(Person, external_id: attrs.external_id) do
+    case get_person_by_external_id(family.organization_id, attrs.external_id) do
       nil ->
         case People.create_person(family, attrs) do
           {:ok, _person} ->
@@ -235,6 +235,10 @@ defmodule Ancestry.Import.CSV do
         opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
       end)
     end)
+  end
+
+  defp get_person_by_external_id(org_id, external_id) do
+    Repo.get_by(Person, organization_id: org_id, external_id: external_id)
   end
 
   defp import_relationships(adapter_module, rows) do
