@@ -5,6 +5,7 @@ defmodule Ancestry.Import.CSVTest do
   alias Ancestry.Import.CSV.FamilyEcho
   alias Ancestry.People
   alias Ancestry.People.Person
+  alias Ancestry.Relationships.Relationship
 
   @headers [
     "ID",
@@ -503,6 +504,76 @@ defmodule Ancestry.Import.CSVTest do
 
       refreshed_a = Repo.get!(Person, person_a.id)
       assert refreshed_a.given_name == "Adriana"
+    end
+
+    test "relationships in one org link only that org's people" do
+      org_a = insert(:organization)
+      org_b = insert(:organization)
+      family_a = insert(:family, organization: org_a)
+      family_b = insert(:family, organization: org_b)
+
+      rows = [
+        csv_row(%{
+          "ID" => "DAD",
+          "Given names" => "John",
+          "Surname now" => "Smith",
+          "Gender" => "Male",
+          "Partner ID" => "MOM",
+          "Partner name" => "Jane Smith"
+        }),
+        csv_row(%{
+          "ID" => "MOM",
+          "Given names" => "Jane",
+          "Surname now" => "Smith",
+          "Gender" => "Female"
+        }),
+        csv_row(%{
+          "ID" => "KID",
+          "Given names" => "Billy",
+          "Surname now" => "Smith",
+          "Gender" => "Male",
+          "Mother ID" => "MOM",
+          "Mother name" => "Jane Smith",
+          "Father ID" => "DAD",
+          "Father name" => "John Smith"
+        })
+      ]
+
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, _summary_a} = CSV.import_for_family(FamilyEcho, family_a, path)
+      assert {:ok, summary_b} = CSV.import_for_family(FamilyEcho, family_b, path)
+
+      assert summary_b.people_created == 3
+      assert summary_b.relationships_errors == []
+
+      org_b_person_ids =
+        Repo.all(
+          from p in Person,
+            where: p.organization_id == ^org_b.id,
+            select: p.id
+        )
+
+      org_b_relationships =
+        Repo.all(
+          from r in Relationship,
+            where: r.person_a_id in ^org_b_person_ids or r.person_b_id in ^org_b_person_ids
+        )
+
+      # Every relationship that touches an org_b person should reference
+      # only org_b people on BOTH sides — no cross-org leakage.
+      for rel <- org_b_relationships do
+        assert rel.person_a_id in org_b_person_ids,
+               "relationship #{rel.id} (type=#{rel.type}) has person_a from another org"
+
+        assert rel.person_b_id in org_b_person_ids,
+               "relationship #{rel.id} (type=#{rel.type}) has person_b from another org"
+      end
+
+      # Confirm org_b actually has its own DAD/MOM/KID rows distinct from org_a's.
+      dad_a = Repo.get_by!(Person, organization_id: org_a.id, external_id: "family_echo_DAD")
+      dad_b = Repo.get_by!(Person, organization_id: org_b.id, external_id: "family_echo_DAD")
+      assert dad_a.id != dad_b.id
     end
   end
 

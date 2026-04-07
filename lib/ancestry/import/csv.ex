@@ -40,7 +40,7 @@ defmodule Ancestry.Import.CSV do
          {:ok, family} <- find_or_create_family(family_name, org),
          {:ok, rows} <- parse_csv(csv_path) do
       people_result = import_people(adapter_module, family, rows)
-      relationships_result = import_relationships(adapter_module, rows)
+      relationships_result = import_relationships(adapter_module, family, rows)
 
       {:ok, build_summary(family, people_result, relationships_result)}
     end
@@ -56,7 +56,7 @@ defmodule Ancestry.Import.CSV do
     with :ok <- validate_file(csv_path),
          {:ok, rows} <- parse_csv(csv_path) do
       people_result = import_people(adapter_module, family, rows)
-      relationships_result = import_relationships(adapter_module, rows)
+      relationships_result = import_relationships(adapter_module, family, rows)
 
       {:ok, build_summary(family, people_result, relationships_result)}
     end
@@ -241,14 +241,14 @@ defmodule Ancestry.Import.CSV do
     Repo.get_by(Person, organization_id: org_id, external_id: external_id)
   end
 
-  defp import_relationships(adapter_module, rows) do
+  defp import_relationships(adapter_module, family, rows) do
     rows
     |> Enum.flat_map(&adapter_module.parse_relationships/1)
     |> Enum.reduce(%{created: 0, duplicates: 0, errors: []}, fn {type, source_eid, target_eid,
                                                                  metadata},
                                                                 acc ->
-      source = Repo.get_by(Person, external_id: source_eid)
-      target = Repo.get_by(Person, external_id: target_eid)
+      source = get_person_by_external_id(family.organization_id, source_eid)
+      target = get_person_by_external_id(family.organization_id, target_eid)
 
       cond do
         is_nil(source) ->
