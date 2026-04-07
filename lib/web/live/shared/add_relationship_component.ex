@@ -226,16 +226,30 @@ defmodule Web.Shared.AddRelationshipComponent do
             />
 
             <%= if @search_results != [] do %>
-              <div class="space-y-1 max-h-60 overflow-y-auto">
+              <div class="space-y-0.5 max-h-44 overflow-y-auto" id="add-relationship-search-results">
                 <%= for result <- @search_results do %>
                   <button
                     id={"search-result-#{result.id}"}
+                    type="button"
                     phx-click="select_person"
                     phx-target={@myself}
                     phx-value-id={result.id}
-                    class="w-full text-left rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left"
                   >
-                    <.person_card_inline person={result} highlighted={false} />
+                    <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <%= if result.photo && result.photo_status == "processed" do %>
+                        <img
+                          src={Ancestry.Uploaders.PersonPhoto.url({result.photo, result}, :thumbnail)}
+                          alt={Person.display_name(result)}
+                          class="w-full h-full object-cover"
+                        />
+                      <% else %>
+                        <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                      <% end %>
+                    </div>
+                    <span class="text-sm text-ds-on-surface truncate">
+                      {Person.display_name(result)}
+                    </span>
                   </button>
                 <% end %>
               </div>
