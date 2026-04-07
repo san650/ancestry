@@ -824,15 +824,27 @@
           </h2>
           <dl class="space-y-2 mb-4">
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">People added</dt>
+              <dt class="text-sm text-ds-on-surface-variant">People created</dt>
               <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-created")}>
                 {@import_summary.people_created}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">Already existing</dt>
-              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-existing")}>
-                {@import_summary.people_unchanged + @import_summary.people_updated}
+              <dt class="text-sm text-ds-on-surface-variant">People added to the family</dt>
+              <dd
+                class="text-sm font-medium text-ds-on-surface"
+                {test_id("import-added-to-family")}
+              >
+                {@import_summary.people_added_to_family}
+              </dd>
+            </div>
+            <div class="flex justify-between">
+              <dt class="text-sm text-ds-on-surface-variant">Already in the family</dt>
+              <dd
+                class="text-sm font-medium text-ds-on-surface"
+                {test_id("import-already-in-family")}
+              >
+                {@import_summary.people_already_in_family}
               </dd>
             </div>
             <div class="flex justify-between">

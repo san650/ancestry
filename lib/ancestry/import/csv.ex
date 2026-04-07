@@ -25,6 +25,8 @@ defmodule Ancestry.Import.CSV do
   - `:people_created` - count of new people created
   - `:people_updated` - count of existing people updated with changed data
   - `:people_unchanged` - count of existing people with no changes
+  - `:people_added_to_family` - count of existing people newly linked to this family by this import
+  - `:people_already_in_family` - count of people that were already members of this family before the import
   - `:people_skipped` - count of rows skipped due to errors
   - `:people_errors` - list of error descriptions
   - `:people_unchanged_names` - list of display names for unchanged people
@@ -66,6 +68,8 @@ defmodule Ancestry.Import.CSV do
       people_created: people_result.created,
       people_updated: people_result.updated,
       people_unchanged: people_result.unchanged,
+      people_added_to_family: people_result.added_to_family,
+      people_already_in_family: people_result.already_in_family,
       people_skipped: people_result.skipped,
       people_errors: people_result.errors,
       people_unchanged_names: people_result.unchanged_names,
@@ -132,6 +136,8 @@ defmodule Ancestry.Import.CSV do
       created: 0,
       updated: 0,
       unchanged: 0,
+      added_to_family: 0,
+      already_in_family: 0,
       skipped: 0,
       errors: [],
       unchanged_names: [],
@@ -177,12 +183,19 @@ defmodule Ancestry.Import.CSV do
         changed_fields = detect_changes(existing, attrs)
 
         if changed_fields == [] do
-          %{acc | unchanged: acc.unchanged + 1, unchanged_names: [name | acc.unchanged_names]}
+          acc = %{
+            acc
+            | unchanged: acc.unchanged + 1,
+              unchanged_names: [name | acc.unchanged_names]
+          }
+
+          apply_link_result(acc, existing, family, name, row_num)
         else
           case People.update_person(existing, attrs) do
-            {:ok, _person} ->
+            {:ok, updated} ->
               desc = "#{name}: #{Enum.join(changed_fields, ", ")} changed"
-              %{acc | updated: acc.updated + 1, updated_names: [desc | acc.updated_names]}
+              acc = %{acc | updated: acc.updated + 1, updated_names: [desc | acc.updated_names]}
+              apply_link_result(acc, updated, family, name, row_num)
 
             {:error, changeset} ->
               error =
@@ -191,6 +204,20 @@ defmodule Ancestry.Import.CSV do
               %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
           end
         end
+    end
+  end
+
+  defp apply_link_result(acc, person, family, name, row_num) do
+    case People.link_person_to_family(person, family) do
+      {:ok, :added} ->
+        %{acc | added_to_family: acc.added_to_family + 1}
+
+      {:ok, :already_linked} ->
+        %{acc | already_in_family: acc.already_in_family + 1}
+
+      {:error, reason} ->
+        error = "Row #{row_num}: link failed for #{name}: #{inspect(reason)}"
+        %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
     end
   end
 

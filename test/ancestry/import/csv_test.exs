@@ -366,6 +366,94 @@ defmodule Ancestry.Import.CSVTest do
       person = Repo.get_by!(Person, external_id: "family_echo_P1")
       assert person.birth_year == 1991
     end
+
+    test "re-importing same CSV into same family counts as already_in_family", %{org: org} do
+      rows = [csv_row(%{"ID" => "P1", "Given names" => "John", "Surname now" => "Doe"})]
+      path = write_tmp_csv(build_csv(rows))
+
+      assert {:ok, first} = CSV.import(FamilyEcho, "Doe Family", path, org)
+      assert first.people_created == 1
+      assert first.people_added_to_family == 0
+      assert first.people_already_in_family == 0
+
+      assert {:ok, second} = CSV.import(FamilyEcho, "Doe Family", path, org)
+      assert second.people_created == 0
+      assert second.people_unchanged == 1
+      assert second.people_added_to_family == 0
+      assert second.people_already_in_family == 1
+    end
+  end
+
+  describe "linking existing people across families" do
+    test "imports person that exists in another family with identical fields", %{org: org} do
+      rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "John",
+          "Surname now" => "Doe",
+          "Birth year" => "1990"
+        })
+      ]
+
+      path = write_tmp_csv(build_csv(rows))
+      family_a = insert(:family, organization: org)
+      family_b = insert(:family, organization: org)
+
+      assert {:ok, first} = CSV.import_for_family(FamilyEcho, family_a, path)
+      assert first.people_created == 1
+
+      assert {:ok, second} = CSV.import_for_family(FamilyEcho, family_b, path)
+      assert second.people_created == 0
+      assert second.people_unchanged == 1
+      assert second.people_updated == 0
+      assert second.people_added_to_family == 1
+      assert second.people_already_in_family == 0
+      assert second.people_skipped == 0
+
+      person = Repo.get_by!(Person, external_id: "family_echo_P1")
+      family_b_people = Ancestry.People.list_people_for_family(family_b.id)
+      assert Enum.any?(family_b_people, &(&1.id == person.id))
+    end
+
+    test "imports person that exists in another family with different fields", %{org: org} do
+      first_rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "John",
+          "Surname now" => "Doe",
+          "Birth year" => "1990"
+        })
+      ]
+
+      first_path = write_tmp_csv(build_csv(first_rows))
+      family_a = insert(:family, organization: org)
+      family_b = insert(:family, organization: org)
+
+      assert {:ok, _first} = CSV.import_for_family(FamilyEcho, family_a, first_path)
+
+      updated_rows = [
+        csv_row(%{
+          "ID" => "P1",
+          "Given names" => "John",
+          "Surname now" => "Doe",
+          "Birth year" => "1991"
+        })
+      ]
+
+      updated_path = write_tmp_csv(build_csv(updated_rows))
+      assert {:ok, second} = CSV.import_for_family(FamilyEcho, family_b, updated_path)
+
+      assert second.people_created == 0
+      assert second.people_updated == 1
+      assert second.people_added_to_family == 1
+      assert second.people_already_in_family == 0
+      assert second.people_skipped == 0
+
+      person = Repo.get_by!(Person, external_id: "family_echo_P1")
+      assert person.birth_year == 1991
+      family_b_people = Ancestry.People.list_people_for_family(family_b.id)
+      assert Enum.any?(family_b_people, &(&1.id == person.id))
+    end
   end
 
   defp build_csv(rows) do
