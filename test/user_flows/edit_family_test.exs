@@ -7,15 +7,15 @@ defmodule Web.UserFlows.EditFamilyTest do
     %{family: family, org: org}
   end
 
-  test "edit family name via modal", %{conn: conn, family: _family, org: org} do
+  test "edit family name via modal", %{conn: conn, family: family, org: org} do
     conn = log_in_e2e(conn)
 
-    # Visit families page and click the family
+    # Visit families page and click the family card
     conn =
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Original Name")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
       |> assert_has(test_id("family-name"), text: "Original Name")
 

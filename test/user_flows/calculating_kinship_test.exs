@@ -83,6 +83,7 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
 
   test "full kinship flow: select cousins, swap, clear, and unrelated people", %{
     conn: conn,
+    family: family,
     cousin_a: cousin_a,
     cousin_b: cousin_b,
     unrelated: unrelated,
@@ -95,7 +96,7 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Kinship Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
     # Click the Kinship button to navigate to the kinship page

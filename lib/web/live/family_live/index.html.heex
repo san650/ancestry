@@ -15,6 +15,21 @@
         </h1>
       </div>
       <div class="hidden lg:flex items-center gap-2">
+        <button
+          type="button"
+          phx-click="toggle_select_mode"
+          class={[
+            "inline-flex items-center gap-2 rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold transition-colors",
+            if(@selection_mode,
+              do: "bg-ds-primary text-ds-on-primary",
+              else: "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest"
+            )
+          ]}
+          {test_id("family-index-select-btn")}
+        >
+          <.icon name="hero-check-circle" class="w-4 h-4" />
+          <span>{if(@selection_mode, do: "Exit selection", else: "Select")}</span>
+        </button>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/people"}
           class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
@@ -37,6 +52,11 @@
   <%!-- Nav drawer (mobile) --%>
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
+      <.nav_action
+        icon="hero-check-circle"
+        label={if(@selection_mode, do: "Exit selection", else: "Select")}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
+      />
       <.nav_action
         icon="hero-users"
         label="People"
@@ -65,6 +85,27 @@
 
   <div class="bg-ds-surface-low min-h-screen">
     <div id="family-index-root" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
+      <%= if @selection_mode do %>
+        <div
+          id="selection-bar"
+          class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-ds-on-surface lg:rounded-ds-sharp lg:mb-4"
+          {test_id("selection-bar")}
+        >
+          <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
+            {MapSet.size(@selected_ids)} selected
+          </span>
+          <button
+            phx-click="request_batch_delete"
+            disabled={MapSet.size(@selected_ids) == 0}
+            class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            {test_id("selection-bar-delete-btn")}
+          >
+            Delete
+          </button>
+        </div>
+      <% end %>
+
       <div
         id="families"
         phx-update="stream"
@@ -80,85 +121,89 @@
         <div
           :for={{id, family} <- @streams.families}
           id={id}
-          class="group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden"
+          class={[
+            "group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden cursor-pointer",
+            if(@selection_mode && MapSet.member?(@selected_ids, family.id),
+              do: "outline outline-3 outline-ds-primary outline-offset-2",
+              else: "outline outline-3 outline-transparent outline-offset-2"
+            )
+          ]}
+          phx-click="card_clicked"
+          phx-value-id={family.id}
           {test_id("family-card-#{family.id}")}
         >
-          <.link
-            navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
-            class="block"
-          >
-            <%= if family.cover do %>
-              <div class="h-32 overflow-hidden">
-                <img
-                  src={Ancestry.Uploaders.FamilyCover.url({family.cover, family}, :cover)}
-                  alt={family.name}
-                  class="w-full h-full object-cover"
-                />
-              </div>
-            <% else %>
-              <div class="h-32 bg-ds-surface-low flex items-center justify-center">
-                <.icon name="hero-users" class="w-8 h-8 text-ds-on-surface-variant" />
-              </div>
-            <% end %>
-            <div class="p-4">
-              <h2
-                data-family-name
-                class="text-lg font-ds-heading font-bold text-ds-on-surface truncate"
-              >
-                {family.name}
-              </h2>
-              <p class="text-sm text-ds-on-surface-variant mt-1">
-                {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
-              </p>
+          <%= if family.cover do %>
+            <div class="h-32 overflow-hidden">
+              <img
+                src={Ancestry.Uploaders.FamilyCover.url({family.cover, family}, :cover)}
+                alt={family.name}
+                class="w-full h-full object-cover"
+              />
             </div>
-          </.link>
-          <button
-            id={"delete-family-#{family.id}"}
-            phx-click="request_delete"
-            phx-value-id={family.id}
-            class="absolute top-3 right-3 p-1.5 rounded-ds-sharp text-ds-on-surface-variant/30 hover:text-ds-error hover:bg-ds-error/10 lg:opacity-0 lg:group-hover:opacity-100 transition-all"
-          >
-            <.icon name="hero-trash" class="w-4 h-4" />
-          </button>
+          <% else %>
+            <div class="h-32 bg-ds-surface-low flex items-center justify-center">
+              <.icon name="hero-users" class="w-8 h-8 text-ds-on-surface-variant" />
+            </div>
+          <% end %>
+          <div class="p-4">
+            <h2
+              data-family-name
+              class="text-lg font-ds-heading font-bold text-ds-on-surface truncate"
+            >
+              {family.name}
+            </h2>
+            <p class="text-sm text-ds-on-surface-variant mt-1">
+              {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <%!-- Delete Confirmation Modal --%>
-  <%= if @confirm_delete_family do %>
+  <%!-- Batch Delete Confirmation Modal --%>
+  <%= if @confirm_delete do %>
     <div
+      id="confirm-delete-families-modal"
       class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
-      phx-window-keydown="cancel_delete"
+      phx-window-keydown="cancel_batch_delete"
       phx-key="Escape"
+      {test_id("confirm-delete-families-modal")}
     >
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
-        id="confirm-delete-family-modal"
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_batch_delete"
+      >
+      </div>
+      <div
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="delete-family-title"
-        phx-mounted={JS.focus_first()}
+        aria-labelledby="delete-families-title"
       >
         <h2
-          id="delete-family-title"
+          id="delete-families-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
         >
-          Delete Family
+          Delete families
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete <span class="font-semibold text-ds-on-surface">"{@confirm_delete_family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
+          <%= if MapSet.size(@selected_ids) == 1 do %>
+            Delete 1 family? All galleries and photos will be permanently removed. This cannot be undone.
+          <% else %>
+            Delete {MapSet.size(@selected_ids)} families? All galleries and photos will be permanently removed. This cannot be undone.
+          <% end %>
         </p>
         <div class="flex gap-3">
           <button
-            phx-click="confirm_delete"
+            phx-click="confirm_batch_delete"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-families-confirm-btn")}
           >
             Delete
           </button>
           <button
-            phx-click="cancel_delete"
+            phx-click="cancel_batch_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
             Cancel

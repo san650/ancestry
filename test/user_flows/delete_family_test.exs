@@ -14,18 +14,18 @@ defmodule Web.UserFlows.DeleteFamilyTest do
 
   test "delete family keeps people but removes family and galleries", %{
     conn: conn,
-    family: _family,
+    family: family,
     person: person,
     org: org
   } do
     conn = log_in_e2e(conn)
 
-    # Visit families page and click the family
+    # Visit families page and click the family card
     conn =
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Doomed Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
       |> assert_has(test_id("family-name"), text: "Doomed Family")
 

@@ -30,14 +30,24 @@ defmodule Web.FamilyLive.IndexTest do
     assert html =~ "No families yet"
   end
 
-  test "deletes a family after confirmation", %{conn: conn, org: org} do
+  test "deletes a family via selection mode and batch confirmation", %{conn: conn, org: org} do
     {:ok, family} = Families.create_family(org, %{name: "To Delete"})
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}")
 
-    view |> element("#delete-family-#{family.id}") |> render_click()
-    assert has_element?(view, "#confirm-delete-family-modal")
+    # Enter selection mode
+    view |> element("[data-testid='family-index-select-btn']") |> render_click()
 
-    view |> element("#confirm-delete-family-modal [phx-click='confirm_delete']") |> render_click()
-    refute has_element?(view, "#family-#{family.id}")
+    # Tap the family card to select it
+    view |> element("[data-testid='family-card-#{family.id}']") |> render_click()
+
+    # Open the batch confirmation modal
+    view |> element("[data-testid='selection-bar-delete-btn']") |> render_click()
+    assert has_element?(view, "#confirm-delete-families-modal")
+
+    # Confirm
+    view |> element("[data-testid='confirm-delete-families-confirm-btn']") |> render_click()
+
+    refute has_element?(view, "[data-testid='family-card-#{family.id}']")
+    refute Ancestry.Repo.get(Ancestry.Families.Family, family.id)
   end
 end

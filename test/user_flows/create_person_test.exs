@@ -21,15 +21,15 @@ defmodule Web.UserFlows.CreatePersonTest do
     %{family: family, org: org}
   end
 
-  test "create a new person in a family", %{conn: conn, org: org} do
+  test "create a new person in a family", %{conn: conn, family: family, org: org} do
     conn = log_in_e2e(conn)
 
-    # Visit families page and click the family
+    # Visit families page and click the family card
     conn =
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Smith Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
       |> assert_has(test_id("family-empty-state"))
 
