@@ -48,7 +48,6 @@ defmodule Web.AccountSessionController do
 
   def update_password(conn, %{"account" => account_params} = params) do
     account = conn.assigns.current_scope.account
-    true = Identity.sudo_mode?(account)
     {:ok, {_account, expired_tokens}} = Identity.update_account_password(account, account_params)
 
     # disconnect all existing LiveViews with old sessions

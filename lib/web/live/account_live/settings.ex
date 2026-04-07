@@ -135,7 +135,6 @@ defmodule Web.AccountLive.Settings do
   def handle_event("update_email", params, socket) do
     %{"account" => account_params} = params
     account = socket.assigns.current_scope.account
-    true = Identity.sudo_mode?(account)
 
     case Identity.change_account_email(account, account_params) do
       %{valid?: true} = changeset ->
@@ -168,7 +167,6 @@ defmodule Web.AccountLive.Settings do
   def handle_event("update_password", params, socket) do
     %{"account" => account_params} = params
     account = socket.assigns.current_scope.account
-    true = Identity.sudo_mode?(account)
 
     case Identity.change_account_password(account, account_params) do
       %{valid?: true} = changeset ->

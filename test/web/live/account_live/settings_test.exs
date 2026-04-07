@@ -86,6 +86,28 @@ defmodule Web.AccountLive.SettingsTest do
       assert result =~ "Change Email"
       assert result =~ "did not change"
     end
+
+    test "updates the account email even when the session is past the sudo window",
+         %{conn: conn} do
+      account = insert(:account)
+      new_email = unique_account_email()
+
+      conn =
+        log_in_account(conn, account,
+          token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -21, :minute)
+        )
+
+      {:ok, lv, _html} = live(conn, ~p"/accounts/settings")
+
+      result =
+        lv
+        |> form("#email_form", %{
+          "account" => %{"email" => new_email}
+        })
+        |> render_submit()
+
+      assert result =~ "A link to confirm your email"
+    end
   end
 
   describe "update password form" do
@@ -156,6 +178,35 @@ defmodule Web.AccountLive.SettingsTest do
       assert result =~ "Save Password"
       assert result =~ "should be at least 12 character(s)"
       assert result =~ "does not match password"
+    end
+
+    test "updates the account password even when the session is past the sudo window",
+         %{conn: conn} do
+      account = insert(:account)
+      new_password = valid_account_password()
+
+      conn =
+        log_in_account(conn, account,
+          token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -21, :minute)
+        )
+
+      {:ok, lv, _html} = live(conn, ~p"/accounts/settings")
+
+      form =
+        form(lv, "#password_form", %{
+          "account" => %{
+            "email" => account.email,
+            "password" => new_password,
+            "password_confirmation" => new_password
+          }
+        })
+
+      render_submit(form)
+
+      new_password_conn = follow_trigger_action(form, conn)
+
+      assert redirected_to(new_password_conn) == ~p"/accounts/settings"
+      assert Identity.get_account_by_email_and_password(account.email, new_password)
     end
   end
 
