@@ -83,6 +83,7 @@ defmodule Web.UserFlows.ManagePeopleTest do
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
+      |> click(test_id("meatball-btn"))
       |> click(test_id("family-manage-people-btn"))
       |> wait_liveview()
 

@@ -167,6 +167,31 @@ defmodule Ancestry.People do
     end
   end
 
+  @doc """
+  Idempotently ensures a person is a member of the given family.
+
+  Returns:
+  - `{:ok, :added}` — link was newly created
+  - `{:ok, :already_linked}` — link already existed (no-op)
+  - `{:error, reason}` — real error (e.g., `:organization_mismatch` or `:link_failed`)
+  """
+  def link_person_to_family(%Person{} = person, family) do
+    case add_to_family(person, family) do
+      {:ok, _} ->
+        {:ok, :added}
+
+      {:error, %Ecto.Changeset{errors: errors}} ->
+        if Enum.any?(errors, fn {_k, {msg, _}} -> msg =~ "already" end) do
+          {:ok, :already_linked}
+        else
+          {:error, :link_failed}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   def remove_from_family(%Person{} = person, family) do
     Repo.delete_all(
       from fm in FamilyMember,

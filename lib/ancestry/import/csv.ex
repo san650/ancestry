@@ -25,6 +25,8 @@ defmodule Ancestry.Import.CSV do
   - `:people_created` - count of new people created
   - `:people_updated` - count of existing people updated with changed data
   - `:people_unchanged` - count of existing people with no changes
+  - `:people_added_to_family` - count of existing people newly linked to this family by this import
+  - `:people_already_in_family` - count of people that were already members of this family before the import
   - `:people_skipped` - count of rows skipped due to errors
   - `:people_errors` - list of error descriptions
   - `:people_unchanged_names` - list of display names for unchanged people
@@ -38,23 +40,44 @@ defmodule Ancestry.Import.CSV do
          {:ok, family} <- find_or_create_family(family_name, org),
          {:ok, rows} <- parse_csv(csv_path) do
       people_result = import_people(adapter_module, family, rows)
-      relationships_result = import_relationships(adapter_module, rows)
+      relationships_result = import_relationships(adapter_module, family, rows)
 
-      {:ok,
-       %{
-         family: family,
-         people_created: people_result.created,
-         people_updated: people_result.updated,
-         people_unchanged: people_result.unchanged,
-         people_skipped: people_result.skipped,
-         people_errors: people_result.errors,
-         people_unchanged_names: people_result.unchanged_names,
-         people_updated_names: people_result.updated_names,
-         relationships_created: relationships_result.created,
-         relationships_duplicates: relationships_result.duplicates,
-         relationships_errors: relationships_result.errors
-       }}
+      {:ok, build_summary(family, people_result, relationships_result)}
     end
+  end
+
+  @doc """
+  Import people and relationships from a CSV file into an existing family.
+
+  Unlike `import/4`, this accepts a family struct directly — no name-based lookup.
+  Returns `{:ok, summary}` on success or `{:error, reason}` on failure.
+  """
+  def import_for_family(adapter_module, %Ancestry.Families.Family{} = family, csv_path) do
+    with :ok <- validate_file(csv_path),
+         {:ok, rows} <- parse_csv(csv_path) do
+      people_result = import_people(adapter_module, family, rows)
+      relationships_result = import_relationships(adapter_module, family, rows)
+
+      {:ok, build_summary(family, people_result, relationships_result)}
+    end
+  end
+
+  defp build_summary(family, people_result, relationships_result) do
+    %{
+      family: family,
+      people_created: people_result.created,
+      people_updated: people_result.updated,
+      people_unchanged: people_result.unchanged,
+      people_added_to_family: people_result.added_to_family,
+      people_already_in_family: people_result.already_in_family,
+      people_skipped: people_result.skipped,
+      people_errors: people_result.errors,
+      people_unchanged_names: people_result.unchanged_names,
+      people_updated_names: people_result.updated_names,
+      relationships_created: relationships_result.created,
+      relationships_duplicates: relationships_result.duplicates,
+      relationships_errors: relationships_result.errors
+    }
   end
 
   defp find_or_create_family(name, org) do
@@ -113,6 +136,8 @@ defmodule Ancestry.Import.CSV do
       created: 0,
       updated: 0,
       unchanged: 0,
+      added_to_family: 0,
+      already_in_family: 0,
       skipped: 0,
       errors: [],
       unchanged_names: [],
@@ -142,7 +167,7 @@ defmodule Ancestry.Import.CSV do
   end
 
   defp import_or_update_person(family, attrs, row_num, acc) do
-    case Repo.get_by(Person, external_id: attrs.external_id) do
+    case get_person_by_external_id(family.organization_id, attrs.external_id) do
       nil ->
         case People.create_person(family, attrs) do
           {:ok, _person} ->
@@ -158,12 +183,19 @@ defmodule Ancestry.Import.CSV do
         changed_fields = detect_changes(existing, attrs)
 
         if changed_fields == [] do
-          %{acc | unchanged: acc.unchanged + 1, unchanged_names: [name | acc.unchanged_names]}
+          acc = %{
+            acc
+            | unchanged: acc.unchanged + 1,
+              unchanged_names: [name | acc.unchanged_names]
+          }
+
+          apply_link_result(acc, existing, family, name, row_num)
         else
           case People.update_person(existing, attrs) do
-            {:ok, _person} ->
+            {:ok, updated} ->
               desc = "#{name}: #{Enum.join(changed_fields, ", ")} changed"
-              %{acc | updated: acc.updated + 1, updated_names: [desc | acc.updated_names]}
+              acc = %{acc | updated: acc.updated + 1, updated_names: [desc | acc.updated_names]}
+              apply_link_result(acc, updated, family, name, row_num)
 
             {:error, changeset} ->
               error =
@@ -172,6 +204,20 @@ defmodule Ancestry.Import.CSV do
               %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
           end
         end
+    end
+  end
+
+  defp apply_link_result(acc, person, family, name, row_num) do
+    case People.link_person_to_family(person, family) do
+      {:ok, :added} ->
+        %{acc | added_to_family: acc.added_to_family + 1}
+
+      {:ok, :already_linked} ->
+        %{acc | already_in_family: acc.already_in_family + 1}
+
+      {:error, reason} ->
+        error = "Row #{row_num}: link failed for #{name}: #{inspect(reason)}"
+        %{acc | skipped: acc.skipped + 1, errors: [error | acc.errors]}
     end
   end
 
@@ -191,14 +237,18 @@ defmodule Ancestry.Import.CSV do
     end)
   end
 
-  defp import_relationships(adapter_module, rows) do
+  defp get_person_by_external_id(org_id, external_id) do
+    Repo.get_by(Person, organization_id: org_id, external_id: external_id)
+  end
+
+  defp import_relationships(adapter_module, family, rows) do
     rows
     |> Enum.flat_map(&adapter_module.parse_relationships/1)
     |> Enum.reduce(%{created: 0, duplicates: 0, errors: []}, fn {type, source_eid, target_eid,
                                                                  metadata},
                                                                 acc ->
-      source = Repo.get_by(Person, external_id: source_eid)
-      target = Repo.get_by(Person, external_id: target_eid)
+      source = get_person_by_external_id(family.organization_id, source_eid)
+      target = get_person_by_external_id(family.organization_id, target_eid)
 
       cond do
         is_nil(source) ->

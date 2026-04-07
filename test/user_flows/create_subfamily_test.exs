@@ -46,6 +46,7 @@ defmodule Web.UserFlows.CreateSubfamilyTest do
 
     conn =
       conn
+      |> click(test_id("meatball-btn"))
       |> click(test_id("family-create-subfamily-btn"))
       |> assert_has(test_id("create-subfamily-modal"))
 
@@ -66,6 +67,7 @@ defmodule Web.UserFlows.CreateSubfamilyTest do
       conn
       |> visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
+      |> click(test_id("meatball-btn"))
       |> click(test_id("family-create-subfamily-btn"))
       |> assert_has(test_id("create-subfamily-modal"))
 

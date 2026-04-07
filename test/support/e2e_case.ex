@@ -98,6 +98,7 @@ defmodule Web.E2ECase do
   defp mime_for_extension(".png"), do: "image/png"
   defp mime_for_extension(".webp"), do: "image/webp"
   defp mime_for_extension(".gif"), do: "image/gif"
+  defp mime_for_extension(".csv"), do: "text/csv"
   defp mime_for_extension(_), do: "application/octet-stream"
 
   def wait_liveview(conn, async_containers \\ []) do
