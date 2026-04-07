@@ -14,14 +14,33 @@
           Organizations
         </h1>
       </div>
-      <button
-        phx-click="new_organization"
-        class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-2 lg:px-5 lg:py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
-        {test_id("org-new-btn")}
-      >
-        <.icon name="hero-plus" class="w-4 h-4" />
-        <span class="hidden sm:inline">New Organization</span>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          phx-click="toggle_select_mode"
+          class={[
+            "inline-flex items-center gap-2 rounded-ds-sharp px-3 py-2 lg:px-4 lg:py-2.5 text-sm font-ds-body font-semibold transition-colors",
+            if(@selection_mode,
+              do: "bg-ds-primary text-ds-on-primary",
+              else: "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest"
+            )
+          ]}
+          {test_id("org-index-select-btn")}
+        >
+          <.icon name="hero-check-circle" class="w-4 h-4" />
+          <span class="hidden sm:inline">
+            {if(@selection_mode, do: "Exit selection", else: "Select")}
+          </span>
+        </button>
+        <button
+          phx-click="new_organization"
+          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-2 lg:px-5 lg:py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          {test_id("org-new-btn")}
+        >
+          <.icon name="hero-plus" class="w-4 h-4" />
+          <span class="hidden sm:inline">New Organization</span>
+        </button>
+      </div>
     </div>
   </:toolbar>
 
@@ -38,6 +57,27 @@
 
   <div class="bg-ds-surface-low min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
+      <%= if @selection_mode do %>
+        <div
+          id="selection-bar"
+          class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-ds-on-surface lg:rounded-ds-sharp lg:mb-4"
+          {test_id("selection-bar")}
+        >
+          <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
+            {MapSet.size(@selected_ids)} selected
+          </span>
+          <button
+            phx-click="request_batch_delete"
+            disabled={MapSet.size(@selected_ids) == 0}
+            class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            {test_id("selection-bar-delete-btn")}
+          >
+            Delete
+          </button>
+        </div>
+      <% end %>
+
       <div
         id="organizations"
         phx-update="stream"
@@ -49,11 +89,19 @@
         >
           <p class="text-lg font-ds-heading font-bold text-ds-on-surface">No organizations yet</p>
         </div>
-        <.link
+        <div
           :for={{id, org} <- @streams.organizations}
           id={id}
-          navigate={~p"/org/#{org.id}"}
-          class="block bg-ds-surface-card rounded-ds-sharp p-5 hover:bg-ds-surface-highest transition-colors"
+          class={[
+            "block bg-ds-surface-card rounded-ds-sharp p-5 hover:bg-ds-surface-highest transition-colors cursor-pointer",
+            if(@selection_mode && MapSet.member?(@selected_ids, org.id),
+              do: "outline outline-3 outline-ds-primary outline-offset-2",
+              else: "outline outline-3 outline-transparent outline-offset-2"
+            )
+          ]}
+          phx-click="card_clicked"
+          phx-value-id={org.id}
+          {test_id("org-card-#{org.id}")}
         >
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-ds-sharp bg-ds-primary/10 flex items-center justify-center flex-shrink-0">
@@ -63,7 +111,7 @@
               {org.name}
             </h2>
           </div>
-        </.link>
+        </div>
       </div>
     </div>
   </div>
@@ -123,6 +171,58 @@
             </button>
           </div>
         </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Batch Delete Confirmation Modal --%>
+  <%= if @confirm_delete do %>
+    <div
+      id="confirm-delete-orgs-modal"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_batch_delete"
+      phx-key="Escape"
+      {test_id("confirm-delete-orgs-modal")}
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_batch_delete"
+      >
+      </div>
+      <div
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-orgs-title"
+      >
+        <h2
+          id="delete-orgs-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete organizations
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          <%= if MapSet.size(@selected_ids) == 1 do %>
+            Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone.
+          <% else %>
+            Delete {MapSet.size(@selected_ids)} organizations? All families, galleries, and photos will be permanently removed. This cannot be undone.
+          <% end %>
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_batch_delete"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-orgs-confirm-btn")}
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_batch_delete"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   <% end %>
