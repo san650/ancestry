@@ -112,7 +112,7 @@ The function currently takes only `(adapter_module, rows)` and has no access to
 the family or organization. Three places change together:
 
 1. **Function definition** (`lib/ancestry/import/csv.ex` near the existing line
-   213): change the head to
+   240): change the head to
    `defp import_relationships(adapter_module, family, rows)`. Inside the
    reduce, replace lines 246–247 with org-scoped lookups:
 
