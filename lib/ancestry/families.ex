@@ -40,8 +40,18 @@ defmodule Ancestry.Families do
 
   @doc false
   # Public so the Organizations context can reuse the same cleanup pipeline.
+  #
+  # The manifest is a polymorphic `:files` list of tagged tuples:
+  #
+  #   * `{:photo, %Photo{}}`       — cascaded gallery photos
+  #   * `{:cover, %Family{}}`      — family cover image
+  #   * `{:person_photo, %Person{}}` — person profile photo (only used by
+  #     `delete_organization/1`; persons survive family deletion)
+  #
+  # `cleanup_files_after_delete/1` pattern-matches on each tag to dispatch
+  # to the correct Waffle uploader.
   def collect_files_for(%Family{} = family) do
-    photos =
+    photo_entries =
       for gallery <- family.galleries,
           photo <- gallery.photos do
         # Attach the gallery in memory so the Waffle uploader's storage_dir/2,
@@ -49,26 +59,31 @@ defmodule Ancestry.Families do
         {:photo, %{photo | gallery: gallery}}
       end
 
+    cover_entries =
+      if family.cover do
+        [{:cover, family}]
+      else
+        []
+      end
+
     local_dirs = [
       Path.join(["priv", "static", "uploads", "families", "#{family.id}"]),
       Path.join(["priv", "static", "uploads", "photos", "#{family.id}"])
     ]
 
-    %{photos: photos, local_dirs: local_dirs}
+    %{files: photo_entries ++ cover_entries, local_dirs: local_dirs}
   end
 
   @doc false
   # Public so the Organizations context can reuse the same cleanup pipeline.
-  def cleanup_files_after_delete(%{photos: photos, local_dirs: dirs}) do
+  def cleanup_files_after_delete(%{files: files, local_dirs: dirs}) do
     require Logger
 
-    Enum.each(photos, fn {:photo, photo} ->
-      if photo.image do
-        try do
-          Ancestry.Uploaders.Photo.delete({photo.image, photo})
-        rescue
-          e -> Logger.warning("Photo cleanup failed: #{inspect(e)}")
-        end
+    Enum.each(files, fn entry ->
+      try do
+        cleanup_one_file(entry)
+      rescue
+        e -> Logger.warning("File cleanup failed for #{inspect(entry)}: #{inspect(e)}")
       end
     end)
 
@@ -81,6 +96,18 @@ defmodule Ancestry.Families do
     end)
 
     :ok
+  end
+
+  defp cleanup_one_file({:photo, photo}) do
+    if photo.image, do: Ancestry.Uploaders.Photo.delete({photo.image, photo})
+  end
+
+  defp cleanup_one_file({:cover, family}) do
+    if family.cover, do: Ancestry.Uploaders.FamilyCover.delete({family.cover, family})
+  end
+
+  defp cleanup_one_file({:person_photo, person}) do
+    if person.photo, do: Ancestry.Uploaders.PersonPhoto.delete({person.photo, person})
   end
 
   def change_family(%Family{} = family, attrs \\ %{}) do
