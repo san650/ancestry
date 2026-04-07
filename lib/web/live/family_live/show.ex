@@ -392,6 +392,34 @@ defmodule Web.FamilyLive.Show do
     {:noreply, socket}
   end
 
+  def handle_event("import_csv", _params, socket) do
+    family = socket.assigns.family
+
+    [result] =
+      consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
+        try do
+          {:ok, Ancestry.Import.import_csv_for_family(:family_echo, family, path)}
+        rescue
+          e in [NimbleCSV.ParseError] ->
+            {:ok, {:error, "Could not parse CSV file: #{Exception.message(e)}"}}
+
+          _e in [MatchError] ->
+            {:ok, {:error, "CSV file is empty or has no data rows"}}
+
+          _ ->
+            {:ok, {:error, "Could not parse CSV file"}}
+        end
+      end)
+
+    case result do
+      {:ok, summary} ->
+        {:noreply, assign(socket, :import_summary, summary)}
+
+      {:error, reason} ->
+        {:noreply, assign(socket, :import_error, reason)}
+    end
+  end
+
   # Create subfamily modal
 
   def handle_event("open_create_subfamily", _, socket) do
