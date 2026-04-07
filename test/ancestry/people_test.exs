@@ -555,6 +555,54 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "external_id uniqueness" do
+    test "rejects duplicate external_id within the same organization" do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+
+      assert {:ok, _person} =
+               People.create_person(family, %{
+                 given_name: "Alice",
+                 surname: "Smith",
+                 external_id: "ext_1"
+               })
+
+      assert {:error, changeset} =
+               People.create_person(family, %{
+                 given_name: "Bob",
+                 surname: "Smith",
+                 external_id: "ext_1"
+               })
+
+      assert "has already been taken" in errors_on(changeset).external_id
+    end
+
+    test "allows the same external_id in different organizations" do
+      org_a = insert(:organization)
+      org_b = insert(:organization)
+      family_a = insert(:family, organization: org_a)
+      family_b = insert(:family, organization: org_b)
+
+      assert {:ok, person_a} =
+               People.create_person(family_a, %{
+                 given_name: "Alice",
+                 surname: "Smith",
+                 external_id: "ext_1"
+               })
+
+      assert {:ok, person_b} =
+               People.create_person(family_b, %{
+                 given_name: "Alice",
+                 surname: "Smith",
+                 external_id: "ext_1"
+               })
+
+      assert person_a.id != person_b.id
+      assert person_a.organization_id == org_a.id
+      assert person_b.organization_id == org_b.id
+    end
+  end
+
   defp org_fixture do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {org, org}

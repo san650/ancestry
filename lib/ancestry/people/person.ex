@@ -64,7 +64,7 @@ defmodule Ancestry.People.Person do
     |> validate_number(:death_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
     |> validate_number(:death_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)
     |> validate_number(:death_year, greater_than_or_equal_to: 1, less_than_or_equal_to: 9999)
-    |> unique_constraint(:external_id)
+    |> unique_constraint(:external_id, name: :persons_organization_id_external_id_index)
   end
 
   defp default_birth_names(changeset) do
