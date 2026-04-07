@@ -22,7 +22,29 @@ defmodule Ancestry.Organizations do
   end
 
   def delete_organization(%Organization{} = org) do
-    Repo.delete(org)
+    org = Repo.preload(org, families: [galleries: :photos])
+    files_to_clean = collect_org_files(org)
+
+    case Repo.delete(org, stale_error_field: :id) do
+      {:ok, deleted} ->
+        Ancestry.Families.cleanup_files_after_delete(files_to_clean)
+        {:ok, deleted}
+
+      {:error, _changeset} = err ->
+        err
+    end
+  end
+
+  defp collect_org_files(%Organization{} = org) do
+    org.families
+    |> Enum.reduce(%{photos: [], local_dirs: []}, fn family, acc ->
+      family_files = Ancestry.Families.collect_files_for(family)
+
+      %{
+        photos: acc.photos ++ family_files.photos,
+        local_dirs: acc.local_dirs ++ family_files.local_dirs
+      }
+    end)
   end
 
   def change_organization(%Organization{} = org, attrs \\ %{}) do

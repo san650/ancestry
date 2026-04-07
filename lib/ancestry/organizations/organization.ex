@@ -5,8 +5,8 @@ defmodule Ancestry.Organizations.Organization do
   schema "organizations" do
     field :name, :string
 
-    has_many :families, Ancestry.Families.Family
-    has_many :people, Ancestry.People.Person
+    has_many :families, Ancestry.Families.Family, on_delete: :delete_all
+    has_many :people, Ancestry.People.Person, on_delete: :delete_all
 
     timestamps()
   end

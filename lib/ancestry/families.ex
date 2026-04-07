@@ -25,8 +25,62 @@ defmodule Ancestry.Families do
   end
 
   def delete_family(%Family{} = family) do
-    cleanup_family_files(family)
-    Repo.delete(family)
+    family = Repo.preload(family, galleries: :photos)
+    files_to_clean = collect_files_for(family)
+
+    case Repo.delete(family, stale_error_field: :id) do
+      {:ok, deleted} ->
+        cleanup_files_after_delete(files_to_clean)
+        {:ok, deleted}
+
+      {:error, _changeset} = err ->
+        err
+    end
+  end
+
+  @doc false
+  # Public so the Organizations context can reuse the same cleanup pipeline.
+  def collect_files_for(%Family{} = family) do
+    photos =
+      for gallery <- family.galleries,
+          photo <- gallery.photos do
+        # Attach the gallery in memory so the Waffle uploader's storage_dir/2,
+        # which reads photo.gallery.family_id, doesn't fault on NotLoaded.
+        {:photo, %{photo | gallery: gallery}}
+      end
+
+    local_dirs = [
+      Path.join(["priv", "static", "uploads", "families", "#{family.id}"]),
+      Path.join(["priv", "static", "uploads", "photos", "#{family.id}"])
+    ]
+
+    %{photos: photos, local_dirs: local_dirs}
+  end
+
+  @doc false
+  # Public so the Organizations context can reuse the same cleanup pipeline.
+  def cleanup_files_after_delete(%{photos: photos, local_dirs: dirs}) do
+    require Logger
+
+    Enum.each(photos, fn {:photo, photo} ->
+      if photo.image do
+        try do
+          Ancestry.Uploaders.Photo.delete({photo.image, photo})
+        rescue
+          e -> Logger.warning("Photo cleanup failed: #{inspect(e)}")
+        end
+      end
+    end)
+
+    Enum.each(dirs, fn dir ->
+      try do
+        File.rm_rf(dir)
+      rescue
+        e -> Logger.warning("Local dir cleanup failed: #{inspect(e)}")
+      end
+    end)
+
+    :ok
   end
 
   def change_family(%Family{} = family, attrs \\ %{}) do
@@ -168,13 +222,5 @@ defmodule Ancestry.Families do
 
     visited = Enum.reduce(children, visited, &MapSet.put(&2, &1))
     Enum.reduce(children, visited, &collect_descendants(&1, &2, opts))
-  end
-
-  defp cleanup_family_files(family) do
-    cover_dir = Path.join(["priv", "static", "uploads", "families", "#{family.id}"])
-    File.rm_rf(cover_dir)
-
-    photos_dir = Path.join(["priv", "static", "uploads", "photos", "#{family.id}"])
-    File.rm_rf(photos_dir)
   end
 end
