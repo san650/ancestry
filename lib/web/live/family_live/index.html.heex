@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-2">
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 min-w-0">
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
@@ -14,7 +14,7 @@
           Families
         </h1>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="hidden lg:flex items-center gap-2">
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/people"}
           class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
@@ -36,6 +36,24 @@
 
   <%!-- Nav drawer (mobile) --%>
   <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        icon="hero-users"
+        label="People"
+        phx-click={
+          toggle_nav_drawer()
+          |> JS.navigate(~p"/org/#{@current_scope.organization.id}/people")
+        }
+      />
+      <.nav_action
+        icon="hero-plus"
+        label="New family"
+        phx-click={
+          toggle_nav_drawer()
+          |> JS.navigate(~p"/org/#{@current_scope.organization.id}/families/new")
+        }
+      />
+    </:page_actions>
     <.link
       href={~p"/org"}
       class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
