@@ -24,16 +24,15 @@ defmodule Web.AccountLive.SettingsTest do
       assert %{"error" => "You must log in to access this page."} = flash
     end
 
-    test "redirects if account is not in sudo mode", %{conn: conn} do
-      {:ok, conn} =
+    test "loads even if the session is older than the sudo window", %{conn: conn} do
+      {:ok, _lv, html} =
         conn
         |> log_in_account(insert(:account),
-          token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
+          token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -20, :minute)
         )
         |> live(~p"/accounts/settings")
-        |> follow_redirect(conn, ~p"/accounts/log-in")
 
-      assert conn.resp_body =~ "You must re-authenticate to access this page."
+      assert html =~ "Account Settings"
     end
   end
 

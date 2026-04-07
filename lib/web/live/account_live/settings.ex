@@ -1,8 +1,6 @@
 defmodule Web.AccountLive.Settings do
   use Web, :live_view
 
-  on_mount {Web.AccountAuth, :require_sudo_mode}
-
   alias Ancestry.Identity
 
   @impl true
