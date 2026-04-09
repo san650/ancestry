@@ -22,6 +22,7 @@ defmodule Web.PersonLive.Show do
     {:ok,
      socket
      |> assign(:person, person)
+     |> assign(:person_dates, format_person_dates(person))
      |> assign(:from_family, nil)
      |> assign(:from_org, false)
      |> assign(:editing, false)
@@ -100,6 +101,7 @@ defmodule Web.PersonLive.Show do
         {:noreply,
          socket
          |> assign(:person, person)
+         |> assign(:person_dates, format_person_dates(person))
          |> assign(:editing, false)}
 
       {:error, changeset} ->
@@ -512,6 +514,23 @@ defmodule Web.PersonLive.Show do
     |> case do
       [] -> ""
       parts -> Enum.join(parts, "/")
+    end
+  end
+
+  defp format_person_dates(person) do
+    birth = format_partial_date(person.birth_day, person.birth_month, person.birth_year)
+    death = format_partial_date(person.death_day, person.death_month, person.death_year)
+
+    has_birth = birth != ""
+    has_death = death != ""
+
+    cond do
+      has_birth and has_death -> "b. #{birth} — d. #{death}"
+      has_birth and person.deceased -> "b. #{birth} — deceased"
+      has_birth -> "b. #{birth}"
+      has_death -> "d. #{death}"
+      person.deceased -> "Deceased"
+      true -> nil
     end
   end
 
