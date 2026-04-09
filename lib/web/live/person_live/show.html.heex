@@ -182,9 +182,9 @@
 
         <%!-- Vitals --%>
         <div class="pt-1">
-          <%= if date_line = format_person_dates(@person) do %>
-            <p class="text-[15px] text-ds-on-surface">{date_line}</p>
-          <% end %>
+          <p class="text-[15px] text-ds-on-surface">
+            <.person_dates person={@person} />
+          </p>
           <%= if @person.gender do %>
             <p class="text-sm text-ds-on-surface-variant mt-0.5">
               {String.capitalize(@person.gender)}
@@ -228,9 +228,9 @@
         </div>
 
         <div class="px-4 py-4 space-y-1">
-          <%= if date_line = format_person_dates(@person) do %>
-            <p class="text-[15px] text-ds-on-surface">{date_line}</p>
-          <% end %>
+          <p class="text-[15px] text-ds-on-surface">
+            <.person_dates person={@person} />
+          </p>
           <%= if @person.gender do %>
             <p class="text-sm text-ds-on-surface-variant">{String.capitalize(@person.gender)}</p>
           <% end %>
@@ -298,7 +298,7 @@
     </div>
 
     <%!-- Relationships Section --%>
-    <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 lg:max-w-5xl lg:mx-auto">
+    <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
       <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">Relationships</h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <%!-- Left Column: Spouses and Children --%>
@@ -595,7 +595,7 @@
 
     <%!-- Tagged Photos Section --%>
     <%= if @person_photos_count > 0 do %>
-      <div id="person-photos-section" class="max-w-7xl mx-auto mt-12">
+      <div id="person-photos-section" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div class="flex items-center gap-3 mb-6">
           <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface">Photos</h2>
           <span class="text-sm bg-ds-surface-low text-ds-on-surface-variant px-2.5 py-0.5 rounded-full">

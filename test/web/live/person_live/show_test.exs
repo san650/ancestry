@@ -94,7 +94,8 @@ defmodule Web.PersonLive.ShowTest do
     {:ok, _view, html} =
       live(conn, ~p"/org/#{org.id}/people/#{deceased_person.id}?from_family=#{family.id}")
 
-    assert html =~ "d. 1994"
+    assert html =~ ~s(<abbr title="Deceased")
+    assert html =~ ~s(<time datetime="1994">1994</time>)
     refute html =~ "Deceased:"
   end
 
