@@ -1,7 +1,10 @@
 defmodule Web.FamilyLive.PeopleListComponent do
   use Web, :live_component
 
+  import Web.Components.NavDrawer, only: [toggle_nav_drawer: 0]
+
   alias Ancestry.People.Person
+  alias Phoenix.LiveView.JS
 
   @impl true
   def render(assigns) do
@@ -68,8 +71,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             {test_id("person-item-#{person.id}")}
           >
             <button
-              phx-click="focus_person"
-              phx-value-id={person.id}
+              phx-click={focus_click(assigns, person.id)}
               class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
             >
               <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -103,5 +105,16 @@ defmodule Web.FamilyLive.PeopleListComponent do
       </div>
     </div>
     """
+  end
+
+  # Stringify the id explicitly so the existing focus_person handler
+  # (which calls String.to_integer/1) keeps working regardless of how
+  # JS.push serialises numeric values.
+  defp focus_click(%{close_drawer_on_select: true}, person_id) do
+    toggle_nav_drawer() |> JS.push("focus_person", value: %{id: to_string(person_id)})
+  end
+
+  defp focus_click(_assigns, person_id) do
+    JS.push("focus_person", value: %{id: to_string(person_id)})
   end
 end

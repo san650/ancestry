@@ -265,6 +265,12 @@ const PhotoTagger = {
   },
 
   destroyed() {
+    // mounted() short-circuits on mobile (window.innerWidth < 1024) and
+    // never assigns these fields. Without this guard the unmount throws
+    // a TypeError on every lightbox close on mobile, corrupting LiveView's
+    // hook teardown lifecycle.
+    if (!this.circlesContainer) return
+
     if (this._raf) cancelAnimationFrame(this._raf)
     window.removeEventListener("resize", this._onResize)
     if (this._clickAway) {

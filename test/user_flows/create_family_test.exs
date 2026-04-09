@@ -64,8 +64,10 @@ defmodule Web.UserFlows.CreateFamilyTest do
       |> refute_has(test_id("families-empty"))
 
     # Click the family card — should see the family show page again
+    [family] = Ancestry.Families.list_families(org.id)
+
     conn
-    |> click_link("The Johnsons")
+    |> click(test_id("family-card-#{family.id}"))
     |> wait_liveview()
     |> assert_has(test_id("family-name"), text: "The Johnsons")
   end

@@ -97,8 +97,10 @@
     </.link>
   </.nav_drawer>
 
-  <%!-- Floating back FAB: mobile only --%>
+  <%!-- Floating back FAB: mobile only, hidden while lightbox is open --%>
   <.link
+    :if={is_nil(@selected_photo)}
+    id="gallery-back-fab"
     navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
     aria-label="Back to family"

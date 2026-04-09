@@ -17,7 +17,7 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:family, assigns.family)
      |> assign(:relationship_type, assigns.relationship_type)
      |> assign(:partner_id, Map.get(assigns, :partner_id))
-     |> assign_new(:step, fn -> :search end)
+     |> assign_new(:step, fn -> :choose end)
      |> assign_new(:search_query, fn -> "" end)
      |> assign_new(:search_results, fn -> [] end)
      |> assign_new(:selected_person, fn -> nil end)
@@ -79,6 +79,14 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:step, :metadata)}
   end
 
+  def handle_event("start_search", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:step, :search)
+     |> assign(:search_query, "")
+     |> assign(:search_results, [])}
+  end
+
   def handle_event("start_quick_create", _, socket) do
     {:noreply,
      socket
@@ -86,8 +94,14 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:person_form, to_form(People.change_person(%Person{}), as: :person))}
   end
 
-  def handle_event("cancel_quick_create", _, socket) do
-    {:noreply, assign(socket, :step, :search)}
+  def handle_event("back_to_choose", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:step, :choose)
+     |> assign(:search_query, "")
+     |> assign(:search_results, [])
+     |> assign(:selected_person, nil)
+     |> assign(:person_form, to_form(People.change_person(%Person{}), as: :person))}
   end
 
   def handle_event("validate_person", %{"person" => params}, socket) do
@@ -208,8 +222,57 @@ defmodule Web.Shared.AddRelationshipComponent do
       </div>
 
       <%= case @step do %>
+        <% :choose -> %>
+          <div class="space-y-3">
+            <p class="text-sm text-ds-on-surface-variant">
+              Add a relationship by linking an existing person or creating a new one.
+            </p>
+            <button
+              id="add-rel-link-existing-btn"
+              type="button"
+              phx-click="start_search"
+              phx-target={@myself}
+              class="w-full flex items-center gap-3 p-4 rounded-ds-sharp bg-ds-surface-low hover:bg-ds-surface-highest transition-colors text-left"
+            >
+              <.icon name="hero-magnifying-glass" class="w-5 h-5 text-ds-primary shrink-0" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
+                  Link existing person
+                </p>
+                <p class="text-xs text-ds-on-surface-variant">
+                  Search for someone already in this organization.
+                </p>
+              </div>
+            </button>
+            <button
+              id="add-rel-create-new-btn"
+              type="button"
+              phx-click="start_quick_create"
+              phx-target={@myself}
+              class="w-full flex items-center gap-3 p-4 rounded-ds-sharp bg-ds-surface-low hover:bg-ds-surface-highest transition-colors text-left"
+            >
+              <.icon name="hero-plus" class="w-5 h-5 text-ds-primary shrink-0" />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
+                  Create new person
+                </p>
+                <p class="text-xs text-ds-on-surface-variant">
+                  Add someone who isn't in the system yet.
+                </p>
+              </div>
+            </button>
+          </div>
         <% :search -> %>
           <div class="space-y-4">
+            <button
+              id="add-rel-back-to-choose-from-search-btn"
+              type="button"
+              phx-click="back_to_choose"
+              phx-target={@myself}
+              class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-3 transition-colors"
+            >
+              <.icon name="hero-arrow-left" class="w-4 h-4" /> Back
+            </button>
             <p class="text-sm text-ds-on-surface-variant">
               Search for a person to add as a relationship.
             </p>
@@ -226,16 +289,30 @@ defmodule Web.Shared.AddRelationshipComponent do
             />
 
             <%= if @search_results != [] do %>
-              <div class="space-y-1 max-h-60 overflow-y-auto">
+              <div class="space-y-0.5 max-h-44 overflow-y-auto" id="add-relationship-search-results">
                 <%= for result <- @search_results do %>
                   <button
                     id={"search-result-#{result.id}"}
+                    type="button"
                     phx-click="select_person"
                     phx-target={@myself}
                     phx-value-id={result.id}
-                    class="w-full text-left rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left"
                   >
-                    <.person_card_inline person={result} highlighted={false} />
+                    <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <%= if result.photo && result.photo_status == "processed" do %>
+                        <img
+                          src={Ancestry.Uploaders.PersonPhoto.url({result.photo, result}, :thumbnail)}
+                          alt={Person.display_name(result)}
+                          class="w-full h-full object-cover"
+                        />
+                      <% else %>
+                        <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                      <% end %>
+                    </div>
+                    <span class="text-sm text-ds-on-surface truncate">
+                      {Person.display_name(result)}
+                    </span>
                   </button>
                 <% end %>
               </div>
@@ -246,25 +323,16 @@ defmodule Web.Shared.AddRelationshipComponent do
                 </p>
               <% end %>
             <% end %>
-
-            <button
-              id="start-quick-create-btn"
-              phx-click="start_quick_create"
-              phx-target={@myself}
-              class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary w-full justify-center py-2 border-t border-ds-outline-variant/20 mt-2 transition-colors"
-            >
-              <.icon name="hero-plus" class="w-4 h-4" /> Person not listed? Create new
-            </button>
           </div>
         <% :quick_create -> %>
           <div id="quick-create-person">
             <button
-              id="cancel-quick-create-btn"
-              phx-click="cancel_quick_create"
+              id="add-rel-back-to-choose-from-quick-create-btn"
+              phx-click="back_to_choose"
               phx-target={@myself}
               class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-4 transition-colors"
             >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> Back to search
+              <.icon name="hero-arrow-left" class="w-4 h-4" /> Back
             </button>
 
             <p class="text-sm text-ds-on-surface-variant mb-4">

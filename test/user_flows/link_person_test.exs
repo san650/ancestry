@@ -11,15 +11,20 @@ defmodule Web.UserFlows.LinkPersonTest do
     %{family: family, person: person, org: org}
   end
 
-  test "link an existing person to a family", %{conn: conn, person: person, org: org} do
+  test "link an existing person to a family", %{
+    conn: conn,
+    family: family,
+    person: person,
+    org: org
+  } do
     conn = log_in_e2e(conn)
 
-    # Visit families page and click the family
+    # Visit families page and click the family card
     conn =
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Jones Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
       |> assert_has(test_id("family-empty-state"))
 

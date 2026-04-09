@@ -6,6 +6,14 @@ defmodule Web.FamilyLive.SidePanelComponent do
   alias Web.FamilyLive.PeopleListComponent
 
   @impl true
+  def update(assigns, socket) do
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign_new(:close_drawer_on_select, fn -> false end)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div id={@id} class="flex flex-col p-4 gap-6">
@@ -97,6 +105,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         family_id={@family_id}
         organization={@organization}
         focus_person_id={@focus_person_id}
+        close_drawer_on_select={@close_drawer_on_select}
       />
     </div>
     """

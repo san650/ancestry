@@ -16,7 +16,12 @@ defmodule Web.UserFlows.DefaultPersonTest do
     %{family: family, person_a: person_a, person_b: person_b, org: org}
   end
 
-  test "set and clear default person for a family", %{conn: conn, person_a: person_a, org: org} do
+  test "set and clear default person for a family", %{
+    conn: conn,
+    family: family,
+    person_a: person_a,
+    org: org
+  } do
     conn = log_in_e2e(conn)
 
     # Visit the family page — no default, should show person selector (not the tree)
@@ -24,7 +29,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Tree Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
     # No tree should be rendered (no focus-person-card present)
@@ -63,7 +68,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Tree Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
     conn = conn |> assert_has("#focus-person-card", timeout: 3_000)
@@ -89,7 +94,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
-      |> click_link("Tree Family")
+      |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
     conn |> refute_has("#focus-person-card")
