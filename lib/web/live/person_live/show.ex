@@ -22,7 +22,6 @@ defmodule Web.PersonLive.Show do
     {:ok,
      socket
      |> assign(:person, person)
-     |> assign(:person_dates, format_person_dates(person))
      |> assign(:from_family, nil)
      |> assign(:from_org, false)
      |> assign(:editing, false)
@@ -101,7 +100,6 @@ defmodule Web.PersonLive.Show do
         {:noreply,
          socket
          |> assign(:person, person)
-         |> assign(:person_dates, format_person_dates(person))
          |> assign(:editing, false)}
 
       {:error, changeset} ->

@@ -82,7 +82,6 @@ defmodule Web.PersonLive.ShowTest do
     refute has_element?(view, "#person_nickname")
   end
 
-  @tag :skip
   test "shows deceased status on detail page", %{conn: conn, family: family, org: org} do
     {:ok, deceased_person} =
       People.create_person(family, %{

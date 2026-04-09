@@ -161,139 +161,140 @@
       />
     </div>
   <% else %>
-    <%!-- Detail view --%>
-    <%!-- Hero photo header: mobile shows overlay name, desktop shows side-by-side --%>
-    <div class="lg:flex lg:gap-8 lg:px-8 lg:py-6 lg:max-w-4xl lg:mx-auto">
-      <%!-- Photo container --%>
-      <div class="relative lg:w-48 lg:h-48 lg:shrink-0">
-        <%= if @person.photo && @person.photo_status == "processed" do %>
-          <img
-            src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
-            alt={Ancestry.People.Person.display_name(@person)}
-            class="w-full max-h-64 object-cover lg:w-48 lg:h-48 lg:rounded-ds-sharp"
-          />
-        <% else %>
-          <div class="w-full h-48 bg-ds-surface-low flex items-center justify-center lg:w-48 lg:h-48 lg:rounded-ds-sharp">
-            <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
-          </div>
-        <% end %>
+    <%!-- Person header: photo + vitals --%>
+    <div class="max-w-4xl mx-auto">
+      <%!-- Desktop layout: photo left, vitals right --%>
+      <div class="hidden lg:flex lg:gap-6 lg:px-8 lg:py-6 items-start">
+        <%!-- Photo --%>
+        <div class="w-48 h-48 shrink-0">
+          <%= if @person.photo && @person.photo_status == "processed" do %>
+            <img
+              src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
+              alt={Ancestry.People.Person.display_name(@person)}
+              class="w-48 h-48 object-cover rounded-ds-sharp"
+            />
+          <% else %>
+            <div class="w-48 h-48 bg-ds-surface-low flex items-center justify-center rounded-ds-sharp">
+              <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+            </div>
+          <% end %>
+        </div>
 
-        <%!-- Name overlay: mobile only --%>
-        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 lg:hidden">
-          <h1 class="text-white font-ds-heading text-xl font-bold">
-            {Ancestry.People.Person.display_name(@person)}
-          </h1>
+        <%!-- Vitals --%>
+        <div class="pt-1">
+          <%= if date_line = format_person_dates(@person) do %>
+            <p class="text-[15px] text-ds-on-surface">{date_line}</p>
+          <% end %>
+          <%= if @person.gender do %>
+            <p class="text-sm text-ds-on-surface-variant mt-0.5">
+              {String.capitalize(@person.gender)}
+            </p>
+          <% end %>
+          <%= if @person.families != [] do %>
+            <div class="mt-4 flex gap-1.5 flex-wrap items-center">
+              <span class="text-xs text-ds-on-surface-variant/60">In family trees</span>
+              <%= for family <- @person.families do %>
+                <.link
+                  navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
+                  class="px-2.5 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
+                >
+                  {family.name}
+                </.link>
+              <% end %>
+            </div>
+          <% end %>
         </div>
       </div>
 
-      <%!-- Details --%>
-      <div class="px-4 py-4 lg:px-0 lg:py-0 lg:flex-1 space-y-6">
-        <div>
-          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-            Name
-          </h2>
-          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
-            <%= if @person.title do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Title:</span> {@person.title}
-              </div>
-            <% end %>
-            <%= if @person.given_name do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Given name:</span> {@person.given_name}
-              </div>
-            <% end %>
-            <%= if @person.surname do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Surname:</span> {@person.surname}
-              </div>
-            <% end %>
-            <%= if @person.nickname do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Nickname:</span> {@person.nickname}
-              </div>
-            <% end %>
-            <%= if @person.suffix do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Suffix:</span> {@person.suffix}
-              </div>
-            <% end %>
-            <%= if @person.given_name_at_birth && @person.given_name_at_birth != @person.given_name do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Given name at birth:</span>
-                {@person.given_name_at_birth}
-              </div>
-            <% end %>
-            <%= if @person.surname_at_birth && @person.surname_at_birth != @person.surname do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Surname at birth:</span>
-                {@person.surname_at_birth}
-              </div>
-            <% end %>
+      <%!-- Mobile layout: hero photo with overlay name, vitals below --%>
+      <div class="lg:hidden">
+        <div class="relative">
+          <%= if @person.photo && @person.photo_status == "processed" do %>
+            <img
+              src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
+              alt={Ancestry.People.Person.display_name(@person)}
+              class="w-full max-h-64 object-cover"
+            />
+          <% else %>
+            <div class="w-full h-48 bg-ds-surface-low flex items-center justify-center">
+              <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+            </div>
+          <% end %>
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
+            <h1 class="text-white font-ds-heading text-xl font-bold">
+              {Ancestry.People.Person.display_name(@person)}
+            </h1>
           </div>
         </div>
 
-        <%= if @person.alternate_names != [] do %>
-          <div>
-            <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-              Also Known As
-            </h2>
-            <div class="flex flex-wrap gap-2">
+        <div class="px-4 py-4 space-y-1">
+          <%= if date_line = format_person_dates(@person) do %>
+            <p class="text-[15px] text-ds-on-surface">{date_line}</p>
+          <% end %>
+          <%= if @person.gender do %>
+            <p class="text-sm text-ds-on-surface-variant">{String.capitalize(@person.gender)}</p>
+          <% end %>
+          <%= if @person.families != [] do %>
+            <div class="mt-3 flex gap-1.5 flex-wrap items-center">
+              <span class="text-xs text-ds-on-surface-variant/60">In family trees</span>
+              <%= for family <- @person.families do %>
+                <.link
+                  navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
+                  class="px-2.5 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
+                >
+                  {family.name}
+                </.link>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <%!-- Extra metadata row (both mobile and desktop, only when fields exist) --%>
+      <% has_extra =
+        has_value?(@person.nickname) or
+          has_value?(@person.title) or
+          has_value?(@person.suffix) or
+          birth_name_differs?(@person.given_name_at_birth, @person.given_name) or
+          birth_name_differs?(@person.surname_at_birth, @person.surname) or
+          (@person.alternate_names || []) != [] %>
+
+      <%= if has_extra do %>
+        <div class="px-4 lg:px-8 py-3 border-t border-ds-surface-low">
+          <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px] max-w-[280px]">
+            <%= if has_value?(@person.nickname) do %>
+              <span class="text-ds-on-surface-variant/60">Nickname</span>
+              <span class="text-ds-on-surface">{@person.nickname}</span>
+            <% end %>
+            <%= if has_value?(@person.title) do %>
+              <span class="text-ds-on-surface-variant/60">Title</span>
+              <span class="text-ds-on-surface">{@person.title}</span>
+            <% end %>
+            <%= if has_value?(@person.suffix) do %>
+              <span class="text-ds-on-surface-variant/60">Suffix</span>
+              <span class="text-ds-on-surface">{@person.suffix}</span>
+            <% end %>
+            <%= if birth_name_differs?(@person.given_name_at_birth, @person.given_name) do %>
+              <span class="text-ds-on-surface-variant/60">Birth given name</span>
+              <span class="text-ds-on-surface">{@person.given_name_at_birth}</span>
+            <% end %>
+            <%= if birth_name_differs?(@person.surname_at_birth, @person.surname) do %>
+              <span class="text-ds-on-surface-variant/60">Birth surname</span>
+              <span class="text-ds-on-surface">{@person.surname_at_birth}</span>
+            <% end %>
+          </div>
+          <%= if (@person.alternate_names || []) != [] do %>
+            <div class="mt-2.5 flex gap-1.5 flex-wrap items-center text-[13px]">
+              <span class="text-ds-on-surface-variant/60">Also known as</span>
               <%= for name <- @person.alternate_names do %>
                 <span class="px-2 py-0.5 rounded-full bg-ds-surface-low text-ds-on-surface-variant text-xs">
                   {name}
                 </span>
               <% end %>
             </div>
-          </div>
-        <% end %>
-
-        <div>
-          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-            Families
-          </h2>
-          <div class="flex flex-wrap gap-2">
-            <%= for family <- @person.families do %>
-              <.link
-                navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
-                class="px-2 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
-              >
-                {family.name}
-              </.link>
-            <% end %>
-          </div>
+          <% end %>
         </div>
-
-        <div>
-          <h2 class="text-sm font-ds-body font-medium text-ds-on-surface-variant uppercase tracking-wide mb-2">
-            Details
-          </h2>
-          <div class="grid grid-cols-2 gap-x-8 gap-y-2 text-ds-on-surface">
-            <%= if @person.birth_year || @person.birth_month || @person.birth_day do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Born:</span>
-                {format_partial_date(@person.birth_day, @person.birth_month, @person.birth_year)}
-              </div>
-            <% end %>
-            <%= if @person.death_year || @person.death_month || @person.death_day do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Died:</span>
-                {format_partial_date(@person.death_day, @person.death_month, @person.death_year)}
-              </div>
-            <% end %>
-            <div>
-              <span class="text-ds-on-surface-variant text-sm">Deceased:</span>
-              {if @person.deceased, do: "Yes", else: "No"}
-            </div>
-            <%= if @person.gender do %>
-              <div>
-                <span class="text-ds-on-surface-variant text-sm">Gender:</span>
-                {String.capitalize(@person.gender)}
-              </div>
-            <% end %>
-          </div>
-        </div>
-      </div>
+      <% end %>
     </div>
 
     <%!-- Relationships Section --%>
