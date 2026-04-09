@@ -43,3 +43,9 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | phx-click-away | liveview, ui, events, event-bubbling | Use phx-click-away for dropdowns |
 | checkbox-uncheck-empty-params | liveview, events, forms, bug | Checkbox phx-click sends empty params on uncheck |
 | layout-attr-passthrough | liveview, components, layout, silent-failure | Layout attrs must be passed from every call site |
+| mobile-toolbar-pattern | liveview, layout, mobile, responsive, toolbar, design-pattern | Toolbar actions go desktop-only; mobile uses nav drawer |
+| drawer-action-close-drawer | liveview, ui, mobile, drawer, js, design-pattern, silent-failure | Drawer actions that change the main canvas must dismiss the drawer |
+| audit-generated-auth-defaults | security, authentication, scaffold, threat-model | Audit auth scaffolder defaults against your threat model |
+| post-commit-side-effect-cleanup | ecto, atomicity, transactions, file-cleanup, storage, cascade | Pre-collect side effects, mutate DB, then clean up only on commit |
+| hook-destroyed-must-guard-state | liveview, js-hooks, lifecycle, destroyed, silent-failure | JS hook destroyed() must guard against state mounted() may not have set |
+| playwright-transform-vs-visibility | testing, playwright, e2e, css, drawers, selectors | Playwright considers transform-translated elements visible |
