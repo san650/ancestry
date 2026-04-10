@@ -18,6 +18,7 @@
 }
 
 @import "../vendor/animate.css";
+@import "../vendor/trix.css";
 
 /* === Design System: Font Loading === */
 @font-face {
