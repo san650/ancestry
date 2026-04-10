@@ -51,4 +51,27 @@ defmodule Ancestry.Factory do
       email: sequence(:account_email, &"account#{&1}@example.com")
     }
   end
+
+  def vault_factory do
+    %Ancestry.Memories.Vault{
+      name: sequence(:vault_name, &"Vault #{&1}"),
+      family: build(:family)
+    }
+  end
+
+  def memory_factory do
+    %Ancestry.Memories.Memory{
+      name: sequence(:memory_name, &"Memory #{&1}"),
+      content: "<div>A test memory</div>",
+      description: "A test memory",
+      memory_vault: build(:vault)
+    }
+  end
+
+  def memory_mention_factory do
+    %Ancestry.Memories.MemoryMention{
+      memory: build(:memory),
+      person: build(:person)
+    }
+  end
 end
