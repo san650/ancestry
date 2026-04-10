@@ -53,13 +53,13 @@ defmodule Ancestry.Memories do
       from m in Memory,
         where: m.memory_vault_id == ^vault_id,
         order_by: [desc: m.inserted_at, desc: m.id],
-        preload: [:cover_photo]
+        preload: [cover_photo: :gallery]
     )
   end
 
   def get_memory!(id) do
     Repo.get!(Memory, id)
-    |> Repo.preload([:cover_photo, memory_mentions: :person])
+    |> Repo.preload(cover_photo: :gallery, memory_mentions: :person)
   end
 
   def create_memory(%Vault{} = vault, account, attrs) do
