@@ -1,0 +1,62 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <:toolbar>
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 min-w-0">
+        <.link
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+          }
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Back to vault"
+        >
+          <.icon name="hero-arrow-left" class="size-5" />
+        </.link>
+        <h1
+          class="font-ds-heading font-bold text-lg text-ds-on-surface truncate"
+          {test_id("memory-show-name")}
+        >
+          {@memory.name}
+        </h1>
+      </div>
+      <.link
+        navigate={
+          ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}/edit"
+        }
+        class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+        {test_id("memory-edit-btn")}
+      >
+        <.icon name="hero-pencil" class="size-4" /> Edit
+      </.link>
+    </div>
+  </:toolbar>
+
+  <div class="px-4 py-6 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+    <%!-- Cover photo --%>
+    <%= if @memory.cover_photo do %>
+      <div class="aspect-video overflow-hidden rounded-ds-sharp mb-6 bg-ds-surface-low">
+        <img
+          src={
+            Ancestry.Uploaders.Photo.url({@memory.cover_photo.image, @memory.cover_photo}, :large)
+          }
+          alt={@memory.name}
+          class="w-full h-full object-cover"
+        />
+      </div>
+    <% end %>
+
+    <%!-- Rendered content --%>
+    <div
+      class="prose prose-sm max-w-none text-ds-on-surface font-ds-body trix-content"
+      {test_id("memory-show-content")}
+    >
+      {Phoenix.HTML.raw(@rendered_content)}
+    </div>
+
+    <%!-- Metadata --%>
+    <div class="mt-8 pt-4 border-t border-ds-outline-variant/20">
+      <p class="text-xs text-ds-on-surface-variant/60">
+        Created {Calendar.strftime(@memory.inserted_at, "%B %d, %Y")}
+      </p>
+    </div>
+  </div>
+</Layouts.app>

@@ -5,6 +5,8 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.Families.Metrics
   alias Ancestry.Galleries
   alias Ancestry.Galleries.Gallery
+  alias Ancestry.Memories
+  alias Ancestry.Memories.Vault
   alias Ancestry.People
   alias Ancestry.People.Person
   alias Ancestry.People.PersonTree
@@ -25,12 +27,16 @@ defmodule Web.FamilyLive.Show do
 
     people = People.list_people_for_family(family_id)
     galleries = Galleries.list_galleries(family_id)
+    vaults = Memories.list_vaults(family_id)
 
     {:ok,
      socket
      |> assign(:family, family)
      |> assign(:people, people)
      |> assign(:galleries, galleries)
+     |> assign(:vaults, vaults)
+     |> assign(:show_new_vault_modal, false)
+     |> assign(:vault_form, to_form(Memories.change_vault(%Vault{})))
      |> assign_async(:metrics, fn -> {:ok, %{metrics: Metrics.compute(family_id)}} end,
        supervisor: Ancestry.TaskSupervisor
      )
@@ -269,6 +275,43 @@ defmodule Web.FamilyLive.Show do
      |> assign(:confirm_delete_gallery, nil)
      |> assign(:galleries, galleries)
      |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+  end
+
+  # Vault management
+
+  def handle_event("open_new_vault_modal", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_new_vault_modal, true)
+     |> assign(:vault_form, to_form(Memories.change_vault(%Vault{})))}
+  end
+
+  def handle_event("close_new_vault_modal", _, socket) do
+    {:noreply, assign(socket, :show_new_vault_modal, false)}
+  end
+
+  def handle_event("validate_vault", %{"vault" => params}, socket) do
+    changeset =
+      %Vault{}
+      |> Memories.change_vault(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :vault_form, to_form(changeset))}
+  end
+
+  def handle_event("save_vault", %{"vault" => params}, socket) do
+    case Memories.create_vault(socket.assigns.family, params) do
+      {:ok, _vault} ->
+        vaults = Memories.list_vaults(socket.assigns.family.id)
+
+        {:noreply,
+         socket
+         |> assign(:show_new_vault_modal, false)
+         |> assign(:vaults, vaults)}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :vault_form, to_form(changeset))}
+    end
   end
 
   # Member search/link

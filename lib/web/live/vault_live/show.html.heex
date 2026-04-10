@@ -1,0 +1,270 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <:toolbar>
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 min-w-0">
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Back to family"
+        >
+          <.icon name="hero-arrow-left" class="size-5" />
+        </.link>
+        <h1
+          class="font-ds-heading font-bold text-lg text-ds-on-surface truncate"
+          {test_id("vault-name")}
+        >
+          {@vault.name}
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <button
+          type="button"
+          phx-click="toggle_select_mode"
+          class={[
+            "p-2 rounded-ds-sharp transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
+            if(@selection_mode,
+              do: "bg-ds-primary text-ds-on-primary",
+              else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+            )
+          ]}
+          aria-label={if(@selection_mode, do: "Exit selection", else: "Select memories")}
+          {test_id("memory-select-btn")}
+        >
+          <.icon name="hero-check-circle" class="size-5" />
+        </button>
+        <.link
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
+          }
+          class="inline-flex items-center gap-1.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          {test_id("vault-add-memory-btn")}
+        >
+          <.icon name="hero-plus" class="size-4" />
+          <span class="hidden sm:inline">Add Memory</span>
+        </.link>
+        <button
+          type="button"
+          phx-click="request_delete_vault"
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Delete vault"
+          {test_id("vault-delete-btn")}
+        >
+          <.icon name="hero-trash" class="size-5" />
+        </button>
+      </div>
+    </div>
+  </:toolbar>
+
+  <%!-- Memory cards grid --%>
+  <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <%= if @selection_mode do %>
+      <div
+        id="selection-bar"
+        class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-ds-on-surface lg:text-ds-on-primary lg:rounded-ds-sharp lg:px-5 lg:py-3"
+        {test_id("memory-selection-bar")}
+      >
+        <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
+          {MapSet.size(@selected_ids)} selected
+        </span>
+        <button
+          phx-click="request_delete_memories"
+          disabled={MapSet.size(@selected_ids) == 0}
+          class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          {test_id("memory-delete-selected-btn")}
+        >
+          Delete
+        </button>
+      </div>
+    <% end %>
+
+    <%= if @has_memories do %>
+      <div
+        id="memories"
+        phx-update="stream"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        {test_id("memories-grid")}
+      >
+        <div
+          :for={{dom_id, memory} <- @streams.memories}
+          id={dom_id}
+          phx-click="memory_clicked"
+          phx-value-id={memory.id}
+          class={[
+            "group relative block bg-ds-surface-card rounded-ds-sharp shadow-ds-ambient overflow-hidden hover:shadow-lg transition-shadow cursor-pointer",
+            if(@selection_mode && MapSet.member?(@selected_ids, memory.id),
+              do: "ring-2 ring-ds-primary",
+              else: ""
+            )
+          ]}
+          {test_id("memory-card-#{memory.id}")}
+        >
+          <%!-- Selection checkbox --%>
+          <%= if @selection_mode do %>
+            <div class="absolute top-2 right-2 z-10">
+              <div class={[
+                "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
+                if(MapSet.member?(@selected_ids, memory.id),
+                  do: "bg-ds-primary border-ds-primary",
+                  else: "border-ds-on-surface-variant/40 bg-ds-surface-card/80"
+                )
+              ]}>
+                <%= if MapSet.member?(@selected_ids, memory.id) do %>
+                  <.icon name="hero-check" class="size-4 text-ds-on-primary" />
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <%!-- Cover photo --%>
+          <%= if memory.cover_photo do %>
+            <div class="aspect-video overflow-hidden bg-ds-surface-low">
+              <img
+                src={
+                  Ancestry.Uploaders.Photo.url(
+                    {memory.cover_photo.image, memory.cover_photo},
+                    :thumbnail
+                  )
+                }
+                alt={memory.name}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          <% end %>
+
+          <%!-- Card body --%>
+          <div class="p-4">
+            <h3
+              class="font-ds-heading font-semibold text-ds-on-surface truncate"
+              {test_id("memory-name-#{memory.id}")}
+            >
+              {memory.name}
+            </h3>
+            <%= if memory.description do %>
+              <p class="text-sm text-ds-on-surface-variant mt-1 line-clamp-2">
+                {memory.description}
+              </p>
+            <% end %>
+            <p class="text-xs text-ds-on-surface-variant/60 mt-2">
+              {Calendar.strftime(memory.inserted_at, "%b %d, %Y")}
+            </p>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <div
+        class="flex flex-col items-center justify-center py-16 text-center"
+        {test_id("vault-empty-state")}
+      >
+        <.icon name="hero-book-open" class="w-16 h-16 text-ds-on-surface-variant/50 mb-4" />
+        <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
+          No memories yet
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
+          Start capturing your family stories, recipes, and traditions.
+        </p>
+        <.link
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
+          }
+          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+        >
+          <.icon name="hero-plus" class="size-4" /> Create your first memory
+        </.link>
+      </div>
+    <% end %>
+  </div>
+
+  <%!-- Delete Vault Confirmation Modal --%>
+  <%= if @confirm_delete_vault do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_delete_vault"
+      phx-key="Escape"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_vault">
+      </div>
+      <div
+        id="confirm-delete-vault-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-vault-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="delete-vault-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Vault
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          Delete <span class="font-semibold">"{@vault.name}"</span>? All memories will be permanently removed. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_delete_vault"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-vault-btn")}
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_vault"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Delete Memories Confirmation Modal --%>
+  <%= if @confirm_delete_memories do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_delete_memories"
+      phx-key="Escape"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_delete_memories"
+      >
+      </div>
+      <div
+        id="confirm-delete-memories-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-memories-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="delete-memories-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Memories
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          Delete {MapSet.size(@selected_ids)} memory(ies)? This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_delete_memories"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-memories-btn")}
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_memories"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</Layouts.app>

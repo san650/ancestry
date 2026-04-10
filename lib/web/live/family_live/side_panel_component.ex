@@ -4,6 +4,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
   alias Ancestry.People.Person
   alias Web.FamilyLive.GalleryListComponent
   alias Web.FamilyLive.PeopleListComponent
+  alias Web.FamilyLive.VaultListComponent
 
   @impl true
   def update(assigns, socket) do
@@ -87,6 +88,16 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
         <div class="border-t border-ds-outline-variant/20"></div>
       <% end %>
+
+      <.live_component
+        module={VaultListComponent}
+        id={"#{@id}-vault-list"}
+        vaults={@vaults}
+        family_id={@family_id}
+        organization={@organization}
+      />
+
+      <div class="border-t border-ds-outline-variant/20"></div>
 
       <.live_component
         module={GalleryListComponent}
