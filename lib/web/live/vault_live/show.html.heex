@@ -9,7 +9,10 @@
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
-        <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface truncate">
+        <h1
+          class="font-ds-heading font-bold text-lg text-ds-on-surface truncate"
+          {test_id("vault-name")}
+        >
           {@vault.name}
         </h1>
       </div>
@@ -20,6 +23,7 @@
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
           }
           class="inline-flex items-center gap-1.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          {test_id("vault-add-memory-btn")}
         >
           <.icon name="hero-plus" class="size-4" />
           <span class="hidden sm:inline">Add Memory</span>
@@ -29,6 +33,7 @@
           phx-click="request_delete_vault"
           class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
           aria-label="Delete vault"
+          {test_id("vault-delete-btn")}
         >
           <.icon name="hero-trash" class="size-5" />
         </button>
@@ -43,6 +48,7 @@
         id="memories"
         phx-update="stream"
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        {test_id("memories-grid")}
       >
         <.link
           :for={{dom_id, memory} <- @streams.memories}
@@ -51,6 +57,7 @@
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{memory.id}"
           }
           class="group block bg-ds-surface-card rounded-ds-sharp shadow-ds-ambient overflow-hidden hover:shadow-lg transition-shadow"
+          {test_id("memory-card-#{memory.id}")}
         >
           <%!-- Cover photo --%>
           <%= if memory.cover_photo do %>
@@ -71,7 +78,10 @@
           <%!-- Card body --%>
           <div class="p-4">
             <div class="flex items-start justify-between gap-2">
-              <h3 class="font-ds-heading font-semibold text-ds-on-surface truncate">
+              <h3
+                class="font-ds-heading font-semibold text-ds-on-surface truncate"
+                {test_id("memory-name-#{memory.id}")}
+              >
                 {memory.name}
               </h3>
               <button
@@ -96,7 +106,10 @@
         </.link>
       </div>
     <% else %>
-      <div class="flex flex-col items-center justify-center py-16 text-center">
+      <div
+        class="flex flex-col items-center justify-center py-16 text-center"
+        {test_id("vault-empty-state")}
+      >
         <.icon name="hero-book-open" class="w-16 h-16 text-ds-on-surface-variant/50 mb-4" />
         <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
           No memories yet
@@ -146,6 +159,7 @@
           <button
             phx-click="confirm_delete_vault"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-vault-btn")}
           >
             Delete
           </button>
@@ -190,6 +204,7 @@
           <button
             phx-click="confirm_delete_memory"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-memory-btn")}
           >
             Delete
           </button>

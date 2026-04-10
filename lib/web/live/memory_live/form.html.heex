@@ -19,7 +19,13 @@
   </:toolbar>
 
   <div class="px-4 py-6 sm:px-6 lg:px-8 max-w-3xl mx-auto">
-    <.form for={@form} phx-change="validate" phx-submit="save" class="space-y-6">
+    <.form
+      for={@form}
+      phx-change="validate"
+      phx-submit="save"
+      class="space-y-6"
+      {test_id("memory-form")}
+    >
       <%!-- Name input --%>
       <.input field={@form[:name]} type="text" label="Name" placeholder="Give this memory a name" />
 
@@ -80,6 +86,7 @@
         <button
           type="submit"
           class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          {test_id("memory-save-btn")}
         >
           {if @live_action == :new, do: "Create Memory", else: "Save Changes"}
         </button>
@@ -96,6 +103,7 @@
             type="button"
             phx-click="request_delete"
             class="ml-auto inline-flex items-center gap-2 text-ds-error hover:text-ds-error/80 text-sm font-ds-body font-semibold transition-colors"
+            {test_id("memory-delete-btn")}
           >
             <.icon name="hero-trash" class="size-4" /> Delete
           </button>
@@ -249,6 +257,7 @@
           <button
             phx-click="confirm_delete"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-memory-btn")}
           >
             Delete
           </button>
