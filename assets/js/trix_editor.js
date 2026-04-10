@@ -11,6 +11,46 @@ const TrixEditor = {
     this.mentionQuery = null
     this.selectedIndex = 0
 
+    // Wait for Trix to initialize before customizing toolbar
+    if (editorEl.editor) {
+      this._setupEditor()
+    } else {
+      editorEl.addEventListener("trix-initialize", () => this._setupEditor(), { once: true })
+    }
+  },
+
+  _setupEditor() {
+    const editorEl = this.editorEl
+
+    // Remove the attach files button from the toolbar
+    const toolbar = editorEl.toolbarElement
+    if (toolbar) {
+      const fileTools = toolbar.querySelector("[data-trix-button-group='file-tools']")
+      if (fileTools) fileTools.remove()
+
+      // Add "Insert Photo" button to the toolbar
+      const blockTools = toolbar.querySelector("[data-trix-button-group='block-tools']")
+      if (blockTools) {
+        const photoBtn = document.createElement("button")
+        photoBtn.type = "button"
+        photoBtn.className = "trix-button"
+        photoBtn.dataset.action = "insert-photo"
+        photoBtn.title = "Insert Photo"
+        photoBtn.tabIndex = -1
+        photoBtn.textContent = "📷 Photo"
+        photoBtn.addEventListener("click", (e) => {
+          e.preventDefault()
+          this.pushEvent("open_content_picker", {})
+        })
+
+        // Create a new button group for custom tools
+        const customGroup = document.createElement("span")
+        customGroup.className = "trix-button-group"
+        customGroup.appendChild(photoBtn)
+        blockTools.parentNode.insertBefore(customGroup, blockTools.nextSibling)
+      }
+    }
+
     // Block file uploads (drag/drop/paste)
     this.el.addEventListener("trix-file-accept", (e) => {
       e.preventDefault()
@@ -26,15 +66,6 @@ const TrixEditor = {
       }
       this._checkForMention()
     })
-
-    // Handle Insert Photo button
-    const insertBtn = this.el.querySelector("[data-action='insert-photo']")
-    if (insertBtn) {
-      insertBtn.addEventListener("click", (e) => {
-        e.preventDefault()
-        this.pushEvent("open_content_picker", {})
-      })
-    }
 
     // Keyboard handling for mention dropdown
     this.el.addEventListener("keydown", (e) => {
@@ -72,26 +103,34 @@ const TrixEditor = {
   },
 
   _checkForMention() {
-    const editor = this.editorEl.editor
-    const position = editor.getPosition()
-    const text = editor.getDocument().toString().slice(0, position)
-    const match = text.match(/(?:^|[^a-zA-Z0-9])@([a-zA-Z0-9 ]{0,30})$/)
+    try {
+      const editor = this.editorEl.editor
+      if (!editor) return
 
-    if (match) {
-      const query = match[1]
-      if (query.length >= 1) {
-        this.mentionQuery = query
-        this.mentionStart = position - query.length - 1
-        this.pushEvent("search_mentions", { query })
+      // Use getSelectedRange which is the stable Trix v2 API
+      const range = editor.getSelectedRange()
+      const position = range[0]
+      const text = editor.getDocument().toString().slice(0, position)
+      const match = text.match(/(?:^|[^a-zA-Z0-9])@([a-zA-Z0-9 ]{0,30})$/)
+
+      if (match) {
+        const query = match[1]
+        if (query.length >= 1) {
+          this.mentionQuery = query
+          this.mentionStart = position - query.length - 1
+          this.pushEvent("search_mentions", { query })
+        }
+      } else {
+        this._closeMentionDropdown()
       }
-    } else {
-      this._closeMentionDropdown()
+    } catch (e) {
+      console.error("TrixEditor: _checkForMention error:", e)
     }
   },
 
   _showMentionDropdown(results) {
     this._closeMentionDropdown()
-    if (results.length === 0) return
+    if (!results || results.length === 0) return
 
     const dropdown = document.createElement("div")
     dropdown.className = "absolute z-50 bg-white shadow-lg rounded border border-gray-200 py-1 max-h-48 overflow-y-auto"
@@ -151,7 +190,8 @@ const TrixEditor = {
     const editor = this.editorEl.editor
 
     // Delete the @query text
-    const position = editor.getPosition()
+    const range = editor.getSelectedRange()
+    const position = range[0]
     const deleteCount = (this.mentionQuery?.length || 0) + 1 // +1 for @
     editor.setSelectedRange([position - deleteCount, position])
     editor.deleteInDirection("forward")
