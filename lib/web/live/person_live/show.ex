@@ -515,6 +515,92 @@ defmodule Web.PersonLive.Show do
     end
   end
 
+  defp person_dates(assigns) do
+    birth =
+      format_partial_date(
+        assigns.person.birth_day,
+        assigns.person.birth_month,
+        assigns.person.birth_year
+      )
+
+    death =
+      format_partial_date(
+        assigns.person.death_day,
+        assigns.person.death_month,
+        assigns.person.death_year
+      )
+
+    assigns =
+      assigns
+      |> assign(:birth, birth)
+      |> assign(:death, death)
+      |> assign(
+        :birth_datetime,
+        format_iso_date(
+          assigns.person.birth_year,
+          assigns.person.birth_month,
+          assigns.person.birth_day
+        )
+      )
+      |> assign(
+        :death_datetime,
+        format_iso_date(
+          assigns.person.death_year,
+          assigns.person.death_month,
+          assigns.person.death_day
+        )
+      )
+
+    has_birth = birth != ""
+    has_death = death != ""
+
+    cond do
+      has_birth and has_death ->
+        ~H"""
+        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
+        <time datetime={@birth_datetime}>{@birth}</time>
+        — <abbr title="Deceased" class="underline decoration-dotted cursor-help">d.</abbr>
+        <time datetime={@death_datetime}>{@death}</time>
+        """
+
+      has_birth and assigns.person.deceased ->
+        ~H"""
+        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
+        <time datetime={@birth_datetime}>{@birth}</time> — deceased
+        """
+
+      has_birth ->
+        ~H"""
+        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
+        <time datetime={@birth_datetime}>{@birth}</time>
+        """
+
+      has_death ->
+        ~H"""
+        <abbr title="Deceased" class="underline decoration-dotted cursor-help">d.</abbr>
+        <time datetime={@death_datetime}>{@death}</time>
+        """
+
+      assigns.person.deceased ->
+        ~H"Deceased"
+
+      true ->
+        ~H""
+    end
+  end
+
+  defp format_iso_date(year, month, day) do
+    parts =
+      [
+        year && String.pad_leading(to_string(year), 4, "0"),
+        month && String.pad_leading(to_string(month), 2, "0"),
+        day && String.pad_leading(to_string(day), 2, "0")
+      ]
+      |> Enum.reject(&is_nil/1)
+
+    Enum.join(parts, "-")
+  end
+
   defp format_marriage_info(%Ancestry.Relationships.Metadata.RelationshipMetadata{}), do: nil
 
   defp format_marriage_info(metadata) do
