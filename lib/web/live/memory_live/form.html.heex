@@ -4,10 +4,15 @@
       <div class="flex items-center gap-2 min-w-0">
         <.link
           navigate={
-            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+            if(@live_action == :edit,
+              do:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}",
+              else:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+            )
           }
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Back to vault"
+          aria-label={if(@live_action == :edit, do: "Back to memory", else: "Back to vault")}
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
@@ -92,7 +97,12 @@
         </button>
         <.link
           navigate={
-            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+            if(@live_action == :edit,
+              do:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}",
+              else:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+            )
           }
           class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
         >

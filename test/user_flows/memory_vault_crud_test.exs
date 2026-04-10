@@ -36,8 +36,11 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
   # And the new memory card is shown
   #
   # When the user clicks on the memory card
+  # Then the memory show page is displayed
+  # And the memory name is visible
+  #
+  # When the user clicks the Edit button
   # Then the memory edit form is displayed
-  # And the name field is pre-populated
   #
   # When the user goes back to the vault page
   # And clicks the delete button on the vault
@@ -107,10 +110,17 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
     # Get the memory from DB
     [memory] = Ancestry.Memories.list_memories(vault.id)
 
-    # Click the memory card — should see edit form
+    # Click the memory card — should see the memory show page
     conn =
       conn
       |> click(test_id("memory-card-#{memory.id}"))
+      |> wait_liveview()
+      |> assert_has(test_id("memory-show-name"), text: "Beach Day")
+
+    # Click Edit — should see the edit form
+    conn =
+      conn
+      |> click(test_id("memory-edit-btn"))
       |> wait_liveview()
       |> assert_has(test_id("memory-form"))
 
@@ -164,7 +174,8 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
 
   # Given a vault with a memory
   # When the user visits the vault page
-  # And clicks the memory card to open the edit form
+  # And clicks the memory card to open the show page
+  # And clicks Edit to open the edit form
   # And clicks "Delete"
   # And confirms deletion
   # Then the user is redirected to the vault page
@@ -188,10 +199,17 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
       |> wait_liveview()
       |> assert_has("h3", text: "To Be Deleted")
 
-    # Click memory card to open edit form
+    # Click memory card to open show page
     conn =
       conn
       |> click(test_id("memory-card-#{memory.id}"))
+      |> wait_liveview()
+      |> assert_has(test_id("memory-show-name"), text: "To Be Deleted")
+
+    # Click Edit to open edit form
+    conn =
+      conn
+      |> click(test_id("memory-edit-btn"))
       |> wait_liveview()
       |> assert_has(test_id("memory-form"))
 

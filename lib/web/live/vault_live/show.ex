@@ -31,16 +31,87 @@ defmodule Web.VaultLive.Show do
      |> assign(:vault, vault)
      |> assign(:has_memories, memories != [])
      |> assign(:confirm_delete_vault, false)
-     |> assign(:confirm_delete_memory, nil)
+     |> assign(:selection_mode, false)
+     |> assign(:selected_ids, MapSet.new())
+     |> assign(:confirm_delete_memories, false)
      |> stream(:memories, memories)}
   end
 
   @impl true
   def handle_params(_params, _url, socket), do: {:noreply, socket}
 
-  # Delete vault
+  # Selection mode
 
   @impl true
+  def handle_event("toggle_select_mode", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:selection_mode, !socket.assigns.selection_mode)
+     |> assign(:selected_ids, MapSet.new())
+     |> stream(:memories, Memories.list_memories(socket.assigns.vault.id), reset: true)}
+  end
+
+  def handle_event("memory_clicked", %{"id" => id}, socket) do
+    if socket.assigns.selection_mode do
+      handle_event("toggle_memory_select", %{"id" => id}, socket)
+    else
+      id = String.to_integer(id)
+
+      {:noreply,
+       push_navigate(socket,
+         to:
+           ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}/vaults/#{socket.assigns.vault.id}/memories/#{id}"
+       )}
+    end
+  end
+
+  def handle_event("toggle_memory_select", %{"id" => id}, socket) do
+    id = String.to_integer(id)
+
+    selected =
+      if MapSet.member?(socket.assigns.selected_ids, id),
+        do: MapSet.delete(socket.assigns.selected_ids, id),
+        else: MapSet.put(socket.assigns.selected_ids, id)
+
+    memory = Memories.get_memory!(id)
+
+    {:noreply,
+     socket
+     |> assign(:selected_ids, selected)
+     |> stream_insert(:memories, memory)}
+  end
+
+  # Bulk delete memories
+
+  def handle_event("request_delete_memories", _, socket) do
+    {:noreply, assign(socket, :confirm_delete_memories, true)}
+  end
+
+  def handle_event("cancel_delete_memories", _, socket) do
+    {:noreply, assign(socket, :confirm_delete_memories, false)}
+  end
+
+  def handle_event("confirm_delete_memories", _, socket) do
+    socket =
+      Enum.reduce(MapSet.to_list(socket.assigns.selected_ids), socket, fn id, acc ->
+        memory = Memories.get_memory!(id)
+        {:ok, _} = Memories.delete_memory(memory)
+        stream_delete(acc, :memories, memory)
+      end)
+
+    remaining = Memories.list_memories(socket.assigns.vault.id)
+
+    {:noreply,
+     socket
+     |> assign(:selection_mode, false)
+     |> assign(:selected_ids, MapSet.new())
+     |> assign(:confirm_delete_memories, false)
+     |> assign(:has_memories, remaining != [])
+     |> stream(:memories, remaining, reset: true)}
+  end
+
+  # Delete vault
+
   def handle_event("request_delete_vault", _, socket) do
     {:noreply, assign(socket, :confirm_delete_vault, true)}
   end
@@ -57,27 +128,6 @@ defmodule Web.VaultLive.Show do
        to:
          ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}"
      )}
-  end
-
-  # Delete memory
-
-  def handle_event("request_delete_memory", %{"id" => id}, socket) do
-    memory = Memories.get_memory!(id)
-    {:noreply, assign(socket, :confirm_delete_memory, memory)}
-  end
-
-  def handle_event("cancel_delete_memory", _, socket) do
-    {:noreply, assign(socket, :confirm_delete_memory, nil)}
-  end
-
-  def handle_event("confirm_delete_memory", _, socket) do
-    memory = socket.assigns.confirm_delete_memory
-    {:ok, _} = Memories.delete_memory(memory)
-
-    {:noreply,
-     socket
-     |> assign(:confirm_delete_memory, nil)
-     |> stream_delete(:memories, memory)}
   end
 
   # PubSub
