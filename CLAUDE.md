@@ -265,4 +265,4 @@ end
 
 ## Feature testing
 
-Every new or changed user flow needs an interaction-driven test in `test/user_flows/`. See [`test/user_flows/CLAUDE.md`](test/user_flows/CLAUDE.md) for conventions, file naming, and example Given/When/Then specs to model new tests on.
+Every new or changed user flow **must** have E2E tests in `test/user_flows/` covering **all use cases**: create, edit, delete, navigate, and any error states. Tests must exercise the actual rendered templates with real data (including preloaded associations) to catch runtime errors like missing fields or unloaded associations that compile-time checks miss. See [`test/user_flows/CLAUDE.md`](test/user_flows/CLAUDE.md) for conventions, file naming, and example Given/When/Then specs to model new tests on.
