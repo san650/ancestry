@@ -6,8 +6,11 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
     family = insert(:family, organization: org, name: "Vault Test Family")
     person = insert(:person, given_name: "Alice", surname: "Smith", organization: org)
     Ancestry.People.add_to_family(person, family)
+    gallery = insert(:gallery, family: family, name: "Test Gallery")
+    photo = insert(:photo, gallery: gallery, status: "processed")
+    ensure_photo_file(photo)
 
-    %{org: org, family: family, person: person}
+    %{org: org, family: family, person: person, gallery: gallery, photo: photo}
   end
 
   # Given a family with no vaults
@@ -128,5 +131,131 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
     # Should be back on family page, vault gone
     conn
     |> refute_has("#side-panel-desktop-vault-list-#{vault.id}")
+  end
+
+  # Given a vault with a memory that has a cover photo
+  # When the user visits the vault show page
+  # Then the memory card renders with the cover photo
+  # And no errors occur (Waffle needs gallery preloaded for URL generation)
+  test "vault page renders memory with cover photo", %{
+    conn: conn,
+    org: org,
+    family: family,
+    photo: photo
+  } do
+    conn = log_in_e2e(conn)
+
+    vault = insert(:vault, family: family, name: "Photo Vault")
+    account = Ancestry.Repo.all(Ancestry.Identity.Account) |> List.first()
+
+    {:ok, _memory} =
+      Ancestry.Memories.create_memory(vault, account, %{
+        name: "Memory With Photo",
+        content: "<div>A memory with a cover photo</div>",
+        cover_photo_id: photo.id
+      })
+
+    conn
+    |> visit(~p"/org/#{org.id}/families/#{family.id}/vaults/#{vault.id}")
+    |> wait_liveview()
+    |> assert_has(test_id("vault-name"), text: "Photo Vault")
+    |> assert_has("h3", text: "Memory With Photo")
+  end
+
+  # Given a vault with a memory
+  # When the user visits the vault page
+  # And clicks the memory card to open the edit form
+  # And clicks "Delete"
+  # And confirms deletion
+  # Then the user is redirected to the vault page
+  # And the memory is gone
+  test "delete a memory from edit page", %{conn: conn, org: org, family: family} do
+    conn = log_in_e2e(conn)
+
+    vault = insert(:vault, family: family, name: "Delete Memory Vault")
+    account = Ancestry.Repo.all(Ancestry.Identity.Account) |> List.first()
+
+    {:ok, memory} =
+      Ancestry.Memories.create_memory(vault, account, %{
+        name: "To Be Deleted",
+        content: "<div>This will be deleted</div>"
+      })
+
+    # Visit vault page — memory should be visible
+    conn =
+      conn
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/vaults/#{vault.id}")
+      |> wait_liveview()
+      |> assert_has("h3", text: "To Be Deleted")
+
+    # Click memory card to open edit form
+    conn =
+      conn
+      |> click(test_id("memory-card-#{memory.id}"))
+      |> wait_liveview()
+      |> assert_has(test_id("memory-form"))
+
+    # Click delete button, confirm
+    conn =
+      conn
+      |> click(test_id("memory-delete-btn"))
+      |> assert_has("#confirm-delete-modal")
+      |> click(test_id("confirm-delete-memory-btn"))
+      |> wait_liveview()
+
+    # Should be back on vault page, memory gone
+    conn
+    |> assert_has(test_id("vault-name"), text: "Delete Memory Vault")
+    |> refute_has("h3", text: "To Be Deleted")
+  end
+
+  # Given a vault with memories
+  # When the user visits the vault page
+  # And clicks the delete vault button
+  # And confirms deletion
+  # Then the vault and all memories are deleted
+  # And the user is redirected to the family page
+  test "delete a vault with memories cascades", %{conn: conn, org: org, family: family} do
+    conn = log_in_e2e(conn)
+
+    vault = insert(:vault, family: family, name: "Cascade Vault")
+    account = Ancestry.Repo.all(Ancestry.Identity.Account) |> List.first()
+
+    {:ok, _} =
+      Ancestry.Memories.create_memory(vault, account, %{
+        name: "Memory One",
+        content: "<div>First</div>"
+      })
+
+    {:ok, _} =
+      Ancestry.Memories.create_memory(vault, account, %{
+        name: "Memory Two",
+        content: "<div>Second</div>"
+      })
+
+    # Visit vault page — both memories visible
+    conn =
+      conn
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/vaults/#{vault.id}")
+      |> wait_liveview()
+      |> assert_has("h3", text: "Memory One")
+      |> assert_has("h3", text: "Memory Two")
+
+    # Delete the vault
+    conn =
+      conn
+      |> click(test_id("vault-delete-btn"))
+      |> assert_has("#confirm-delete-vault-modal")
+      |> click(test_id("confirm-delete-vault-btn"))
+      |> wait_liveview()
+
+    # Should be back on family page — wait for it to load
+    _conn =
+      conn
+      |> wait_liveview()
+
+    # Verify DB cascade — vault and all memories deleted
+    assert_raise Ecto.NoResultsError, fn -> Ancestry.Memories.get_vault!(vault.id) end
+    assert Ancestry.Memories.list_memories(vault.id) == []
   end
 end
