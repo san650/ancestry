@@ -94,25 +94,31 @@ defmodule Ancestry.Memories.ContentRenderer do
   # ---------------------------------------------------------------------------
 
   defp transform_mentions(html, people_map, org_id) do
-    Regex.replace(
-      ~r/<span\s+data-person-id="(\d+)"[^>]*>(.*?)<\/span>/s,
-      html,
-      fn full_match, id_str, inner_text ->
-        person_id = String.to_integer(id_str)
+    # Match entire <figure> elements with mention content type — Trix stores
+    # the person ID inside the escaped JSON data-trix-attachment attribute,
+    # not in the rendered <span> child.
+    figure_regex =
+      ~r/<figure[^>]+data-trix-content-type="application\/vnd\.memory-mention"[^>]*>.*?<\/figure>/s
 
-        case Map.get(people_map, person_id) do
-          nil ->
-            # Unknown person — preserve as plain text (keep inner text, drop span)
-            full_match
+    id_regex = ~r/data-person-id[^\d]*(\d+)/
 
-          person ->
-            render_mention(person, inner_text, org_id)
-        end
+    Regex.replace(figure_regex, html, fn figure_html ->
+      case Regex.run(id_regex, figure_html) do
+        [_, id_str] ->
+          person_id = String.to_integer(id_str)
+
+          case Map.get(people_map, person_id) do
+            nil -> figure_html
+            person -> render_mention(person, nil, org_id)
+          end
+
+        nil ->
+          figure_html
       end
-    )
+    end)
   end
 
-  defp render_mention(%Person{} = person, _inner_text, org_id) do
+  defp render_mention(%Person{} = person, _unused, org_id) do
     person_url = "/org/#{org_id}/people/#{person.id}"
     display = Person.display_name(person)
     photo_html = person_photo_html(person)

@@ -3,6 +3,11 @@ defmodule Ancestry.Memories.ContentRendererTest do
 
   alias Ancestry.Memories.ContentRenderer
 
+  # Generates mention HTML matching actual Trix v2 innerHTML output
+  defp mention_figure(person_id, name) do
+    ~s(<figure contenteditable="false" data-trix-attachment="{&quot;content&quot;:&quot;&lt;span data-person-id=\\&quot;#{person_id}\\&quot;&gt;@#{name}&lt;/span&gt;&quot;,&quot;contentType&quot;:&quot;application/vnd.memory-mention&quot;}" data-trix-content-type="application/vnd.memory-mention" class="attachment attachment--content"><span>@#{name}</span><figcaption class="attachment__caption"></figcaption></figure>)
+  end
+
   describe "render/3" do
     test "returns empty string for nil content" do
       assert ContentRenderer.render(nil, %{}, 1) == ""
@@ -33,27 +38,52 @@ defmodule Ancestry.Memories.ContentRendererTest do
       assert result =~ "<em>italic</em>"
     end
 
-    test "transforms mention spans into links" do
+    test "transforms mention figures into linked hover cards" do
       person = insert(:person, given_name: "John", surname: "Smith")
       people_map = %{person.id => person}
-      html = ~s[<span data-person-id="#{person.id}">@John Smith</span>]
+      html = "<div>Hello #{mention_figure(person.id, "John Smith")}</div>"
       result = ContentRenderer.render(html, people_map, person.organization_id)
+
       assert result =~ ~s[href="/org/#{person.organization_id}/people/#{person.id}"]
       assert result =~ "John Smith"
+      # The Trix <figure> wrapper should be replaced
+      refute result =~ "data-trix-content-type"
     end
 
-    test "leaves unknown person mentions as plain text" do
-      html = ~s[<span data-person-id="99999">@Unknown</span>]
+    test "leaves unknown person mentions as-is" do
+      html = "<div>Hello #{mention_figure(99999, "Unknown Person")}</div>"
       result = ContentRenderer.render(html, %{}, 1)
-      assert result =~ "@Unknown"
+      assert result =~ "@Unknown Person"
       refute result =~ "href"
     end
 
-    test "preserves photo img tags" do
-      html = ~s[<figure><img data-photo-id="7" src="/uploads/photo.jpg" /></figure>]
+    test "transforms multiple mentions" do
+      person1 = insert(:person, given_name: "John", surname: "Smith")
+
+      person2 =
+        insert(:person,
+          given_name: "Jane",
+          surname: "Doe",
+          organization: person1.organization
+        )
+
+      people_map = %{person1.id => person1, person2.id => person2}
+
+      html =
+        "<div>#{mention_figure(person1.id, "John Smith")} and #{mention_figure(person2.id, "Jane Doe")}</div>"
+
+      result = ContentRenderer.render(html, people_map, person1.organization_id)
+      assert result =~ ~s[href="/org/#{person1.organization_id}/people/#{person1.id}"]
+      assert result =~ ~s[href="/org/#{person1.organization_id}/people/#{person2.id}"]
+    end
+
+    test "preserves photo figure tags" do
+      html =
+        ~s(<figure contenteditable="false" data-trix-content-type="application/vnd.memory-photo" class="attachment attachment--content"><img class="max-w-full rounded" src="/uploads/photo.jpg"></figure>)
+
       result = ContentRenderer.render(html, %{}, 1)
       assert result =~ "<img"
-      assert result =~ ~s[data-photo-id="7"]
+      assert result =~ "photo.jpg"
     end
   end
 end

@@ -3,6 +3,18 @@ defmodule Ancestry.Memories.ContentParserTest do
 
   alias Ancestry.Memories.ContentParser
 
+  # Generates mention HTML matching actual Trix v2 innerHTML output:
+  # - data-trix-attachment with &quot; entity-encoded JSON
+  # - data-trix-content-type as a separate attribute
+  # - Inner <span> WITHOUT data-person-id (Trix strips it)
+  defp mention_figure(person_id, name) do
+    ~s(<figure contenteditable="false" data-trix-attachment="{&quot;content&quot;:&quot;&lt;span data-person-id=\\&quot;#{person_id}\\&quot;&gt;@#{name}&lt;/span&gt;&quot;,&quot;contentType&quot;:&quot;application/vnd.memory-mention&quot;}" data-trix-content-type="application/vnd.memory-mention" class="attachment attachment--content"><span>@#{name}</span><figcaption class="attachment__caption"></figcaption></figure>)
+  end
+
+  defp photo_figure(photo_id, src) do
+    ~s(<figure contenteditable="false" data-trix-attachment="{&quot;content&quot;:&quot;&lt;img data-photo-id=\\&quot;#{photo_id}\\&quot; src=\\&quot;#{src}\\&quot; class=\\&quot;max-w-full rounded\\&quot; /&gt;&quot;,&quot;contentType&quot;:&quot;application/vnd.memory-photo&quot;}" data-trix-content-type="application/vnd.memory-photo" class="attachment attachment--content"><img class="max-w-full rounded" src="#{src}"><figcaption class="attachment__caption"></figcaption></figure>)
+  end
+
   describe "parse/1" do
     test "returns empty results for nil content" do
       assert ContentParser.parse(nil) == {"", [], []}
@@ -25,9 +37,9 @@ defmodule Ancestry.Memories.ContentParserTest do
       assert String.length(description) == 100
     end
 
-    test "strips image figure elements from description" do
+    test "strips figure elements from description" do
       html =
-        "<div>Before image.</div><figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-photo\"}'><img data-photo-id=\"7\" src=\"/uploads/thumb.jpg\" /></figure><div>After image.</div>"
+        "<div>Before image.</div>#{photo_figure(7, "/uploads/thumb.jpg")}<div>After image.</div>"
 
       {description, _, _} = ContentParser.parse(html)
       assert description =~ "Before image."
@@ -35,25 +47,24 @@ defmodule Ancestry.Memories.ContentParserTest do
       refute description =~ "thumb.jpg"
     end
 
-    test "extracts person IDs from mention attachments" do
+    test "extracts person IDs from mention attachments in actual Trix format" do
       html =
-        "<div>Hello <figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"42\">@John Smith</span></figure> and <figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"99\">@Jane Doe</span></figure></div>"
+        "<div>Hello #{mention_figure(42, "John Smith")} and #{mention_figure(99, "Jane Doe")}</div>"
 
       {_, person_ids, _} = ContentParser.parse(html)
       assert Enum.sort(person_ids) == [42, 99]
     end
 
-    test "extracts photo IDs from photo attachments" do
+    test "extracts photo IDs from photo attachments in actual Trix format" do
       html =
-        "<figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-photo\"}'><img data-photo-id=\"7\" src=\"/uploads/thumb.jpg\" /></figure><figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-photo\"}'><img data-photo-id=\"12\" src=\"/uploads/thumb2.jpg\" /></figure>"
+        "#{photo_figure(7, "/uploads/thumb.jpg")}#{photo_figure(12, "/uploads/thumb2.jpg")}"
 
       {_, _, photo_ids} = ContentParser.parse(html)
       assert Enum.sort(photo_ids) == [7, 12]
     end
 
     test "deduplicates IDs" do
-      html =
-        "<figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"42\">@John</span></figure><figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"42\">@John</span></figure>"
+      html = "#{mention_figure(42, "John")}#{mention_figure(42, "John")}"
 
       {_, person_ids, _} = ContentParser.parse(html)
       assert person_ids == [42]
@@ -65,6 +76,14 @@ defmodule Ancestry.Memories.ContentParserTest do
       assert is_binary(description)
       assert person_ids == []
       assert photo_ids == []
+    end
+
+    test "strips mention figures from description" do
+      html = "<div>Remembering #{mention_figure(1, "John")} at the park</div>"
+      {description, _, _} = ContentParser.parse(html)
+      assert description =~ "Remembering"
+      assert description =~ "at the park"
+      refute description =~ "attachment"
     end
   end
 end

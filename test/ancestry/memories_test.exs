@@ -4,6 +4,11 @@ defmodule Ancestry.MemoriesTest do
   alias Ancestry.Memories
   alias Ancestry.Memories.Vault
 
+  # Generates mention HTML matching actual Trix v2 innerHTML output
+  defp mention_figure(person_id, name) do
+    ~s(<figure contenteditable="false" data-trix-attachment="{&quot;content&quot;:&quot;&lt;span data-person-id=\\&quot;#{person_id}\\&quot;&gt;@#{name}&lt;/span&gt;&quot;,&quot;contentType&quot;:&quot;application/vnd.memory-mention&quot;}" data-trix-content-type="application/vnd.memory-mention" class="attachment attachment--content"><span>@#{name}</span></figure>)
+  end
+
   describe "vaults" do
     setup do
       org = insert(:organization)
@@ -110,8 +115,7 @@ defmodule Ancestry.MemoriesTest do
       account: account,
       person: person
     } do
-      html =
-        "<div>Remember <figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"#{person.id}\">@#{person.given_name}</span></figure></div>"
+      html = "<div>Remember #{mention_figure(person.id, person.given_name)}</div>"
 
       assert {:ok, memory} =
                Memories.create_memory(vault, account, %{name: "Test", content: html})
@@ -128,8 +132,7 @@ defmodule Ancestry.MemoriesTest do
       other_org = insert(:organization)
       other_person = insert(:person, organization: other_org)
 
-      html =
-        "<figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"#{other_person.id}\">@Outsider</span></figure>"
+      html = mention_figure(other_person.id, "Outsider")
 
       assert {:ok, memory} =
                Memories.create_memory(vault, account, %{name: "Test", content: html})
@@ -150,8 +153,7 @@ defmodule Ancestry.MemoriesTest do
       {:ok, memory} =
         Memories.create_memory(vault, account, %{name: "Test", content: "<div>Hello</div>"})
 
-      new_html =
-        "<figure data-trix-attachment='{\"contentType\":\"application/vnd.memory-mention\"}'><span data-person-id=\"#{person.id}\">@#{person.given_name}</span></figure>"
+      new_html = mention_figure(person.id, person.given_name)
 
       assert {:ok, updated} = Memories.update_memory(memory, %{content: new_html})
       updated = Memories.get_memory!(updated.id)

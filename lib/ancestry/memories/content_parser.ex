@@ -25,34 +25,36 @@ defmodule Ancestry.Memories.ContentParser do
   # --- Private ---
 
   defp extract_person_ids(html) do
-    # Match mention figures: <figure data-trix-attachment='{"contentType":"application/vnd.memory-mention"}'>
-    # then find <span data-person-id="N">
+    # Match mention figures by data-trix-content-type (works regardless of
+    # whether Trix uses single or double quotes for data-trix-attachment).
     figure_regex =
-      ~r/<figure[^>]+data-trix-attachment='[^']*#{Regex.escape(@mention_content_type)}[^']*'[^>]*>.*?<\/figure>/s
+      ~r/<figure[^>]+data-trix-content-type="#{Regex.escape(@mention_content_type)}"[^>]*>.*?<\/figure>/s
 
-    span_regex = ~r/data-person-id="(\d+)"/
+    # Person ID lives inside the escaped JSON in data-trix-attachment, not in
+    # the rendered <span>. Match broadly: data-person-id followed by digits.
+    id_regex = ~r/data-person-id[^\d]*(\d+)/
 
     figure_regex
     |> Regex.scan(html)
     |> Enum.flat_map(fn [figure_html | _] ->
-      Regex.scan(span_regex, figure_html)
+      Regex.scan(id_regex, figure_html)
       |> Enum.map(fn [_, id] -> String.to_integer(id) end)
     end)
     |> Enum.uniq()
   end
 
   defp extract_photo_ids(html) do
-    # Match photo figures: <figure data-trix-attachment='{"contentType":"application/vnd.memory-photo"}'>
-    # then find <img data-photo-id="N">
+    # Match photo figures by data-trix-content-type.
     figure_regex =
-      ~r/<figure[^>]+data-trix-attachment='[^']*#{Regex.escape(@photo_content_type)}[^']*'[^>]*>.*?<\/figure>/s
+      ~r/<figure[^>]+data-trix-content-type="#{Regex.escape(@photo_content_type)}"[^>]*>.*?<\/figure>/s
 
-    img_regex = ~r/data-photo-id="(\d+)"/
+    # Photo ID lives inside the escaped JSON in data-trix-attachment.
+    id_regex = ~r/data-photo-id[^\d]*(\d+)/
 
     figure_regex
     |> Regex.scan(html)
     |> Enum.flat_map(fn [figure_html | _] ->
-      Regex.scan(img_regex, figure_html)
+      Regex.scan(id_regex, figure_html)
       |> Enum.map(fn [_, id] -> String.to_integer(id) end)
     end)
     |> Enum.uniq()
