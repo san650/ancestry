@@ -1,0 +1,206 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <:toolbar>
+    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+      <div class="flex items-center gap-2 min-w-0">
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
+          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Back to family"
+        >
+          <.icon name="hero-arrow-left" class="size-5" />
+        </.link>
+        <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface truncate">
+          {@vault.name}
+        </h1>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <.link
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
+          }
+          class="inline-flex items-center gap-1.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+        >
+          <.icon name="hero-plus" class="size-4" />
+          <span class="hidden sm:inline">Add Memory</span>
+        </.link>
+        <button
+          type="button"
+          phx-click="request_delete_vault"
+          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          aria-label="Delete vault"
+        >
+          <.icon name="hero-trash" class="size-5" />
+        </button>
+      </div>
+    </div>
+  </:toolbar>
+
+  <%!-- Memory cards grid --%>
+  <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <%= if @has_memories do %>
+      <div
+        id="memories"
+        phx-update="stream"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
+        <.link
+          :for={{dom_id, memory} <- @streams.memories}
+          id={dom_id}
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{memory.id}"
+          }
+          class="group block bg-ds-surface-card rounded-ds-sharp shadow-ds-ambient overflow-hidden hover:shadow-lg transition-shadow"
+        >
+          <%!-- Cover photo --%>
+          <%= if memory.cover_photo do %>
+            <div class="aspect-video overflow-hidden bg-ds-surface-low">
+              <img
+                src={
+                  Ancestry.Uploaders.Photo.url(
+                    {memory.cover_photo.file, memory.cover_photo},
+                    :thumbnail
+                  )
+                }
+                alt={memory.name}
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          <% end %>
+
+          <%!-- Card body --%>
+          <div class="p-4">
+            <div class="flex items-start justify-between gap-2">
+              <h3 class="font-ds-heading font-semibold text-ds-on-surface truncate">
+                {memory.name}
+              </h3>
+              <button
+                type="button"
+                phx-click="request_delete_memory"
+                phx-value-id={memory.id}
+                class="shrink-0 p-1 rounded text-ds-on-surface-variant hover:text-ds-error hover:bg-ds-error/10 transition-colors opacity-0 group-hover:opacity-100"
+                aria-label="Delete memory"
+              >
+                <.icon name="hero-trash" class="size-4" />
+              </button>
+            </div>
+            <%= if memory.description do %>
+              <p class="text-sm text-ds-on-surface-variant mt-1 line-clamp-2">
+                {memory.description}
+              </p>
+            <% end %>
+            <p class="text-xs text-ds-on-surface-variant/60 mt-2">
+              {Calendar.strftime(memory.inserted_at, "%b %d, %Y")}
+            </p>
+          </div>
+        </.link>
+      </div>
+    <% else %>
+      <div class="flex flex-col items-center justify-center py-16 text-center">
+        <.icon name="hero-book-open" class="w-16 h-16 text-ds-on-surface-variant/50 mb-4" />
+        <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
+          No memories yet
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
+          Start capturing your family stories, recipes, and traditions.
+        </p>
+        <.link
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
+          }
+          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+        >
+          <.icon name="hero-plus" class="size-4" /> Create your first memory
+        </.link>
+      </div>
+    <% end %>
+  </div>
+
+  <%!-- Delete Vault Confirmation Modal --%>
+  <%= if @confirm_delete_vault do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_delete_vault"
+      phx-key="Escape"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_vault">
+      </div>
+      <div
+        id="confirm-delete-vault-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-vault-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="delete-vault-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Vault
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          Delete <span class="font-semibold">"{@vault.name}"</span>? All memories will be permanently removed. This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_delete_vault"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_vault"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Delete Memory Confirmation Modal --%>
+  <%= if @confirm_delete_memory do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_delete_memory"
+      phx-key="Escape"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete_memory">
+      </div>
+      <div
+        id="confirm-delete-memory-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-memory-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="delete-memory-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+        >
+          Delete Memory
+        </h2>
+        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+          Delete <span class="font-semibold">"{@confirm_delete_memory.name}"</span>? This cannot be undone.
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_delete_memory"
+            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          >
+            Delete
+          </button>
+          <button
+            phx-click="cancel_delete_memory"
+            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</Layouts.app>

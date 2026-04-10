@@ -153,6 +153,7 @@
       <.live_component
         module={Web.FamilyLive.SidePanelComponent}
         id="side-panel"
+        vaults={@vaults}
         galleries={@galleries}
         people={@people}
         family_id={@family.id}
@@ -255,6 +256,7 @@
       <.live_component
         module={Web.FamilyLive.SidePanelComponent}
         id="side-panel-desktop"
+        vaults={@vaults}
         galleries={@galleries}
         people={@people}
         family_id={@family.id}
@@ -506,6 +508,64 @@
             <button
               type="button"
               phx-click="close_new_gallery_modal"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- New Vault Modal --%>
+  <%= if @show_new_vault_modal do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="close_new_vault_modal"
+      phx-key="Escape"
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="close_new_vault_modal"
+      >
+      </div>
+      <div
+        id="new-vault-modal"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-vault-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="new-vault-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+        >
+          New Memory Vault
+        </h2>
+        <.form
+          for={@vault_form}
+          id="new-vault-form"
+          phx-submit="save_vault"
+          phx-change="validate_vault"
+        >
+          <.input
+            field={@vault_form[:name]}
+            label="Vault name"
+            placeholder="e.g. Grandma's Recipes"
+            autofocus
+          />
+          <div class="flex gap-3 mt-6">
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              phx-click="close_new_vault_modal"
               class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             >
               Cancel
