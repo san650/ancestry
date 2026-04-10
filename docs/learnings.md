@@ -49,3 +49,5 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | post-commit-side-effect-cleanup | ecto, atomicity, transactions, file-cleanup, storage, cascade | Pre-collect side effects, mutate DB, then clean up only on commit |
 | hook-destroyed-must-guard-state | liveview, js-hooks, lifecycle, destroyed, silent-failure | JS hook destroyed() must guard against state mounted() may not have set |
 | playwright-transform-vs-visibility | testing, playwright, e2e, css, drawers, selectors | Playwright considers transform-translated elements visible |
+| use-descriptive-fk-names | ecto, database, schema, naming, readability | Use descriptive FK column names over generic entity_id |
+| template-struct-field-blind-spot | liveview, heex, templates, testing, silent-failure | Template struct field access is a runtime-only failure — compile and unit tests miss it |
