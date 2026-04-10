@@ -129,7 +129,13 @@ const TrixEditor = {
   },
 
   _showMentionDropdown(results) {
-    this._closeMentionDropdown()
+    // Remove old dropdown DOM but preserve mentionQuery/mentionStart state —
+    // _closeMentionDropdown resets them, which breaks _selectMention later.
+    if (this.mentionDropdown) {
+      this.mentionDropdown.remove()
+      this.mentionDropdown = null
+    }
+    this.selectedIndex = 0
     if (!results || results.length === 0) return
 
     const dropdown = document.createElement("div")
@@ -144,17 +150,34 @@ const TrixEditor = {
       item.dataset.personName = person.name
       item.dataset.index = index
       item.textContent = person.name
-      item.addEventListener("click", () => this._selectMention(item))
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault() // keep focus in Trix editor
+        this._selectMention(item)
+      })
       dropdown.appendChild(item)
     })
 
-    // Position near the editor
-    const editorRect = this.editorEl.getBoundingClientRect()
+    // Position near the text cursor using browser selection API
+    const sel = window.getSelection()
     const wrapperRect = this.el.getBoundingClientRect()
+    let top = 0
+    let left = 0
+
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0)
+      const caretRect = range.getBoundingClientRect()
+      top = caretRect.bottom - wrapperRect.top + 4
+      left = caretRect.left - wrapperRect.left
+    } else {
+      // Fallback: bottom of editor
+      const editorRect = this.editorEl.getBoundingClientRect()
+      top = editorRect.bottom - wrapperRect.top + 4
+      left = 0
+    }
+
     dropdown.style.position = "absolute"
-    dropdown.style.bottom = "auto"
-    dropdown.style.top = `${editorRect.bottom - wrapperRect.top + 4}px`
-    dropdown.style.left = "0px"
+    dropdown.style.top = `${top}px`
+    dropdown.style.left = `${left}px`
 
     this.el.style.position = "relative"
     this.el.appendChild(dropdown)
@@ -189,14 +212,15 @@ const TrixEditor = {
     const personName = item.dataset.personName
     const editor = this.editorEl.editor
 
-    // Delete the @query text
-    const range = editor.getSelectedRange()
-    const position = range[0]
-    const deleteCount = (this.mentionQuery?.length || 0) + 1 // +1 for @
-    editor.setSelectedRange([position - deleteCount, position])
-    editor.deleteInDirection("forward")
+    // Three-step replacement pattern (from trix-mentions-element):
+    // 1. Select the @query range using saved positions
+    // 2. Delete the selected text
+    // 3. Insert the attachment at the now-empty cursor
+    const start = this.mentionStart
+    const end = start + (this.mentionQuery?.length || 0) + 1 // +1 for @
+    editor.setSelectedRange([start, end])
+    editor.deleteInDirection("backward")
 
-    // Insert mention as attachment
     const attachment = new Trix.Attachment({
       contentType: "application/vnd.memory-mention",
       content: `<span data-person-id="${personId}">@${personName}</span>`,
@@ -204,6 +228,7 @@ const TrixEditor = {
     editor.insertAttachment(attachment)
 
     this._closeMentionDropdown()
+    this.editorEl.focus({ preventScroll: true })
   },
 }
 
