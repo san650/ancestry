@@ -29,6 +29,7 @@ defmodule Web.AccountManagementLive.New do
      |> assign(:page_title, "New Account")
      |> assign(:form, to_form(changeset))
      |> assign(:organizations, organizations)
+     |> assign(:selected_org_ids, [])
      |> allow_upload(:avatar,
        accept: ~w(.jpg .jpeg .png .webp),
        max_entries: 1,
@@ -37,13 +38,20 @@ defmodule Web.AccountManagementLive.New do
   end
 
   @impl true
-  def handle_event("validate", %{"account" => account_params}, socket) do
+  def handle_event("validate", %{"account" => account_params} = params, socket) do
     changeset =
       %Account{}
       |> Account.admin_changeset(account_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, :form, to_form(changeset))}
+    selected_org_ids =
+      (params["organization_ids"] || [])
+      |> Enum.map(&String.to_integer/1)
+
+    {:noreply,
+     socket
+     |> assign(:form, to_form(changeset))
+     |> assign(:selected_org_ids, selected_org_ids)}
   end
 
   def handle_event("save", %{"account" => account_params} = params, socket) do
@@ -155,6 +163,7 @@ defmodule Web.AccountManagementLive.New do
                   type="checkbox"
                   name="organization_ids[]"
                   value={org.id}
+                  checked={org.id in @selected_org_ids}
                   class="rounded border-ds-outline"
                 />
                 <span class="text-sm text-ds-on-surface">{org.name}</span>
