@@ -51,3 +51,4 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | playwright-transform-vs-visibility | testing, playwright, e2e, css, drawers, selectors | Playwright considers transform-translated elements visible |
 | use-descriptive-fk-names | ecto, database, schema, naming, readability | Use descriptive FK column names over generic entity_id |
 | template-struct-field-blind-spot | liveview, heex, templates, testing, silent-failure | Template struct field access is a runtime-only failure — compile and unit tests miss it |
+| checkbox-server-state-revert | liveview, forms, checkbox, phx-change, state, silent-failure | Checkboxes with server-controlled checked attr revert on phx-change |
