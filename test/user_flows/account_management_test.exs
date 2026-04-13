@@ -29,25 +29,35 @@ defmodule Web.UserFlows.AccountManagementTest do
 
   setup do
     org = insert(:organization, name: "Test Org")
-    %{org: org}
+    other_org = insert(:organization, name: "Other Org")
+    %{org: org, other_org: other_org}
   end
 
-  test "admin creates, views, deactivates, and reactivates an account", %{conn: conn} do
+  test "admin creates account with selected org only", %{
+    conn: conn,
+    org: org,
+    other_org: other_org
+  } do
     conn = log_in_e2e(conn)
 
-    # Visit account list
-    conn =
-      conn
-      |> visit(~p"/admin/accounts")
-      |> wait_liveview()
-      |> assert_has(test_id("accounts-table"))
-
-    # Navigate directly to the new account page
+    # Navigate to new account page
     conn =
       conn
       |> visit(~p"/admin/accounts/new")
       |> wait_liveview()
       |> assert_has(test_id("account-form"))
+
+    # Both org checkboxes should be visible
+    conn =
+      conn
+      |> assert_has(test_id("org-checkbox-#{org.id}"))
+      |> assert_has(test_id("org-checkbox-#{other_org.id}"))
+
+    # Select only "Test Org", leave "Other Org" unchecked
+    conn =
+      conn
+      |> click(test_id("org-checkbox-#{org.id}"))
+      |> wait_liveview()
 
     # Fill form and submit
     conn =
@@ -59,19 +69,43 @@ defmodule Web.UserFlows.AccountManagementTest do
       |> click_button(test_id("account-submit-btn"), "Create Account")
       |> wait_liveview()
 
-    # Should be back on accounts list with flash
+    # Should be back on accounts list
     conn =
       conn
       |> assert_has("[role='alert']", text: "Account created")
       |> assert_has("td", text: "newuser@example.com")
 
-    # Click View on the new account (scope to the row containing the email)
+    # View the new account — only "Test Org" should appear, not "Other Org"
     conn =
       conn
       |> click("tr:has(td:text('newuser@example.com')) a", "View")
       |> wait_liveview()
       |> assert_has(test_id("account-email"), text: "newuser@example.com")
       |> assert_has(test_id("account-name"), text: "New User")
+      |> assert_has(test_id("account-organizations"), text: "Test Org")
+
+    refute_has(conn, test_id("account-organizations"), text: "Other Org")
+  end
+
+  test "admin deactivates and reactivates an account", %{conn: conn} do
+    conn = log_in_e2e(conn)
+
+    # Create a target account to deactivate
+    conn =
+      conn
+      |> visit(~p"/admin/accounts/new")
+      |> wait_liveview()
+      |> fill_in("Email", with: "target@example.com")
+      |> fill_in("Password", with: "password123456")
+      |> fill_in("Confirm password", with: "password123456")
+      |> click_button(test_id("account-submit-btn"), "Create Account")
+      |> wait_liveview()
+
+    # View the target account
+    conn =
+      conn
+      |> click("tr:has(td:text('target@example.com')) a", "View")
+      |> wait_liveview()
 
     # Deactivate
     conn =

@@ -165,6 +165,7 @@ defmodule Web.AccountManagementLive.New do
                   value={org.id}
                   checked={org.id in @selected_org_ids}
                   class="rounded border-ds-outline"
+                  data-testid={"org-checkbox-#{org.id}"}
                 />
                 <span class="text-sm text-ds-on-surface">{org.name}</span>
               </label>
