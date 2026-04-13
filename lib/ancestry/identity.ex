@@ -488,6 +488,22 @@ defmodule Ancestry.Identity do
     |> Repo.update()
   end
 
+  ## Avatar helpers
+
+  @doc "Updates avatar status to processed with the filename."
+  def update_avatar_processed(account, filename) do
+    account
+    |> Ecto.Changeset.change(avatar: filename, avatar_status: "processed")
+    |> Repo.update()
+  end
+
+  @doc "Updates avatar status."
+  def update_avatar_status(account, status) do
+    account
+    |> Ecto.Changeset.change(avatar_status: status)
+    |> Repo.update()
+  end
+
   ## Token helper
 
   defp update_account_and_delete_all_tokens(changeset) do

@@ -11,7 +11,10 @@ defmodule Web.OrganizationLive.Index do
      |> assign(:selection_mode, false)
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete, false)
-     |> stream(:organizations, Organizations.list_organizations())
+     |> stream(
+       :organizations,
+       Organizations.list_organizations_for_account(socket.assigns.current_scope.account)
+     )
      |> assign(:show_create_modal, false)
      |> assign(:form, to_form(Organizations.change_organization(%Organization{})))}
   end
@@ -44,7 +47,7 @@ defmodule Web.OrganizationLive.Index do
   end
 
   def handle_event("save", %{"organization" => params}, socket) do
-    case Organizations.create_organization(params) do
+    case Organizations.create_organization(params, socket.assigns.current_scope.account) do
       {:ok, organization} ->
         {:noreply,
          socket
@@ -64,7 +67,11 @@ defmodule Web.OrganizationLive.Index do
      |> assign(:selection_mode, !socket.assigns.selection_mode)
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete, false)
-     |> stream(:organizations, Organizations.list_organizations(), reset: true)}
+     |> stream(
+       :organizations,
+       Organizations.list_organizations_for_account(socket.assigns.current_scope.account),
+       reset: true
+     )}
   end
 
   def handle_event("card_clicked", %{"id" => id}, socket) do
@@ -120,7 +127,11 @@ defmodule Web.OrganizationLive.Index do
       |> assign(:selection_mode, false)
       |> assign(:selected_ids, MapSet.new())
       |> assign(:confirm_delete, false)
-      |> stream(:organizations, Organizations.list_organizations(), reset: true)
+      |> stream(
+        :organizations,
+        Organizations.list_organizations_for_account(socket.assigns.current_scope.account),
+        reset: true
+      )
       |> put_flash_for_results(ok_count, error_count)
 
     {:noreply, socket}
