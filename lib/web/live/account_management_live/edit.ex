@@ -204,15 +204,40 @@ defmodule Web.AccountManagementLive.Edit do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <:toolbar>
         <div class="max-w-7xl mx-auto flex items-center gap-4 px-4 sm:px-6 lg:px-8 py-3">
+          <button
+            type="button"
+            phx-click={toggle_nav_drawer()}
+            class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Open menu"
+          >
+            <.icon name="hero-bars-3" class="size-5" />
+          </button>
           <.link
             navigate={~p"/admin/accounts/#{@account.id}"}
-            class="text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+            class="hidden lg:flex text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
           <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">Edit Account</h1>
         </div>
       </:toolbar>
+
+      <.nav_drawer current_scope={@current_scope}>
+        <.link
+          href={~p"/org"}
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+        >
+          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
+          <span class="font-ds-body text-sm">Organizations</span>
+        </.link>
+        <.link
+          href={~p"/admin/accounts"}
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+        >
+          <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
+          <span class="font-ds-body text-sm">Accounts</span>
+        </.link>
+      </.nav_drawer>
 
       <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <.form
