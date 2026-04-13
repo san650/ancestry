@@ -18,8 +18,16 @@ defmodule Web.E2ECase do
   Must be called at the start of each e2e test before visiting authenticated routes.
   Returns the updated conn (now authenticated).
   """
-  def log_in_e2e(conn) do
-    account = Ancestry.Factory.insert(:account)
+  def log_in_e2e(conn, opts \\ []) do
+    role = Keyword.get(opts, :role, :admin)
+    account = Ancestry.Factory.insert(:account, role: role)
+
+    for org_id <- Keyword.get(opts, :organization_ids, []) do
+      Ancestry.Repo.insert!(%Ancestry.Organizations.AccountOrganization{
+        account_id: account.id,
+        organization_id: org_id
+      })
+    end
 
     conn
     |> PhoenixTest.visit("/test/session/#{account.id}")
