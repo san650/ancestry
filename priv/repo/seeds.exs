@@ -11,6 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Ancestry.Organizations
+alias Ancestry.Organizations.AccountOrganization
 alias Ancestry.People
 alias Ancestry.Families
 alias Ancestry.Relationships
@@ -20,6 +21,22 @@ alias Ancestry.Relationships
 # ---------------------------------------------------------------------------
 
 {:ok, org} = Organizations.create_organization(%{name: "Default Organization"})
+
+# ---------------------------------------------------------------------------
+# Link existing accounts to the default organization
+# ---------------------------------------------------------------------------
+
+for account <- Ancestry.Repo.all(Ancestry.Identity.Account) do
+  unless Ancestry.Repo.get_by(AccountOrganization,
+           account_id: account.id,
+           organization_id: org.id
+         ) do
+    Ancestry.Repo.insert!(%AccountOrganization{
+      account_id: account.id,
+      organization_id: org.id
+    })
+  end
+end
 
 # ---------------------------------------------------------------------------
 # Family

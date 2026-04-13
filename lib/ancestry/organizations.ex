@@ -1,13 +1,61 @@
 defmodule Ancestry.Organizations do
   import Ecto.Query
+
+  alias Ecto.Multi
   alias Ancestry.Repo
-  alias Ancestry.Organizations.Organization
+  alias Ancestry.Identity.Account
+  alias Ancestry.Organizations.{AccountOrganization, Organization}
 
   def list_organizations do
     Repo.all(from o in Organization, order_by: [asc: o.name])
   end
 
   def get_organization!(id), do: Repo.get!(Organization, id)
+
+  def get_organization(id) when is_binary(id) or is_integer(id) do
+    Repo.get(Organization, id)
+  end
+
+  def get_organization(_), do: nil
+
+  def list_organizations_for_account(%Account{role: :admin}) do
+    list_organizations()
+  end
+
+  def list_organizations_for_account(%Account{id: account_id}) do
+    from(o in Organization,
+      join: ao in AccountOrganization,
+      on: ao.organization_id == o.id,
+      where: ao.account_id == ^account_id,
+      order_by: [asc: o.name]
+    )
+    |> Repo.all()
+  end
+
+  def account_has_org_access?(%Account{role: :admin}, _org_id), do: true
+
+  def account_has_org_access?(%Account{id: account_id}, org_id) do
+    Repo.exists?(
+      from ao in AccountOrganization,
+        where: ao.account_id == ^account_id and ao.organization_id == ^org_id
+    )
+  end
+
+  def create_organization(attrs, %Account{} = account) do
+    Multi.new()
+    |> Multi.insert(:organization, Organization.changeset(%Organization{}, attrs))
+    |> Multi.insert(:account_organization, fn %{organization: org} ->
+      AccountOrganization.changeset(%AccountOrganization{}, %{
+        account_id: account.id,
+        organization_id: org.id
+      })
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{organization: org}} -> {:ok, org}
+      {:error, :organization, changeset, _} -> {:error, changeset}
+    end
+  end
 
   def create_organization(attrs \\ %{}) do
     %Organization{}

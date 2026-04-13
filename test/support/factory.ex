@@ -42,13 +42,22 @@ defmodule Ancestry.Factory do
   def account_factory do
     %Ancestry.Identity.Account{
       email: sequence(:account_email, &"account#{&1}@example.com"),
-      confirmed_at: DateTime.utc_now(:second)
+      confirmed_at: DateTime.utc_now(:second),
+      role: :admin
     }
   end
 
   def unconfirmed_account_factory do
     %Ancestry.Identity.Account{
-      email: sequence(:account_email, &"account#{&1}@example.com")
+      email: sequence(:account_email, &"account#{&1}@example.com"),
+      role: :admin
+    }
+  end
+
+  def account_organization_factory do
+    %Ancestry.Organizations.AccountOrganization{
+      account: build(:account),
+      organization: build(:organization)
     }
   end
 

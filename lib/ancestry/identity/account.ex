@@ -8,6 +8,18 @@ defmodule Ancestry.Identity.Account do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :name, :string
+    field :role, Ecto.Enum, values: [:viewer, :editor, :admin], default: :editor
+    field :deactivated_at, :utc_datetime
+    field :avatar, :string
+    field :avatar_status, :string
+
+    belongs_to :deactivator, Ancestry.Identity.Account, foreign_key: :deactivated_by
+
+    has_many :account_organizations, Ancestry.Organizations.AccountOrganization
+
+    many_to_many :organizations, Ancestry.Organizations.Organization,
+      join_through: "account_organizations"
 
     timestamps(type: :utc_datetime)
   end
@@ -113,6 +125,57 @@ defmodule Ancestry.Identity.Account do
     now = DateTime.utc_now(:second)
     change(account, confirmed_at: now)
   end
+
+  @doc """
+  Changeset for admin-driven account creation and editing.
+
+  ## Options
+
+    * `:mode` - `:create` (default) requires password and sets confirmed_at.
+      `:edit` makes password optional (skipped if empty/absent).
+  """
+  def admin_changeset(account, attrs, opts \\ []) do
+    mode = Keyword.get(opts, :mode, :create)
+
+    account
+    |> cast(attrs, [:email, :name, :role, :password])
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, Ancestry.Repo)
+    |> unique_constraint(:email)
+    |> validate_confirmation(:password, message: "does not match password")
+    |> maybe_validate_password(mode)
+    |> maybe_set_confirmed_at(mode)
+  end
+
+  defp maybe_validate_password(changeset, :create) do
+    changeset
+    |> validate_required([:password])
+    |> validate_length(:password, min: 12, max: 72)
+    |> maybe_hash_password(hash_password: true)
+  end
+
+  defp maybe_validate_password(changeset, :edit) do
+    password = get_change(changeset, :password)
+
+    if password && password != "" do
+      changeset
+      |> validate_length(:password, min: 12, max: 72)
+      |> maybe_hash_password(hash_password: true)
+    else
+      changeset
+      |> delete_change(:password)
+    end
+  end
+
+  defp maybe_set_confirmed_at(changeset, :create) do
+    put_change(changeset, :confirmed_at, DateTime.utc_now(:second))
+  end
+
+  defp maybe_set_confirmed_at(changeset, :edit), do: changeset
 
   @doc """
   Verifies the password.

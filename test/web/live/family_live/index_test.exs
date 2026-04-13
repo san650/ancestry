@@ -35,19 +35,19 @@ defmodule Web.FamilyLive.IndexTest do
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}")
 
     # Enter selection mode
-    view |> element("[data-testid='family-index-select-btn']") |> render_click()
+    view |> element(test_id("family-index-select-btn")) |> render_click()
 
     # Tap the family card to select it
-    view |> element("[data-testid='family-card-#{family.id}']") |> render_click()
+    view |> element(test_id("family-card-#{family.id}")) |> render_click()
 
     # Open the batch confirmation modal
-    view |> element("[data-testid='selection-bar-delete-btn']") |> render_click()
+    view |> element(test_id("selection-bar-delete-btn")) |> render_click()
     assert has_element?(view, "#confirm-delete-families-modal")
 
     # Confirm
-    view |> element("[data-testid='confirm-delete-families-confirm-btn']") |> render_click()
+    view |> element(test_id("confirm-delete-families-confirm-btn")) |> render_click()
 
-    refute has_element?(view, "[data-testid='family-card-#{family.id}']")
+    refute has_element?(view, test_id("family-card-#{family.id}"))
     refute Ancestry.Repo.get(Ancestry.Families.Family, family.id)
   end
 end

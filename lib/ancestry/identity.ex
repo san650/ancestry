@@ -41,7 +41,12 @@ defmodule Ancestry.Identity do
   def get_account_by_email_and_password(email, password)
       when is_binary(email) and is_binary(password) do
     account = Repo.get_by(Account, email: email)
-    if Account.valid_password?(account, password), do: account
+
+    cond do
+      !Account.valid_password?(account, password) -> nil
+      account.deactivated_at != nil -> nil
+      true -> account
+    end
   end
 
   @doc """
@@ -187,7 +192,15 @@ defmodule Ancestry.Identity do
   """
   def get_account_by_session_token(token) do
     {:ok, query} = AccountToken.verify_session_token_query(token)
-    Repo.one(query)
+
+    case Repo.one(query) do
+      {%Account{deactivated_at: deactivated_at}, _token_inserted_at}
+      when not is_nil(deactivated_at) ->
+        nil
+
+      result ->
+        result
+    end
   end
 
   @doc """
@@ -195,7 +208,7 @@ defmodule Ancestry.Identity do
   """
   def get_account_by_magic_link_token(token) do
     with {:ok, query} <- AccountToken.verify_magic_link_token_query(token),
-         {account, _token} <- Repo.one(query) do
+         {%Account{deactivated_at: nil} = account, _token} <- Repo.one(query) do
       account
     else
       _ -> nil
@@ -224,6 +237,10 @@ defmodule Ancestry.Identity do
     {:ok, query} = AccountToken.verify_magic_link_token_query(token)
 
     case Repo.one(query) do
+      # Prevent deactivated accounts from logging in
+      {%Account{deactivated_at: deactivated_at}, _token} when not is_nil(deactivated_at) ->
+        {:error, :not_found}
+
       # Prevent session fixation attacks by disallowing magic links for unconfirmed users with password
       {%Account{confirmed_at: nil, hashed_password: hash}, _token} when not is_nil(hash) ->
         raise """
@@ -277,6 +294,14 @@ defmodule Ancestry.Identity do
   @doc """
   Delivers the magic link login instructions to the given account.
   """
+  def deliver_login_instructions(
+        %Account{deactivated_at: deactivated_at} = _account,
+        _magic_link_url_fun
+      )
+      when not is_nil(deactivated_at) do
+    {:ok, :deactivated}
+  end
+
   def deliver_login_instructions(%Account{} = account, magic_link_url_fun)
       when is_function(magic_link_url_fun, 1) do
     {encoded_token, account_token} = AccountToken.build_email_token(account, "login")
@@ -290,6 +315,200 @@ defmodule Ancestry.Identity do
   def delete_account_session_token(token) do
     Repo.delete_all(from(AccountToken, where: [token: ^token, context: "session"]))
     :ok
+  end
+
+  ## Admin account management
+
+  alias Ecto.Multi
+  alias Ancestry.Organizations.AccountOrganization
+
+  @doc """
+  Lists all accounts sorted by email, with organizations preloaded.
+  """
+  def list_accounts do
+    from(Account, order_by: [asc: :email], preload: :organizations)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single account with organizations and deactivator preloaded.
+
+  Raises `Ecto.NoResultsError` if the Account does not exist.
+  """
+  def get_account_with_orgs!(id) do
+    Repo.get!(Account, id) |> Repo.preload([:organizations, :deactivator])
+  end
+
+  @doc """
+  Creates an account via admin, using `Account.admin_changeset/3`.
+
+  Inserts `AccountOrganization` records for each `org_id` in the list.
+  """
+  def create_admin_account(attrs, org_ids) do
+    case do_create_admin_account(attrs, org_ids) do
+      {:ok, %{account: account}} -> {:ok, account}
+      {:error, :account, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  defp do_create_admin_account(attrs, org_ids) do
+    Multi.new()
+    |> Multi.put(:org_ids, org_ids)
+    |> Multi.insert(:account, Account.admin_changeset(%Account{}, attrs))
+    |> Multi.run(:account_organizations, &insert_account_organizations/2)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Updates an account via admin, using `Account.admin_changeset/3` with `mode: :edit`.
+
+  Prevents an admin from changing their own role. The `performer` is the admin
+  performing the action.
+  """
+  def update_admin_account(account, attrs, performer) do
+    new_role = attrs[:role] || attrs["role"]
+
+    if account.id == performer.id && new_role && to_string(new_role) != to_string(account.role) do
+      {:error, :cannot_change_own_role}
+    else
+      Account.admin_changeset(account, attrs, mode: :edit)
+      |> Repo.update()
+    end
+  end
+
+  @doc """
+  Replaces the organization associations for an account.
+
+  Deletes all existing `AccountOrganization` records and inserts new ones.
+  """
+  def update_account_organizations(account, org_ids) do
+    case do_update_account_organizations(account, org_ids) do
+      {:ok, _} -> :ok
+      {:error, _, reason, _} -> {:error, reason}
+    end
+  end
+
+  defp do_update_account_organizations(account, org_ids) do
+    Multi.new()
+    |> Multi.put(:account, account)
+    |> Multi.put(:org_ids, org_ids)
+    |> Multi.delete_all(:delete_orgs, &delete_account_orgs_query/1)
+    |> Multi.run(:insert_orgs, &insert_account_organizations/2)
+    |> Repo.transaction()
+  end
+
+  defp delete_account_orgs_query(%{account: account}) do
+    from(ao in AccountOrganization, where: ao.account_id == ^account.id)
+  end
+
+  defp insert_account_organizations(repo, %{account: account, org_ids: org_ids}) do
+    account_orgs =
+      Enum.map(org_ids, fn org_id ->
+        %AccountOrganization{}
+        |> AccountOrganization.changeset(%{account_id: account.id, organization_id: org_id})
+        |> repo.insert!()
+      end)
+
+    {:ok, account_orgs}
+  end
+
+  @doc """
+  Deactivates an account, deleting all its tokens and disconnecting sessions.
+
+  Returns `{:error, :cannot_deactivate_self}` if target == performer.
+  Returns `{:error, :last_admin}` if the target is an admin and deactivation
+  would leave zero active admins.
+  """
+  def deactivate_account(%Account{} = target, %Account{} = performer) do
+    if target.id == performer.id do
+      {:error, :cannot_deactivate_self}
+    else
+      case do_deactivate_account(target, performer) do
+        {:ok, %{deactivate: account, fetch_tokens: tokens}} ->
+          Web.AccountAuth.disconnect_sessions(tokens)
+          {:ok, account}
+
+        {:error, :last_admin_check, :last_admin, _} ->
+          {:error, :last_admin}
+
+        {:error, _, reason, _} ->
+          {:error, reason}
+      end
+    end
+  end
+
+  defp do_deactivate_account(target, performer) do
+    Multi.new()
+    |> Multi.put(:target, target)
+    |> Multi.put(:performer, performer)
+    |> Multi.put(:now, DateTime.utc_now(:second))
+    |> Multi.run(:last_admin_check, &check_last_admin/2)
+    |> Multi.run(:fetch_tokens, &fetch_account_tokens/2)
+    |> Multi.run(:deactivate, &deactivate_account_record/2)
+    |> Multi.delete_all(:delete_tokens, &delete_account_tokens_query/1)
+    |> Repo.transaction()
+  end
+
+  defp check_last_admin(repo, %{target: target}) do
+    if target.role == :admin do
+      active_admins =
+        repo.all(
+          from(a in Account,
+            where: a.role == :admin,
+            where: is_nil(a.deactivated_at),
+            lock: "FOR UPDATE",
+            select: a.id
+          )
+        )
+
+      if length(active_admins) <= 1 do
+        {:error, :last_admin}
+      else
+        {:ok, length(active_admins)}
+      end
+    else
+      {:ok, :not_admin}
+    end
+  end
+
+  defp fetch_account_tokens(repo, %{target: target}) do
+    tokens = repo.all(from(t in AccountToken, where: t.account_id == ^target.id))
+    {:ok, tokens}
+  end
+
+  defp deactivate_account_record(repo, %{target: target, performer: performer, now: now}) do
+    target
+    |> Ecto.Changeset.change(deactivated_at: now, deactivated_by: performer.id)
+    |> repo.update()
+  end
+
+  defp delete_account_tokens_query(%{target: target}) do
+    from(t in AccountToken, where: t.account_id == ^target.id)
+  end
+
+  @doc """
+  Reactivates a previously deactivated account.
+  """
+  def reactivate_account(%Account{} = account) do
+    account
+    |> Ecto.Changeset.change(deactivated_at: nil, deactivated_by: nil)
+    |> Repo.update()
+  end
+
+  ## Avatar helpers
+
+  @doc "Updates avatar status to processed with the filename."
+  def update_avatar_processed(account, filename) do
+    account
+    |> Ecto.Changeset.change(avatar: filename, avatar_status: "processed")
+    |> Repo.update()
+  end
+
+  @doc "Updates avatar status."
+  def update_avatar_status(account, status) do
+    account
+    |> Ecto.Changeset.change(avatar_status: status)
+    |> Repo.update()
   end
 
   ## Token helper

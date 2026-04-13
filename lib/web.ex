@@ -89,6 +89,7 @@ defmodule Web do
       import Web.Components.Mobile
       import Web.Components.NavDrawer
       import Web.Helpers.TestHelpers
+      import Ancestry.Authorization, only: [can?: 3]
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

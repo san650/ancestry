@@ -263,6 +263,97 @@ defp insert_family_member(%{family: family, person: person}) do
 end
 </good-example>
 
+- **Always** extract Multi steps into named private functions. The Multi pipeline should read as a clear sequence of named steps — don't inline anonymous functions.
+
+Don't do this
+
+<bad-example>
+Multi.new()
+|> Multi.run(:check, fn repo, _changes ->
+    # ... many lines of inlined logic ...
+  end)
+|> Multi.run(:process, fn repo, %{check: result} ->
+    # ... more inlined logic ...
+  end)
+|> Repo.transaction()
+</bad-example>
+
+Do this instead
+
+<good-example>
+Multi.new()
+|> Multi.put(:input, input)
+|> Multi.run(:check, &run_check/2)
+|> Multi.run(:process, &run_process/2)
+|> Repo.transaction()
+
+defp run_check(repo, %{input: input}) do
+  # ...
+end
+
+defp run_process(repo, %{check: result}) do
+  # ...
+end
+</good-example>
+
+### Authorization (Permit)
+
+Authorization is centralized through [Permit](https://hexdocs.pm/permit). The three modules are:
+
+- `Ancestry.Permissions` — defines `can/1` rules by pattern-matching on `Scope`
+- `Ancestry.Authorization` — ties Permit to the app
+- `Ancestry.Actions` — auto-discovers `live_action`s from `Web.Router`
+
+**Rules:**
+
+- **Always** use `Ancestry.Permissions` (`can/1`) to define who can do what. Never scatter role checks like `account.role == :admin` across LiveViews, templates, or contexts.
+- **Always** use `Permit.Phoenix.LiveView` in LiveViews that need authorization. It hooks into `on_mount` and enforces permissions automatically based on the `live_action`.
+- **Always** use Permit's `can?/3` or `authorized?/3` helpers when checking permissions in templates or contexts — never check `current_scope.account.role` directly.
+
+Don't do this
+
+<bad-example>
+# In a template — manually checking role
+<%= if @current_scope && @current_scope.account && @current_scope.account.role == :admin do %>
+  <.link navigate={~p"/admin/accounts"}>Manage accounts</.link>
+<% end %>
+
+# In a context — hardcoding role bypass
+def account_has_org_access?(%Account{role: :admin}, _org_id), do: true
+def account_has_org_access?(%Account{id: id}, org_id) do
+  Repo.exists?(from ao in AccountOrganization,
+    where: ao.account_id == ^id and ao.organization_id == ^org_id)
+end
+</bad-example>
+
+Do this instead
+
+<good-example>
+# In Permissions — single source of truth
+def can(%Scope{account: %Account{role: :admin}}) do
+  permit()
+  |> all(Account)
+  |> all(Organization)
+end
+
+# In a template — use the authorization helper
+<%= if can?(@current_scope, :index, Account) do %>
+  <.link navigate={~p"/admin/accounts"}>Manage accounts</.link>
+<% end %>
+
+# In a LiveView — use Permit.Phoenix.LiveView
+use Permit.Phoenix.LiveView,
+  authorization_module: Ancestry.Authorization,
+  resource_module: Account
+
+def handle_unauthorized(_action, socket) do
+  {:halt,
+   socket
+   |> put_flash(:error, "You don't have permission to access this page")
+   |> push_navigate(to: ~p"/org")}
+end
+</good-example>
+
 ## Feature testing
 
 Every new or changed user flow **must** have E2E tests in `test/user_flows/` covering **all use cases**: create, edit, delete, navigate, and any error states. Tests must exercise the actual rendered templates with real data (including preloaded associations) to catch runtime errors like missing fields or unloaded associations that compile-time checks miss. See [`test/user_flows/CLAUDE.md`](test/user_flows/CLAUDE.md) for conventions, file naming, and example Given/When/Then specs to model new tests on.

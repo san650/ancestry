@@ -40,6 +40,19 @@ defmodule Web.Router do
       live "/org", OrganizationLive.Index, :index
     end
 
+    live_session :admin,
+      on_mount:
+        @sandbox_hooks ++
+          [
+            {Web.AccountAuth, :require_authenticated},
+            Permit.Phoenix.LiveView.AuthorizeHook
+          ] do
+      live "/admin/accounts", AccountManagementLive.Index, :index
+      live "/admin/accounts/new", AccountManagementLive.New, :new
+      live "/admin/accounts/:id", AccountManagementLive.Show, :show
+      live "/admin/accounts/:id/edit", AccountManagementLive.Edit, :edit
+    end
+
     scope "/org/:org_id" do
       live_session :organization,
         on_mount:
