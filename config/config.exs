@@ -35,6 +35,10 @@ config :ancestry, Web.Endpoint,
   pubsub_server: Ancestry.PubSub,
   live_view: [signing_salt: "vaY7jhoU"]
 
+config :ancestry, Web.Gettext,
+  default_locale: "en-US",
+  locales: ~w(en-US es-UY)
+
 # Configure the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
