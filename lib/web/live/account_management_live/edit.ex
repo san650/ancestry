@@ -272,6 +272,12 @@ defmodule Web.AccountManagementLive.Edit do
             options={[{"Viewer", :viewer}, {"Editor", :editor}, {"Admin", :admin}]}
             disabled={@account.id == @current_scope.account.id}
           />
+          <.input
+            field={@form[:locale]}
+            type="select"
+            label={gettext("Language")}
+            options={[{"English", "en-US"}, {"Español", "es-UY"}]}
+          />
 
           <%!-- Avatar upload --%>
           <div>

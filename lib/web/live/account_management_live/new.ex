@@ -158,6 +158,12 @@ defmodule Web.AccountManagementLive.New do
             label="Role"
             options={[{"Viewer", :viewer}, {"Editor", :editor}, {"Admin", :admin}]}
           />
+          <.input
+            field={@form[:locale]}
+            type="select"
+            label={gettext("Language")}
+            options={[{"English", "en-US"}, {"Español", "es-UY"}]}
+          />
 
           <%!-- Avatar upload --%>
           <div>
