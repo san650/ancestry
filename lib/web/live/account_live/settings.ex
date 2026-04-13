@@ -84,6 +84,32 @@ defmodule Web.AccountLive.Settings do
               </button>
             </.form>
           </div>
+
+          <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-ds-ambient">
+            <h2 class="font-ds-heading text-lg font-bold text-ds-on-surface mb-4">
+              {gettext("Language")}
+            </h2>
+            <.form
+              for={@locale_form}
+              id="locale_form"
+              phx-submit="update_locale"
+              phx-change="validate_locale"
+            >
+              <.input
+                field={@locale_form[:locale]}
+                type="select"
+                label={gettext("Language")}
+                options={[{"English", "en-US"}, {"Español", "es-UY"}]}
+              />
+              <button
+                type="submit"
+                phx-disable-with={gettext("Saving...")}
+                class="mt-4 px-6 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+              >
+                {gettext("Save Language")}
+              </button>
+            </.form>
+          </div>
         </div>
       </div>
     </Layouts.app>
@@ -114,6 +140,7 @@ defmodule Web.AccountLive.Settings do
       |> assign(:current_email, account.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:locale_form, to_form(Identity.change_account_locale(account)))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}
@@ -174,6 +201,35 @@ defmodule Web.AccountLive.Settings do
 
       changeset ->
         {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+    end
+  end
+
+  def handle_event("validate_locale", %{"account" => locale_params}, socket) do
+    locale_form =
+      socket.assigns.current_scope.account
+      |> Identity.change_account_locale(locale_params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, locale_form: locale_form)}
+  end
+
+  def handle_event("update_locale", %{"account" => locale_params}, socket) do
+    account = socket.assigns.current_scope.account
+
+    case Identity.update_account_locale(account, locale_params) do
+      {:ok, updated_account} ->
+        Gettext.put_locale(Web.Gettext, updated_account.locale)
+        scope = %{socket.assigns.current_scope | account: updated_account}
+
+        {:noreply,
+         socket
+         |> assign(:current_scope, scope)
+         |> assign(:locale_form, to_form(Identity.change_account_locale(updated_account)))
+         |> put_flash(:info, gettext("Language updated successfully."))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, locale_form: to_form(changeset, action: :insert))}
     end
   end
 end
