@@ -7,6 +7,7 @@ defmodule Web.Components.NavDrawer do
   use Phoenix.Component
 
   import Web.CoreComponents, only: [icon: 1]
+  import Ancestry.Authorization, only: [can?: 3]
 
   alias Phoenix.LiveView.JS
 
@@ -95,7 +96,7 @@ defmodule Web.Components.NavDrawer do
             <.icon name="hero-cog-6-tooth" class="size-5 shrink-0 text-ds-on-surface-variant" />
             <span class="font-ds-body text-sm">Settings</span>
           </.link>
-          <%= if @current_scope && @current_scope.account && @current_scope.account.role == :admin do %>
+          <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
             <.link
               href="/admin/accounts"
               class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
