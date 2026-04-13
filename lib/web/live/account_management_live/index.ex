@@ -44,19 +44,70 @@ defmodule Web.AccountManagementLive.Index do
         </div>
       </:toolbar>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="lg:hidden mb-4">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" data-testid="accounts-table">
+        <%!-- Mobile: card layout --%>
+        <div class="lg:hidden space-y-3">
           <.link
             navigate={~p"/admin/accounts/new"}
-            class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+            class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors mb-2"
             data-testid="account-new-btn-mobile"
           >
             <.icon name="hero-plus" class="size-4" /> New Account
           </.link>
+
+          <.link
+            :for={account <- @accounts}
+            navigate={~p"/admin/accounts/#{account.id}"}
+            class={[
+              "block rounded-ds-sharp bg-ds-surface-card p-4",
+              if(account.deactivated_at, do: "opacity-50")
+            ]}
+            data-testid={"account-row-#{account.id}"}
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <p class="font-ds-body font-medium text-ds-on-surface truncate">
+                  {account.name || account.email}
+                </p>
+                <p :if={account.name} class="text-xs text-ds-on-surface-variant truncate">
+                  {account.email}
+                </p>
+              </div>
+              <div class="flex-shrink-0 flex items-center gap-2">
+                <span class="capitalize text-xs text-ds-on-surface-variant bg-ds-surface-high rounded-full px-2 py-0.5">
+                  {account.role}
+                </span>
+                <%= if account.deactivated_at do %>
+                  <span
+                    class="text-ds-error text-xs font-medium"
+                    data-testid={"account-status-#{account.id}"}
+                  >
+                    Deactivated
+                  </span>
+                <% else %>
+                  <span
+                    class="text-ds-primary text-xs font-medium"
+                    data-testid={"account-status-#{account.id}"}
+                  >
+                    Active
+                  </span>
+                <% end %>
+              </div>
+            </div>
+            <div :if={account.organizations != []} class="mt-2 flex flex-wrap gap-1">
+              <span
+                :for={org <- account.organizations}
+                class="inline-block bg-ds-surface-high rounded-full px-2 py-0.5 text-xs"
+              >
+                {org.name}
+              </span>
+            </div>
+          </.link>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm" data-testid="accounts-table">
+        <%!-- Desktop: table layout --%>
+        <div class="hidden lg:block">
+          <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-ds-outline-variant/20 text-left text-ds-on-surface-variant">
                 <th class="pb-3 pr-4 font-medium">Name</th>
