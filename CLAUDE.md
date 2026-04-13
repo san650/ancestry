@@ -263,6 +263,39 @@ defp insert_family_member(%{family: family, person: person}) do
 end
 </good-example>
 
+- **Always** extract Multi steps into named private functions. The Multi pipeline should read as a clear sequence of named steps — don't inline anonymous functions.
+
+Don't do this
+
+<bad-example>
+Multi.new()
+|> Multi.run(:check, fn repo, _changes ->
+    # ... many lines of inlined logic ...
+  end)
+|> Multi.run(:process, fn repo, %{check: result} ->
+    # ... more inlined logic ...
+  end)
+|> Repo.transaction()
+</bad-example>
+
+Do this instead
+
+<good-example>
+Multi.new()
+|> Multi.put(:input, input)
+|> Multi.run(:check, &run_check/2)
+|> Multi.run(:process, &run_process/2)
+|> Repo.transaction()
+
+defp run_check(repo, %{input: input}) do
+  # ...
+end
+
+defp run_process(repo, %{check: result}) do
+  # ...
+end
+</good-example>
+
 ## Feature testing
 
 Every new or changed user flow **must** have E2E tests in `test/user_flows/` covering **all use cases**: create, edit, delete, navigate, and any error states. Tests must exercise the actual rendered templates with real data (including preloaded associations) to catch runtime errors like missing fields or unloaded associations that compile-time checks miss. See [`test/user_flows/CLAUDE.md`](test/user_flows/CLAUDE.md) for conventions, file naming, and example Given/When/Then specs to model new tests on.
