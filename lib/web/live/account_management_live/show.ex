@@ -3,7 +3,9 @@ defmodule Web.AccountManagementLive.Show do
 
   use Permit.Phoenix.LiveView,
     authorization_module: Ancestry.Authorization,
-    resource_module: Ancestry.Identity.Account
+    resource_module: Ancestry.Identity.Account,
+    scope_subject: &Function.identity/1,
+    skip_preload: [:index, :new, :show, :edit]
 
   alias Ancestry.Identity
 
