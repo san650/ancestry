@@ -141,7 +141,7 @@ defmodule Web.AccountManagementLive.Show do
           <.link
             navigate={~p"/admin/accounts/#{@account.id}/edit"}
             class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-            data-testid="account-edit-btn"
+            {test_id("account-edit-btn")}
           >
             <.icon name="hero-pencil-square" class="size-4" /> Edit
           </.link>
@@ -168,13 +168,13 @@ defmodule Web.AccountManagementLive.Show do
       </.nav_drawer>
 
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-sm" data-testid="account-detail">
+        <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-sm" {test_id("account-detail")}>
           <dl class="space-y-4">
             <div>
               <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
                 Email
               </dt>
-              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-email">
+              <dd class="mt-1 text-sm text-ds-on-surface" {test_id("account-email")}>
                 {@account.email}
               </dd>
             </div>
@@ -183,7 +183,7 @@ defmodule Web.AccountManagementLive.Show do
               <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
                 Name
               </dt>
-              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-name">
+              <dd class="mt-1 text-sm text-ds-on-surface" {test_id("account-name")}>
                 {@account.name || "—"}
               </dd>
             </div>
@@ -192,7 +192,7 @@ defmodule Web.AccountManagementLive.Show do
               <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
                 Role
               </dt>
-              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-role">
+              <dd class="mt-1 text-sm text-ds-on-surface" {test_id("account-role")}>
                 {String.capitalize(to_string(@account.role))}
               </dd>
             </div>
@@ -201,7 +201,7 @@ defmodule Web.AccountManagementLive.Show do
               <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
                 Status
               </dt>
-              <dd class="mt-1" data-testid="account-status">
+              <dd class="mt-1" {test_id("account-status")}>
                 <%= if @account.deactivated_at do %>
                   <span class="text-ds-error text-sm font-medium">Deactivated</span>
                 <% else %>
@@ -214,7 +214,7 @@ defmodule Web.AccountManagementLive.Show do
               <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
                 Organizations
               </dt>
-              <dd class="mt-1 flex flex-wrap gap-1" data-testid="account-organizations">
+              <dd class="mt-1 flex flex-wrap gap-1" {test_id("account-organizations")}>
                 <%= if @account.organizations == [] do %>
                   <span class="text-sm text-ds-on-surface-variant">None</span>
                 <% else %>
@@ -235,7 +235,7 @@ defmodule Web.AccountManagementLive.Show do
                 </dt>
                 <dd
                   class="mt-1 text-sm text-ds-on-surface-variant"
-                  data-testid="account-deactivated-by"
+                  {test_id("account-deactivated-by")}
                 >
                   <%= if @account.deactivator do %>
                     {@account.deactivator.email}
@@ -252,7 +252,7 @@ defmodule Web.AccountManagementLive.Show do
               <button
                 phx-click="request_deactivate"
                 class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
-                data-testid="account-deactivate-btn"
+                {test_id("account-deactivate-btn")}
               >
                 Deactivate
               </button>
@@ -262,7 +262,7 @@ defmodule Web.AccountManagementLive.Show do
               <button
                 phx-click="request_reactivate"
                 class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-                data-testid="account-reactivate-btn"
+                {test_id("account-reactivate-btn")}
               >
                 Reactivate
               </button>
@@ -274,7 +274,7 @@ defmodule Web.AccountManagementLive.Show do
       <%= if @confirm_deactivate do %>
         <div
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          data-testid="deactivate-modal"
+          {test_id("deactivate-modal")}
         >
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
             <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
@@ -288,14 +288,14 @@ defmodule Web.AccountManagementLive.Show do
               <button
                 phx-click="cancel_deactivate"
                 class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
-                data-testid="deactivate-cancel-btn"
+                {test_id("deactivate-cancel-btn")}
               >
                 Cancel
               </button>
               <button
                 phx-click="confirm_deactivate"
                 class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
-                data-testid="deactivate-confirm-btn"
+                {test_id("deactivate-confirm-btn")}
               >
                 Deactivate
               </button>
@@ -307,7 +307,7 @@ defmodule Web.AccountManagementLive.Show do
       <%= if @confirm_reactivate do %>
         <div
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          data-testid="reactivate-modal"
+          {test_id("reactivate-modal")}
         >
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
             <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
@@ -321,14 +321,14 @@ defmodule Web.AccountManagementLive.Show do
               <button
                 phx-click="cancel_reactivate"
                 class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
-                data-testid="reactivate-cancel-btn"
+                {test_id("reactivate-cancel-btn")}
               >
                 Cancel
               </button>
               <button
                 phx-click="confirm_reactivate"
                 class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-                data-testid="reactivate-confirm-btn"
+                {test_id("reactivate-confirm-btn")}
               >
                 Reactivate
               </button>

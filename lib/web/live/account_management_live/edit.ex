@@ -249,7 +249,7 @@ defmodule Web.AccountManagementLive.Edit do
           phx-change="validate"
           phx-submit="save"
           class="space-y-6"
-          data-testid="account-form"
+          {test_id("account-form")}
         >
           <.input field={@form[:name]} type="text" label="Full name" />
           <.input field={@form[:email]} type="email" label="Email" required />
@@ -276,7 +276,7 @@ defmodule Web.AccountManagementLive.Edit do
           <%!-- Avatar upload --%>
           <div>
             <label class="block text-sm font-medium text-ds-on-surface mb-2">Avatar</label>
-            <.live_file_input upload={@uploads.avatar} class="text-sm" data-testid="avatar-upload" />
+            <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
             <div :for={entry <- @uploads.avatar.entries} class="mt-2">
               <.live_img_preview entry={entry} class="w-20 h-20 rounded-full object-cover" />
               <button
@@ -299,7 +299,7 @@ defmodule Web.AccountManagementLive.Edit do
           <%!-- Organization selection --%>
           <div>
             <label class="block text-sm font-medium text-ds-on-surface mb-2">Organizations</label>
-            <div class="space-y-2" data-testid="org-selection">
+            <div class="space-y-2" {test_id("org-selection")}>
               <label :for={org <- @organizations} class="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -307,7 +307,7 @@ defmodule Web.AccountManagementLive.Edit do
                   value={org.id}
                   checked={org.id in @selected_org_ids}
                   class="rounded border-ds-outline"
-                  data-testid={"org-checkbox-#{org.id}"}
+                  {test_id("org-checkbox-#{org.id}")}
                 />
                 <span class="text-sm text-ds-on-surface">{org.name}</span>
               </label>
@@ -318,7 +318,7 @@ defmodule Web.AccountManagementLive.Edit do
             <button
               type="submit"
               class="rounded-ds-sharp bg-ds-primary px-6 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-              data-testid="account-submit-btn"
+              {test_id("account-submit-btn")}
             >
               Save Changes
             </button>
@@ -338,7 +338,7 @@ defmodule Web.AccountManagementLive.Edit do
               <button
                 phx-click="request_deactivate"
                 class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
-                data-testid="account-deactivate-btn"
+                {test_id("account-deactivate-btn")}
               >
                 Deactivate Account
               </button>
@@ -346,7 +346,7 @@ defmodule Web.AccountManagementLive.Edit do
               <button
                 phx-click="request_reactivate"
                 class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-                data-testid="account-reactivate-btn"
+                {test_id("account-reactivate-btn")}
               >
                 Reactivate Account
               </button>
@@ -358,7 +358,7 @@ defmodule Web.AccountManagementLive.Edit do
       <%= if @confirm_deactivate do %>
         <div
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          data-testid="deactivate-modal"
+          {test_id("deactivate-modal")}
         >
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
             <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
@@ -372,14 +372,14 @@ defmodule Web.AccountManagementLive.Edit do
               <button
                 phx-click="cancel_deactivate"
                 class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
-                data-testid="deactivate-cancel-btn"
+                {test_id("deactivate-cancel-btn")}
               >
                 Cancel
               </button>
               <button
                 phx-click="confirm_deactivate"
                 class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
-                data-testid="deactivate-confirm-btn"
+                {test_id("deactivate-confirm-btn")}
               >
                 Deactivate
               </button>
@@ -391,7 +391,7 @@ defmodule Web.AccountManagementLive.Edit do
       <%= if @confirm_reactivate do %>
         <div
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-          data-testid="reactivate-modal"
+          {test_id("reactivate-modal")}
         >
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
             <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
@@ -405,14 +405,14 @@ defmodule Web.AccountManagementLive.Edit do
               <button
                 phx-click="cancel_reactivate"
                 class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
-                data-testid="reactivate-cancel-btn"
+                {test_id("reactivate-cancel-btn")}
               >
                 Cancel
               </button>
               <button
                 phx-click="confirm_reactivate"
                 class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-                data-testid="reactivate-confirm-btn"
+                {test_id("reactivate-confirm-btn")}
               >
                 Reactivate
               </button>

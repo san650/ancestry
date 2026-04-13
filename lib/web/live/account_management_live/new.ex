@@ -142,7 +142,7 @@ defmodule Web.AccountManagementLive.New do
           phx-change="validate"
           phx-submit="save"
           class="space-y-6"
-          data-testid="account-form"
+          {test_id("account-form")}
         >
           <.input field={@form[:name]} type="text" label="Full name" />
           <.input field={@form[:email]} type="email" label="Email" required />
@@ -162,7 +162,7 @@ defmodule Web.AccountManagementLive.New do
           <%!-- Avatar upload --%>
           <div>
             <label class="block text-sm font-medium text-ds-on-surface mb-2">Avatar</label>
-            <.live_file_input upload={@uploads.avatar} class="text-sm" data-testid="avatar-upload" />
+            <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
             <div :for={entry <- @uploads.avatar.entries} class="mt-2">
               <.live_img_preview entry={entry} class="w-20 h-20 rounded-full object-cover" />
               <button
@@ -185,7 +185,7 @@ defmodule Web.AccountManagementLive.New do
           <%!-- Organization selection --%>
           <div>
             <label class="block text-sm font-medium text-ds-on-surface mb-2">Organizations</label>
-            <div class="space-y-2" data-testid="org-selection">
+            <div class="space-y-2" {test_id("org-selection")}>
               <label :for={org <- @organizations} class="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -193,7 +193,7 @@ defmodule Web.AccountManagementLive.New do
                   value={org.id}
                   checked={org.id in @selected_org_ids}
                   class="rounded border-ds-outline"
-                  data-testid={"org-checkbox-#{org.id}"}
+                  {test_id("org-checkbox-#{org.id}")}
                 />
                 <span class="text-sm text-ds-on-surface">{org.name}</span>
               </label>
@@ -204,7 +204,7 @@ defmodule Web.AccountManagementLive.New do
             <button
               type="submit"
               class="rounded-ds-sharp bg-ds-primary px-6 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-              data-testid="account-submit-btn"
+              {test_id("account-submit-btn")}
             >
               Create Account
             </button>

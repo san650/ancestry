@@ -48,7 +48,7 @@ defmodule Web.AccountManagementLive.Index do
           <.link
             navigate={~p"/admin/accounts/new"}
             class="hidden lg:inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
-            data-testid="account-new-btn"
+            {test_id("account-new-btn")}
           >
             <.icon name="hero-plus" class="size-4" /> New Account
           </.link>
@@ -74,13 +74,13 @@ defmodule Web.AccountManagementLive.Index do
         </.link>
       </.nav_drawer>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" data-testid="accounts-table">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" {test_id("accounts-table")}>
         <%!-- Mobile: card layout --%>
         <div class="lg:hidden space-y-3">
           <.link
             navigate={~p"/admin/accounts/new"}
             class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors mb-2"
-            data-testid="account-new-btn-mobile"
+            {test_id("account-new-btn-mobile")}
           >
             <.icon name="hero-plus" class="size-4" /> New Account
           </.link>
@@ -92,7 +92,7 @@ defmodule Web.AccountManagementLive.Index do
               "block rounded-ds-sharp bg-ds-surface-card p-4",
               if(account.deactivated_at, do: "opacity-50")
             ]}
-            data-testid={"account-row-#{account.id}"}
+            {test_id("account-row-#{account.id}")}
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
@@ -110,14 +110,14 @@ defmodule Web.AccountManagementLive.Index do
                 <%= if account.deactivated_at do %>
                   <span
                     class="text-ds-error text-xs font-medium"
-                    data-testid={"account-status-#{account.id}"}
+                    {test_id("account-status-#{account.id}")}
                   >
                     Deactivated
                   </span>
                 <% else %>
                   <span
                     class="text-ds-primary text-xs font-medium"
-                    data-testid={"account-status-#{account.id}"}
+                    {test_id("account-status-#{account.id}")}
                   >
                     Active
                   </span>
@@ -155,7 +155,7 @@ defmodule Web.AccountManagementLive.Index do
                   "border-b border-ds-outline-variant/10",
                   if(account.deactivated_at, do: "opacity-50")
                 ]}
-                data-testid={"account-row-#{account.id}"}
+                {test_id("account-row-#{account.id}")}
               >
                 <td class="py-3 pr-4">{account.name || "—"}</td>
                 <td class="py-3 pr-4">{account.email}</td>
@@ -172,14 +172,14 @@ defmodule Web.AccountManagementLive.Index do
                   <%= if account.deactivated_at do %>
                     <span
                       class="text-ds-error text-xs font-medium"
-                      data-testid={"account-status-#{account.id}"}
+                      {test_id("account-status-#{account.id}")}
                     >
                       Deactivated
                     </span>
                   <% else %>
                     <span
                       class="text-ds-primary text-xs font-medium"
-                      data-testid={"account-status-#{account.id}"}
+                      {test_id("account-status-#{account.id}")}
                     >
                       Active
                     </span>
