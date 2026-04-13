@@ -44,24 +44,24 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
     refute_has(conn, "table")
 
     # Hamburger should be visible
-    conn = assert_has(conn, "button[aria-label='Open menu']")
+    conn = assert_has(conn, test_id("hamburger-menu"))
 
     # Tap hamburger — drawer should slide in
     conn =
       conn
-      |> click("button[aria-label='Open menu']")
+      |> click(test_id("hamburger-menu"))
       |> assert_has("aside#nav-drawer")
 
     # Drawer should have Organizations and Accounts links
     conn =
       conn
-      |> assert_has("aside#nav-drawer a[href='/org']", text: "Organizations")
-      |> assert_has("aside#nav-drawer a[href='/admin/accounts']", text: "Accounts")
+      |> assert_has(test_id("nav-organizations"), text: "Organizations")
+      |> assert_has(test_id("nav-accounts"), text: "Accounts")
 
     # Tap Organizations — navigate away
     conn =
       conn
-      |> click("aside#nav-drawer a[href='/org']")
+      |> click(test_id("nav-organizations"))
       |> wait_liveview()
 
     # Should be on the organizations page
@@ -89,13 +89,13 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
       |> wait_liveview()
 
     # Hamburger should be visible, back arrow hidden on mobile
-    conn = assert_has(conn, "button[aria-label='Open menu']")
+    conn = assert_has(conn, test_id("hamburger-menu"))
 
     # Tap hamburger — drawer should have both links
     conn
-    |> click("button[aria-label='Open menu']")
-    |> assert_has("aside#nav-drawer a[href='/org']", text: "Organizations")
-    |> assert_has("aside#nav-drawer a[href='/admin/accounts']", text: "Accounts")
+    |> click(test_id("hamburger-menu"))
+    |> assert_has(test_id("nav-organizations"), text: "Organizations")
+    |> assert_has(test_id("nav-accounts"), text: "Accounts")
   end
 
   test "mobile new account page hamburger has nav links", %{conn: conn} do
@@ -107,12 +107,12 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
       |> wait_liveview()
 
     # Hamburger should be visible
-    conn = assert_has(conn, "button[aria-label='Open menu']")
+    conn = assert_has(conn, test_id("hamburger-menu"))
 
     # Tap hamburger
     conn
-    |> click("button[aria-label='Open menu']")
-    |> assert_has("aside#nav-drawer a[href='/org']", text: "Organizations")
-    |> assert_has("aside#nav-drawer a[href='/admin/accounts']", text: "Accounts")
+    |> click(test_id("hamburger-menu"))
+    |> assert_has(test_id("nav-organizations"), text: "Organizations")
+    |> assert_has(test_id("nav-accounts"), text: "Accounts")
   end
 end

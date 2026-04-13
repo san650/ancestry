@@ -126,6 +126,7 @@ defmodule Web.AccountManagementLive.Show do
               phx-click={toggle_nav_drawer()}
               class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Open menu"
+              {test_id("hamburger-menu")}
             >
               <.icon name="hero-bars-3" class="size-5" />
             </button>
@@ -150,6 +151,7 @@ defmodule Web.AccountManagementLive.Show do
       <.nav_drawer current_scope={@current_scope}>
         <.link
           href={~p"/org"}
+          {test_id("nav-organizations")}
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
@@ -157,6 +159,7 @@ defmodule Web.AccountManagementLive.Show do
         </.link>
         <.link
           href={~p"/admin/accounts"}
+          {test_id("nav-accounts")}
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />

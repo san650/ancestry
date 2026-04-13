@@ -38,6 +38,27 @@ File.mkdir_p!(tmp_dir)
 on_exit(fn -> File.rm_rf!(tmp_dir) end)
 ```
 
+## Test IDs in templates
+
+**Always** use the `test_id/1` helper from `Web.Helpers.TestHelpers` for `data-testid` attributes in templates. This helper strips test IDs in production builds.
+
+```heex
+<%!-- Correct --%>
+<button {test_id("family-new-btn")} phx-click="new">New Family</button>
+
+<%!-- Wrong — do NOT use raw data-testid attributes --%>
+<button data-testid="family-new-btn" phx-click="new">New Family</button>
+```
+
+The helper is auto-imported in all LiveViews and components via `lib/web.ex`.
+
+In E2E tests, use the `test_id/1` helper from `Web.E2ECase` to build the CSS selector:
+
+```elixir
+conn |> click(test_id("family-new-btn"))
+conn |> assert_has(test_id("family-new-btn"), text: "New Family")
+```
+
 ## LiveView tests
 
 Use `~p` sigil for route paths (verified routes). Navigate with `live/2`:
