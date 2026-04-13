@@ -29,6 +29,9 @@ defmodule Web.ConnCase do
       import Phoenix.ConnTest
       import Web.ConnCase
       import Ancestry.Factory
+
+      @doc "Returns a CSS selector for data-testid."
+      def test_id(id), do: "[data-testid='#{id}']"
     end
   end
 
