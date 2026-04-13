@@ -61,6 +61,7 @@ defmodule Web.AccountManagementLive.Index do
               <tr class="border-b border-ds-outline-variant/20 text-left text-ds-on-surface-variant">
                 <th class="pb-3 pr-4 font-medium">Name</th>
                 <th class="pb-3 pr-4 font-medium">Email</th>
+                <th class="pb-3 pr-4 font-medium">Role</th>
                 <th class="pb-3 pr-4 font-medium">Organizations</th>
                 <th class="pb-3 pr-4 font-medium">Status</th>
                 <th class="pb-3 font-medium"></th>
@@ -77,6 +78,7 @@ defmodule Web.AccountManagementLive.Index do
               >
                 <td class="py-3 pr-4">{account.name || "—"}</td>
                 <td class="py-3 pr-4">{account.email}</td>
+                <td class="py-3 pr-4 capitalize">{account.role}</td>
                 <td class="py-3 pr-4">
                   <span
                     :for={org <- account.organizations}
