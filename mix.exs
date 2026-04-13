@@ -74,6 +74,8 @@ defmodule Ancestry.MixProject do
       {:ex_aws_s3, "~> 2.5"},
       {:sweet_xml, "~> 0.7"},
       {:oban, "~> 2.18"},
+      {:permit, "~> 0.3.3"},
+      {:permit_phoenix, "~> 0.4.0"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
