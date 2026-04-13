@@ -222,33 +222,50 @@ defmodule Web.GalleryLive.Show do
 
     results =
       consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
-        uuid = Ecto.UUID.generate()
-        ext = ext_from_content_type(entry.client_type)
-        dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
-        original_path = Ancestry.Storage.store_original(tmp_path, dest_key)
+        contents = File.read!(tmp_path)
 
-        case Galleries.create_photo(%{
-               gallery_id: gallery.id,
-               original_path: original_path,
-               original_filename: entry.client_name,
-               content_type: entry.client_type
-             }) do
-          {:ok, photo} -> {:ok, {:ok, photo}}
-          {:error, _} -> {:ok, {:error, entry.client_name}}
+        file_hash =
+          :crypto.hash(:sha256, contents)
+          |> Base.encode16(case: :lower)
+
+        if Galleries.photo_exists_in_gallery?(gallery.id, file_hash) do
+          {:ok, {:duplicate, entry.client_name}}
+        else
+          uuid = Ecto.UUID.generate()
+          ext = ext_from_content_type(entry.client_type)
+          dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
+          original_path = Ancestry.Storage.store_original_bytes(contents, dest_key)
+
+          case Galleries.create_photo(%{
+                 gallery_id: gallery.id,
+                 original_path: original_path,
+                 original_filename: entry.client_name,
+                 content_type: entry.client_type,
+                 file_hash: file_hash
+               }) do
+            {:ok, photo} -> {:ok, {:ok, photo}}
+            {:error, _} -> {:ok, {:error, entry.client_name}}
+          end
         end
       end)
 
     {uploaded, errored} =
       Enum.split_with(results, fn
         {:ok, _} -> true
+        {:duplicate, _} -> true
         {:error, _} -> false
       end)
 
-    uploaded_photos = Enum.map(uploaded, fn {:ok, photo} -> photo end)
+    uploaded_photos =
+      Enum.flat_map(uploaded, fn
+        {:ok, photo} -> [photo]
+        {:duplicate, _} -> []
+      end)
 
     upload_results =
-      Enum.map(uploaded_photos, fn photo ->
-        %{name: photo.original_filename, status: :ok}
+      Enum.map(uploaded, fn
+        {:ok, photo} -> %{name: photo.original_filename, status: :ok}
+        {:duplicate, name} -> %{name: name, status: :ok}
       end) ++
         Enum.map(errored, fn {:error, name} ->
           %{name: name, status: :error, error: "Upload failed"}
