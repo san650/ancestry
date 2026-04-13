@@ -48,13 +48,20 @@ defmodule Web.AccountManagementLive.Edit do
   end
 
   @impl true
-  def handle_event("validate", %{"account" => account_params}, socket) do
+  def handle_event("validate", %{"account" => account_params} = params, socket) do
     changeset =
       socket.assigns.account
       |> Account.admin_changeset(account_params, mode: :edit)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, :form, to_form(changeset))}
+    selected_org_ids =
+      (params["organization_ids"] || [])
+      |> Enum.map(&String.to_integer/1)
+
+    {:noreply,
+     socket
+     |> assign(:form, to_form(changeset))
+     |> assign(:selected_org_ids, selected_org_ids)}
   end
 
   def handle_event("save", %{"account" => account_params} = params, socket) do
@@ -108,19 +115,6 @@ defmodule Web.AccountManagementLive.Edit do
 
   def handle_event("cancel_upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :avatar, ref)}
-  end
-
-  def handle_event("toggle_org", %{"org-id" => org_id}, socket) do
-    selected = socket.assigns.selected_org_ids
-
-    updated =
-      if org_id in selected do
-        List.delete(selected, org_id)
-      else
-        [org_id | selected]
-      end
-
-    {:noreply, assign(socket, :selected_org_ids, updated)}
   end
 
   # Deactivate/Reactivate handlers (same pattern as Show)
