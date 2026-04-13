@@ -95,6 +95,15 @@ defmodule Web.Components.NavDrawer do
             <.icon name="hero-cog-6-tooth" class="size-5 shrink-0 text-ds-on-surface-variant" />
             <span class="font-ds-body text-sm">Settings</span>
           </.link>
+          <%= if @current_scope && @current_scope.account && @current_scope.account.role == :admin do %>
+            <.link
+              href="/admin/accounts"
+              class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+            >
+              <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
+              <span class="font-ds-body text-sm">Accounts</span>
+            </.link>
+          <% end %>
           <.link
             href="/accounts/log-out"
             method="delete"

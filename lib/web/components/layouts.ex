@@ -73,6 +73,13 @@ defmodule Web.Layouts do
                   <.link href={~p"/org"}>Organizations</.link>
                 </li>
               <% end %>
+              <%= if @current_scope.account.role == :admin do %>
+                <li>
+                  <.link href={~p"/admin/accounts"} class="hover:text-ds-on-surface transition-colors">
+                    Accounts
+                  </.link>
+                </li>
+              <% end %>
               <li class="text-ds-outline-variant">|</li>
               <li>{@current_scope.account.email}</li>
               <li>
