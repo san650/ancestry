@@ -1,5 +1,6 @@
 defmodule Ancestry.Identity.AccountNotifier do
   import Swoosh.Email
+  use Gettext, backend: Web.Gettext
 
   alias Ancestry.Mailer
   alias Ancestry.Identity.Account
@@ -22,20 +23,24 @@ defmodule Ancestry.Identity.AccountNotifier do
   Deliver instructions to update a account email.
   """
   def deliver_update_email_instructions(account, url) do
-    deliver(account.email, "Update email instructions", """
+    locale = account.locale || "en-US"
 
-    ==============================
+    Gettext.with_locale(Web.Gettext, locale, fn ->
+      deliver(account.email, gettext("Update email instructions"), """
 
-    Hi #{account.email},
+      ==============================
 
-    You can change your email by visiting the URL below:
+      #{gettext("Hi %{email},", email: account.email)}
 
-    #{url}
+      #{gettext("You can change your email by visiting the URL below:")}
 
-    If you didn't request this change, please ignore this.
+      #{url}
 
-    ==============================
-    """)
+      #{gettext("If you didn't request this change, please ignore this.")}
+
+      ==============================
+      """)
+    end)
   end
 
   @doc """
@@ -49,36 +54,44 @@ defmodule Ancestry.Identity.AccountNotifier do
   end
 
   defp deliver_magic_link_instructions(account, url) do
-    deliver(account.email, "Log in instructions", """
+    locale = account.locale || "en-US"
 
-    ==============================
+    Gettext.with_locale(Web.Gettext, locale, fn ->
+      deliver(account.email, gettext("Log in instructions"), """
 
-    Hi #{account.email},
+      ==============================
 
-    You can log into your account by visiting the URL below:
+      #{gettext("Hi %{email},", email: account.email)}
 
-    #{url}
+      #{gettext("You can log into your account by visiting the URL below:")}
 
-    If you didn't request this email, please ignore this.
+      #{url}
 
-    ==============================
-    """)
+      #{gettext("If you didn't request this email, please ignore this.")}
+
+      ==============================
+      """)
+    end)
   end
 
   defp deliver_confirmation_instructions(account, url) do
-    deliver(account.email, "Confirmation instructions", """
+    locale = account.locale || "en-US"
 
-    ==============================
+    Gettext.with_locale(Web.Gettext, locale, fn ->
+      deliver(account.email, gettext("Confirmation instructions"), """
 
-    Hi #{account.email},
+      ==============================
 
-    You can confirm your account by visiting the URL below:
+      #{gettext("Hi %{email},", email: account.email)}
 
-    #{url}
+      #{gettext("You can confirm your account by visiting the URL below:")}
 
-    If you didn't create an account with us, please ignore this.
+      #{url}
 
-    ==============================
-    """)
+      #{gettext("If you didn't create an account with us, please ignore this.")}
+
+      ==============================
+      """)
+    end)
   end
 end
