@@ -8,6 +8,9 @@ defmodule Ancestry.Organizations.Organization do
     has_many :families, Ancestry.Families.Family, on_delete: :delete_all
     has_many :people, Ancestry.People.Person, on_delete: :delete_all
 
+    has_many :account_organizations, Ancestry.Organizations.AccountOrganization
+    many_to_many :accounts, Ancestry.Identity.Account, join_through: "account_organizations"
+
     timestamps()
   end
 

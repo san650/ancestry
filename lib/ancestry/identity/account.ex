@@ -16,6 +16,11 @@ defmodule Ancestry.Identity.Account do
 
     belongs_to :deactivator, Ancestry.Identity.Account, foreign_key: :deactivated_by
 
+    has_many :account_organizations, Ancestry.Organizations.AccountOrganization
+
+    many_to_many :organizations, Ancestry.Organizations.Organization,
+      join_through: "account_organizations"
+
     timestamps(type: :utc_datetime)
   end
 
