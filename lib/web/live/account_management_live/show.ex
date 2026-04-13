@@ -1,16 +1,311 @@
 defmodule Web.AccountManagementLive.Show do
   use Web, :live_view
 
+  use Permit.Phoenix.LiveView,
+    authorization_module: Ancestry.Authorization,
+    resource_module: Ancestry.Identity.Account
+
+  alias Ancestry.Identity
+
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def handle_unauthorized(_action, socket) do
+    {:halt,
+     socket
+     |> put_flash(:error, "You don't have permission to access this page")
+     |> push_navigate(to: ~p"/org")}
+  end
+
+  @impl true
+  def mount(%{"id" => id}, _session, socket) do
+    account = Identity.get_account_with_orgs!(id)
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "account:#{id}")
+    end
+
+    {:ok,
+     socket
+     |> assign(:page_title, account.email)
+     |> assign(:account, account)
+     |> assign(:confirm_deactivate, false)
+     |> assign(:confirm_reactivate, false)}
+  end
+
+  @impl true
+  def handle_event("request_deactivate", _params, socket) do
+    {:noreply, assign(socket, :confirm_deactivate, true)}
+  end
+
+  def handle_event("cancel_deactivate", _params, socket) do
+    {:noreply, assign(socket, :confirm_deactivate, false)}
+  end
+
+  def handle_event("confirm_deactivate", _params, socket) do
+    current_account = socket.assigns.current_scope.account
+    account = socket.assigns.account
+
+    case Identity.deactivate_account(account, current_account) do
+      {:ok, _account} ->
+        account = Identity.get_account_with_orgs!(account.id)
+
+        {:noreply,
+         socket
+         |> assign(:account, account)
+         |> assign(:confirm_deactivate, false)
+         |> put_flash(:info, "Account deactivated successfully.")}
+
+      {:error, :cannot_deactivate_self} ->
+        {:noreply,
+         socket
+         |> assign(:confirm_deactivate, false)
+         |> put_flash(:error, "You cannot deactivate your own account.")}
+
+      {:error, :last_admin} ->
+        {:noreply,
+         socket
+         |> assign(:confirm_deactivate, false)
+         |> put_flash(:error, "Cannot deactivate the last admin account.")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> assign(:confirm_deactivate, false)
+         |> put_flash(:error, "Failed to deactivate account.")}
+    end
+  end
+
+  def handle_event("request_reactivate", _params, socket) do
+    {:noreply, assign(socket, :confirm_reactivate, true)}
+  end
+
+  def handle_event("cancel_reactivate", _params, socket) do
+    {:noreply, assign(socket, :confirm_reactivate, false)}
+  end
+
+  def handle_event("confirm_reactivate", _params, socket) do
+    account = socket.assigns.account
+
+    case Identity.reactivate_account(account) do
+      {:ok, _account} ->
+        account = Identity.get_account_with_orgs!(account.id)
+
+        {:noreply,
+         socket
+         |> assign(:account, account)
+         |> assign(:confirm_reactivate, false)
+         |> put_flash(:info, "Account reactivated successfully.")}
+
+      {:error, _changeset} ->
+        {:noreply,
+         socket
+         |> assign(:confirm_reactivate, false)
+         |> put_flash(:error, "Failed to reactivate account.")}
+    end
+  end
+
+  @impl true
+  def handle_info({:avatar_processed, account}, socket) do
+    {:noreply, assign(socket, :account, account)}
+  end
+
+  def handle_info({:avatar_failed, _account}, socket) do
+    {:noreply, put_flash(socket, :error, "Avatar processing failed.")}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <p>Account details coming soon.</p>
+      <:toolbar>
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
+          <div class="flex items-center gap-3">
+            <.link
+              navigate={~p"/admin/accounts"}
+              class="text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+            >
+              <.icon name="hero-arrow-left" class="size-5" />
+            </.link>
+            <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">Account Details</h1>
+          </div>
+          <.link
+            navigate={~p"/admin/accounts/#{@account.id}/edit"}
+            class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+            data-testid="account-edit-btn"
+          >
+            <.icon name="hero-pencil-square" class="size-4" /> Edit
+          </.link>
+        </div>
+      </:toolbar>
+
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-sm" data-testid="account-detail">
+          <dl class="space-y-4">
+            <div>
+              <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                Email
+              </dt>
+              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-email">
+                {@account.email}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                Name
+              </dt>
+              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-name">
+                {@account.name || "—"}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                Role
+              </dt>
+              <dd class="mt-1 text-sm text-ds-on-surface" data-testid="account-role">
+                {String.capitalize(to_string(@account.role))}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                Status
+              </dt>
+              <dd class="mt-1" data-testid="account-status">
+                <%= if @account.deactivated_at do %>
+                  <span class="text-ds-error text-sm font-medium">Deactivated</span>
+                <% else %>
+                  <span class="text-ds-primary text-sm font-medium">Active</span>
+                <% end %>
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                Organizations
+              </dt>
+              <dd class="mt-1 flex flex-wrap gap-1" data-testid="account-organizations">
+                <%= if @account.organizations == [] do %>
+                  <span class="text-sm text-ds-on-surface-variant">None</span>
+                <% else %>
+                  <span
+                    :for={org <- @account.organizations}
+                    class="inline-block bg-ds-surface-high rounded-full px-2 py-0.5 text-xs"
+                  >
+                    {org.name}
+                  </span>
+                <% end %>
+              </dd>
+            </div>
+
+            <%= if @account.deactivated_at do %>
+              <div>
+                <dt class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                  Deactivated By
+                </dt>
+                <dd
+                  class="mt-1 text-sm text-ds-on-surface-variant"
+                  data-testid="account-deactivated-by"
+                >
+                  <%= if @account.deactivator do %>
+                    {@account.deactivator.email}
+                  <% else %>
+                    Unknown
+                  <% end %>
+                </dd>
+              </div>
+            <% end %>
+          </dl>
+
+          <div class="mt-6 pt-6 border-t border-ds-outline-variant/20 flex gap-3">
+            <%= if is_nil(@account.deactivated_at) and @account.id != @current_scope.account.id do %>
+              <button
+                phx-click="request_deactivate"
+                class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
+                data-testid="account-deactivate-btn"
+              >
+                Deactivate
+              </button>
+            <% end %>
+
+            <%= if @account.deactivated_at && @account.id != @current_scope.account.id do %>
+              <button
+                phx-click="request_reactivate"
+                class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+                data-testid="account-reactivate-btn"
+              >
+                Reactivate
+              </button>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <%= if @confirm_deactivate do %>
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          data-testid="deactivate-modal"
+        >
+          <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
+            <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
+              Deactivate Account
+            </h3>
+            <p class="text-sm text-ds-on-surface-variant mb-6">
+              Are you sure you want to deactivate <strong>{@account.email}</strong>?
+              They will be immediately logged out and unable to log in.
+            </p>
+            <div class="flex gap-3 justify-end">
+              <button
+                phx-click="cancel_deactivate"
+                class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+                data-testid="deactivate-cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                phx-click="confirm_deactivate"
+                class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
+                data-testid="deactivate-confirm-btn"
+              >
+                Deactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if @confirm_reactivate do %>
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          data-testid="reactivate-modal"
+        >
+          <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
+            <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
+              Reactivate Account
+            </h3>
+            <p class="text-sm text-ds-on-surface-variant mb-6">
+              Are you sure you want to reactivate <strong>{@account.email}</strong>?
+              They will be able to log in again.
+            </p>
+            <div class="flex gap-3 justify-end">
+              <button
+                phx-click="cancel_reactivate"
+                class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+                data-testid="reactivate-cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                phx-click="confirm_reactivate"
+                class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+                data-testid="reactivate-confirm-btn"
+              >
+                Reactivate
+              </button>
+            </div>
+          </div>
+        </div>
+      <% end %>
     </Layouts.app>
     """
   end
