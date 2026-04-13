@@ -14,10 +14,18 @@ Add full internationalization (i18n) support to the Ancestry app with English (e
 
 ## 1. Gettext Configuration & Locale Infrastructure
 
+### Prerequisites
+
+- **Fix `otp_app` in `Web.Gettext`:** Change `otp_app: :family` to `otp_app: :ancestry`. This is a required fix — the current value is wrong and will prevent all translations from loading.
+- **Rename existing locale directory:** Rename `priv/gettext/en/` to `priv/gettext/en-US/` so the existing Ecto error translations continue to work with the new locale code.
+
 ### Gettext config (`config/config.exs`)
 
-- Set `default_locale: "en-US"`, `locales: ~w(en-US es-UY)`
-- Fix `otp_app` in `Web.Gettext` if it doesn't match `:ancestry`
+```elixir
+config :ancestry, Web.Gettext,
+  default_locale: "en-US",
+  locales: ~w(en-US es-UY)
+```
 
 ### Locale plug (`Web.Locale`)
 
@@ -36,11 +44,16 @@ Calls `Gettext.put_locale/1`, stores resolved locale in `conn.assigns.locale` an
 - `es-UY`, `es-*`, bare `es` → `"es-UY"`
 - Anything else → `"en-US"`
 
+### Session preservation on login
+
+`Web.AccountAuth.renew_session/2` calls `clear_session()` on login. The locale stored in session would be lost. Uncomment and use the existing commented-out locale preservation code in `renew_session/2` to carry the locale across the session renewal.
+
 ### LiveView on_mount hook (`Web.SetLocale`)
 
 - On `mount`: reads locale from `socket.assigns.current_scope.account.locale` (logged in) or session `"locale"` (logged out)
+- **Must handle nil:** `current_scope` or `current_scope.account` may be nil in unauthenticated `live_session` blocks (e.g., `:current_account` for the login page). Fall back to session locale or `"en-US"`.
 - Calls `Gettext.put_locale/1`
-- Added to `live_session` blocks in `router.ex`
+- Added to **all five** `live_session` blocks in `router.ex`: `:default`, `:admin`, `:organization`, `:require_authenticated_account`, `:current_account`
 
 ## 2. Account Schema & Database Changes
 
@@ -54,12 +67,22 @@ Calls `Gettext.put_locale/1`, stores resolved locale in `conn.assigns.locale` an
 - Add `field :locale, :string, default: "en-US"`
 - Validate inclusion in `~w(en-US es-UY)` in changeset
 
+### Changesets
+
+- **`admin_changeset/3`:** Add `:locale` to the cast list (currently casts `[:email, :name, :role, :password]`). This enables admin creation and editing of accounts with locale.
+- **New `locale_changeset/2`:** For self-service locale updates in account settings. Casts and validates `:locale` only.
+
+### Identity context functions
+
+- **`change_account_locale/2`:** Returns a locale changeset for form rendering.
+- **`update_account_locale/2`:** Persists the locale change. Follows the same pattern as `update_account_email/3` and `update_account_password/3`.
+
 ### Where locale is set
 
 - **Account creation** (admin `new.ex`): locale select field, defaults to `"en-US"`
 - **Account settings** (`settings.ex`): new Language section to change preference
 - **Admin account edit** (`edit.ex`): locale select alongside name, email, role
-- **Registration** (`registration.ex`): locale select (for when registration is re-enabled)
+- **Registration** (`registration.ex`): only wrap existing strings in `gettext()` — skip adding locale select since the route is disabled
 
 ## 3. Text Extraction & Translation
 
@@ -114,15 +137,17 @@ Add `Web.Locale` plug after auth plugs — ensures locale is set for every reque
 
 ### Locale change in settings
 
-1. Save locale to account in DB
+1. Save locale to account in DB via `Identity.update_account_locale/2`
 2. Call `Gettext.put_locale/1` in the LiveView process
-3. Put updated locale in session
-4. Page re-renders in new language immediately
+3. Page re-renders in new language immediately
+
+**Note:** LiveView processes cannot update the Plug session directly (`put_session` is not available). The DB is the source of truth for logged-in users. On the next full page load, the `Web.Locale` plug reads the account's persisted locale from the DB and sets the session. No forced redirect is needed — the LiveView re-renders immediately via `Gettext.put_locale/1`, and the session catches up on the next HTTP request.
 
 ### Email notifications
 
 - `AccountNotifier` reads recipient account's `locale` field
 - Wraps email body in `Gettext.with_locale(account.locale, fn -> ... end)`
+- Falls back to `"en-US"` if `account.locale` is nil (e.g., when account struct comes from `apply_action!` on a changeset that didn't include locale)
 
 ## 5. UI for Language Selection
 
@@ -130,19 +155,16 @@ Add `Web.Locale` plug after auth plugs — ensures locale is set for every reque
 
 - New "Language" section alongside Email and Password
 - Select dropdown: "English" / "Español" (each in its own language)
-- On change: updates account, sets locale, re-renders immediately
+- Follows existing pattern: separate form with `locale_changeset`, validate event, submit event
+- On change: updates account via `Identity.update_account_locale/2`, calls `Gettext.put_locale/1`, re-renders
 
 ### Admin account creation (`new.ex`)
 
-- Locale select field, defaults to `"en-US"`
+- Locale select field added to form, defaults to `"en-US"` (uses `admin_changeset`)
 
 ### Admin account edit (`edit.ex`)
 
-- Locale select alongside name, email, role
-
-### Registration (`registration.ex`)
-
-- Locale select field (ready for when registration is re-enabled)
+- Locale select alongside name, email, role (uses `admin_changeset`)
 
 ### Language labels
 
@@ -157,8 +179,9 @@ Add `Web.Locale` plug after auth plugs — ensures locale is set for every reque
 
 ### Unit tests
 
-- Account changeset validates `locale` inclusion in `~w(en-US es-UY)`
-- Identity context functions accept and persist locale
+- `locale_changeset` validates inclusion in `~w(en-US es-UY)`
+- `admin_changeset` casts and validates locale
+- `Identity.update_account_locale/2` persists locale
 
 ### E2E tests (`test/user_flows/`)
 
@@ -172,3 +195,5 @@ Add `Web.Locale` plug after auth plugs — ensures locale is set for every reque
 
 - `Web.Locale` plug priority: account → session → Accept-Language → default
 - `Web.SetLocale` on_mount hook sets locale correctly for LiveViews
+- `Web.SetLocale` handles nil `current_scope.account` without crashing (login page)
+- `renew_session/2` preserves locale across login
