@@ -53,7 +53,9 @@ defmodule Web.Layouts do
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
-            <span class="text-sm font-ds-body font-semibold text-ds-on-surface">Ancestry</span>
+            <span class="text-sm font-ds-body font-semibold text-ds-on-surface">
+              {gettext("Ancestry")}
+            </span>
           </a>
         </div>
         <div class="flex-none">
@@ -70,13 +72,13 @@ defmodule Web.Layouts do
                 </li>
               <% else %>
                 <li>
-                  <.link href={~p"/org"}>Organizations</.link>
+                  <.link href={~p"/org"}>{gettext("Organizations")}</.link>
                 </li>
               <% end %>
               <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
                 <li>
                   <.link href={~p"/admin/accounts"} class="hover:text-ds-on-surface transition-colors">
-                    Accounts
+                    {gettext("Accounts")}
                   </.link>
                 </li>
               <% end %>
@@ -87,7 +89,7 @@ defmodule Web.Layouts do
                   href={~p"/accounts/settings"}
                   class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  Settings
+                  {gettext("Settings")}
                 </.link>
               </li>
               <li>
@@ -96,7 +98,7 @@ defmodule Web.Layouts do
                   method="delete"
                   class="p-2 hover:text-ds-on-surface transition-colors"
                 >
-                  Log out
+                  {gettext("Log out")}
                 </.link>
               </li>
             <% end %>

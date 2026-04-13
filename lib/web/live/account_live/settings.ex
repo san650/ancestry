@@ -10,14 +10,18 @@ defmodule Web.AccountLive.Settings do
       <div class="flex items-start justify-center min-h-[70vh] px-4 pt-12">
         <div class="w-full max-w-md space-y-8">
           <div class="text-center">
-            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">Account Settings</h1>
+            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">
+              {gettext("Account Settings")}
+            </h1>
             <p class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
-              Manage your account email address and password settings
+              {gettext("Manage your account email address and password settings")}
             </p>
           </div>
 
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-ds-ambient">
-            <h2 class="font-ds-heading text-lg font-bold text-ds-on-surface mb-4">Email</h2>
+            <h2 class="font-ds-heading text-lg font-bold text-ds-on-surface mb-4">
+              {gettext("Email")}
+            </h2>
             <.form
               for={@email_form}
               id="email_form"
@@ -27,23 +31,25 @@ defmodule Web.AccountLive.Settings do
               <.input
                 field={@email_form[:email]}
                 type="email"
-                label="Email"
+                label={gettext("Email")}
                 autocomplete="username"
                 spellcheck="false"
                 required
               />
               <button
                 type="submit"
-                phx-disable-with="Changing..."
+                phx-disable-with={gettext("Changing...")}
                 class="mt-4 px-6 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
               >
-                Change Email
+                {gettext("Change Email")}
               </button>
             </.form>
           </div>
 
           <div class="bg-ds-surface-card rounded-ds-sharp p-6 shadow-ds-ambient">
-            <h2 class="font-ds-heading text-lg font-bold text-ds-on-surface mb-4">Password</h2>
+            <h2 class="font-ds-heading text-lg font-bold text-ds-on-surface mb-4">
+              {gettext("Password")}
+            </h2>
             <.form
               for={@password_form}
               id="password_form"
@@ -63,7 +69,7 @@ defmodule Web.AccountLive.Settings do
               <.input
                 field={@password_form[:password]}
                 type="password"
-                label="New password"
+                label={gettext("New password")}
                 autocomplete="new-password"
                 spellcheck="false"
                 required
@@ -71,16 +77,16 @@ defmodule Web.AccountLive.Settings do
               <.input
                 field={@password_form[:password_confirmation]}
                 type="password"
-                label="Confirm new password"
+                label={gettext("Confirm new password")}
                 autocomplete="new-password"
                 spellcheck="false"
               />
               <button
                 type="submit"
-                phx-disable-with="Saving..."
+                phx-disable-with={gettext("Saving...")}
                 class="mt-4 px-6 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
               >
-                Save Password
+                {gettext("Save Password")}
               </button>
             </.form>
           </div>
@@ -121,10 +127,10 @@ defmodule Web.AccountLive.Settings do
     socket =
       case Identity.update_account_email(socket.assigns.current_scope.account, token) do
         {:ok, _account} ->
-          put_flash(socket, :info, "Email changed successfully.")
+          put_flash(socket, :info, gettext("Email changed successfully."))
 
         {:error, _} ->
-          put_flash(socket, :error, "Email change link is invalid or it has expired.")
+          put_flash(socket, :error, gettext("Email change link is invalid or it has expired."))
       end
 
     {:ok, push_navigate(socket, to: ~p"/accounts/settings")}
@@ -171,7 +177,7 @@ defmodule Web.AccountLive.Settings do
           &url(~p"/accounts/settings/confirm-email/#{&1}")
         )
 
-        info = "A link to confirm your email change has been sent to the new address."
+        info = gettext("A link to confirm your email change has been sent to the new address.")
         {:noreply, socket |> put_flash(:info, info)}
 
       changeset ->

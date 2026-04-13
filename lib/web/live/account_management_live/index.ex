@@ -13,7 +13,7 @@ defmodule Web.AccountManagementLive.Index do
   def handle_unauthorized(_action, socket) do
     {:halt,
      socket
-     |> put_flash(:error, "You don't have permission to access this page")
+     |> put_flash(:error, gettext("You don't have permission to access this page"))
      |> push_navigate(to: ~p"/org")}
   end
 
@@ -23,7 +23,7 @@ defmodule Web.AccountManagementLive.Index do
 
     {:ok,
      socket
-     |> assign(:page_title, "Accounts")
+     |> assign(:page_title, gettext("Accounts"))
      |> assign(:accounts, accounts)}
   end
 
@@ -38,19 +38,21 @@ defmodule Web.AccountManagementLive.Index do
               type="button"
               phx-click={toggle_nav_drawer()}
               class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-              aria-label="Open menu"
+              aria-label={gettext("Open menu")}
               {test_id("hamburger-menu")}
             >
               <.icon name="hero-bars-3" class="size-5" />
             </button>
-            <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">Accounts</h1>
+            <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+              {gettext("Accounts")}
+            </h1>
           </div>
           <.link
             navigate={~p"/admin/accounts/new"}
             class="hidden lg:inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
             {test_id("account-new-btn")}
           >
-            <.icon name="hero-plus" class="size-4" /> New Account
+            <.icon name="hero-plus" class="size-4" /> {gettext("New Account")}
           </.link>
         </div>
       </:toolbar>
@@ -62,7 +64,7 @@ defmodule Web.AccountManagementLive.Index do
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">Organizations</span>
+          <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
         </.link>
         <.link
           href={~p"/admin/accounts"}
@@ -70,7 +72,7 @@ defmodule Web.AccountManagementLive.Index do
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">Accounts</span>
+          <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
         </.link>
       </.nav_drawer>
 
@@ -82,7 +84,7 @@ defmodule Web.AccountManagementLive.Index do
             class="inline-flex items-center gap-2 rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors mb-2"
             {test_id("account-new-btn-mobile")}
           >
-            <.icon name="hero-plus" class="size-4" /> New Account
+            <.icon name="hero-plus" class="size-4" /> {gettext("New Account")}
           </.link>
 
           <.link
@@ -112,14 +114,14 @@ defmodule Web.AccountManagementLive.Index do
                     class="text-ds-error text-xs font-medium"
                     {test_id("account-status-#{account.id}")}
                   >
-                    Deactivated
+                    {gettext("Deactivated")}
                   </span>
                 <% else %>
                   <span
                     class="text-ds-primary text-xs font-medium"
                     {test_id("account-status-#{account.id}")}
                   >
-                    Active
+                    {gettext("Active")}
                   </span>
                 <% end %>
               </div>
@@ -140,11 +142,11 @@ defmodule Web.AccountManagementLive.Index do
           <table class="w-full text-sm">
             <thead>
               <tr class="border-b border-ds-outline-variant/20 text-left text-ds-on-surface-variant">
-                <th class="pb-3 pr-4 font-medium">Name</th>
-                <th class="pb-3 pr-4 font-medium">Email</th>
-                <th class="pb-3 pr-4 font-medium">Role</th>
-                <th class="pb-3 pr-4 font-medium">Organizations</th>
-                <th class="pb-3 pr-4 font-medium">Status</th>
+                <th class="pb-3 pr-4 font-medium">{gettext("Name")}</th>
+                <th class="pb-3 pr-4 font-medium">{gettext("Email")}</th>
+                <th class="pb-3 pr-4 font-medium">{gettext("Role")}</th>
+                <th class="pb-3 pr-4 font-medium">{gettext("Organizations")}</th>
+                <th class="pb-3 pr-4 font-medium">{gettext("Status")}</th>
                 <th class="pb-3 font-medium"></th>
               </tr>
             </thead>
@@ -174,14 +176,14 @@ defmodule Web.AccountManagementLive.Index do
                       class="text-ds-error text-xs font-medium"
                       {test_id("account-status-#{account.id}")}
                     >
-                      Deactivated
+                      {gettext("Deactivated")}
                     </span>
                   <% else %>
                     <span
                       class="text-ds-primary text-xs font-medium"
                       {test_id("account-status-#{account.id}")}
                     >
-                      Active
+                      {gettext("Active")}
                     </span>
                   <% end %>
                 </td>
@@ -190,13 +192,13 @@ defmodule Web.AccountManagementLive.Index do
                     navigate={~p"/admin/accounts/#{account.id}"}
                     class="text-ds-primary hover:underline text-xs mr-2"
                   >
-                    View
+                    {gettext("View")}
                   </.link>
                   <.link
                     navigate={~p"/admin/accounts/#{account.id}/edit"}
                     class="text-ds-primary hover:underline text-xs"
                   >
-                    Edit
+                    {gettext("Edit")}
                   </.link>
                 </td>
               </tr>

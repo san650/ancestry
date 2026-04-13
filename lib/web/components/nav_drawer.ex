@@ -5,6 +5,7 @@ defmodule Web.Components.NavDrawer do
   On desktop (lg:), the drawer is hidden — header bar and toolbar buttons remain.
   """
   use Phoenix.Component
+  use Gettext, backend: Web.Gettext
 
   import Web.CoreComponents, only: [icon: 1]
   import Ancestry.Authorization, only: [can?: 3]
@@ -38,7 +39,7 @@ defmodule Web.Components.NavDrawer do
         "lg:hidden",
         "-translate-x-full"
       ]}
-      aria-label="Navigation"
+      aria-label={gettext("Navigation")}
       phx-window-keydown={toggle_nav_drawer(@id)}
       phx-key="Escape"
     >
@@ -46,13 +47,13 @@ defmodule Web.Components.NavDrawer do
       <div class="flex items-center justify-between p-4 border-b border-ds-outline-variant/20">
         <a href="/" class="flex items-center gap-2">
           <img src="/images/logo.png" width="32" class="rounded-ds-sharp" />
-          <span class="font-ds-heading font-bold text-ds-on-surface">Ancestry</span>
+          <span class="font-ds-heading font-bold text-ds-on-surface">{gettext("Ancestry")}</span>
         </a>
         <button
           type="button"
           phx-click={toggle_nav_drawer(@id)}
           class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-high min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Close menu"
+          aria-label={gettext("Close menu")}
         >
           <.icon name="hero-x-mark" class="size-5" />
         </button>
@@ -62,7 +63,7 @@ defmodule Web.Components.NavDrawer do
       <%= if @page_actions != [] do %>
         <div class="px-4 pt-4 pb-2">
           <p class="text-[10px] font-semibold uppercase tracking-wider text-ds-on-surface-variant px-2 pb-2">
-            Page Actions
+            {gettext("Page Actions")}
           </p>
           {render_slot(@page_actions)}
         </div>
@@ -81,7 +82,7 @@ defmodule Web.Components.NavDrawer do
       <%= if @current_scope && @current_scope.account do %>
         <div class="px-4 pt-4 pb-2">
           <p class="text-[10px] font-semibold uppercase tracking-wider text-ds-on-surface-variant px-2 pb-2">
-            Organizations
+            {gettext("Organizations")}
           </p>
           {render_slot(@inner_block)}
         </div>
@@ -94,7 +95,7 @@ defmodule Web.Components.NavDrawer do
             class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
           >
             <.icon name="hero-cog-6-tooth" class="size-5 shrink-0 text-ds-on-surface-variant" />
-            <span class="font-ds-body text-sm">Settings</span>
+            <span class="font-ds-body text-sm">{gettext("Settings")}</span>
           </.link>
           <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
             <.link
@@ -102,7 +103,7 @@ defmodule Web.Components.NavDrawer do
               class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
             >
               <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-              <span class="font-ds-body text-sm">Accounts</span>
+              <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
             </.link>
           <% end %>
           <.link
@@ -114,7 +115,7 @@ defmodule Web.Components.NavDrawer do
               name="hero-arrow-right-start-on-rectangle"
               class="size-5 shrink-0 text-ds-on-surface-variant"
             />
-            <span class="font-ds-body text-sm">Log out</span>
+            <span class="font-ds-body text-sm">{gettext("Log out")}</span>
           </.link>
         </div>
       <% end %>
