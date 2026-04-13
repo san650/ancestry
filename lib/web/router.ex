@@ -11,6 +11,7 @@ defmodule Web.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_account
+    plug Web.Plugs.Locale
   end
 
   pipeline :api do
@@ -36,7 +37,9 @@ defmodule Web.Router do
     pipe_through [:browser, :require_authenticated_account]
 
     live_session :default,
-      on_mount: @sandbox_hooks ++ [{Web.AccountAuth, :require_authenticated}] do
+      on_mount:
+        @sandbox_hooks ++
+          [{Web.AccountAuth, :require_authenticated}, {Web.SetLocale, :default}] do
       live "/org", OrganizationLive.Index, :index
     end
 
@@ -45,6 +48,7 @@ defmodule Web.Router do
         @sandbox_hooks ++
           [
             {Web.AccountAuth, :require_authenticated},
+            {Web.SetLocale, :default},
             Permit.Phoenix.LiveView.AuthorizeHook
           ] do
       live "/admin/accounts", AccountManagementLive.Index, :index
@@ -57,7 +61,11 @@ defmodule Web.Router do
       live_session :organization,
         on_mount:
           @sandbox_hooks ++
-            [{Web.AccountAuth, :require_authenticated}, Web.EnsureOrganization] do
+            [
+              {Web.AccountAuth, :require_authenticated},
+              {Web.SetLocale, :default},
+              Web.EnsureOrganization
+            ] do
         live "/", FamilyLive.Index, :index
         live "/families/new", FamilyLive.New, :new
         live "/families/:family_id", FamilyLive.Show, :show
@@ -105,7 +113,7 @@ defmodule Web.Router do
     pipe_through [:browser, :require_authenticated_account]
 
     live_session :require_authenticated_account,
-      on_mount: [{Web.AccountAuth, :require_authenticated}] do
+      on_mount: [{Web.AccountAuth, :require_authenticated}, {Web.SetLocale, :default}] do
       live "/accounts/settings", AccountLive.Settings, :edit
       live "/accounts/settings/confirm-email/:token", AccountLive.Settings, :confirm_email
     end
@@ -117,7 +125,7 @@ defmodule Web.Router do
     pipe_through [:browser]
 
     live_session :current_account,
-      on_mount: [{Web.AccountAuth, :mount_current_scope}] do
+      on_mount: [{Web.AccountAuth, :mount_current_scope}, {Web.SetLocale, :default}] do
       # Registration temporarily disabled — uncomment when ready
       # live "/accounts/register", AccountLive.Registration, :new
       live "/accounts/log-in", AccountLive.Login, :new
