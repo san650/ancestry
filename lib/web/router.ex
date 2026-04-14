@@ -113,7 +113,9 @@ defmodule Web.Router do
     pipe_through [:browser, :require_authenticated_account]
 
     live_session :require_authenticated_account,
-      on_mount: [{Web.AccountAuth, :require_authenticated}, {Web.SetLocale, :default}] do
+      on_mount:
+        @sandbox_hooks ++
+          [{Web.AccountAuth, :require_authenticated}, {Web.SetLocale, :default}] do
       live "/accounts/settings", AccountLive.Settings, :edit
       live "/accounts/settings/confirm-email/:token", AccountLive.Settings, :confirm_email
     end
