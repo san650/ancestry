@@ -7,7 +7,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -19,7 +19,7 @@
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          New Family
+          {gettext("New Family")}
         </h1>
       </div>
     </div>
@@ -32,7 +32,7 @@
       class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
     >
       <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">Organizations</span>
+      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -40,7 +40,7 @@
   <.link
     navigate={~p"/org/#{@current_scope.organization.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
-    aria-label="Back"
+    aria-label={gettext("Back")}
   >
     <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
   </.link>
@@ -56,14 +56,15 @@
     >
       <.input
         field={@form[:name]}
-        label="Family name"
-        placeholder="e.g. The Smiths"
+        label={gettext("Family name")}
+        placeholder={gettext("e.g. The Smiths")}
         autofocus
       />
 
       <div class="mt-6">
         <label class="block text-sm font-ds-body font-medium text-ds-on-surface mb-2">
-          Cover photo <span class="text-ds-on-surface-variant">(optional)</span>
+          {gettext("Cover photo")}
+          <span class="text-ds-on-surface-variant">({gettext("optional")})</span>
         </label>
         <.live_file_input
           upload={@uploads.cover}
@@ -108,13 +109,13 @@
           class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
           {test_id("family-create-btn")}
         >
-          Create
+          {gettext("Create")}
         </button>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}"}
           class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors text-center"
         >
-          Cancel
+          {gettext("Cancel")}
         </.link>
       </div>
     </.form>

@@ -10,18 +10,18 @@ defmodule Web.Shared.PersonFormComponent do
 
   defp month_options do
     [
-      {"Jan", "1"},
-      {"Feb", "2"},
-      {"Mar", "3"},
-      {"Apr", "4"},
-      {"May", "5"},
-      {"Jun", "6"},
-      {"Jul", "7"},
-      {"Aug", "8"},
-      {"Sep", "9"},
-      {"Oct", "10"},
-      {"Nov", "11"},
-      {"Dec", "12"}
+      {gettext("Jan"), "1"},
+      {gettext("Feb"), "2"},
+      {gettext("Mar"), "3"},
+      {gettext("Apr"), "4"},
+      {gettext("May"), "5"},
+      {gettext("Jun"), "6"},
+      {gettext("Jul"), "7"},
+      {gettext("Aug"), "8"},
+      {gettext("Sep"), "9"},
+      {gettext("Oct"), "10"},
+      {gettext("Nov"), "11"},
+      {gettext("Dec"), "12"}
     ]
   end
 
@@ -29,8 +29,8 @@ defmodule Web.Shared.PersonFormComponent do
     Enum.map(1..31, fn d -> {to_string(d), to_string(d)} end)
   end
 
-  defp upload_error_to_string(:too_large), do: "File too large (max 20MB)"
-  defp upload_error_to_string(:not_accepted), do: "File type not supported"
-  defp upload_error_to_string(:too_many_files), do: "Too many files (max 1)"
-  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
+  defp upload_error_to_string(:too_large), do: gettext("File too large (max 20MB)")
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not supported")
+  defp upload_error_to_string(:too_many_files), do: gettext("Too many files (max 1)")
+  defp upload_error_to_string(err), do: gettext("Upload error: %{error}", error: inspect(err))
 end

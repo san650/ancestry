@@ -7,7 +7,7 @@
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
           }
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Back to vault"
+          aria-label={gettext("Back to vault")}
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
@@ -25,7 +25,7 @@
         class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
         {test_id("memory-edit-btn")}
       >
-        <.icon name="hero-pencil" class="size-4" /> Edit
+        <.icon name="hero-pencil" class="size-4" /> {gettext("Edit")}
       </.link>
     </div>
   </:toolbar>

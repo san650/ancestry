@@ -225,7 +225,7 @@ defmodule Web.Shared.AddRelationshipComponent do
         <% :choose -> %>
           <div class="space-y-3">
             <p class="text-sm text-ds-on-surface-variant">
-              Add a relationship by linking an existing person or creating a new one.
+              {gettext("Add a relationship by linking an existing person or creating a new one.")}
             </p>
             <button
               id="add-rel-link-existing-btn"
@@ -237,10 +237,10 @@ defmodule Web.Shared.AddRelationshipComponent do
               <.icon name="hero-magnifying-glass" class="w-5 h-5 text-ds-primary shrink-0" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
-                  Link existing person
+                  {gettext("Link existing person")}
                 </p>
                 <p class="text-xs text-ds-on-surface-variant">
-                  Search for someone already in this organization.
+                  {gettext("Search for someone already in this organization.")}
                 </p>
               </div>
             </button>
@@ -254,10 +254,10 @@ defmodule Web.Shared.AddRelationshipComponent do
               <.icon name="hero-plus" class="w-5 h-5 text-ds-primary shrink-0" />
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
-                  Create new person
+                  {gettext("Create new person")}
                 </p>
                 <p class="text-xs text-ds-on-surface-variant">
-                  Add someone who isn't in the system yet.
+                  {gettext("Add someone who isn't in the system yet.")}
                 </p>
               </div>
             </button>
@@ -271,15 +271,15 @@ defmodule Web.Shared.AddRelationshipComponent do
               phx-target={@myself}
               class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-3 transition-colors"
             >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> Back
+              <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
             </button>
             <p class="text-sm text-ds-on-surface-variant">
-              Search for a person to add as a relationship.
+              {gettext("Search for a person to add as a relationship.")}
             </p>
             <input
               id="relationship-search-input"
               type="text"
-              placeholder="Type a name to search..."
+              placeholder={gettext("Type a name to search...")}
               value={@search_query}
               phx-keyup="search_members"
               phx-target={@myself}
@@ -319,7 +319,7 @@ defmodule Web.Shared.AddRelationshipComponent do
             <% else %>
               <%= if String.length(@search_query) >= 2 do %>
                 <p class="text-sm text-ds-on-surface-variant text-center py-4">
-                  No results found
+                  {gettext("No results found")}
                 </p>
               <% end %>
             <% end %>
@@ -332,11 +332,11 @@ defmodule Web.Shared.AddRelationshipComponent do
               phx-target={@myself}
               class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-4 transition-colors"
             >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> Back
+              <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
             </button>
 
             <p class="text-sm text-ds-on-surface-variant mb-4">
-              Create a new person to add as a relationship.
+              {gettext("Create a new person to add as a relationship.")}
             </p>
 
             <.form
@@ -347,13 +347,13 @@ defmodule Web.Shared.AddRelationshipComponent do
               phx-submit="save_person"
             >
               <div class="space-y-4">
-                <.input field={@person_form[:given_name]} label="Given name" />
-                <.input field={@person_form[:surname]} label="Surname" />
+                <.input field={@person_form[:given_name]} label={gettext("Given name")} />
+                <.input field={@person_form[:surname]} label={gettext("Surname")} />
                 <button
                   type="submit"
                   class="w-full bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
                 >
-                  Create &amp; Continue
+                  {gettext("Create & Continue")}
                 </button>
               </div>
             </.form>
@@ -376,8 +376,8 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <.input
                       field={@relationship_form[:role]}
                       type="select"
-                      label="Role"
-                      options={[{"Father", "father"}, {"Mother", "mother"}]}
+                      label={gettext("Role")}
+                      options={[{gettext("Father"), "father"}, {gettext("Mother"), "mother"}]}
                     />
                     <button
                       type="submit"
@@ -399,45 +399,45 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <.input
                       field={@relationship_form[:partner_subtype]}
                       type="select"
-                      label="Status"
+                      label={gettext("Status")}
                       options={[
-                        {"In a relationship", "relationship"},
-                        {"Married", "married"},
-                        {"Divorced", "divorced"},
-                        {"Separated", "separated"}
+                        {gettext("In a relationship"), "relationship"},
+                        {gettext("Married"), "married"},
+                        {gettext("Divorced"), "divorced"},
+                        {gettext("Separated"), "separated"}
                       ]}
                     />
                     <% subtype =
                       Phoenix.HTML.Form.input_value(@relationship_form, :partner_subtype) %>
                     <%= if subtype in ~w(married divorced separated) do %>
                       <p class="text-sm font-ds-body font-medium text-ds-on-surface-variant">
-                        Marriage Details (optional)
+                        {gettext("Marriage Details (optional)")}
                       </p>
                       <div class="grid grid-cols-3 gap-3">
                         <.input
                           field={@relationship_form[:marriage_day]}
                           type="number"
-                          placeholder="Day"
-                          label="Day"
+                          placeholder={gettext("Day")}
+                          label={gettext("Day")}
                         />
                         <.input
                           field={@relationship_form[:marriage_month]}
                           type="number"
-                          placeholder="Month"
-                          label="Month"
+                          placeholder={gettext("Month")}
+                          label={gettext("Month")}
                         />
                         <.input
                           field={@relationship_form[:marriage_year]}
                           type="number"
-                          placeholder="Year"
-                          label="Year"
+                          placeholder={gettext("Year")}
+                          label={gettext("Year")}
                         />
                       </div>
                       <.input
                         field={@relationship_form[:marriage_location]}
                         type="text"
-                        label="Location"
-                        placeholder="e.g. London, UK"
+                        label={gettext("Location")}
+                        placeholder={gettext("e.g. London, UK")}
                       />
                     <% end %>
                     <button
@@ -464,14 +464,16 @@ defmodule Web.Shared.AddRelationshipComponent do
                   </button>
                 </.form>
               <% true -> %>
-                <p class="text-sm text-ds-on-surface-variant">Unknown relationship type.</p>
+                <p class="text-sm text-ds-on-surface-variant">
+                  {gettext("Unknown relationship type.")}
+                </p>
             <% end %>
 
             <button
               phx-click="cancel_add_relationship"
               class="w-full bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
       <% end %>
@@ -596,17 +598,18 @@ defmodule Web.Shared.AddRelationshipComponent do
     end)
   end
 
-  defp relationship_title("parent"), do: "Add Parent"
-  defp relationship_title("partner"), do: "Add Partner"
-  defp relationship_title("child"), do: "Add Child"
-  defp relationship_title("child_solo"), do: "Add Child (Unknown Other Parent)"
-  defp relationship_title(_), do: "Add Relationship"
+  defp relationship_title("parent"), do: gettext("Add Parent")
+  defp relationship_title("partner"), do: gettext("Add Partner")
+  defp relationship_title("child"), do: gettext("Add Child")
+  defp relationship_title("child_solo"), do: gettext("Add Child (Unknown Other Parent)")
+  defp relationship_title(_), do: gettext("Add Relationship")
 
-  defp relationship_error_message(:max_parents_reached), do: "This person already has 2 parents"
+  defp relationship_error_message(:max_parents_reached),
+    do: gettext("This person already has 2 parents")
 
   defp relationship_error_message(:partner_relationship_exists),
-    do: "A partner relationship already exists between these two people"
+    do: gettext("A partner relationship already exists between these two people")
 
-  defp relationship_error_message(%Ecto.Changeset{}), do: "Invalid relationship data"
-  defp relationship_error_message(_), do: "Failed to create relationship"
+  defp relationship_error_message(%Ecto.Changeset{}), do: gettext("Invalid relationship data")
+  defp relationship_error_message(_), do: gettext("Failed to create relationship")
 end

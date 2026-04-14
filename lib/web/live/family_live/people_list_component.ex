@@ -12,14 +12,14 @@ defmodule Web.FamilyLive.PeopleListComponent do
     <div id={@id}>
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm font-ds-body font-semibold text-ds-on-surface-variant uppercase tracking-wider">
-          People
+          {gettext("People")}
         </h3>
         <div class="flex items-center gap-1">
           <button
             id={"#{@id}-link-btn"}
             phx-click="open_search"
             class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
-            title="Link existing person"
+            title={gettext("Link existing person")}
             {test_id("person-link-btn")}
           >
             <.icon name="hero-magnifying-glass" class="w-4 h-4" />
@@ -28,7 +28,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             id={"#{@id}-add-btn"}
             navigate={~p"/org/#{@organization.id}/families/#{@family_id}/members/new"}
             class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
-            title="New member"
+            title={gettext("New member")}
             {test_id("person-add-btn")}
           >
             <.icon name="hero-plus" class="w-4 h-4" />
@@ -40,7 +40,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
         <input
           id={"#{@id}-filter"}
           type="text"
-          placeholder="Filter people..."
+          placeholder={gettext("Filter people...")}
           class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm"
           phx-hook="FuzzyFilter"
           data-target={"#{@id}-items"}
@@ -54,7 +54,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
         {test_id("person-list")}
       >
         <%= if @people == [] do %>
-          <p class="text-sm text-ds-on-surface-variant py-2">No members yet.</p>
+          <p class="text-sm text-ds-on-surface-variant py-2">{gettext("No members yet.")}</p>
         <% end %>
         <%= for person <- @people do %>
           <div
@@ -96,7 +96,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             <.link
               navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family_id}"}
               class="p-1 rounded text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-              title="View details"
+              title={gettext("View details")}
             >
               <.icon name="hero-arrow-top-right-on-square-mini" class="w-3.5 h-3.5" />
             </.link>

@@ -262,7 +262,7 @@ defmodule Web.KinshipLive do
           <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center bg-base-200">
             <.icon name="hero-user-plus" class="w-5 h-5" />
           </div>
-          <span class="font-medium">Select a person...</span>
+          <span class="font-medium">{gettext("Select a person...")}</span>
         </button>
       <% end %>
 
@@ -276,7 +276,7 @@ defmodule Web.KinshipLive do
               id={"kinship-person-#{@side}-search-input"}
               type="text"
               value={@search}
-              placeholder="Search..."
+              placeholder={gettext("Search...")}
               phx-keyup={"filter_#{@side}"}
               phx-debounce="200"
               phx-mounted={JS.focus()}
@@ -286,7 +286,9 @@ defmodule Web.KinshipLive do
           </div>
           <div class="max-h-56 overflow-y-auto px-1 pb-1">
             <%= if @filtered == [] do %>
-              <p class="text-sm text-base-content/40 text-center py-4">No people found</p>
+              <p class="text-sm text-base-content/40 text-center py-4">
+                {gettext("No people found")}
+              </p>
             <% else %>
               <%= for person <- @filtered do %>
                 <button

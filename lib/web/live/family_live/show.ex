@@ -444,13 +444,14 @@ defmodule Web.FamilyLive.Show do
           {:ok, Ancestry.Import.import_csv_for_family(:family_echo, family, path)}
         rescue
           e in [NimbleCSV.ParseError] ->
-            {:ok, {:error, "Could not parse CSV file: #{Exception.message(e)}"}}
+            {:ok,
+             {:error, gettext("Could not parse CSV file: %{error}", error: Exception.message(e))}}
 
           _e in [MatchError] ->
-            {:ok, {:error, "CSV file is empty or has no data rows"}}
+            {:ok, {:error, gettext("CSV file is empty or has no data rows")}}
 
           _ ->
-            {:ok, {:error, "Could not parse CSV file"}}
+            {:ok, {:error, gettext("Could not parse CSV file")}}
         end
       end)
 
@@ -526,7 +527,7 @@ defmodule Web.FamilyLive.Show do
       {:error, _reason} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to create subfamily")
+         |> put_flash(:error, gettext("Failed to create subfamily"))
          |> assign(:show_create_subfamily_modal, false)}
     end
   end
@@ -586,7 +587,7 @@ defmodule Web.FamilyLive.Show do
      |> assign(:focus_person, focus_person)
      |> assign(:tree, tree)
      |> assign(:adding_relationship, nil)
-     |> put_flash(:info, "Relationship added")}
+     |> put_flash(:info, gettext("Relationship added"))}
   end
 
   def handle_info({:relationship_error, message}, socket) do
@@ -616,10 +617,10 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
-  defp upload_error_to_string(:too_large), do: "File is too large (max 10MB)"
-  defp upload_error_to_string(:not_accepted), do: "Only .csv files are accepted"
-  defp upload_error_to_string(:too_many_files), do: "Only one file can be uploaded"
-  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
+  defp upload_error_to_string(:too_large), do: gettext("File is too large (max 10MB)")
+  defp upload_error_to_string(:not_accepted), do: gettext("Only .csv files are accepted")
+  defp upload_error_to_string(:too_many_files), do: gettext("Only one file can be uploaded")
+  defp upload_error_to_string(err), do: gettext("Upload error: %{error}", error: inspect(err))
 
   defp filtered_people(people, filter) do
     if String.trim(filter) == "" do

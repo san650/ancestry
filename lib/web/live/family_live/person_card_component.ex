@@ -72,7 +72,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           <% end %>
         </p>
         <%= if @has_more do %>
-          <div class="mt-1 text-ds-on-surface-variant/50" title="Has more descendants">
+          <div class="mt-1 text-ds-on-surface-variant/50" title={gettext("Has more descendants")}>
             <.icon name="hero-chevron-down" class="w-3 h-3" />
           </div>
         <% end %>
@@ -285,7 +285,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 />
                 <div
                   class="flex flex-col items-center mt-1 text-ds-on-surface-variant/50"
-                  title="Has more descendants"
+                  title={gettext("Has more descendants")}
                 >
                   <.vline height={8} />
                   <.icon name="hero-ellipsis-horizontal" class="w-4 h-4" />
@@ -392,9 +392,9 @@ defmodule Web.FamilyLive.PersonCardComponent do
     end
   end
 
-  defp placeholder_label(:parent), do: "Add Parent"
-  defp placeholder_label(:partner), do: "Add Partner"
-  defp placeholder_label(:child), do: "Add Child"
+  defp placeholder_label(:parent), do: gettext("Add Parent")
+  defp placeholder_label(:partner), do: gettext("Add Partner")
+  defp placeholder_label(:child), do: gettext("Add Child")
 
   defp child_person_id(%{person: person}), do: person.id
   defp child_person_id(%{focus: person}), do: person.id

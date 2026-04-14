@@ -54,7 +54,7 @@ defmodule Web.OrganizationLive.Index do
          |> stream_insert(:organizations, organization)
          |> assign(:show_create_modal, false)
          |> assign(:form, to_form(Organizations.change_organization(%Organization{})))
-         |> put_flash(:info, "Organization created")}
+         |> put_flash(:info, gettext("Organization created"))}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -138,17 +138,22 @@ defmodule Web.OrganizationLive.Index do
   end
 
   defp put_flash_for_results(socket, ok_count, 0) do
-    put_flash(socket, :info, "Deleted #{pluralize(ok_count, "organization", "organizations")}.")
+    put_flash(
+      socket,
+      :info,
+      ngettext("Deleted 1 organization.", "Deleted %{count} organizations.", ok_count)
+    )
   end
 
   defp put_flash_for_results(socket, _ok_count, error_count) do
     put_flash(
       socket,
       :error,
-      "Could not delete #{pluralize(error_count, "organization", "organizations")}. Try again."
+      ngettext(
+        "Could not delete 1 organization. Try again.",
+        "Could not delete %{count} organizations. Try again.",
+        error_count
+      )
     )
   end
-
-  defp pluralize(1, singular, _plural), do: "1 #{singular}"
-  defp pluralize(n, _singular, plural), do: "#{n} #{plural}"
 end

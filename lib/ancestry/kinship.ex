@@ -1,4 +1,6 @@
 defmodule Ancestry.Kinship do
+  use Gettext, backend: Web.Gettext
+
   @moduledoc """
   Calculates kinship relationships between two people using bidirectional BFS
   to find the Most Recent Common Ancestor (MRCA), then classifies the relationship
@@ -149,55 +151,55 @@ defmodule Ancestry.Kinship do
   defp classify(steps_a, steps_b, half?) do
     cond do
       steps_a == 0 and steps_b == 1 ->
-        "Parent"
+        gettext("Parent")
 
       steps_a == 0 and steps_b == 2 ->
-        "Grandparent"
+        gettext("Grandparent")
 
       steps_a == 0 and steps_b >= 3 ->
         ancestor_label(steps_b)
 
       steps_b == 0 and steps_a == 1 ->
-        "Child"
+        gettext("Child")
 
       steps_b == 0 and steps_a == 2 ->
-        "Grandchild"
+        gettext("Grandchild")
 
       steps_b == 0 and steps_a >= 3 ->
         descendant_label(steps_a)
 
       steps_a == 1 and steps_b == 1 and half? ->
-        "Half-Sibling"
+        gettext("Half-Sibling")
 
       steps_a == 1 and steps_b == 1 ->
-        "Sibling"
+        gettext("Sibling")
 
       steps_a == 1 and steps_b == 2 ->
-        "Uncle & Aunt"
+        gettext("Uncle & Aunt")
 
       steps_a == 1 and steps_b == 3 ->
-        "Great Uncle & Aunt"
+        gettext("Great Uncle & Aunt")
 
       steps_a == 1 and steps_b == 4 ->
-        "Great Grand Uncle & Aunt"
+        gettext("Great Grand Uncle & Aunt")
 
       steps_a == 1 and steps_b >= 5 ->
-        "#{numeric_ordinal(steps_b - 4)} Great Grand Uncle & Aunt"
+        gettext("%{nth} Great Grand Uncle & Aunt", nth: numeric_ordinal(steps_b - 4))
 
       steps_a == 2 and steps_b == 1 ->
-        "Nephew & Niece"
+        gettext("Nephew & Niece")
 
       steps_a == 3 and steps_b == 1 ->
-        "Grand Nephew & Niece"
+        gettext("Grand Nephew & Niece")
 
       steps_a == 4 and steps_b == 1 ->
-        "Great Grand Nephew & Niece"
+        gettext("Great Grand Nephew & Niece")
 
       steps_a >= 5 and steps_b == 1 ->
-        "#{numeric_ordinal(steps_a - 4)} Great Grand Nephew & Niece"
+        gettext("%{nth} Great Grand Nephew & Niece", nth: numeric_ordinal(steps_a - 4))
 
       true ->
-        half_prefix = if(half?, do: "Half-", else: "")
+        half_prefix = if(half?, do: gettext("Half-"), else: "")
         "#{half_prefix}#{cousin_label(steps_a, steps_b)}"
     end
   end
@@ -206,9 +208,9 @@ defmodule Ancestry.Kinship do
     greats = steps - 2
 
     cond do
-      greats == 1 -> "Great Grandparent"
-      greats == 2 -> "Great Great Grandparent"
-      greats >= 3 -> "#{numeric_ordinal(greats)} Great Grandparent"
+      greats == 1 -> gettext("Great Grandparent")
+      greats == 2 -> gettext("Great Great Grandparent")
+      greats >= 3 -> gettext("%{nth} Great Grandparent", nth: numeric_ordinal(greats))
     end
   end
 
@@ -216,9 +218,9 @@ defmodule Ancestry.Kinship do
     greats = steps - 2
 
     cond do
-      greats == 1 -> "Great Grandchild"
-      greats == 2 -> "Great Great Grandchild"
-      greats >= 3 -> "#{numeric_ordinal(greats)} Great Grandchild"
+      greats == 1 -> gettext("Great Grandchild")
+      greats == 2 -> gettext("Great Great Grandchild")
+      greats >= 3 -> gettext("%{nth} Great Grandchild", nth: numeric_ordinal(greats))
     end
   end
 
@@ -230,22 +232,22 @@ defmodule Ancestry.Kinship do
     removed_str =
       cond do
         removed == 0 -> ""
-        removed == 1 -> ", Once Removed"
-        removed == 2 -> ", Twice Removed"
-        true -> ", #{removed} Times Removed"
+        removed == 1 -> gettext(", Once Removed")
+        removed == 2 -> gettext(", Twice Removed")
+        true -> gettext(", %{count} Times Removed", count: removed)
       end
 
-    "#{degree_str} Cousin#{removed_str}"
+    gettext("%{degree} Cousin%{removed}", degree: degree_str, removed: removed_str)
   end
 
-  defp ordinal(1), do: "First"
-  defp ordinal(2), do: "Second"
-  defp ordinal(3), do: "Third"
-  defp ordinal(4), do: "Fourth"
-  defp ordinal(5), do: "Fifth"
-  defp ordinal(6), do: "Sixth"
-  defp ordinal(7), do: "Seventh"
-  defp ordinal(8), do: "Eighth"
+  defp ordinal(1), do: gettext("First")
+  defp ordinal(2), do: gettext("Second")
+  defp ordinal(3), do: gettext("Third")
+  defp ordinal(4), do: gettext("Fourth")
+  defp ordinal(5), do: gettext("Fifth")
+  defp ordinal(6), do: gettext("Sixth")
+  defp ordinal(7), do: gettext("Seventh")
+  defp ordinal(8), do: gettext("Eighth")
   defp ordinal(n), do: "#{n}th"
 
   defp numeric_ordinal(1), do: "1st"
@@ -289,10 +291,10 @@ defmodule Ancestry.Kinship do
   end
 
   # Labels for going up (from person A toward MRCA)
-  defp ascending_label(1), do: "Parent"
-  defp ascending_label(2), do: "Grandparent"
-  defp ascending_label(3), do: "Great Grandparent"
-  defp ascending_label(4), do: "Great Great Grandparent"
+  defp ascending_label(1), do: gettext("Parent")
+  defp ascending_label(2), do: gettext("Grandparent")
+  defp ascending_label(3), do: gettext("Great Grandparent")
+  defp ascending_label(4), do: gettext("Great Great Grandparent")
 
   defp ascending_label(n) when n >= 5 do
     "#{numeric_ordinal(n - 2)} Great Grandparent"
@@ -318,10 +320,10 @@ defmodule Ancestry.Kinship do
     end
   end
 
-  defp child_label(1), do: "Child"
-  defp child_label(2), do: "Grandchild"
-  defp child_label(3), do: "Great Grandchild"
-  defp child_label(4), do: "Great Great Grandchild"
+  defp child_label(1), do: gettext("Child")
+  defp child_label(2), do: gettext("Grandchild")
+  defp child_label(3), do: gettext("Great Grandchild")
+  defp child_label(4), do: gettext("Great Great Grandchild")
 
   defp child_label(n) when n >= 5 do
     "#{numeric_ordinal(n - 2)} Great Grandchild"

@@ -7,7 +7,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -20,7 +20,7 @@
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          Kinship
+          {gettext("Kinship")}
         </h1>
       </div>
     </div>
@@ -33,7 +33,7 @@
       class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
     >
       <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">Organizations</span>
+      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -41,7 +41,7 @@
   <.link
     navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
-    aria-label="Back"
+    aria-label={gettext("Back")}
   >
     <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
   </.link>
@@ -55,7 +55,7 @@
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
         <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
-          Person A
+          {gettext("Person A")}
         </label>
         <.person_selector
           side="a"
@@ -88,7 +88,7 @@
       <%!-- Person B --%>
       <div class="flex-1 min-w-0">
         <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
-          Person B
+          {gettext("Person B")}
         </label>
         <.person_selector
           side="b"
@@ -109,8 +109,10 @@
             {test_id("kinship-empty-state")}
           >
             <.icon name="hero-arrows-right-left" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">Select two people</p>
-            <p class="text-sm mt-1">Choose Person A and Person B to discover their kinship</p>
+            <p class="text-lg font-medium">{gettext("Select two people")}</p>
+            <p class="text-sm mt-1">
+              {gettext("Choose Person A and Person B to discover their kinship")}
+            </p>
           </div>
         <% match?({:error, :same_person}, @result) -> %>
           <div
@@ -118,8 +120,8 @@
             {test_id("kinship-same-person")}
           >
             <.icon name="hero-user" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">Same person selected</p>
-            <p class="text-sm mt-1">Please select two different people</p>
+            <p class="text-lg font-medium">{gettext("Same person selected")}</p>
+            <p class="text-sm mt-1">{gettext("Please select two different people")}</p>
           </div>
         <% match?({:error, :no_common_ancestor}, @result) -> %>
           <div
@@ -127,9 +129,11 @@
             {test_id("kinship-no-result")}
           >
             <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">No common ancestor found</p>
+            <p class="text-lg font-medium">{gettext("No common ancestor found")}</p>
             <p class="text-sm mt-1">
-              These two people don't appear to share a common ancestor within the family tree
+              These two people {gettext(
+                "don't appear to share a common ancestor within the family tree"
+              )}
             </p>
           </div>
         <% match?({:ok, _}, @result) -> %>
@@ -151,7 +155,9 @@
                 class="text-sm text-ds-on-surface-variant"
                 {test_id("kinship-dna-percentage")}
               >
-                ~{format_dna(kinship.dna_percentage)}% shared DNA
+                {gettext("~%{percentage}% shared DNA",
+                  percentage: format_dna(kinship.dna_percentage)
+                )}
               </span>
             </div>
 
@@ -205,7 +211,9 @@
                         {Ancestry.People.Person.display_name(mrca_node.person)}
                       </p>
                       <p class="text-xs text-ds-on-surface-variant">{mrca_node.label}</p>
-                      <p class="text-xs text-ds-on-surface-variant">(Common Ancestor)</p>
+                      <p class="text-xs text-ds-on-surface-variant">
+                        {gettext("(Common Ancestor)")}
+                      </p>
                     </div>
                   </div>
 
@@ -271,16 +279,16 @@
               >
                 <.icon name="hero-information-circle" class="w-4 h-4 shrink-0 mt-0.5" />
                 <p>
-                  A "removed" cousin is a relative from a different generation.
-                  The number indicates how many generations apart you are.
-                  For example, your parent's first cousin is your first cousin, once removed.
+                  {gettext(
+                    "A \"removed\" cousin is a relative from a different generation. The number indicates how many generations apart you are. For example, your parent's first cousin is your first cousin, once removed."
+                  )}
                 </p>
               </div>
             <% end %>
 
             <%!-- DNA disclaimer --%>
             <div class="mt-4 text-center text-xs text-ds-on-surface-variant/50">
-              Percentages are approximate and may vary.
+              {gettext("Percentages are approximate and may vary.")}
             </div>
           </div>
       <% end %>

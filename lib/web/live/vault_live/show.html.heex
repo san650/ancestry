@@ -5,7 +5,7 @@
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Back to family"
+          aria-label={gettext("Back to family")}
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
@@ -28,7 +28,9 @@
               else: "text-ds-on-surface-variant hover:text-ds-on-surface"
             )
           ]}
-          aria-label={if(@selection_mode, do: "Exit selection", else: "Select memories")}
+          aria-label={
+            if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select memories"))
+          }
           {test_id("memory-select-btn")}
         >
           <.icon name="hero-check-circle" class="size-5" />
@@ -41,13 +43,13 @@
           {test_id("vault-add-memory-btn")}
         >
           <.icon name="hero-plus" class="size-4" />
-          <span class="hidden sm:inline">Add Memory</span>
+          <span class="hidden sm:inline">{gettext("Add Memory")}</span>
         </.link>
         <button
           type="button"
           phx-click="request_delete_vault"
           class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Delete vault"
+          aria-label={gettext("Delete vault")}
           {test_id("vault-delete-btn")}
         >
           <.icon name="hero-trash" class="size-5" />
@@ -65,7 +67,7 @@
         {test_id("memory-selection-bar")}
       >
         <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
-          {MapSet.size(@selected_ids)} selected
+          {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
         </span>
         <button
           phx-click="request_delete_memories"
@@ -73,7 +75,7 @@
           class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           {test_id("memory-delete-selected-btn")}
         >
-          Delete
+          {gettext("Delete")}
         </button>
       </div>
     <% end %>
@@ -158,10 +160,10 @@
       >
         <.icon name="hero-book-open" class="w-16 h-16 text-ds-on-surface-variant/50 mb-4" />
         <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
-          No memories yet
+          {gettext("No memories yet")}
         </h2>
         <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
-          Start capturing your family stories, recipes, and traditions.
+          {gettext("Start capturing your family stories, recipes, and traditions.")}
         </p>
         <.link
           navigate={
@@ -169,7 +171,7 @@
           }
           class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
         >
-          <.icon name="hero-plus" class="size-4" /> Create your first memory
+          <.icon name="hero-plus" class="size-4" /> {gettext("Create your first memory")}
         </.link>
       </div>
     <% end %>
@@ -199,7 +201,9 @@
           Delete Vault
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete <span class="font-semibold">"{@vault.name}"</span>? All memories will be permanently removed. This cannot be undone.
+          Delete <span class="font-semibold">"{@vault.name}"</span>? {gettext(
+            "All memories will be permanently removed. This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -207,13 +211,13 @@
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-vault-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_vault"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>
@@ -247,7 +251,11 @@
           Delete Memories
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete {MapSet.size(@selected_ids)} memory(ies)? This cannot be undone.
+          {ngettext(
+            "Delete 1 memory? This cannot be undone.",
+            "Delete %{count} memories? This cannot be undone.",
+            MapSet.size(@selected_ids)
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -255,13 +263,13 @@
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-memories-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_memories"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>

@@ -6,12 +6,12 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          Organizations
+          {gettext("Organizations")}
         </h1>
       </div>
       <div class="flex items-center gap-2">
@@ -29,7 +29,7 @@
         >
           <.icon name="hero-check-circle" class="w-4 h-4" />
           <span class="hidden sm:inline">
-            {if(@selection_mode, do: "Exit selection", else: "Select")}
+            {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
           </span>
         </button>
         <button
@@ -38,7 +38,7 @@
           {test_id("org-new-btn")}
         >
           <.icon name="hero-plus" class="w-4 h-4" />
-          <span class="hidden sm:inline">New Organization</span>
+          <span class="hidden sm:inline">{gettext("New Organization")}</span>
         </button>
       </div>
     </div>
@@ -51,7 +51,7 @@
       class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
     >
       <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">Organizations</span>
+      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -65,7 +65,7 @@
           {test_id("selection-bar")}
         >
           <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
-            {MapSet.size(@selected_ids)} selected
+            {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
           </span>
           <button
             phx-click="request_batch_delete"
@@ -73,7 +73,7 @@
             class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
             {test_id("selection-bar-delete-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
         </div>
       <% end %>
@@ -87,7 +87,9 @@
           id="organizations-empty"
           class="hidden only:flex flex-col items-center justify-center py-24 col-span-full bg-ds-surface-dim rounded-ds-sharp"
         >
-          <p class="text-lg font-ds-heading font-bold text-ds-on-surface">No organizations yet</p>
+          <p class="text-lg font-ds-heading font-bold text-ds-on-surface">
+            {gettext("No organizations yet")}
+          </p>
         </div>
         <div
           :for={{id, org} <- @streams.organizations}
@@ -151,15 +153,15 @@
           phx-submit="save"
           {test_id("org-create-form")}
         >
-          <.input field={@form[:name]} label="Organization name" autofocus />
+          <.input field={@form[:name]} label={gettext("Organization name")} autofocus />
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
               class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
-              phx-disable-with="Creating..."
+              phx-disable-with={gettext("Creating...")}
               {test_id("org-create-submit-btn")}
             >
-              Create
+              {gettext("Create")}
             </button>
             <button
               type="button"
@@ -167,7 +169,7 @@
               class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
               {test_id("org-create-cancel-btn")}
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
         </.form>
@@ -203,9 +205,14 @@
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
           <%= if MapSet.size(@selected_ids) == 1 do %>
-            Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone.
+            {gettext(
+              "Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone."
+            )}
           <% else %>
-            Delete {MapSet.size(@selected_ids)} organizations? All families, galleries, and photos will be permanently removed. This cannot be undone.
+            {gettext(
+              "Delete %{count} organizations? All families, galleries, and photos will be permanently removed. This cannot be undone.",
+              count: MapSet.size(@selected_ids)
+            )}
           <% end %>
         </p>
         <div class="flex gap-3">
@@ -214,13 +221,13 @@
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-orgs-confirm-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_batch_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>

@@ -273,8 +273,8 @@ defmodule Web.GalleryLive.Show do
   defp ext_from_content_type("image/tiff"), do: ".tiff"
   defp ext_from_content_type(_), do: ".jpg"
 
-  defp upload_error_to_string(:too_large), do: "File too large (max 300MB)"
-  defp upload_error_to_string(:not_accepted), do: "File type not supported"
-  defp upload_error_to_string(:too_many_files), do: "Too many files (max 50)"
-  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
+  defp upload_error_to_string(:too_large), do: gettext("File too large (max 300MB)")
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not supported")
+  defp upload_error_to_string(:too_many_files), do: gettext("Too many files (max 50)")
+  defp upload_error_to_string(err), do: gettext("Upload error: %{error}", error: inspect(err))
 end

@@ -8,7 +8,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -16,7 +16,7 @@
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}"}
           class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Back to families"
+          aria-label={gettext("Back to families")}
           {test_id("family-back-btn")}
         >
           <.icon name="hero-arrow-left" class="size-5" />
@@ -40,7 +40,7 @@
             )
           }
           class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Kinship calculator"
+          aria-label={gettext("Kinship calculator")}
           id="kinship-btn"
           {test_id("family-kinship-btn")}
         >
@@ -51,7 +51,7 @@
           id="edit-family-btn"
           phx-click="edit"
           class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Edit family"
+          aria-label={gettext("Edit family")}
           {test_id("family-edit-btn")}
         >
           <.icon name="hero-pencil-square" class="size-5" />
@@ -61,7 +61,7 @@
           id="delete-family-btn"
           phx-click="request_delete"
           class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Delete family"
+          aria-label={gettext("Delete family")}
           {test_id("family-delete-btn")}
         >
           <.icon name="hero-trash" class="size-5" />
@@ -72,7 +72,7 @@
             type="button"
             phx-click="toggle_menu"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="More actions"
+            aria-label={gettext("More actions")}
             {test_id("meatball-btn")}
           >
             <.icon name="hero-ellipsis-horizontal" class="size-5" />
@@ -90,7 +90,7 @@
               {test_id("family-manage-people-btn")}
             >
               <.icon name="hero-user-group" class="size-4 text-ds-on-surface-variant" />
-              <span>Manage people</span>
+              <span>{gettext("Manage people")}</span>
             </.link>
 
             <%= if @people != [] do %>
@@ -101,7 +101,7 @@
                 {test_id("family-create-subfamily-btn")}
               >
                 <.icon name="hero-square-2-stack" class="size-4 text-ds-on-surface-variant" />
-                <span>Create subfamily</span>
+                <span>{gettext("Create subfamily")}</span>
               </button>
             <% end %>
 
@@ -112,7 +112,7 @@
               {test_id("import-csv-btn")}
             >
               <.icon name="hero-arrow-up-tray" class="size-4 text-ds-on-surface-variant" />
-              <span>Import from CSV</span>
+              <span>{gettext("Import from CSV")}</span>
             </button>
           </div>
         </div>
@@ -125,12 +125,12 @@
     <:page_actions>
       <.nav_action
         icon="hero-pencil-square"
-        label="Edit family"
+        label={gettext("Edit family")}
         phx-click={toggle_nav_drawer() |> JS.push("edit")}
       />
       <.nav_action
         icon="hero-arrows-right-left"
-        label="Kinship calculator"
+        label={gettext("Kinship calculator")}
         phx-click={
           toggle_nav_drawer()
           |> JS.navigate(
@@ -144,7 +144,7 @@
       />
       <.nav_action
         icon="hero-trash"
-        label="Delete family"
+        label={gettext("Delete family")}
         danger
         phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
       />
@@ -176,7 +176,7 @@
   <.link
     navigate={~p"/org/#{@current_scope.organization.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-    aria-label="Back to families"
+    aria-label={gettext("Back to families")}
   >
     <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
   </.link>
@@ -227,10 +227,10 @@
                 class="w-16 h-16 mx-auto mb-4 text-ds-on-surface-variant/50"
               />
               <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
-                Explore the Family Tree
+                {gettext("Explore the Family Tree")}
               </h2>
               <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
-                Select a family member to see their ancestors and descendants
+                {gettext("Select a family member to see their ancestors and descendants")}
               </p>
               <.live_component
                 module={Web.FamilyLive.PersonSelectorComponent}
@@ -243,8 +243,10 @@
           <% else %>
             <div class="text-center text-ds-on-surface-variant" {test_id("family-empty-state")}>
               <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
-              <p class="text-lg font-medium">No family members yet</p>
-              <p class="text-sm mt-1">Add members to start building the family tree</p>
+              <p class="text-lg font-medium">{gettext("No family members yet")}</p>
+              <p class="text-sm mt-1">
+                {gettext("Add members to start building the family tree")}
+              </p>
             </div>
           <% end %>
         </div>
@@ -286,7 +288,7 @@
           id="edit-family-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
         >
-          Edit Family
+          {gettext("Edit Family")}
         </h2>
         <.form
           for={@form}
@@ -295,12 +297,12 @@
           phx-change="validate"
           {test_id("family-edit-form")}
         >
-          <.input field={@form[:name]} label="Family name" autofocus />
+          <.input field={@form[:name]} label={gettext("Family name")} autofocus />
 
           <%!-- Default Person Picker --%>
           <div class="mt-4" {test_id("default-person-picker")}>
             <label class="label text-sm font-ds-body font-medium text-ds-on-surface">
-              Default person
+              {gettext("Default person")}
             </label>
 
             <%= if @default_person_id do %>
@@ -343,7 +345,7 @@
               type="text"
               name="default_person_filter"
               value={@default_person_filter}
-              placeholder="Filter members..."
+              placeholder={gettext("Filter members...")}
               phx-keyup="filter_default_person"
               phx-debounce="200"
               class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm mb-2"
@@ -360,7 +362,7 @@
                 {test_id("default-person-none")}
               >
                 <.icon name="hero-no-symbol" class="w-4 h-4 text-ds-on-surface-variant" />
-                <span class="text-ds-on-surface-variant">None</span>
+                <span class="text-ds-on-surface-variant">{gettext("None")}</span>
               </button>
               <%= for person <- filtered_people(@people, @default_person_filter) do %>
                 <button
@@ -400,14 +402,14 @@
               class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
               {test_id("family-edit-save-btn")}
             >
-              Save
+              {gettext("Save")}
             </button>
             <button
               type="button"
               phx-click="cancel_edit"
               class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
         </.form>
@@ -436,10 +438,12 @@
           id="delete-family-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
         >
-          Delete Family
+          {gettext("Delete Family")}
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete <span class="font-semibold">"{@family.name}"</span>? All galleries and photos will be permanently removed. This cannot be undone.
+          Delete <span class="font-semibold">"{@family.name}"</span>? {gettext(
+            "All galleries and photos will be permanently removed. This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -453,7 +457,7 @@
             phx-click="cancel_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>
@@ -484,7 +488,7 @@
           id="new-gallery-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
         >
-          New Gallery
+          {gettext("New Gallery")}
         </h2>
         <.form
           for={@gallery_form}
@@ -494,8 +498,8 @@
         >
           <.input
             field={@gallery_form[:name]}
-            label="Gallery name"
-            placeholder="e.g. Summer 2025"
+            label={gettext("Gallery name")}
+            placeholder={gettext("e.g. Summer 2025")}
             autofocus
           />
           <div class="flex gap-3 mt-6">
@@ -503,7 +507,7 @@
               type="submit"
               class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
             >
-              Create
+              {gettext("Create")}
             </button>
             <button
               type="button"
@@ -542,7 +546,7 @@
           id="new-vault-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
         >
-          New Memory Vault
+          {gettext("New Memory Vault")}
         </h2>
         <.form
           for={@vault_form}
@@ -552,8 +556,8 @@
         >
           <.input
             field={@vault_form[:name]}
-            label="Vault name"
-            placeholder="e.g. Grandma's Recipes"
+            label={gettext("Vault name")}
+            placeholder={gettext("e.g. Grandma's Recipes")}
             autofocus
           />
           <div class="flex gap-3 mt-6">
@@ -597,10 +601,12 @@
           id="delete-gallery-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
         >
-          Delete Gallery
+          {gettext("Delete Gallery")}
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? All photos will be permanently removed. This cannot be undone.
+          Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? {gettext(
+            "All photos will be permanently removed. This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -641,15 +647,15 @@
           id="link-person-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-4"
         >
-          Link Existing Person
+          {gettext("Link Existing Person")}
         </h2>
-        <label for="person-search-input" class="sr-only">Search people</label>
+        <label for="person-search-input" class="sr-only">{gettext("Search people")}</label>
         <input
           id="person-search-input"
           type="text"
           name="query"
           value={@search_query}
-          placeholder="Search by name..."
+          placeholder={gettext("Search by name...")}
           phx-keyup="search"
           phx-debounce="300"
           autofocus
@@ -658,7 +664,9 @@
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
-            <p class="text-ds-on-surface-variant text-sm text-center py-4">No results found</p>
+            <p class="text-ds-on-surface-variant text-sm text-center py-4">
+              {gettext("No results found")}
+            </p>
           <% end %>
           <%= for person <- @search_results do %>
             <button
@@ -758,13 +766,13 @@
           id="create-subfamily-title"
           class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
         >
-          Create Subfamily
+          {gettext("Create Subfamily")}
         </h2>
 
         <%!-- Person Selector --%>
         <div class="mb-4">
           <label class="label text-sm font-ds-body font-medium text-ds-on-surface mb-1 block">
-            Starting person
+            {gettext("Starting person")}
           </label>
           <.live_component
             module={Web.FamilyLive.PersonSelectorComponent}
@@ -785,8 +793,8 @@
         >
           <.input
             field={@subfamily_form[:name]}
-            label="Family name"
-            placeholder="e.g. Smith"
+            label={gettext("Family name")}
+            placeholder={gettext("e.g. Smith")}
             {test_id("create-subfamily-name-input")}
           />
 
@@ -804,10 +812,12 @@
               />
               <div>
                 <span class="text-sm font-ds-body font-medium text-ds-on-surface">
-                  Include ascendants
+                  {gettext("Include ascendants")}
                 </span>
                 <p class="text-xs text-ds-on-surface-variant mt-0.5">
-                  When checked, parents, grandparents and further ancestors will be included.
+                  {gettext(
+                    "When checked, parents, grandparents and further ancestors will be included."
+                  )}
                 </p>
               </div>
             </label>
@@ -824,10 +834,10 @@
               />
               <div>
                 <span class="text-sm font-ds-body font-medium text-ds-on-surface">
-                  Include partners' families
+                  {gettext("Include partners' families")}
                 </span>
                 <p class="text-xs text-ds-on-surface-variant mt-0.5">
-                  When checked, ascendants of partners will also be included.
+                  {gettext("When checked, ascendants of partners will also be included.")}
                 </p>
               </div>
             </label>
@@ -837,7 +847,7 @@
             <button
               type="submit"
               class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
-              phx-disable-with="Creating..."
+              phx-disable-with={gettext("Creating...")}
               {test_id("create-subfamily-submit-btn")}
             >
               Create
@@ -868,30 +878,34 @@
     <div class="relative w-full max-w-none lg:max-w-md bg-ds-surface-card rounded-t-lg lg:rounded-ds-sharp shadow-ds-ambient p-6">
       <%= if @import_error do %>
         <%!-- Error state --%>
-        <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">Import failed</h2>
+        <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+          {gettext("Import failed")}
+        </h2>
         <p class="text-sm text-ds-signal-error mb-6">{@import_error}</p>
         <button
           type="button"
           phx-click="close_import"
           class="w-full py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
         >
-          Close
+          {gettext("Close")}
         </button>
       <% else %>
         <%= if @import_summary do %>
           <%!-- Results state --%>
           <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
-            Import complete
+            {gettext("Import complete")}
           </h2>
           <dl class="space-y-2 mb-4">
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">People created</dt>
+              <dt class="text-sm text-ds-on-surface-variant">{gettext("People created")}</dt>
               <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-created")}>
                 {@import_summary.people_created}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">People added to the family</dt>
+              <dt class="text-sm text-ds-on-surface-variant">
+                {gettext("People added to the family")}
+              </dt>
               <dd
                 class="text-sm font-medium text-ds-on-surface"
                 {test_id("import-added-to-family")}
@@ -900,7 +914,9 @@
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">Already in the family</dt>
+              <dt class="text-sm text-ds-on-surface-variant">
+                {gettext("Already in the family")}
+              </dt>
               <dd
                 class="text-sm font-medium text-ds-on-surface"
                 {test_id("import-already-in-family")}
@@ -909,7 +925,7 @@
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">Errors</dt>
+              <dt class="text-sm text-ds-on-surface-variant">{gettext("Errors")}</dt>
               <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-errors")}>
                 {@import_summary.people_skipped}
               </dd>
@@ -918,7 +934,9 @@
 
           <%= if @import_summary.people_errors != [] do %>
             <div class="mb-4">
-              <h3 class="text-sm font-medium text-ds-on-surface mb-2">Error details</h3>
+              <h3 class="text-sm font-medium text-ds-on-surface mb-2">
+                {gettext("Error details")}
+              </h3>
               <ul
                 class="max-h-60 overflow-y-auto space-y-1 text-xs text-ds-on-surface-variant bg-ds-surface-low rounded-lg p-3"
                 {test_id("import-error-list")}
@@ -941,7 +959,7 @@
         <% else %>
           <%!-- Upload form state --%>
           <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
-            Import from CSV
+            {gettext("Import from CSV")}
           </h2>
 
           <form id="import-form" phx-change="validate_import" phx-submit="import_csv">
@@ -949,14 +967,16 @@
               <.input
                 type="select"
                 name="format"
-                label="Format"
+                label={gettext("Format")}
                 value="family_echo"
                 options={[{"Family Echo", "family_echo"}]}
               />
             </div>
 
             <div class="mb-4">
-              <label class="block text-sm font-medium text-ds-on-surface mb-1">CSV file</label>
+              <label class="block text-sm font-medium text-ds-on-surface mb-1">
+                {gettext("CSV file")}
+              </label>
               <.live_file_input
                 upload={@uploads.csv_file}
                 class="block w-full text-sm text-ds-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-ds-surface-low file:text-ds-on-surface hover:file:bg-ds-surface-high"
@@ -984,7 +1004,7 @@
                 class="flex-1 py-2.5 px-4 bg-ds-on-surface text-ds-surface text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                 {test_id("import-submit-btn")}
               >
-                Import
+                {gettext("Import")}
               </button>
             </div>
           </form>

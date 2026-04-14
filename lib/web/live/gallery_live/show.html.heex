@@ -7,7 +7,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -15,7 +15,7 @@
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
           class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label="Back to family"
+          aria-label={gettext("Back to family")}
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
@@ -37,7 +37,9 @@
               else: "text-ds-on-surface-variant hover:text-ds-on-surface"
             )
           ]}
-          aria-label={if(@selection_mode, do: "Exit selection", else: "Select photos")}
+          aria-label={
+            if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select photos"))
+          }
         >
           <.icon name="hero-check-circle" class="size-5" />
         </button>
@@ -49,7 +51,7 @@
             type="button"
             onclick="document.querySelector('#upload-form [type=file]').click()"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Upload photos"
+            aria-label={gettext("Upload photos")}
           >
             <.icon name="hero-arrow-up-tray" class="size-5" />
           </button>
@@ -58,7 +60,7 @@
             type="button"
             phx-click="toggle_layout"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Toggle layout"
+            aria-label={gettext("Toggle layout")}
           >
             <.icon
               name={
@@ -77,14 +79,19 @@
     <:page_actions>
       <.nav_action
         icon="hero-arrow-up-tray"
-        label="Upload photos"
+        label={gettext("Upload photos")}
         phx-click={
           toggle_nav_drawer() |> JS.dispatch("click", to: "#upload-form input[type=file]")
         }
       />
       <.nav_action
         icon={if(@grid_layout == :masonry, do: "hero-squares-2x2", else: "hero-view-columns")}
-        label={if(@grid_layout == :masonry, do: "Uniform grid", else: "Masonry layout")}
+        label={
+          if(@grid_layout == :masonry,
+            do: gettext("Uniform grid"),
+            else: gettext("Masonry layout")
+          )
+        }
         phx-click={toggle_nav_drawer() |> JS.push("toggle_layout")}
       />
     </:page_actions>
@@ -103,7 +110,7 @@
     id="gallery-back-fab"
     navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-    aria-label="Back to family"
+    aria-label={gettext("Back to family")}
   >
     <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
   </.link>
@@ -123,7 +130,7 @@
     <div class="relative z-10 text-center">
       <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-ds-primary mx-auto mb-3" />
       <p class="text-2xl font-ds-heading font-bold text-ds-primary" data-drag-count>
-        Drop to upload photos
+        {gettext("Drop to upload photos")}
       </p>
     </div>
   </div>
@@ -140,14 +147,14 @@
         class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-ds-on-surface lg:text-ds-on-primary lg:rounded-ds-sharp lg:px-5 lg:py-3"
       >
         <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
-          {MapSet.size(@selected_ids)} selected
+          {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
         </span>
         <button
           phx-click="request_delete_photos"
           disabled={MapSet.size(@selected_ids) == 0}
           class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Delete
+          {gettext("Delete")}
         </button>
       </div>
     <% end %>
@@ -238,16 +245,19 @@
           <%= if @upload_results != [] do %>
             <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
               <%= if Enum.any?(@upload_results, &(&1.status == :error)) do %>
-                Upload complete with errors
+                {gettext("Upload complete with errors")}
               <% else %>
-                Upload complete
+                {gettext("Upload complete")}
               <% end %>
             </h2>
           <% else %>
             <% done_count = Enum.count(@uploads.photos.entries, & &1.done?) %>
             <% total_count = length(@uploads.photos.entries) %>
             <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
-              Uploading photos ({done_count} of {total_count})
+              {gettext("Uploading photos (%{done} of %{total})",
+                done: done_count,
+                total: total_count
+              )}
             </h2>
           <% end %>
           <%= if @upload_results != [] do %>
@@ -272,7 +282,9 @@
                   <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
                     {file.name}
                   </p>
-                  <p class="text-xs text-ds-error mt-0.5">{file[:error] || "Upload failed"}</p>
+                  <p class="text-xs text-ds-error mt-0.5">
+                    {file[:error] || gettext("Upload failed")}
+                  </p>
                 </div>
               </div>
             <% end %>
@@ -331,11 +343,11 @@
               phx-click="close_upload_modal"
               class="w-full px-4 py-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp font-ds-body font-semibold hover:opacity-90 transition-opacity"
             >
-              Done
+              {gettext("Done")}
             </button>
           <% else %>
             <div class="text-center text-sm text-ds-on-surface-variant/50">
-              Uploading...
+              {gettext("Uploading...")}
             </div>
           <% end %>
         </div>
@@ -361,22 +373,28 @@
         id="confirm-delete-photos-modal"
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Photos</h2>
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+          {gettext("Delete Photos")}
+        </h2>
         <p class="text-ds-on-surface-variant mb-6">
-          Delete {MapSet.size(@selected_ids)} photo(s)? This cannot be undone.
+          {ngettext(
+            "Delete 1 photo? This cannot be undone.",
+            "Delete %{count} photos? This cannot be undone.",
+            MapSet.size(@selected_ids)
+          )}
         </p>
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_photos"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_photos"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>
