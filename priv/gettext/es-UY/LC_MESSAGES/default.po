@@ -1,0 +1,2511 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: es-UY\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/web/live/family_live/side_panel_component.ex:173
+#, elixir-autogen, elixir-format
+msgid "%{age} years"
+msgstr "%{age} años"
+
+#: lib/web/live/comments/photo_comments_component.ex:214
+#, elixir-autogen, elixir-format
+msgid "%{count}d ago"
+msgstr "hace %{count}d"
+
+#: lib/web/live/comments/photo_comments_component.ex:213
+#, elixir-autogen, elixir-format
+msgid "%{count}h ago"
+msgstr "hace %{count}h"
+
+#: lib/web/live/comments/photo_comments_component.ex:212
+#, elixir-autogen, elixir-format
+msgid "%{count}m ago"
+msgstr "hace %{count}m"
+
+#: lib/ancestry/kinship.ex:240
+#, elixir-autogen, elixir-format
+msgid "%{degree} Cousin%{removed}"
+msgstr "Primo/a %{degree}%{removed}"
+
+#: lib/ancestry/kinship.ex:199
+#, elixir-autogen, elixir-format
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Resobrino/a nieto/a"
+
+#: lib/ancestry/kinship.ex:187
+#, elixir-autogen, elixir-format
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Retío/a abuelo/a"
+
+#: lib/ancestry/kinship.ex:223
+#, elixir-autogen, elixir-format
+msgid "%{nth} Great Grandchild"
+msgstr "%{nth} Tataranieto/a"
+
+#: lib/ancestry/kinship.ex:213
+#, elixir-autogen, elixir-format
+msgid "%{nth} Great Grandparent"
+msgstr "%{nth} Tatarabuelo/a"
+
+#: lib/web/live/kinship_live.html.heex:215
+#, elixir-autogen, elixir-format
+msgid "(Common Ancestor)"
+msgstr "(Ancestro común)"
+
+#: lib/ancestry/kinship.ex:237
+#, elixir-autogen, elixir-format
+msgid ", %{count} Times Removed"
+msgstr ", %{count} veces separado/a"
+
+#: lib/ancestry/kinship.ex:235
+#, elixir-autogen, elixir-format
+msgid ", Once Removed"
+msgstr ", una vez separado/a"
+
+#: lib/ancestry/kinship.ex:236
+#, elixir-autogen, elixir-format
+msgid ", Twice Removed"
+msgstr ", dos veces separado/a"
+
+#: lib/web/live/family_live/side_panel_component.ex:64
+#, elixir-autogen, elixir-format
+msgid "1 generation"
+msgid_plural "%{count} generations"
+msgstr[0] "1 generación"
+msgstr[1] "%{count} generaciones"
+
+#: lib/web/live/family_live/index.html.heex:98
+#: lib/web/live/gallery_live/show.html.heex:150
+#: lib/web/live/org_people_live/index.html.heex:127
+#: lib/web/live/organization_live/index.html.heex:68
+#: lib/web/live/people_live/index.html.heex:128
+#: lib/web/live/vault_live/show.html.heex:70
+#, elixir-autogen, elixir-format
+msgid "1 selected"
+msgid_plural "%{count} selected"
+msgstr[0] "1 seleccionado"
+msgstr[1] "%{count} seleccionados"
+
+#: lib/web/live/kinship_live.html.heex:282
+#, elixir-autogen, elixir-format
+msgid "A \"removed\" cousin is a relative from a different generation. The number indicates how many generations apart you are. For example, your parent's first cousin is your first cousin, once removed."
+msgstr "Un primo \"separado\" es un pariente de una generación diferente. El número indica cuántas generaciones de distancia hay. Por ejemplo, el primo hermano de tu padre es tu primo hermano, una vez separado."
+
+#: lib/web/live/account_live/settings.ex:180
+#, elixir-autogen, elixir-format
+msgid "A link to confirm your email change has been sent to the new address."
+msgstr "Se envió un enlace para confirmar el cambio de correo electrónico a la nueva dirección."
+
+#: lib/web/live/shared/add_relationship_component.ex:611
+#, elixir-autogen, elixir-format
+msgid "A partner relationship already exists between these two people"
+msgstr "Ya existe una relación de pareja entre estas dos personas"
+
+#: lib/web/live/account_management_live/show.ex:140
+#, elixir-autogen, elixir-format
+msgid "Account Details"
+msgstr "Detalles de la cuenta"
+
+#: lib/web/live/account_live/settings.ex:14
+#, elixir-autogen, elixir-format
+msgid "Account Settings"
+msgstr "Configuración de la cuenta"
+
+#: lib/web/live/account_management_live/new.ex:82
+#, elixir-autogen, elixir-format
+msgid "Account created successfully"
+msgstr "Cuenta creada correctamente"
+
+#: lib/web/live/account_management_live/edit.ex:141
+#: lib/web/live/account_management_live/show.ex:57
+#, elixir-autogen, elixir-format
+msgid "Account deactivated successfully."
+msgstr "Cuenta desactivada correctamente."
+
+#: lib/web/live/account_management_live/edit.ex:182
+#: lib/web/live/account_management_live/show.ex:98
+#, elixir-autogen, elixir-format
+msgid "Account reactivated successfully."
+msgstr "Cuenta reactivada correctamente."
+
+#: lib/web/live/account_management_live/edit.ex:105
+#, elixir-autogen, elixir-format
+msgid "Account updated successfully."
+msgstr "Cuenta actualizada correctamente."
+
+#: lib/web/components/layouts.ex:81
+#: lib/web/components/nav_drawer.ex:106
+#: lib/web/live/account_management_live/edit.ex:243
+#: lib/web/live/account_management_live/index.ex:26
+#: lib/web/live/account_management_live/index.ex:47
+#: lib/web/live/account_management_live/index.ex:75
+#: lib/web/live/account_management_live/new.ex:136
+#: lib/web/live/account_management_live/show.ex:168
+#, elixir-autogen, elixir-format
+msgid "Accounts"
+msgstr "Cuentas"
+
+#: lib/web/components/core_components.ex:368
+#, elixir-autogen, elixir-format
+msgid "Actions"
+msgstr "Acciones"
+
+#: lib/web/live/account_management_live/index.ex:124
+#: lib/web/live/account_management_live/index.ex:186
+#: lib/web/live/account_management_live/show.ex:210
+#, elixir-autogen, elixir-format
+msgid "Active"
+msgstr "Activo"
+
+#: lib/web/live/family_live/person_card_component.ex:397
+#: lib/web/live/person_live/show.html.heex:493
+#: lib/web/live/shared/add_relationship_component.ex:603
+#, elixir-autogen, elixir-format
+msgid "Add Child"
+msgstr "Agregar hijo/a"
+
+#: lib/web/live/shared/add_relationship_component.ex:604
+#, elixir-autogen, elixir-format
+msgid "Add Child (Unknown Other Parent)"
+msgstr "Agregar hijo/a (otro padre/madre desconocido)"
+
+#: lib/web/live/person_live/index.html.heex:28
+#, elixir-autogen, elixir-format
+msgid "Add Member"
+msgstr "Agregar miembro"
+
+#: lib/web/live/vault_live/show.html.heex:46
+#, elixir-autogen, elixir-format
+msgid "Add Memory"
+msgstr "Agregar recuerdo"
+
+#: lib/web/live/family_live/person_card_component.ex:395
+#: lib/web/live/person_live/show.html.heex:564
+#: lib/web/live/shared/add_relationship_component.ex:601
+#, elixir-autogen, elixir-format
+msgid "Add Parent"
+msgstr "Agregar padre/madre"
+
+#: lib/web/live/family_live/person_card_component.ex:396
+#: lib/web/live/person_live/show.html.heex:485
+#: lib/web/live/shared/add_relationship_component.ex:602
+#, elixir-autogen, elixir-format
+msgid "Add Partner"
+msgstr "Agregar pareja"
+
+#: lib/web/live/shared/add_relationship_component.ex:605
+#, elixir-autogen, elixir-format
+msgid "Add Relationship"
+msgstr "Agregar relación"
+
+#: lib/web/live/comments/photo_comments_component.ex:189
+#, elixir-autogen, elixir-format
+msgid "Add a comment..."
+msgstr "Agregar un comentario..."
+
+#: lib/web/live/shared/add_relationship_component.ex:228
+#, elixir-autogen, elixir-format
+msgid "Add a relationship by linking an existing person or creating a new one."
+msgstr "Agrega una relación vinculando a una persona existente o creando una nueva."
+
+#: lib/web/live/family_live/show.html.heex:248
+#, elixir-autogen, elixir-format
+msgid "Add members to start building the family tree"
+msgstr "Agrega miembros para comenzar a construir el árbol familiar"
+
+#: lib/web/live/shared/person_form_component.html.heex:289
+#, elixir-autogen, elixir-format
+msgid "Add more details"
+msgstr "Agregar más detalles"
+
+#: lib/web/live/shared/add_relationship_component.ex:260
+#, elixir-autogen, elixir-format
+msgid "Add someone who isn't in the system yet."
+msgstr "Agrega a alguien que aún no está en el sistema."
+
+#: lib/web/live/account_management_live/edit.ex:277
+#: lib/web/live/account_management_live/new.ex:164
+#, elixir-autogen, elixir-format
+msgid "Admin"
+msgstr "Administrador"
+
+#: lib/web/live/family_live/show.html.heex:444
+#, elixir-autogen, elixir-format
+msgid "All galleries and photos will be permanently removed. This cannot be undone."
+msgstr "Todas las galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/vault_live/show.html.heex:204
+#, elixir-autogen, elixir-format
+msgid "All memories will be permanently removed. This cannot be undone."
+msgstr "Todos los recuerdos serán eliminados permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/family_live/show.html.heex:607
+#: lib/web/live/gallery_live/index.html.heex:130
+#, elixir-autogen, elixir-format
+msgid "All photos will be permanently removed. This cannot be undone."
+msgstr "Todas las fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/family_live/show.html.heex:918
+#, elixir-autogen, elixir-format
+msgid "Already in the family"
+msgstr "Ya pertenece a la familia"
+
+#: lib/web/live/account_live/registration.ex:18
+#, elixir-autogen, elixir-format
+msgid "Already registered?"
+msgstr "¿Ya tienes cuenta?"
+
+#: lib/web/live/person_live/show.html.heex:290
+#, elixir-autogen, elixir-format
+msgid "Also known as"
+msgstr "También conocido/a como"
+
+#: lib/web/live/shared/person_form_component.html.heex:303
+#, elixir-autogen, elixir-format
+msgid "Also known as (one per line)"
+msgstr "También conocido/a como (uno por línea)"
+
+#: lib/web/live/shared/person_form_component.html.heex:299
+#, elixir-autogen, elixir-format
+msgid "Alternate names"
+msgstr "Nombres alternativos"
+
+#: lib/web/live/account_live/registration.ex:79
+#, elixir-autogen, elixir-format
+msgid "An email was sent to %{email}, please access it to confirm your account."
+msgstr "Se envió un correo a %{email}, accede a él para confirmar tu cuenta."
+
+#: lib/web/components/layouts.ex:57
+#: lib/web/components/nav_drawer.ex:50
+#, elixir-autogen, elixir-format
+msgid "Ancestry"
+msgstr "Ancestry"
+
+#: lib/web/live/shared/person_form_component.ex:16
+#, elixir-autogen, elixir-format
+msgid "Apr"
+msgstr "Abr"
+
+#: lib/web/live/account_management_live/edit.ex:384
+#: lib/web/live/account_management_live/show.ex:286
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to deactivate %{email}? They will be immediately logged out and unable to log in."
+msgstr "¿Estás seguro/a de que deseas desactivar a %{email}? Se cerrará su sesión de inmediato y no podrá iniciar sesión."
+
+#: lib/web/live/account_management_live/edit.ex:419
+#: lib/web/live/account_management_live/show.ex:321
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to reactivate %{email}? They will be able to log in again."
+msgstr "¿Estás seguro/a de que deseas reactivar a %{email}? Podrá iniciar sesión nuevamente."
+
+#: lib/web/components/layouts.ex:150
+#: lib/web/components/layouts.ex:162
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr "Intentando reconectar"
+
+#: lib/web/live/shared/person_form_component.ex:20
+#, elixir-autogen, elixir-format
+msgid "Aug"
+msgstr "Ago"
+
+#: lib/web/live/account_management_live/edit.ex:291
+#: lib/web/live/account_management_live/new.ex:177
+#, elixir-autogen, elixir-format
+msgid "Avatar"
+msgstr "Avatar"
+
+#: lib/web/live/account_management_live/edit.ex:198
+#: lib/web/live/account_management_live/show.ex:114
+#, elixir-autogen, elixir-format
+msgid "Avatar processing failed."
+msgstr "Error al procesar el avatar."
+
+#: lib/web/live/family_live/new.html.heex:43
+#: lib/web/live/kinship_live.html.heex:44
+#: lib/web/live/org_people_live/index.html.heex:73
+#: lib/web/live/people_live/index.html.heex:74
+#: lib/web/live/person_live/new.html.heex:43
+#: lib/web/live/person_live/show.html.heex:22
+#: lib/web/live/person_live/show.html.heex:31
+#: lib/web/live/person_live/show.html.heex:40
+#: lib/web/live/person_live/show.html.heex:128
+#: lib/web/live/person_live/show.html.heex:137
+#: lib/web/live/person_live/show.html.heex:146
+#: lib/web/live/shared/add_relationship_component.ex:274
+#: lib/web/live/shared/add_relationship_component.ex:335
+#, elixir-autogen, elixir-format
+msgid "Back"
+msgstr "Volver"
+
+#: lib/web/live/memory_live/form.html.heex:163
+#, elixir-autogen, elixir-format
+msgid "Back to albums"
+msgstr "Volver a álbumes"
+
+#: lib/web/live/family_live/show.html.heex:19
+#: lib/web/live/family_live/show.html.heex:179
+#, elixir-autogen, elixir-format
+msgid "Back to families"
+msgstr "Volver a familias"
+
+#: lib/web/live/gallery_live/show.html.heex:18
+#: lib/web/live/gallery_live/show.html.heex:113
+#: lib/web/live/vault_live/show.html.heex:8
+#, elixir-autogen, elixir-format
+msgid "Back to family"
+msgstr "Volver a familia"
+
+#: lib/web/live/memory_live/form.html.heex:17
+#, elixir-autogen, elixir-format
+msgid "Back to memory"
+msgstr "Volver al recuerdo"
+
+#: lib/web/live/memory_live/form.html.heex:18
+#: lib/web/live/memory_live/show.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Back to vault"
+msgstr "Volver al baúl"
+
+#: lib/web/live/shared/person_form_component.html.heex:177
+#, elixir-autogen, elixir-format
+msgid "Birth date"
+msgstr "Fecha de nacimiento"
+
+#: lib/web/live/person_live/show.html.heex:280
+#, elixir-autogen, elixir-format
+msgid "Birth given name"
+msgstr "Nombre de nacimiento"
+
+#: lib/web/live/person_live/show.html.heex:284
+#, elixir-autogen, elixir-format
+msgid "Birth surname"
+msgstr "Apellido de nacimiento"
+
+#: lib/web/live/person_live/show.ex:560
+#: lib/web/live/person_live/show.ex:568
+#: lib/web/live/person_live/show.ex:574
+#, elixir-autogen, elixir-format
+msgid "Born"
+msgstr "Nacido/a"
+
+#: lib/web/controllers/page_html/landing.html.heex:9
+#, elixir-autogen, elixir-format
+msgid "Build galleries, connect people, and preserve what matters -- all in one place."
+msgstr "Crea galerías, conecta personas y preserva lo que importa, todo en un solo lugar."
+
+#: lib/web/live/family_live/show.html.heex:978
+#, elixir-autogen, elixir-format
+msgid "CSV file"
+msgstr "Archivo CSV"
+
+#: lib/web/live/family_live/show.ex:451
+#, elixir-autogen, elixir-format
+msgid "CSV file is empty or has no data rows"
+msgstr "El archivo CSV está vacío o no tiene filas de datos"
+
+#: lib/web/live/account_management_live/edit.ex:345
+#: lib/web/live/account_management_live/edit.ex:395
+#: lib/web/live/account_management_live/edit.ex:430
+#: lib/web/live/account_management_live/new.ex:231
+#: lib/web/live/account_management_live/show.ex:297
+#: lib/web/live/account_management_live/show.ex:332
+#: lib/web/live/comments/photo_comments_component.ex:138
+#: lib/web/live/family_live/index.html.heex:218
+#: lib/web/live/family_live/new.html.heex:118
+#: lib/web/live/family_live/show.html.heex:412
+#: lib/web/live/family_live/show.html.heex:460
+#: lib/web/live/gallery_live/index.html.heex:110
+#: lib/web/live/gallery_live/index.html.heex:145
+#: lib/web/live/gallery_live/show.html.heex:397
+#: lib/web/live/memory_live/form.html.heex:119
+#: lib/web/live/memory_live/form.html.heex:292
+#: lib/web/live/org_people_live/index.html.heex:349
+#: lib/web/live/organization_live/index.html.heex:172
+#: lib/web/live/organization_live/index.html.heex:230
+#: lib/web/live/people_live/index.html.heex:351
+#: lib/web/live/person_live/index.html.heex:139
+#: lib/web/live/person_live/show.html.heex:656
+#: lib/web/live/shared/add_relationship_component.ex:476
+#: lib/web/live/shared/person_form_component.html.heex:340
+#: lib/web/live/vault_live/show.html.heex:220
+#: lib/web/live/vault_live/show.html.heex:272
+#, elixir-autogen, elixir-format
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: lib/web/live/account_management_live/edit.ex:153
+#: lib/web/live/account_management_live/show.ex:69
+#, elixir-autogen, elixir-format
+msgid "Cannot deactivate the last admin account."
+msgstr "No se puede desactivar la última cuenta de administrador."
+
+#: lib/web/live/account_live/settings.ex:44
+#, elixir-autogen, elixir-format
+msgid "Change Email"
+msgstr "Cambiar correo"
+
+#: lib/web/live/account_live/settings.ex:41
+#, elixir-autogen, elixir-format
+msgid "Changing..."
+msgstr "Cambiando..."
+
+#: lib/ancestry/kinship.ex:163
+#: lib/ancestry/kinship.ex:323
+#, elixir-autogen, elixir-format
+msgid "Child"
+msgstr "Hijo/a"
+
+#: lib/web/live/person_live/show.html.heex:464
+#, elixir-autogen, elixir-format
+msgid "Children (other parent unknown)"
+msgstr "Hijos (otro padre/madre desconocido)"
+
+#: lib/web/live/person_live/show.html.heex:436
+#, elixir-autogen, elixir-format
+msgid "Children with"
+msgstr "Hijos con"
+
+#: lib/web/live/memory_live/form.html.heex:74
+#: lib/web/live/memory_live/form.html.heex:176
+#, elixir-autogen, elixir-format
+msgid "Choose Cover Photo"
+msgstr "Elegir foto de portada"
+
+#: lib/web/live/kinship_live.html.heex:114
+#, elixir-autogen, elixir-format
+msgid "Choose Person A and Person B to discover their kinship"
+msgstr "Elige la Persona A y la Persona B para descubrir su parentesco"
+
+#: lib/web/live/family_live/show.html.heex:890
+#: lib/web/live/memory_live/form.html.heex:185
+#, elixir-autogen, elixir-format
+msgid "Close"
+msgstr "Cerrar"
+
+#: lib/web/components/nav_drawer.ex:56
+#, elixir-autogen, elixir-format
+msgid "Close menu"
+msgstr "Cerrar menú"
+
+#: lib/web/live/comments/photo_comments_component.ex:94
+#, elixir-autogen, elixir-format
+msgid "Comments"
+msgstr "Comentarios"
+
+#: lib/web/live/account_live/confirmation.ex:42
+#, elixir-autogen, elixir-format
+msgid "Confirm and log in only this time"
+msgstr "Confirmar e iniciar sesión solo esta vez"
+
+#: lib/web/live/account_live/confirmation.ex:35
+#, elixir-autogen, elixir-format
+msgid "Confirm and stay logged in"
+msgstr "Confirmar y mantener sesión iniciada"
+
+#: lib/web/live/account_live/settings.ex:80
+#: lib/web/live/account_management_live/edit.ex:267
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr "Confirmar nueva contraseña"
+
+#: lib/web/live/account_management_live/new.ex:155
+#, elixir-autogen, elixir-format
+msgid "Confirm password"
+msgstr "Confirmar contraseña"
+
+#: lib/ancestry/identity/account_notifier.ex:81
+#, elixir-autogen, elixir-format
+msgid "Confirmation instructions"
+msgstr "Instrucciones de confirmación"
+
+#: lib/web/live/account_live/confirmation.ex:32
+#: lib/web/live/account_live/confirmation.ex:39
+#, elixir-autogen, elixir-format
+msgid "Confirming..."
+msgstr "Confirmando..."
+
+#: lib/web/live/memory_live/form.html.heex:82
+#, elixir-autogen, elixir-format
+msgid "Content"
+msgstr "Contenido"
+
+#: lib/web/live/family_live/index.ex:108
+#, elixir-autogen, elixir-format
+msgid "Could not delete 1 family. Try again."
+msgid_plural "Could not delete %{count} families. Try again."
+msgstr[0] "No se pudo eliminar 1 familia. Intenta de nuevo."
+msgstr[1] "No se pudieron eliminar %{count} familias. Intenta de nuevo."
+
+#: lib/web/live/organization_live/index.ex:152
+#, elixir-autogen, elixir-format
+msgid "Could not delete 1 organization. Try again."
+msgid_plural "Could not delete %{count} organizations. Try again."
+msgstr[0] "No se pudo eliminar 1 organización. Intenta de nuevo."
+msgstr[1] "No se pudieron eliminar %{count} organizaciones. Intenta de nuevo."
+
+#: lib/web/live/family_live/show.ex:454
+#, elixir-autogen, elixir-format
+msgid "Could not parse CSV file"
+msgstr "No se pudo procesar el archivo CSV"
+
+#: lib/web/live/family_live/show.ex:448
+#, elixir-autogen, elixir-format
+msgid "Could not parse CSV file: %{error}"
+msgstr "No se pudo procesar el archivo CSV: %{error}"
+
+#: lib/web/live/memory_live/form.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Cover Photo"
+msgstr "Foto de portada"
+
+#: lib/web/live/family_live/new.html.heex:66
+#: lib/web/live/memory_live/form.html.heex:56
+#, elixir-autogen, elixir-format
+msgid "Cover photo"
+msgstr "Foto de portada"
+
+#: lib/web/live/family_live/new.html.heex:112
+#: lib/web/live/family_live/show.html.heex:510
+#: lib/web/live/gallery_live/index.html.heex:103
+#: lib/web/live/organization_live/index.html.heex:164
+#: lib/web/live/shared/person_form_component.html.heex:329
+#, elixir-autogen, elixir-format
+msgid "Create"
+msgstr "Crear"
+
+#: lib/web/live/shared/add_relationship_component.ex:356
+#, elixir-autogen, elixir-format
+msgid "Create & Continue"
+msgstr "Crear y continuar"
+
+#: lib/web/live/account_management_live/new.ex:225
+#, elixir-autogen, elixir-format
+msgid "Create Account"
+msgstr "Crear cuenta"
+
+#: lib/web/live/memory_live/form.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Create Memory"
+msgstr "Crear recuerdo"
+
+#: lib/web/live/family_live/show.html.heex:769
+#, elixir-autogen, elixir-format
+msgid "Create Subfamily"
+msgstr "Crear subfamilia"
+
+#: lib/web/live/shared/add_relationship_component.ex:339
+#, elixir-autogen, elixir-format
+msgid "Create a new person to add as a relationship."
+msgstr "Crea una nueva persona para agregar como relación."
+
+#: lib/web/live/account_live/registration.ex:44
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr "Crear una cuenta"
+
+#: lib/web/live/shared/add_relationship_component.ex:257
+#, elixir-autogen, elixir-format
+msgid "Create new person"
+msgstr "Crear nueva persona"
+
+#: lib/web/live/family_live/show.html.heex:104
+#, elixir-autogen, elixir-format
+msgid "Create subfamily"
+msgstr "Crear subfamilia"
+
+#: lib/web/live/vault_live/show.html.heex:174
+#, elixir-autogen, elixir-format
+msgid "Create your first memory"
+msgstr "Crea tu primer recuerdo"
+
+#: lib/web/live/account_live/registration.ex:41
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr "Creando cuenta..."
+
+#: lib/web/live/family_live/show.html.heex:850
+#: lib/web/live/organization_live/index.html.heex:161
+#, elixir-autogen, elixir-format
+msgid "Creating..."
+msgstr "Creando..."
+
+#: lib/web/live/shared/person_form_component.html.heex:21
+#: lib/web/live/shared/person_form_component.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Current photo"
+msgstr "Foto actual"
+
+#: lib/web/live/shared/add_relationship_component.ex:420
+#: lib/web/live/shared/add_relationship_component.ex:421
+#: lib/web/live/shared/person_form_component.html.heex:185
+#: lib/web/live/shared/person_form_component.html.heex:246
+#, elixir-autogen, elixir-format
+msgid "Day"
+msgstr "Día"
+
+#: lib/web/live/account_management_live/edit.ex:402
+#: lib/web/live/account_management_live/show.ex:259
+#: lib/web/live/account_management_live/show.ex:304
+#, elixir-autogen, elixir-format
+msgid "Deactivate"
+msgstr "Desactivar"
+
+#: lib/web/live/account_management_live/edit.ex:359
+#: lib/web/live/account_management_live/edit.ex:381
+#: lib/web/live/account_management_live/show.ex:283
+#, elixir-autogen, elixir-format
+msgid "Deactivate Account"
+msgstr "Desactivar cuenta"
+
+#: lib/web/live/account_management_live/index.ex:117
+#: lib/web/live/account_management_live/index.ex:179
+#: lib/web/live/account_management_live/show.ex:208
+#, elixir-autogen, elixir-format
+msgid "Deactivated"
+msgstr "Desactivado"
+
+#: lib/web/live/account_management_live/show.ex:236
+#, elixir-autogen, elixir-format
+msgid "Deactivated By"
+msgstr "Desactivado por"
+
+#: lib/web/live/shared/person_form_component.html.heex:238
+#, elixir-autogen, elixir-format
+msgid "Death date"
+msgstr "Fecha de fallecimiento"
+
+#: lib/web/live/shared/person_form_component.ex:24
+#, elixir-autogen, elixir-format
+msgid "Dec"
+msgstr "Dic"
+
+#: lib/web/live/person_live/show.ex:562
+#: lib/web/live/person_live/show.ex:580
+#: lib/web/live/person_live/show.ex:585
+#, elixir-autogen, elixir-format
+msgid "Deceased"
+msgstr "Fallecido/a"
+
+#: lib/web/live/family_live/show.html.heex:305
+#, elixir-autogen, elixir-format
+msgid "Default person"
+msgstr "Persona predeterminada"
+
+#: lib/web/live/family_live/index.html.heex:106
+#: lib/web/live/family_live/index.html.heex:212
+#: lib/web/live/gallery_live/index.html.heex:139
+#: lib/web/live/gallery_live/show.html.heex:157
+#: lib/web/live/gallery_live/show.html.heex:391
+#: lib/web/live/memory_live/form.html.heex:128
+#: lib/web/live/memory_live/form.html.heex:286
+#: lib/web/live/org_people_live/index.html.heex:33
+#: lib/web/live/org_people_live/index.html.heex:342
+#: lib/web/live/organization_live/index.html.heex:76
+#: lib/web/live/organization_live/index.html.heex:224
+#: lib/web/live/person_live/show.html.heex:685
+#: lib/web/live/vault_live/show.html.heex:78
+#: lib/web/live/vault_live/show.html.heex:214
+#: lib/web/live/vault_live/show.html.heex:266
+#, elixir-autogen, elixir-format
+msgid "Delete"
+msgstr "Eliminar"
+
+#: lib/web/live/family_live/index.html.heex:200
+#, elixir-autogen, elixir-format
+msgid "Delete %{count} families? All galleries and photos will be permanently removed. This cannot be undone."
+msgstr "¿Eliminar %{count} familias? Todas las galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/organization_live/index.html.heex:212
+#, elixir-autogen, elixir-format
+msgid "Delete %{count} organizations? All families, galleries, and photos will be permanently removed. This cannot be undone."
+msgstr "¿Eliminar %{count} organizaciones? Todas las familias, galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/family_live/index.html.heex:196
+#, elixir-autogen, elixir-format
+msgid "Delete 1 family? All galleries and photos will be permanently removed. This cannot be undone."
+msgstr "¿Eliminar 1 familia? Todas las galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/vault_live/show.html.heex:254
+#, elixir-autogen, elixir-format
+msgid "Delete 1 memory? This cannot be undone."
+msgid_plural "Delete %{count} memories? This cannot be undone."
+msgstr[0] "¿Eliminar 1 recuerdo? Esta acción no se puede deshacer."
+msgstr[1] "¿Eliminar %{count} recuerdos? Esta acción no se puede deshacer."
+
+#: lib/web/live/organization_live/index.html.heex:208
+#, elixir-autogen, elixir-format
+msgid "Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone."
+msgstr "¿Eliminar 1 organización? Todas las familias, galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
+
+#: lib/web/live/gallery_live/show.html.heex:380
+#, elixir-autogen, elixir-format
+msgid "Delete 1 photo? This cannot be undone."
+msgid_plural "Delete %{count} photos? This cannot be undone."
+msgstr[0] "¿Eliminar 1 foto? Esta acción no se puede deshacer."
+msgstr[1] "¿Eliminar %{count} fotos? Esta acción no se puede deshacer."
+
+#: lib/web/live/family_live/show.html.heex:441
+#, elixir-autogen, elixir-format
+msgid "Delete Family"
+msgstr "Eliminar familia"
+
+#: lib/web/live/family_live/show.html.heex:604
+#: lib/web/live/gallery_live/index.html.heex:127
+#, elixir-autogen, elixir-format
+msgid "Delete Gallery"
+msgstr "Eliminar galería"
+
+#: lib/web/live/person_live/show.html.heex:672
+#, elixir-autogen, elixir-format
+msgid "Delete Person"
+msgstr "Eliminar persona"
+
+#: lib/web/live/gallery_live/show.html.heex:377
+#, elixir-autogen, elixir-format
+msgid "Delete Photos"
+msgstr "Eliminar fotos"
+
+#: lib/web/live/comments/photo_comments_component.ex:164
+#, elixir-autogen, elixir-format
+msgid "Delete comment"
+msgstr "Eliminar comentario"
+
+#: lib/web/live/family_live/index.html.heex:192
+#, elixir-autogen, elixir-format
+msgid "Delete families"
+msgstr "Eliminar familias"
+
+#: lib/web/live/family_live/show.html.heex:64
+#: lib/web/live/family_live/show.html.heex:147
+#, elixir-autogen, elixir-format
+msgid "Delete family"
+msgstr "Eliminar familia"
+
+#: lib/web/live/org_people_live/index.html.heex:298
+#: lib/web/live/person_live/show.html.heex:80
+#: lib/web/live/person_live/show.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Delete person"
+msgstr "Eliminar persona"
+
+#: lib/web/live/comments/photo_comments_component.ex:162
+#, elixir-autogen, elixir-format
+msgid "Delete this comment?"
+msgstr "¿Eliminar este comentario?"
+
+#: lib/web/live/vault_live/show.html.heex:52
+#, elixir-autogen, elixir-format
+msgid "Delete vault"
+msgstr "Eliminar baúl"
+
+#: lib/web/live/family_live/index.ex:100
+#, elixir-autogen, elixir-format
+msgid "Deleted 1 family."
+msgid_plural "Deleted %{count} families."
+msgstr[0] "Se eliminó 1 familia."
+msgstr[1] "Se eliminaron %{count} familias."
+
+#: lib/web/live/organization_live/index.ex:144
+#, elixir-autogen, elixir-format
+msgid "Deleted 1 organization."
+msgid_plural "Deleted %{count} organizations."
+msgstr[0] "Se eliminó 1 organización."
+msgstr[1] "Se eliminaron %{count} organizaciones."
+
+#: lib/web/live/org_people_live/index.ex:139
+#, elixir-autogen, elixir-format
+msgid "Deleted 1 person."
+msgid_plural "Deleted %{count} people."
+msgstr[0] "Se eliminó 1 persona."
+msgstr[1] "Se eliminaron %{count} personas."
+
+#: lib/web/live/person_live/show.html.heex:381
+#: lib/web/live/shared/add_relationship_component.ex:406
+#, elixir-autogen, elixir-format
+msgid "Divorced"
+msgstr "Divorciado/a"
+
+#: lib/web/live/gallery_live/show.html.heex:346
+#: lib/web/live/org_people_live/index.html.heex:49
+#: lib/web/live/people_live/index.html.heex:50
+#, elixir-autogen, elixir-format
+msgid "Done"
+msgstr "Listo"
+
+#: lib/web/live/gallery_live/show.html.heex:133
+#, elixir-autogen, elixir-format
+msgid "Drop to upload photos"
+msgstr "Arrastra para subir fotos"
+
+#: lib/web/live/account_management_live/index.ex:201
+#: lib/web/live/account_management_live/show.ex:148
+#: lib/web/live/memory_live/show.html.heex:28
+#: lib/web/live/org_people_live/index.html.heex:51
+#: lib/web/live/people_live/index.html.heex:52
+#: lib/web/live/person_live/show.html.heex:94
+#: lib/web/live/person_live/show.html.heex:529
+#, elixir-autogen, elixir-format
+msgid "Edit"
+msgstr "Editar"
+
+#: lib/web/live/account_management_live/edit.ex:36
+#: lib/web/live/account_management_live/edit.ex:223
+#, elixir-autogen, elixir-format
+msgid "Edit Account"
+msgstr "Editar cuenta"
+
+#: lib/web/live/family_live/show.html.heex:291
+#, elixir-autogen, elixir-format
+msgid "Edit Family"
+msgstr "Editar familia"
+
+#: lib/web/live/memory_live/form.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "Edit Memory"
+msgstr "Editar recuerdo"
+
+#: lib/web/live/comments/photo_comments_component.ex:154
+#, elixir-autogen, elixir-format
+msgid "Edit comment"
+msgstr "Editar comentario"
+
+#: lib/web/live/family_live/show.html.heex:54
+#: lib/web/live/family_live/show.html.heex:128
+#, elixir-autogen, elixir-format
+msgid "Edit family"
+msgstr "Editar familia"
+
+#: lib/web/live/org_people_live/index.html.heex:289
+#: lib/web/live/people_live/index.html.heex:289
+#: lib/web/live/person_live/show.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "Edit person"
+msgstr "Editar persona"
+
+#: lib/web/live/person_live/show.html.heex:342
+#, elixir-autogen, elixir-format
+msgid "Edit relationship"
+msgstr "Editar relación"
+
+#: lib/web/live/account_management_live/edit.ex:276
+#: lib/web/live/account_management_live/new.ex:163
+#, elixir-autogen, elixir-format
+msgid "Editor"
+msgstr "Editor"
+
+#: lib/ancestry/kinship.ex:250
+#, elixir-autogen, elixir-format
+msgid "Eighth"
+msgstr "Octavo"
+
+#: lib/web/live/account_live/login.ex:34
+#: lib/web/live/account_live/registration.ex:32
+#: lib/web/live/account_live/settings.ex:23
+#: lib/web/live/account_live/settings.ex:34
+#: lib/web/live/account_management_live/edit.ex:257
+#: lib/web/live/account_management_live/index.ex:146
+#: lib/web/live/account_management_live/new.ex:150
+#: lib/web/live/account_management_live/show.ex:177
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr "Correo electrónico"
+
+#: lib/web/live/account_live/settings.ex:133
+#, elixir-autogen, elixir-format
+msgid "Email change link is invalid or it has expired."
+msgstr "El enlace para cambiar el correo es inválido o ha expirado."
+
+#: lib/web/live/account_live/settings.ex:130
+#, elixir-autogen, elixir-format
+msgid "Email changed successfully."
+msgstr "Correo electrónico actualizado correctamente."
+
+#: lib/web/live/family_live/show.html.heex:938
+#, elixir-autogen, elixir-format
+msgid "Error details"
+msgstr "Detalles del error"
+
+#: lib/web/live/family_live/show.html.heex:928
+#, elixir-autogen, elixir-format
+msgid "Errors"
+msgstr "Errores"
+
+#: lib/web/live/people_live/index.html.heex:150
+#, elixir-autogen, elixir-format
+msgid "Est. Age"
+msgstr "Edad aprox."
+
+#: lib/web/live/person_live/show.ex:626
+#, elixir-autogen, elixir-format
+msgid "Ex-partner"
+msgstr "Expareja"
+
+#: lib/web/live/family_live/index.html.heex:32
+#: lib/web/live/family_live/index.html.heex:59
+#: lib/web/live/gallery_live/show.html.heex:41
+#: lib/web/live/organization_live/index.html.heex:32
+#: lib/web/live/vault_live/show.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Exit selection"
+msgstr "Salir de selección"
+
+#: lib/web/live/family_live/show.html.heex:230
+#, elixir-autogen, elixir-format
+msgid "Explore the Family Tree"
+msgstr "Explorar el árbol familiar"
+
+#: lib/web/live/shared/add_relationship_component.ex:614
+#, elixir-autogen, elixir-format
+msgid "Failed to create relationship"
+msgstr "Error al crear la relación"
+
+#: lib/web/live/family_live/show.ex:530
+#, elixir-autogen, elixir-format
+msgid "Failed to create subfamily"
+msgstr "Error al crear la subfamilia"
+
+#: lib/web/live/account_management_live/edit.ex:159
+#: lib/web/live/account_management_live/show.ex:75
+#, elixir-autogen, elixir-format
+msgid "Failed to deactivate account."
+msgstr "Error al desactivar la cuenta."
+
+#: lib/web/live/account_management_live/edit.ex:188
+#: lib/web/live/account_management_live/show.ex:104
+#, elixir-autogen, elixir-format
+msgid "Failed to reactivate account."
+msgstr "Error al reactivar la cuenta."
+
+#: lib/web/live/person_live/show.ex:123
+#, elixir-autogen, elixir-format
+msgid "Failed to remove photo"
+msgstr "Error al eliminar la foto"
+
+#: lib/web/live/person_live/show.ex:278
+#, elixir-autogen, elixir-format
+msgid "Failed to remove relationship"
+msgstr "Error al eliminar la relación"
+
+#: lib/web/live/person_live/show.ex:259
+#, elixir-autogen, elixir-format
+msgid "Failed to update relationship"
+msgstr "Error al actualizar la relación"
+
+#: lib/web/live/family_live/index.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Families"
+msgstr "Familias"
+
+#: lib/web/live/family_live/new.html.heex:59
+#: lib/web/live/family_live/show.html.heex:300
+#: lib/web/live/family_live/show.html.heex:796
+#, elixir-autogen, elixir-format
+msgid "Family name"
+msgstr "Nombre de la familia"
+
+#: lib/web/live/shared/add_relationship_component.ex:380
+#, elixir-autogen, elixir-format
+msgid "Father"
+msgstr "Padre"
+
+#: lib/web/live/shared/person_form_component.ex:14
+#, elixir-autogen, elixir-format
+msgid "Feb"
+msgstr "Feb"
+
+#: lib/web/live/shared/person_form_component.html.heex:149
+#, elixir-autogen, elixir-format
+msgid "Female"
+msgstr "Femenino"
+
+#: lib/ancestry/kinship.ex:247
+#, elixir-autogen, elixir-format
+msgid "Fifth"
+msgstr "Quinto"
+
+#: lib/web/live/account_management_live/edit.ex:447
+#: lib/web/live/account_management_live/new.ex:240
+#: lib/web/live/family_live/show.ex:620
+#, elixir-autogen, elixir-format
+msgid "File is too large (max 10MB)"
+msgstr "El archivo es demasiado grande (máximo 10MB)"
+
+#: lib/ancestry/import/csv.ex:96
+#, elixir-autogen, elixir-format
+msgid "File not found: %{path}"
+msgstr "Archivo no encontrado: %{path}"
+
+#: lib/web/live/family_live/new.ex:52
+#: lib/web/live/shared/person_form_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "File too large (max 20MB)"
+msgstr "Archivo demasiado grande (máximo 20MB)"
+
+#: lib/web/live/gallery_live/show.ex:276
+#, elixir-autogen, elixir-format
+msgid "File too large (max 300MB)"
+msgstr "Archivo demasiado grande (máximo 300MB)"
+
+#: lib/web/live/family_live/new.ex:53
+#: lib/web/live/gallery_live/show.ex:277
+#: lib/web/live/shared/person_form_component.ex:33
+#, elixir-autogen, elixir-format
+msgid "File type not supported"
+msgstr "Tipo de archivo no compatible"
+
+#: lib/web/live/family_live/show.html.heex:348
+#, elixir-autogen, elixir-format
+msgid "Filter members..."
+msgstr "Filtrar miembros..."
+
+#: lib/web/live/family_live/people_list_component.ex:43
+#, elixir-autogen, elixir-format
+msgid "Filter people..."
+msgstr "Filtrar personas..."
+
+#: lib/ancestry/kinship.ex:243
+#, elixir-autogen, elixir-format
+msgid "First"
+msgstr "Primero"
+
+#: lib/web/live/family_live/show.html.heex:970
+#, elixir-autogen, elixir-format
+msgid "Format"
+msgstr "Formato"
+
+#: lib/ancestry/kinship.ex:246
+#, elixir-autogen, elixir-format
+msgid "Fourth"
+msgstr "Cuarto"
+
+#: lib/web/live/account_management_live/edit.ex:256
+#: lib/web/live/account_management_live/new.ex:149
+#, elixir-autogen, elixir-format
+msgid "Full name"
+msgstr "Nombre completo"
+
+#: lib/web/live/family_live/gallery_list_component.ex:10
+#: lib/web/live/gallery_live/index.html.heex:12
+#, elixir-autogen, elixir-format
+msgid "Galleries"
+msgstr "Galerías"
+
+#: lib/web/live/family_live/show.html.heex:501
+#: lib/web/live/gallery_live/index.html.heex:94
+#, elixir-autogen, elixir-format
+msgid "Gallery name"
+msgstr "Nombre de la galería"
+
+#: lib/web/live/shared/person_form_component.html.heex:138
+#, elixir-autogen, elixir-format
+msgid "Gender"
+msgstr "Género"
+
+#: lib/web/live/memory_live/form.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "Give this memory a name"
+msgstr "Dale un nombre a este recuerdo"
+
+#: lib/web/live/shared/add_relationship_component.ex:350
+#, elixir-autogen, elixir-format
+msgid "Given name"
+msgstr "Nombre"
+
+#: lib/web/live/shared/person_form_component.html.heex:80
+#, elixir-autogen, elixir-format
+msgid "Given names"
+msgstr "Nombres"
+
+#: lib/web/live/shared/person_form_component.html.heex:89
+#, elixir-autogen, elixir-format
+msgid "Given names at birth"
+msgstr "Nombres de nacimiento"
+
+#: lib/web/live/people_live/index.html.heex:173
+#, elixir-autogen, elixir-format
+msgid "Go back to add members"
+msgstr "Volver para agregar miembros"
+
+#: lib/ancestry/kinship.ex:193
+#, elixir-autogen, elixir-format
+msgid "Grand Nephew & Niece"
+msgstr "Sobrino/a nieto/a"
+
+#: lib/ancestry/kinship.ex:166
+#: lib/ancestry/kinship.ex:324
+#, elixir-autogen, elixir-format
+msgid "Grandchild"
+msgstr "Nieto/a"
+
+#: lib/ancestry/kinship.ex:157
+#: lib/ancestry/kinship.ex:295
+#, elixir-autogen, elixir-format
+msgid "Grandparent"
+msgstr "Abuelo/a"
+
+#: lib/ancestry/kinship.ex:196
+#, elixir-autogen, elixir-format
+msgid "Great Grand Nephew & Niece"
+msgstr "Resobrino/a nieto/a"
+
+#: lib/ancestry/kinship.ex:184
+#, elixir-autogen, elixir-format
+msgid "Great Grand Uncle & Aunt"
+msgstr "Retío/a abuelo/a"
+
+#: lib/ancestry/kinship.ex:221
+#: lib/ancestry/kinship.ex:325
+#, elixir-autogen, elixir-format
+msgid "Great Grandchild"
+msgstr "Bisnieto/a"
+
+#: lib/ancestry/kinship.ex:211
+#: lib/ancestry/kinship.ex:296
+#, elixir-autogen, elixir-format
+msgid "Great Grandparent"
+msgstr "Bisabuelo/a"
+
+#: lib/ancestry/kinship.ex:222
+#: lib/ancestry/kinship.ex:326
+#, elixir-autogen, elixir-format
+msgid "Great Great Grandchild"
+msgstr "Tataranieto/a"
+
+#: lib/ancestry/kinship.ex:212
+#: lib/ancestry/kinship.ex:297
+#, elixir-autogen, elixir-format
+msgid "Great Great Grandparent"
+msgstr "Tatarabuelo/a"
+
+#: lib/ancestry/kinship.ex:181
+#, elixir-autogen, elixir-format
+msgid "Great Uncle & Aunt"
+msgstr "Tío/a abuelo/a"
+
+#: lib/web/live/person_live/show.html.heex:589
+#, elixir-autogen, elixir-format
+msgid "Half"
+msgstr "Medio"
+
+#: lib/ancestry/kinship.ex:202
+#, elixir-autogen, elixir-format
+msgid "Half-"
+msgstr "Medio-"
+
+#: lib/ancestry/kinship.ex:172
+#, elixir-autogen, elixir-format
+msgid "Half-Sibling"
+msgstr "Medio hermano/a"
+
+#: lib/web/live/family_live/person_card_component.ex:75
+#: lib/web/live/family_live/person_card_component.ex:288
+#, elixir-autogen, elixir-format
+msgid "Has more descendants"
+msgstr "Tiene más descendientes"
+
+#: lib/ancestry/identity/account_notifier.ex:33
+#: lib/ancestry/identity/account_notifier.ex:64
+#: lib/ancestry/identity/account_notifier.ex:85
+#, elixir-autogen, elixir-format
+msgid "Hi %{email},"
+msgstr "Hola %{email},"
+
+#: lib/ancestry/identity/account_notifier.ex:91
+#, elixir-autogen, elixir-format
+msgid "If you didn't create an account with us, please ignore this."
+msgstr "Si no creaste una cuenta con nosotros, ignora este mensaje."
+
+#: lib/ancestry/identity/account_notifier.ex:39
+#, elixir-autogen, elixir-format
+msgid "If you didn't request this change, please ignore this."
+msgstr "Si no solicitaste este cambio, ignora este mensaje."
+
+#: lib/ancestry/identity/account_notifier.ex:70
+#, elixir-autogen, elixir-format
+msgid "If you didn't request this email, please ignore this."
+msgstr "Si no solicitaste este correo, ignora este mensaje."
+
+#: lib/web/live/family_live/show.html.heex:1007
+#, elixir-autogen, elixir-format
+msgid "Import"
+msgstr "Importar"
+
+#: lib/web/live/family_live/show.html.heex:896
+#, elixir-autogen, elixir-format
+msgid "Import complete"
+msgstr "Importación completa"
+
+#: lib/web/live/family_live/show.html.heex:882
+#, elixir-autogen, elixir-format
+msgid "Import failed"
+msgstr "Error en la importación"
+
+#: lib/web/live/family_live/show.html.heex:115
+#: lib/web/live/family_live/show.html.heex:962
+#, elixir-autogen, elixir-format
+msgid "Import from CSV"
+msgstr "Importar desde CSV"
+
+#: lib/web/live/shared/add_relationship_component.ex:404
+#, elixir-autogen, elixir-format
+msgid "In a relationship"
+msgstr "En una relación"
+
+#: lib/web/live/person_live/show.html.heex:196
+#, elixir-autogen, elixir-format
+msgid "In family trees"
+msgstr "En árboles familiares"
+
+#: lib/web/live/family_live/show.html.heex:815
+#, elixir-autogen, elixir-format
+msgid "Include ascendants"
+msgstr "Incluir ascendientes"
+
+#: lib/web/live/family_live/show.html.heex:837
+#, elixir-autogen, elixir-format
+msgid "Include partners' families"
+msgstr "Incluir familias de las parejas"
+
+#: lib/web/live/memory_live/form.html.heex:177
+#, elixir-autogen, elixir-format
+msgid "Insert Photo"
+msgstr "Insertar foto"
+
+#: lib/web/live/account_management_live/edit.ex:449
+#: lib/web/live/account_management_live/new.ex:242
+#, elixir-autogen, elixir-format
+msgid "Invalid file type"
+msgstr "Tipo de archivo no válido"
+
+#: lib/web/live/shared/add_relationship_component.ex:613
+#, elixir-autogen, elixir-format
+msgid "Invalid relationship data"
+msgstr "Datos de relación no válidos"
+
+#: lib/web/live/shared/person_form_component.ex:13
+#, elixir-autogen, elixir-format
+msgid "Jan"
+msgstr "Ene"
+
+#: lib/web/live/shared/person_form_component.ex:19
+#, elixir-autogen, elixir-format
+msgid "Jul"
+msgstr "Jul"
+
+#: lib/web/live/shared/person_form_component.ex:18
+#, elixir-autogen, elixir-format
+msgid "Jun"
+msgstr "Jun"
+
+#: lib/web/live/account_live/confirmation.ex:72
+#, elixir-autogen, elixir-format
+msgid "Keep me logged in on this device"
+msgstr "Mantener sesión iniciada en este dispositivo"
+
+#: lib/web/live/kinship_live.html.heex:23
+#, elixir-autogen, elixir-format
+msgid "Kinship"
+msgstr "Parentesco"
+
+#: lib/web/live/family_live/show.html.heex:43
+#: lib/web/live/family_live/show.html.heex:133
+#, elixir-autogen, elixir-format
+msgid "Kinship calculator"
+msgstr "Calculadora de parentesco"
+
+#: lib/web/live/account_live/settings.ex:96
+#: lib/web/live/account_live/settings.ex:107
+#: lib/web/live/account_management_live/edit.ex:284
+#: lib/web/live/account_management_live/new.ex:170
+#, elixir-autogen, elixir-format
+msgid "Language"
+msgstr "Idioma"
+
+#: lib/web/live/account_live/settings.ex:235
+#, elixir-autogen, elixir-format
+msgid "Language updated successfully."
+msgstr "Idioma actualizado correctamente."
+
+#: lib/web/live/person_live/show.ex:627
+#, elixir-autogen, elixir-format
+msgid "Late partner"
+msgstr "Pareja fallecida"
+
+#: lib/web/live/family_live/side_panel_component.ex:70
+#, elixir-autogen, elixir-format
+msgid "Latest descendant"
+msgstr "Descendiente más reciente"
+
+#: lib/web/live/account_management_live/edit.ex:262
+#: lib/web/live/account_management_live/edit.ex:268
+#, elixir-autogen, elixir-format
+msgid "Leave blank to keep current"
+msgstr "Deja en blanco para mantener la actual"
+
+#: lib/web/live/people_live/index.html.heex:151
+#, elixir-autogen, elixir-format
+msgid "Lifespan"
+msgstr "Período de vida"
+
+#: lib/web/live/family_live/side_panel_component.ex:55
+#, elixir-autogen, elixir-format
+msgid "Lineage"
+msgstr "Linaje"
+
+#: lib/web/live/person_live/index.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "Link Existing"
+msgstr "Vincular existente"
+
+#: lib/web/live/family_live/show.html.heex:650
+#: lib/web/live/person_live/index.html.heex:88
+#, elixir-autogen, elixir-format
+msgid "Link Existing Person"
+msgstr "Vincular persona existente"
+
+#: lib/web/live/family_live/people_list_component.ex:22
+#: lib/web/live/shared/add_relationship_component.ex:240
+#, elixir-autogen, elixir-format
+msgid "Link existing person"
+msgstr "Vincular persona existente"
+
+#: lib/web/live/org_people_live/index.html.heex:156
+#: lib/web/live/people_live/index.html.heex:152
+#, elixir-autogen, elixir-format
+msgid "Links"
+msgstr "Enlaces"
+
+#: lib/web/live/shared/add_relationship_component.ex:439
+#, elixir-autogen, elixir-format
+msgid "Location"
+msgstr "Lugar"
+
+#: lib/web/controllers/page_html/landing.html.heex:19
+#: lib/web/live/account_live/confirmation.ex:62
+#: lib/web/live/account_live/login.ex:12
+#: lib/web/live/account_live/registration.ex:23
+#, elixir-autogen, elixir-format
+msgid "Log in"
+msgstr "Iniciar sesión"
+
+#: lib/web/live/account_live/login.ex:55
+#, elixir-autogen, elixir-format
+msgid "Log in and stay logged in"
+msgstr "Iniciar sesión y mantener sesión"
+
+#: lib/ancestry/identity/account_notifier.ex:60
+#, elixir-autogen, elixir-format
+msgid "Log in instructions"
+msgstr "Instrucciones de inicio de sesión"
+
+#: lib/web/live/account_live/login.ex:61
+#, elixir-autogen, elixir-format
+msgid "Log in only this time"
+msgstr "Iniciar sesión solo esta vez"
+
+#: lib/web/live/account_live/confirmation.ex:79
+#, elixir-autogen, elixir-format
+msgid "Log me in only this time"
+msgstr "Iniciar sesión solo esta vez"
+
+#: lib/web/components/layouts.ex:101
+#: lib/web/components/nav_drawer.ex:118
+#, elixir-autogen, elixir-format
+msgid "Log out"
+msgstr "Cerrar sesión"
+
+#: lib/web/live/account_live/confirmation.ex:59
+#: lib/web/live/account_live/confirmation.ex:69
+#: lib/web/live/account_live/confirmation.ex:76
+#, elixir-autogen, elixir-format
+msgid "Logging in..."
+msgstr "Iniciando sesión..."
+
+#: lib/web/live/account_live/confirmation.ex:106
+#, elixir-autogen, elixir-format
+msgid "Magic link is invalid or it has expired."
+msgstr "El enlace mágico es inválido o ha expirado."
+
+#: lib/web/live/shared/person_form_component.html.heex:159
+#, elixir-autogen, elixir-format
+msgid "Male"
+msgstr "Masculino"
+
+#: lib/web/live/family_live/show.html.heex:93
+#, elixir-autogen, elixir-format
+msgid "Manage people"
+msgstr "Administrar personas"
+
+#: lib/web/live/account_live/settings.ex:17
+#, elixir-autogen, elixir-format
+msgid "Manage your account email address and password settings"
+msgstr "Administra tu correo electrónico y configuración de contraseña"
+
+#: lib/web/live/shared/person_form_component.ex:15
+#, elixir-autogen, elixir-format
+msgid "Mar"
+msgstr "Mar"
+
+#: lib/web/live/person_live/show.html.heex:549
+#, elixir-autogen, elixir-format
+msgid "Marriage"
+msgstr "Matrimonio"
+
+#: lib/web/live/shared/add_relationship_component.ex:414
+#, elixir-autogen, elixir-format
+msgid "Marriage Details (optional)"
+msgstr "Detalles del matrimonio (opcional)"
+
+#: lib/web/live/person_live/show.html.heex:366
+#: lib/web/live/shared/add_relationship_component.ex:405
+#, elixir-autogen, elixir-format
+msgid "Married"
+msgstr "Casado/a"
+
+#: lib/web/live/gallery_live/show.html.heex:92
+#, elixir-autogen, elixir-format
+msgid "Masonry layout"
+msgstr "Vista mosaico"
+
+#: lib/web/live/shared/person_form_component.ex:17
+#, elixir-autogen, elixir-format
+msgid "May"
+msgstr "May"
+
+#: lib/web/live/family_live/side_panel_component.ex:34
+#: lib/web/live/person_live/index.html.heex:12
+#, elixir-autogen, elixir-format
+msgid "Members"
+msgstr "Miembros"
+
+#: lib/web/live/family_live/vault_list_component.ex:10
+#, elixir-autogen, elixir-format
+msgid "Memory Vaults"
+msgstr "Baúl de recuerdos"
+
+#: lib/web/live/memory_live/form.ex:203
+#, elixir-autogen, elixir-format
+msgid "Memory created"
+msgstr "Recuerdo creado"
+
+#: lib/web/live/memory_live/form.ex:161
+#, elixir-autogen, elixir-format
+msgid "Memory deleted"
+msgstr "Recuerdo eliminado"
+
+#: lib/web/live/memory_live/form.ex:218
+#, elixir-autogen, elixir-format
+msgid "Memory updated"
+msgstr "Recuerdo actualizado"
+
+#: lib/web/live/shared/add_relationship_component.ex:426
+#: lib/web/live/shared/add_relationship_component.ex:427
+#: lib/web/live/shared/person_form_component.html.heex:197
+#: lib/web/live/shared/person_form_component.html.heex:258
+#, elixir-autogen, elixir-format
+msgid "Month"
+msgstr "Mes"
+
+#: lib/web/live/family_live/show.html.heex:75
+#, elixir-autogen, elixir-format
+msgid "More actions"
+msgstr "Más acciones"
+
+#: lib/web/live/shared/add_relationship_component.ex:380
+#, elixir-autogen, elixir-format
+msgid "Mother"
+msgstr "Madre"
+
+#: lib/web/live/account_management_live/index.ex:145
+#: lib/web/live/account_management_live/show.ex:186
+#: lib/web/live/memory_live/form.html.heex:43
+#: lib/web/live/org_people_live/index.html.heex:148
+#: lib/web/live/people_live/index.html.heex:149
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr "Nombre"
+
+#: lib/web/components/nav_drawer.ex:42
+#, elixir-autogen, elixir-format
+msgid "Navigation"
+msgstr "Navegación"
+
+#: lib/ancestry/kinship.ex:190
+#, elixir-autogen, elixir-format
+msgid "Nephew & Niece"
+msgstr "Sobrino/a"
+
+#: lib/web/live/account_management_live/index.ex:55
+#: lib/web/live/account_management_live/index.ex:87
+#: lib/web/live/account_management_live/new.ex:29
+#: lib/web/live/account_management_live/new.ex:116
+#, elixir-autogen, elixir-format
+msgid "New Account"
+msgstr "Nueva cuenta"
+
+#: lib/web/live/family_live/index.html.heex:48
+#: lib/web/live/family_live/new.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "New Family"
+msgstr "Nueva familia"
+
+#: lib/web/live/family_live/show.html.heex:491
+#: lib/web/live/gallery_live/index.html.heex:84
+#, elixir-autogen, elixir-format
+msgid "New Gallery"
+msgstr "Nueva galería"
+
+#: lib/web/live/person_live/new.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "New Member"
+msgstr "Nuevo miembro"
+
+#: lib/web/live/memory_live/form.html.heex:25
+#, elixir-autogen, elixir-format
+msgid "New Memory"
+msgstr "Nuevo recuerdo"
+
+#: lib/web/live/family_live/show.html.heex:549
+#, elixir-autogen, elixir-format
+msgid "New Memory Vault"
+msgstr "Nuevo baúl de recuerdos"
+
+#: lib/web/live/organization_live/index.html.heex:41
+#, elixir-autogen, elixir-format
+msgid "New Organization"
+msgstr "Nueva organización"
+
+#: lib/web/live/family_live/index.html.heex:72
+#, elixir-autogen, elixir-format
+msgid "New family"
+msgstr "Nueva familia"
+
+#: lib/web/live/family_live/people_list_component.ex:31
+#, elixir-autogen, elixir-format
+msgid "New member"
+msgstr "Nuevo miembro"
+
+#: lib/web/live/account_live/settings.ex:72
+#: lib/web/live/account_management_live/edit.ex:261
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr "Nueva contraseña"
+
+#: lib/web/live/person_live/show.html.heex:268
+#: lib/web/live/shared/person_form_component.html.heex:97
+#, elixir-autogen, elixir-format
+msgid "Nickname"
+msgstr "Apodo"
+
+#: lib/web/live/memory_live/form.html.heex:198
+#, elixir-autogen, elixir-format
+msgid "No albums in this family yet. Upload photos to a gallery first."
+msgstr "Aún no hay álbumes en esta familia. Sube fotos a una galería primero."
+
+#: lib/web/live/comments/photo_comments_component.ex:102
+#, elixir-autogen, elixir-format
+msgid "No comments yet"
+msgstr "Aún no hay comentarios"
+
+#: lib/web/live/kinship_live.html.heex:132
+#, elixir-autogen, elixir-format
+msgid "No common ancestor found"
+msgstr "No se encontró un ancestro común"
+
+#: lib/web/live/family_live/index.html.heex:122
+#, elixir-autogen, elixir-format
+msgid "No families yet"
+msgstr "Aún no hay familias"
+
+#: lib/web/live/org_people_live/index.html.heex:109
+#, elixir-autogen, elixir-format
+msgid "No family"
+msgstr "Sin familia"
+
+#: lib/web/live/family_live/show.html.heex:246
+#, elixir-autogen, elixir-format
+msgid "No family members yet"
+msgstr "Aún no hay miembros en la familia"
+
+#: lib/web/live/family_live/gallery_list_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "No galleries yet."
+msgstr "Aún no hay galerías."
+
+#: lib/web/live/gallery_live/index.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "No galleries yet. Create your first one."
+msgstr "Aún no hay galerías. Crea la primera."
+
+#: lib/web/live/family_live/person_selector_component.ex:58
+#, elixir-autogen, elixir-format
+msgid "No matches"
+msgstr "Sin resultados"
+
+#: lib/web/live/family_live/people_list_component.ex:57
+#, elixir-autogen, elixir-format
+msgid "No members yet."
+msgstr "Aún no hay miembros."
+
+#: lib/web/live/person_live/index.html.heex:44
+#, elixir-autogen, elixir-format
+msgid "No members yet. Add your first family member."
+msgstr "Aún no hay miembros. Agrega tu primer miembro familiar."
+
+#: lib/web/live/vault_live/show.html.heex:163
+#, elixir-autogen, elixir-format
+msgid "No memories yet"
+msgstr "Aún no hay recuerdos"
+
+#: lib/web/live/family_live/vault_list_component.ex:24
+#, elixir-autogen, elixir-format
+msgid "No memory vaults yet."
+msgstr "Aún no hay baúles de recuerdos."
+
+#: lib/web/live/organization_live/index.html.heex:91
+#, elixir-autogen, elixir-format
+msgid "No organizations yet"
+msgstr "Aún no hay organizaciones"
+
+#: lib/web/live/kinship_live.ex:290
+#, elixir-autogen, elixir-format
+msgid "No people found"
+msgstr "No se encontraron personas"
+
+#: lib/web/live/people_live/index.html.heex:166
+#, elixir-autogen, elixir-format
+msgid "No people in this family"
+msgstr "No hay personas en esta familia"
+
+#: lib/web/live/memory_live/form.html.heex:227
+#, elixir-autogen, elixir-format
+msgid "No processed photos in this album."
+msgstr "No hay fotos procesadas en este álbum."
+
+#: lib/web/live/family_live/show.html.heex:668
+#: lib/web/live/person_live/index.html.heex:104
+#: lib/web/live/shared/add_relationship_component.ex:322
+#, elixir-autogen, elixir-format
+msgid "No results found"
+msgstr "No se encontraron resultados"
+
+#: lib/web/live/account_management_live/show.ex:221
+#: lib/web/live/family_live/show.html.heex:365
+#, elixir-autogen, elixir-format
+msgid "None"
+msgstr "Ninguno"
+
+#: lib/web/live/shared/person_form_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "Nov"
+msgstr "Nov"
+
+#: lib/web/live/shared/person_form_component.ex:22
+#, elixir-autogen, elixir-format
+msgid "Oct"
+msgstr "Oct"
+
+#: lib/web/live/family_live/side_panel_component.ex:82
+#, elixir-autogen, elixir-format
+msgid "Oldest Record"
+msgstr "Registro más antiguo"
+
+#: lib/web/live/family_live/show.ex:621
+#, elixir-autogen, elixir-format
+msgid "Only .csv files are accepted"
+msgstr "Solo se aceptan archivos .csv"
+
+#: lib/web/live/account_management_live/edit.ex:448
+#: lib/web/live/account_management_live/new.ex:241
+#, elixir-autogen, elixir-format
+msgid "Only one avatar allowed"
+msgstr "Solo se permite un avatar"
+
+#: lib/web/live/family_live/show.ex:622
+#, elixir-autogen, elixir-format
+msgid "Only one file can be uploaded"
+msgstr "Solo se puede subir un archivo"
+
+#: lib/web/live/account_management_live/edit.ex:211
+#: lib/web/live/account_management_live/index.ex:41
+#: lib/web/live/account_management_live/new.ex:104
+#: lib/web/live/account_management_live/show.ex:128
+#: lib/web/live/family_live/index.html.heex:9
+#: lib/web/live/family_live/new.html.heex:10
+#: lib/web/live/family_live/show.html.heex:11
+#: lib/web/live/gallery_live/show.html.heex:10
+#: lib/web/live/kinship_live.html.heex:10
+#: lib/web/live/org_people_live/index.html.heex:10
+#: lib/web/live/organization_live/index.html.heex:9
+#: lib/web/live/people_live/index.html.heex:10
+#: lib/web/live/person_live/new.html.heex:10
+#: lib/web/live/person_live/show.html.heex:10
+#, elixir-autogen, elixir-format
+msgid "Open menu"
+msgstr "Abrir menú"
+
+#: lib/web/live/organization_live/index.ex:57
+#, elixir-autogen, elixir-format
+msgid "Organization created"
+msgstr "Organización creada"
+
+#: lib/web/live/organization_live/index.html.heex:156
+#, elixir-autogen, elixir-format
+msgid "Organization name"
+msgstr "Nombre de la organización"
+
+#: lib/web/components/layouts.ex:75
+#: lib/web/components/nav_drawer.ex:85
+#: lib/web/live/account_management_live/edit.ex:235
+#: lib/web/live/account_management_live/edit.ex:316
+#: lib/web/live/account_management_live/index.ex:67
+#: lib/web/live/account_management_live/index.ex:148
+#: lib/web/live/account_management_live/new.ex:128
+#: lib/web/live/account_management_live/new.ex:202
+#: lib/web/live/account_management_live/show.ex:160
+#: lib/web/live/account_management_live/show.ex:217
+#: lib/web/live/family_live/index.html.heex:84
+#: lib/web/live/family_live/new.html.heex:35
+#: lib/web/live/kinship_live.html.heex:36
+#: lib/web/live/org_people_live/index.html.heex:65
+#: lib/web/live/organization_live/index.html.heex:14
+#: lib/web/live/organization_live/index.html.heex:54
+#: lib/web/live/people_live/index.html.heex:66
+#: lib/web/live/person_live/new.html.heex:35
+#, elixir-autogen, elixir-format
+msgid "Organizations"
+msgstr "Organizaciones"
+
+#: lib/web/controllers/page_html/landing.html.heex:5
+#, elixir-autogen, elixir-format
+msgid "Organize your family's photos and history."
+msgstr "Organiza las fotos e historia de tu familia."
+
+#: lib/web/live/shared/person_form_component.html.heex:169
+#, elixir-autogen, elixir-format
+msgid "Other"
+msgstr "Otro"
+
+#: lib/web/components/nav_drawer.ex:66
+#, elixir-autogen, elixir-format
+msgid "Page Actions"
+msgstr "Acciones de página"
+
+#: lib/ancestry/kinship.ex:154
+#: lib/ancestry/kinship.ex:294
+#, elixir-autogen, elixir-format
+msgid "Parent"
+msgstr "Padre/Madre"
+
+#: lib/web/live/person_live/show.html.heex:501
+#, elixir-autogen, elixir-format
+msgid "Parents & Siblings"
+msgstr "Padres y hermanos"
+
+#: lib/web/live/person_live/show.ex:628
+#, elixir-autogen, elixir-format
+msgid "Partner"
+msgstr "Pareja"
+
+#: lib/web/live/account_live/login.ex:43
+#: lib/web/live/account_live/settings.ex:51
+#: lib/web/live/account_management_live/new.ex:151
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr "Contraseña"
+
+#: lib/web/live/family_live/index.html.heex:40
+#: lib/web/live/family_live/index.html.heex:64
+#: lib/web/live/family_live/people_list_component.ex:15
+#: lib/web/live/org_people_live/index.html.heex:23
+#: lib/web/live/people_live/index.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "People"
+msgstr "Personas"
+
+#: lib/web/live/family_live/show.html.heex:907
+#, elixir-autogen, elixir-format
+msgid "People added to the family"
+msgstr "Personas agregadas a la familia"
+
+#: lib/web/live/family_live/show.html.heex:900
+#, elixir-autogen, elixir-format
+msgid "People created"
+msgstr "Personas creadas"
+
+#: lib/web/live/kinship_live.html.heex:291
+#, elixir-autogen, elixir-format
+msgid "Percentages are approximate and may vary."
+msgstr "Los porcentajes son aproximados y pueden variar."
+
+#: lib/web/live/kinship_live.html.heex:58
+#, elixir-autogen, elixir-format
+msgid "Person A"
+msgstr "Persona A"
+
+#: lib/web/live/kinship_live.html.heex:91
+#, elixir-autogen, elixir-format
+msgid "Person B"
+msgstr "Persona B"
+
+#: lib/web/live/memory_live/form.html.heex:241
+#: lib/web/live/shared/person_form_component.html.heex:14
+#, elixir-autogen, elixir-format
+msgid "Photo"
+msgstr "Foto"
+
+#: lib/web/live/family_live/side_panel_component.ex:44
+#: lib/web/live/person_live/show.html.heex:605
+#, elixir-autogen, elixir-format
+msgid "Photos"
+msgstr "Fotos"
+
+#: lib/web/live/kinship_live.html.heex:124
+#, elixir-autogen, elixir-format
+msgid "Please select two different people"
+msgstr "Selecciona dos personas diferentes"
+
+#: lib/web/live/comments/photo_comments_component.ex:196
+#, elixir-autogen, elixir-format
+msgid "Post comment"
+msgstr "Publicar comentario"
+
+#: lib/web/live/account_management_live/edit.ex:437
+#: lib/web/live/account_management_live/show.ex:269
+#: lib/web/live/account_management_live/show.ex:339
+#, elixir-autogen, elixir-format
+msgid "Reactivate"
+msgstr "Reactivar"
+
+#: lib/web/live/account_management_live/edit.ex:367
+#: lib/web/live/account_management_live/edit.ex:416
+#: lib/web/live/account_management_live/show.ex:318
+#, elixir-autogen, elixir-format
+msgid "Reactivate Account"
+msgstr "Reactivar cuenta"
+
+#: lib/web/live/account_live/registration.ex:15
+#, elixir-autogen, elixir-format
+msgid "Register"
+msgstr "Registrarse"
+
+#: lib/web/controllers/page_html/landing.html.heex:22
+#, elixir-autogen, elixir-format
+msgid "Registration coming soon"
+msgstr "Registro disponible pronto"
+
+#: lib/web/live/family_live/show.ex:590
+#: lib/web/live/person_live/show.ex:365
+#, elixir-autogen, elixir-format
+msgid "Relationship added"
+msgstr "Relación agregada"
+
+#: lib/web/live/person_live/show.ex:275
+#, elixir-autogen, elixir-format
+msgid "Relationship removed"
+msgstr "Relación eliminada"
+
+#: lib/web/live/person_live/show.ex:256
+#, elixir-autogen, elixir-format
+msgid "Relationship updated"
+msgstr "Relación actualizada"
+
+#: lib/web/live/person_live/show.html.heex:305
+#, elixir-autogen, elixir-format
+msgid "Relationships"
+msgstr "Relaciones"
+
+#: lib/web/live/account_management_live/edit.ex:302
+#: lib/web/live/account_management_live/new.ex:188
+#: lib/web/live/people_live/index.html.heex:344
+#: lib/web/live/person_live/show.html.heex:539
+#: lib/web/live/person_live/show.html.heex:650
+#, elixir-autogen, elixir-format
+msgid "Remove"
+msgstr "Eliminar"
+
+#: lib/web/live/memory_live/form.html.heex:63
+#, elixir-autogen, elixir-format
+msgid "Remove cover photo"
+msgstr "Eliminar foto de portada"
+
+#: lib/web/live/person_live/show.html.heex:636
+#, elixir-autogen, elixir-format
+msgid "Remove from Family"
+msgstr "Eliminar de la familia"
+
+#: lib/web/live/people_live/index.html.heex:34
+#: lib/web/live/people_live/index.html.heex:298
+#: lib/web/live/person_live/show.html.heex:70
+#: lib/web/live/person_live/show.html.heex:100
+#, elixir-autogen, elixir-format
+msgid "Remove from family"
+msgstr "Eliminar de la familia"
+
+#: lib/web/live/person_live/show.html.heex:352
+#, elixir-autogen, elixir-format
+msgid "Remove relationship"
+msgstr "Eliminar relación"
+
+#: lib/web/live/person_live/show.html.heex:537
+#, elixir-autogen, elixir-format
+msgid "Remove this parent relationship?"
+msgstr "¿Eliminar esta relación de padre/madre?"
+
+#: lib/web/live/person_live/show.html.heex:350
+#, elixir-autogen, elixir-format
+msgid "Remove this relationship?"
+msgstr "¿Eliminar esta relación?"
+
+#: lib/web/live/people_live/index.ex:149
+#, elixir-autogen, elixir-format
+msgid "Removed 1 person from the family."
+msgid_plural "Removed %{count} people from the family."
+msgstr[0] "Se eliminó 1 persona de la familia."
+msgstr[1] "Se eliminaron %{count} personas de la familia."
+
+#: lib/web/live/account_management_live/edit.ex:273
+#: lib/web/live/account_management_live/index.ex:147
+#: lib/web/live/account_management_live/new.ex:160
+#: lib/web/live/account_management_live/show.ex:195
+#: lib/web/live/shared/add_relationship_component.ex:379
+#, elixir-autogen, elixir-format
+msgid "Role"
+msgstr "Rol"
+
+#: lib/web/live/family_live/side_panel_component.ex:59
+#, elixir-autogen, elixir-format
+msgid "Root ancestor"
+msgstr "Ancestro raíz"
+
+#: lib/web/live/kinship_live.html.heex:123
+#, elixir-autogen, elixir-format
+msgid "Same person selected"
+msgstr "Se seleccionó la misma persona"
+
+#: lib/web/live/family_live/show.html.heex:405
+#: lib/web/live/shared/person_form_component.html.heex:331
+#, elixir-autogen, elixir-format
+msgid "Save"
+msgstr "Guardar"
+
+#: lib/web/live/account_management_live/edit.ex:339
+#: lib/web/live/memory_live/form.html.heex:106
+#, elixir-autogen, elixir-format
+msgid "Save Changes"
+msgstr "Guardar cambios"
+
+#: lib/web/live/account_live/settings.ex:115
+#, elixir-autogen, elixir-format
+msgid "Save Language"
+msgstr "Guardar idioma"
+
+#: lib/web/live/account_live/settings.ex:89
+#, elixir-autogen, elixir-format
+msgid "Save Password"
+msgstr "Guardar contraseña"
+
+#: lib/web/live/account_live/settings.ex:86
+#: lib/web/live/account_live/settings.ex:112
+#, elixir-autogen, elixir-format
+msgid "Saving..."
+msgstr "Guardando..."
+
+#: lib/web/live/family_live/show.html.heex:658
+#: lib/web/live/person_live/index.html.heex:95
+#, elixir-autogen, elixir-format
+msgid "Search by name..."
+msgstr "Buscar por nombre..."
+
+#: lib/web/live/shared/add_relationship_component.ex:277
+#, elixir-autogen, elixir-format
+msgid "Search for a person to add as a relationship."
+msgstr "Busca una persona para agregar como relación."
+
+#: lib/web/live/shared/add_relationship_component.ex:243
+#, elixir-autogen, elixir-format
+msgid "Search for someone already in this organization."
+msgstr "Busca a alguien que ya esté en esta organización."
+
+#: lib/web/live/family_live/show.html.heex:652
+#, elixir-autogen, elixir-format
+msgid "Search people"
+msgstr "Buscar personas"
+
+#: lib/web/live/family_live/person_selector_component.ex:47
+#: lib/web/live/org_people_live/index.html.heex:92
+#: lib/web/live/people_live/index.html.heex:93
+#, elixir-autogen, elixir-format
+msgid "Search people..."
+msgstr "Buscar personas..."
+
+#: lib/web/live/kinship_live.ex:279
+#, elixir-autogen, elixir-format
+msgid "Search..."
+msgstr "Buscar..."
+
+#: lib/ancestry/kinship.ex:244
+#, elixir-autogen, elixir-format
+msgid "Second"
+msgstr "Segundo"
+
+#: lib/web/live/family_live/index.html.heex:32
+#: lib/web/live/family_live/index.html.heex:59
+#: lib/web/live/organization_live/index.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Select"
+msgstr "Seleccionar"
+
+#: lib/web/live/family_live/show.html.heex:233
+#, elixir-autogen, elixir-format
+msgid "Select a family member to see their ancestors and descendants"
+msgstr "Selecciona un miembro de la familia para ver sus ancestros y descendientes"
+
+#: lib/web/live/family_live/person_selector_component.ex:34
+#: lib/web/live/kinship_live.ex:265
+#, elixir-autogen, elixir-format
+msgid "Select a person..."
+msgstr "Selecciona una persona..."
+
+#: lib/web/live/org_people_live/index.html.heex:119
+#: lib/web/live/people_live/index.html.heex:120
+#, elixir-autogen, elixir-format
+msgid "Select all"
+msgstr "Seleccionar todo"
+
+#: lib/web/live/vault_live/show.html.heex:32
+#, elixir-autogen, elixir-format
+msgid "Select memories"
+msgstr "Seleccionar recuerdos"
+
+#: lib/web/live/gallery_live/show.html.heex:41
+#, elixir-autogen, elixir-format
+msgid "Select photos"
+msgstr "Seleccionar fotos"
+
+#: lib/web/live/kinship_live.html.heex:112
+#, elixir-autogen, elixir-format
+msgid "Select two people"
+msgstr "Selecciona dos personas"
+
+#: lib/web/live/shared/person_form_component.ex:21
+#, elixir-autogen, elixir-format
+msgid "Sep"
+msgstr "Sep"
+
+#: lib/web/live/person_live/show.html.heex:394
+#: lib/web/live/shared/add_relationship_component.ex:407
+#, elixir-autogen, elixir-format
+msgid "Separated"
+msgstr "Separado/a"
+
+#: lib/web/components/layouts.ex:92
+#: lib/web/components/nav_drawer.ex:98
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr "Configuración"
+
+#: lib/ancestry/kinship.ex:249
+#, elixir-autogen, elixir-format
+msgid "Seventh"
+msgstr "Séptimo"
+
+#: lib/ancestry/kinship.ex:175
+#, elixir-autogen, elixir-format
+msgid "Sibling"
+msgstr "Hermano/a"
+
+#: lib/ancestry/kinship.ex:248
+#, elixir-autogen, elixir-format
+msgid "Sixth"
+msgstr "Sexto"
+
+#: lib/web/components/layouts.ex:157
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr "¡Algo salió mal!"
+
+#: lib/web/live/person_live/show.html.heex:311
+#, elixir-autogen, elixir-format
+msgid "Spouses & Children"
+msgstr "Cónyuges e hijos"
+
+#: lib/web/live/vault_live/show.html.heex:166
+#, elixir-autogen, elixir-format
+msgid "Start capturing your family stories, recipes, and traditions."
+msgstr "Comienza a capturar las historias, recetas y tradiciones de tu familia."
+
+#: lib/web/live/family_live/show.html.heex:775
+#, elixir-autogen, elixir-format
+msgid "Starting person"
+msgstr "Persona inicial"
+
+#: lib/web/live/account_management_live/index.ex:149
+#: lib/web/live/account_management_live/show.ex:204
+#: lib/web/live/shared/add_relationship_component.ex:402
+#, elixir-autogen, elixir-format
+msgid "Status"
+msgstr "Estado"
+
+#: lib/web/live/person_live/show.html.heex:276
+#, elixir-autogen, elixir-format
+msgid "Suffix"
+msgstr "Sufijo"
+
+#: lib/web/live/shared/add_relationship_component.ex:351
+#: lib/web/live/shared/person_form_component.html.heex:120
+#, elixir-autogen, elixir-format
+msgid "Surname"
+msgstr "Apellido"
+
+#: lib/web/live/shared/person_form_component.html.heex:129
+#, elixir-autogen, elixir-format
+msgid "Surname at birth"
+msgstr "Apellido de nacimiento"
+
+#: lib/web/live/person_live/show.html.heex:640
+#, elixir-autogen, elixir-format
+msgid "The person will still exist and can be linked to other families."
+msgstr "La persona seguirá existiendo y podrá vincularse a otras familias."
+
+#: lib/web/live/people_live/index.html.heex:334
+#, elixir-autogen, elixir-format
+msgid "They won't be deleted, just detached from this family."
+msgstr "No serán eliminados, solo desvinculados de esta familia."
+
+#: lib/ancestry/kinship.ex:245
+#, elixir-autogen, elixir-format
+msgid "Third"
+msgstr "Tercero"
+
+#: lib/web/live/memory_live/form.html.heex:276
+#, elixir-autogen, elixir-format
+msgid "This cannot be undone."
+msgstr "Esta acción no se puede deshacer."
+
+#: lib/web/live/org_people_live/index.html.heex:332
+#, elixir-autogen, elixir-format
+msgid "This cannot be undone. All their photos, relationships, and family links will be removed."
+msgstr "Esta acción no se puede deshacer. Todas sus fotos, relaciones y vínculos familiares serán eliminados."
+
+#: lib/web/live/shared/add_relationship_component.ex:608
+#, elixir-autogen, elixir-format
+msgid "This person already has 2 parents"
+msgstr "Esta persona ya tiene 2 padres"
+
+#: lib/web/live/person_live/show.ex:723
+#, elixir-autogen, elixir-format
+msgid "This person is deceased."
+msgstr "Esta persona es fallecida."
+
+#: lib/web/live/shared/person_form_component.html.heex:230
+#, elixir-autogen, elixir-format
+msgid "This person is living"
+msgstr "Esta persona está viva"
+
+#: lib/web/live/person_live/show.html.heex:675
+#, elixir-autogen, elixir-format
+msgid "This will remove them from all families. This cannot be undone."
+msgstr "Esto la eliminará de todas las familias. Esta acción no se puede deshacer."
+
+#: lib/web/live/account_live/confirmation.ex:88
+#, elixir-autogen, elixir-format
+msgid "Tip: If you prefer passwords, you can enable them in the account settings."
+msgstr "Consejo: Si prefieres usar contraseña, puedes habilitarla en la configuración de tu cuenta."
+
+#: lib/web/live/person_live/show.html.heex:272
+#, elixir-autogen, elixir-format
+msgid "Title"
+msgstr "Título"
+
+#: lib/web/live/shared/person_form_component.html.heex:105
+#, elixir-autogen, elixir-format
+msgid "Title / Suffix"
+msgstr "Título / Sufijo"
+
+#: lib/web/live/gallery_live/show.html.heex:63
+#, elixir-autogen, elixir-format
+msgid "Toggle layout"
+msgstr "Cambiar vista"
+
+#: lib/web/live/family_live/new.ex:54
+#: lib/web/live/shared/person_form_component.ex:34
+#, elixir-autogen, elixir-format
+msgid "Too many files (max 1)"
+msgstr "Demasiados archivos (máximo 1)"
+
+#: lib/web/live/gallery_live/show.ex:278
+#, elixir-autogen, elixir-format
+msgid "Too many files (max 50)"
+msgstr "Demasiados archivos (máximo 50)"
+
+#: lib/web/live/shared/add_relationship_component.ex:282
+#, elixir-autogen, elixir-format
+msgid "Type a name to search..."
+msgstr "Escribe un nombre para buscar..."
+
+#: lib/ancestry/kinship.ex:178
+#, elixir-autogen, elixir-format
+msgid "Uncle & Aunt"
+msgstr "Tío/a"
+
+#: lib/web/live/gallery_live/show.html.heex:91
+#, elixir-autogen, elixir-format
+msgid "Uniform grid"
+msgstr "Cuadrícula uniforme"
+
+#: lib/web/live/account_management_live/show.ex:245
+#, elixir-autogen, elixir-format
+msgid "Unknown"
+msgstr "Desconocido"
+
+#: lib/web/live/shared/add_relationship_component.ex:468
+#, elixir-autogen, elixir-format
+msgid "Unknown relationship type."
+msgstr "Tipo de relación desconocido."
+
+#: lib/web/live/people_live/index.html.heex:110
+#, elixir-autogen, elixir-format
+msgid "Unlinked"
+msgstr "Sin vincular"
+
+#: lib/ancestry/identity/account_notifier.ex:29
+#, elixir-autogen, elixir-format
+msgid "Update email instructions"
+msgstr "Instrucciones para actualizar correo"
+
+#: lib/web/live/gallery_live/show.html.heex:250
+#, elixir-autogen, elixir-format
+msgid "Upload complete"
+msgstr "Carga completada"
+
+#: lib/web/live/gallery_live/show.html.heex:248
+#, elixir-autogen, elixir-format
+msgid "Upload complete with errors"
+msgstr "Carga completada con errores"
+
+#: lib/web/live/family_live/new.ex:55
+#: lib/web/live/family_live/show.ex:623
+#: lib/web/live/gallery_live/show.ex:279
+#: lib/web/live/shared/person_form_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Upload error: %{error}"
+msgstr "Error de carga: %{error}"
+
+#: lib/web/live/gallery_live/show.html.heex:286
+#, elixir-autogen, elixir-format
+msgid "Upload failed"
+msgstr "Error en la carga"
+
+#: lib/web/live/gallery_live/show.html.heex:54
+#: lib/web/live/gallery_live/show.html.heex:82
+#, elixir-autogen, elixir-format
+msgid "Upload photos"
+msgstr "Subir fotos"
+
+#: lib/web/live/gallery_live/show.html.heex:257
+#, elixir-autogen, elixir-format
+msgid "Uploading photos (%{done} of %{total})"
+msgstr "Subiendo fotos (%{done} de %{total})"
+
+#: lib/web/live/gallery_live/show.html.heex:350
+#, elixir-autogen, elixir-format
+msgid "Uploading..."
+msgstr "Subiendo..."
+
+#: lib/web/live/family_live/show.html.heex:559
+#, elixir-autogen, elixir-format
+msgid "Vault name"
+msgstr "Nombre del baúl"
+
+#: lib/web/live/account_management_live/index.ex:195
+#, elixir-autogen, elixir-format
+msgid "View"
+msgstr "Ver"
+
+#: lib/web/live/family_live/people_list_component.ex:99
+#, elixir-autogen, elixir-format
+msgid "View details"
+msgstr "Ver detalles"
+
+#: lib/web/live/account_management_live/edit.ex:275
+#: lib/web/live/account_management_live/new.ex:162
+#, elixir-autogen, elixir-format
+msgid "Viewer"
+msgstr "Visualizador"
+
+#: lib/web/components/layouts.ex:145
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr "No se puede encontrar la conexión a internet"
+
+#: lib/web/live/account_live/confirmation.ex:14
+#, elixir-autogen, elixir-format
+msgid "Welcome %{email}"
+msgstr "Bienvenido/a %{email}"
+
+#: lib/web/live/family_live/show.html.heex:840
+#, elixir-autogen, elixir-format
+msgid "When checked, ascendants of partners will also be included."
+msgstr "Si se marca, también se incluirán los ascendientes de las parejas."
+
+#: lib/web/live/family_live/show.html.heex:818
+#, elixir-autogen, elixir-format
+msgid "When checked, parents, grandparents and further ancestors will be included."
+msgstr "Si se marca, se incluirán padres, abuelos y otros ancestros."
+
+#: lib/web/live/shared/add_relationship_component.ex:432
+#: lib/web/live/shared/add_relationship_component.ex:433
+#: lib/web/live/shared/person_form_component.html.heex:211
+#: lib/web/live/shared/person_form_component.html.heex:272
+#, elixir-autogen, elixir-format
+msgid "Year"
+msgstr "Año"
+
+#: lib/ancestry/identity/account_notifier.ex:35
+#, elixir-autogen, elixir-format
+msgid "You can change your email by visiting the URL below:"
+msgstr "Puedes cambiar tu correo visitando la URL a continuación:"
+
+#: lib/ancestry/identity/account_notifier.ex:87
+#, elixir-autogen, elixir-format
+msgid "You can confirm your account by visiting the URL below:"
+msgstr "Puedes confirmar tu cuenta visitando la URL a continuación:"
+
+#: lib/ancestry/identity/account_notifier.ex:66
+#, elixir-autogen, elixir-format
+msgid "You can log into your account by visiting the URL below:"
+msgstr "Puedes iniciar sesión visitando la URL a continuación:"
+
+#: lib/web/live/account_management_live/edit.ex:109
+#, elixir-autogen, elixir-format
+msgid "You cannot change your own role."
+msgstr "No puedes cambiar tu propio rol."
+
+#: lib/web/live/account_management_live/edit.ex:147
+#: lib/web/live/account_management_live/show.ex:63
+#, elixir-autogen, elixir-format
+msgid "You cannot deactivate your own account."
+msgstr "No puedes desactivar tu propia cuenta."
+
+#: lib/web/live/account_management_live/edit.ex:19
+#: lib/web/live/account_management_live/index.ex:16
+#: lib/web/live/account_management_live/new.ex:18
+#: lib/web/live/account_management_live/show.ex:16
+#, elixir-autogen, elixir-format
+msgid "You don't have permission to access this page"
+msgstr "No tienes permiso para acceder a esta página"
+
+#: lib/web/account_auth.ex:217
+#: lib/web/account_auth.ex:268
+#, elixir-autogen, elixir-format
+msgid "You must log in to access this page."
+msgstr "Debes iniciar sesión para acceder a esta página."
+
+#: lib/web/account_auth.ex:234
+#, elixir-autogen, elixir-format
+msgid "You must re-authenticate to access this page."
+msgstr "Debes volver a autenticarte para acceder a esta página."
+
+#: lib/web/live/account_live/login.ex:17
+#, elixir-autogen, elixir-format
+msgid "You need to reauthenticate to perform sensitive actions on your account."
+msgstr "Debes volver a autenticarte para realizar acciones sensibles en tu cuenta."
+
+#: lib/web/components/core_components.ex:74
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr "cerrar"
+
+#: lib/web/live/person_live/show.ex:569
+#, elixir-autogen, elixir-format
+msgid "deceased"
+msgstr "fallecido/a"
+
+#: lib/web/live/kinship_live.html.heex:134
+#, elixir-autogen, elixir-format
+msgid "don't appear to share a common ancestor within the family tree"
+msgstr "no parecen compartir un ancestro común en el árbol familiar"
+
+#: lib/web/live/shared/person_form_component.html.heex:108
+#, elixir-autogen, elixir-format
+msgid "e.g. Dr., Sir"
+msgstr "ej. Dr., Sr."
+
+#: lib/web/live/family_live/show.html.heex:560
+#, elixir-autogen, elixir-format
+msgid "e.g. Grandma's Recipes"
+msgstr "ej. Recetas de la abuela"
+
+#: lib/web/live/shared/person_form_component.html.heex:109
+#, elixir-autogen, elixir-format
+msgid "e.g. Jr., III"
+msgstr "ej. Jr., III"
+
+#: lib/web/live/shared/add_relationship_component.ex:440
+#, elixir-autogen, elixir-format
+msgid "e.g. London, UK"
+msgstr "ej. Buenos Aires, Argentina"
+
+#: lib/web/live/family_live/show.html.heex:797
+#, elixir-autogen, elixir-format
+msgid "e.g. Smith"
+msgstr "ej. García"
+
+#: lib/web/live/family_live/show.html.heex:502
+#: lib/web/live/gallery_live/index.html.heex:95
+#, elixir-autogen, elixir-format
+msgid "e.g. Summer 2025"
+msgstr "ej. Verano 2025"
+
+#: lib/web/live/family_live/new.html.heex:60
+#, elixir-autogen, elixir-format
+msgid "e.g. The Smiths"
+msgstr "ej. Los García"
+
+#: lib/web/live/people_live/index.html.heex:332
+#, elixir-autogen, elixir-format
+msgid "from"
+msgstr "de"
+
+#: lib/web/live/comments/photo_comments_component.ex:211
+#, elixir-autogen, elixir-format
+msgid "just now"
+msgstr "justo ahora"
+
+#: lib/web/live/family_live/new.html.heex:67
+#, elixir-autogen, elixir-format
+msgid "optional"
+msgstr "opcional"
+
+#: lib/web/live/org_people_live/index.html.heex:332
+#: lib/web/live/people_live/index.html.heex:332
+#, elixir-autogen, elixir-format
+msgid "people"
+msgstr "personas"
+
+#: lib/web/live/org_people_live/index.html.heex:332
+#: lib/web/live/people_live/index.html.heex:332
+#, elixir-autogen, elixir-format
+msgid "person"
+msgstr "persona"
+
+#: lib/web/live/family_live/side_panel_component.ex:171
+#, elixir-autogen, elixir-format
+msgid "was %{age} years"
+msgstr "tenía %{age} años"
+
+#: lib/web/live/kinship_live.html.heex:158
+#, elixir-autogen, elixir-format
+msgid "~%{percentage}% shared DNA"
+msgstr "~%{percentage}% de ADN compartido"
