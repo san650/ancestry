@@ -2274,7 +2274,7 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:121
+#: lib/web/live/birthday_live/index.ex:257
 #: lib/web/live/person_live/show.ex:569
 #, elixir-autogen, elixir-format
 msgid "deceased"
@@ -2976,4 +2976,14 @@ msgstr ""
 #: lib/web/live/birthday_live/index.ex:212
 #, elixir-autogen, elixir-format
 msgid "Would have turned %{age}"
+msgstr ""
+
+#: lib/web/live/birthday_live/index.ex:256
+#, elixir-autogen, elixir-format
+msgid "deceased_female"
+msgstr ""
+
+#: lib/web/live/birthday_live/index.ex:255
+#, elixir-autogen, elixir-format
+msgid "deceased_male"
 msgstr ""

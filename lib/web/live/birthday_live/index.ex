@@ -118,7 +118,7 @@ defmodule Web.BirthdayLive.Index do
                           {Person.display_name(entry.person)}
                           <%= if entry.person.deceased do %>
                             <span class="text-[10px] font-normal text-ds-on-surface-variant">
-                              ({gettext("deceased")})
+                              ({deceased_label(entry.person.gender)})
                             </span>
                           <% end %>
                         </div>
@@ -251,6 +251,10 @@ defmodule Web.BirthdayLive.Index do
   defp format_today(date) do
     "#{month_abbrev(date.month) |> String.upcase()} #{date.day}"
   end
+
+  defp deceased_label("male"), do: gettext("deceased_male")
+  defp deceased_label("female"), do: gettext("deceased_female")
+  defp deceased_label(_), do: gettext("deceased")
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"

@@ -2274,7 +2274,7 @@ msgstr "Debes volver a autenticarte para realizar acciones sensibles en tu cuent
 msgid "close"
 msgstr "cerrar"
 
-#: lib/web/live/birthday_live/index.ex:121
+#: lib/web/live/birthday_live/index.ex:257
 #: lib/web/live/person_live/show.ex:569
 #, elixir-autogen, elixir-format
 msgid "deceased"
@@ -2978,3 +2978,13 @@ msgstr "¡Cumple %{age} hoy!"
 #, elixir-autogen, elixir-format
 msgid "Would have turned %{age}"
 msgstr "Habría cumplido %{age}"
+
+#: lib/web/live/birthday_live/index.ex:256
+#, elixir-autogen, elixir-format
+msgid "deceased_female"
+msgstr "fallecida"
+
+#: lib/web/live/birthday_live/index.ex:255
+#, elixir-autogen, elixir-format
+msgid "deceased_male"
+msgstr "fallecido"
