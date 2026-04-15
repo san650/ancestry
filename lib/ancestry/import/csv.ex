@@ -1,6 +1,8 @@
 NimbleCSV.define(Ancestry.Import.CSVParser, separator: ",", escape: "\"")
 
 defmodule Ancestry.Import.CSV do
+  use Gettext, backend: Web.Gettext
+
   @moduledoc """
   Orchestrates CSV import of people and relationships into a new family.
 
@@ -91,7 +93,7 @@ defmodule Ancestry.Import.CSV do
     if File.exists?(path) do
       :ok
     else
-      {:error, "File not found: #{path}"}
+      {:error, gettext("File not found: %{path}", path: path)}
     end
   end
 

@@ -1,5 +1,6 @@
 defmodule Web.AccountAuth do
   use Web, :verified_routes
+  use Gettext, backend: Web.Gettext
 
   import Plug.Conn
   import Phoenix.Controller
@@ -125,27 +126,17 @@ defmodule Web.AccountAuth do
   end
 
   # This function renews the session ID and erases the whole
-  # session to avoid fixation attacks. If there is any data
-  # in the session you may want to preserve after log in/log out,
-  # you must explicitly fetch the session data before clearing
-  # and then immediately set it after clearing, for example:
-  #
-  #     defp renew_session(conn, _account) do
-  #       delete_csrf_token()
-  #       preferred_locale = get_session(conn, :preferred_locale)
-  #
-  #       conn
-  #       |> configure_session(renew: true)
-  #       |> clear_session()
-  #       |> put_session(:preferred_locale, preferred_locale)
-  #     end
-  #
+  # session to avoid fixation attacks. The locale is preserved
+  # across session renewal so the user's language preference
+  # survives login/logout.
   defp renew_session(conn, _account) do
     delete_csrf_token()
+    locale = get_session(conn, "locale")
 
     conn
     |> configure_session(renew: true)
     |> clear_session()
+    |> put_session("locale", locale)
   end
 
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}, _),
@@ -223,7 +214,7 @@ defmodule Web.AccountAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must log in to access this page.")
+        |> Phoenix.LiveView.put_flash(:error, gettext("You must log in to access this page."))
         |> Phoenix.LiveView.redirect(to: ~p"/accounts/log-in")
 
       {:halt, socket}
@@ -238,7 +229,10 @@ defmodule Web.AccountAuth do
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You must re-authenticate to access this page.")
+        |> Phoenix.LiveView.put_flash(
+          :error,
+          gettext("You must re-authenticate to access this page.")
+        )
         |> Phoenix.LiveView.redirect(to: ~p"/accounts/log-in")
 
       {:halt, socket}
@@ -271,7 +265,7 @@ defmodule Web.AccountAuth do
       conn
     else
       conn
-      |> put_flash(:error, "You must log in to access this page.")
+      |> put_flash(:error, gettext("You must log in to access this page."))
       |> maybe_store_return_to()
       |> redirect(to: ~p"/accounts/log-in")
       |> halt()

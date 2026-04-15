@@ -158,7 +158,7 @@ defmodule Web.MemoryLive.Form do
 
     {:noreply,
      socket
-     |> put_flash(:info, "Memory deleted")
+     |> put_flash(:info, gettext("Memory deleted"))
      |> push_navigate(to: vault_path(socket))}
   end
 
@@ -200,7 +200,7 @@ defmodule Web.MemoryLive.Form do
       {:ok, _memory} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Memory created")
+         |> put_flash(:info, gettext("Memory created"))
          |> push_navigate(to: redirect_path(socket))}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -215,7 +215,7 @@ defmodule Web.MemoryLive.Form do
       {:ok, _memory} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Memory updated")
+         |> put_flash(:info, gettext("Memory updated"))
          |> push_navigate(to: redirect_path(socket))}
 
       {:error, %Ecto.Changeset{} = changeset} ->

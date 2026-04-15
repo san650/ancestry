@@ -9,7 +9,7 @@
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          {@family.name} — Galleries
+          {@family.name} — {gettext("Galleries")}
         </h1>
       </div>
       <button
@@ -32,7 +32,7 @@
         id="galleries-empty"
         class="hidden only:block col-span-full text-center py-20 text-ds-on-surface-variant"
       >
-        No galleries yet. Create your first one.
+        {gettext("No galleries yet. Create your first one.")}
       </div>
       <div
         :for={{id, gallery} <- @streams.galleries}
@@ -80,7 +80,9 @@
         id="new-gallery-modal"
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">New Gallery</h2>
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">
+          {gettext("New Gallery")}
+        </h2>
         <.form
           for={@form}
           id="new-gallery-form"
@@ -89,8 +91,8 @@
         >
           <.input
             field={@form[:name]}
-            label="Gallery name"
-            placeholder="e.g. Summer 2025"
+            label={gettext("Gallery name")}
+            placeholder={gettext("e.g. Summer 2025")}
             autofocus
           />
           <div class="flex gap-3 mt-6">
@@ -98,14 +100,14 @@
               type="submit"
               class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
             >
-              Create
+              {gettext("Create")}
             </button>
             <button
               type="button"
               phx-click="close_new_modal"
               class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
         </.form>
@@ -121,22 +123,26 @@
         id="confirm-delete-modal"
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Gallery</h2>
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+          {gettext("Delete Gallery")}
+        </h2>
         <p class="text-ds-on-surface-variant mb-6">
-          Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? All photos will be permanently removed. This cannot be undone.
+          Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? {gettext(
+            "All photos will be permanently removed. This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>

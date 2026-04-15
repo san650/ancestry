@@ -7,7 +7,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -19,7 +19,7 @@
                 ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
               }
               class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label="Back"
+              aria-label={gettext("Back")}
               {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
@@ -28,7 +28,7 @@
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}/people"}
               class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label="Back"
+              aria-label={gettext("Back")}
               {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
@@ -37,7 +37,7 @@
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}"}
               class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label="Back"
+              aria-label={gettext("Back")}
               {test_id("person-back-btn")}
             >
               <.icon name="hero-arrow-left" class="size-5" />
@@ -57,7 +57,7 @@
             id="edit-person-btn"
             phx-click="edit"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Edit person"
+            aria-label={gettext("Edit person")}
           >
             <.icon name="hero-pencil-square" class="size-5" />
           </button>
@@ -67,7 +67,7 @@
               id="remove-from-family-btn"
               phx-click="request_remove"
               class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label="Remove from family"
+              aria-label={gettext("Remove from family")}
             >
               <.icon name="hero-link-slash" class="size-5" />
             </button>
@@ -77,7 +77,7 @@
             id="delete-person-btn"
             phx-click="request_delete"
             class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Delete person"
+            aria-label={gettext("Delete person")}
           >
             <.icon name="hero-trash" class="size-5" />
           </button>
@@ -91,19 +91,19 @@
     <:page_actions>
       <.nav_action
         icon="hero-pencil-square"
-        label="Edit"
+        label={gettext("Edit")}
         phx-click={toggle_nav_drawer() |> JS.push("edit")}
       />
       <%= if @from_family do %>
         <.nav_action
           icon="hero-link-slash"
-          label="Remove from family"
+          label={gettext("Remove from family")}
           phx-click={toggle_nav_drawer() |> JS.push("request_remove")}
         />
       <% end %>
       <.nav_action
         icon="hero-trash"
-        label="Delete person"
+        label={gettext("Delete person")}
         danger
         phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
       />
@@ -125,7 +125,7 @@
           ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
         }
         class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label="Back"
+        aria-label={gettext("Back")}
         {test_id("person-back-fab")}
       >
         <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
@@ -134,7 +134,7 @@
       <.link
         navigate={~p"/org/#{@current_scope.organization.id}/people"}
         class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label="Back"
+        aria-label={gettext("Back")}
         {test_id("person-back-fab")}
       >
         <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
@@ -143,7 +143,7 @@
       <.link
         navigate={~p"/org/#{@current_scope.organization.id}"}
         class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label="Back"
+        aria-label={gettext("Back")}
         {test_id("person-back-fab")}
       >
         <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
@@ -192,7 +192,9 @@
           <% end %>
           <%= if @person.families != [] do %>
             <div class="mt-4 flex gap-1.5 flex-wrap items-center">
-              <span class="text-xs text-ds-on-surface-variant/60">In family trees</span>
+              <span class="text-xs text-ds-on-surface-variant/60">
+                {gettext("In family trees")}
+              </span>
               <%= for family <- @person.families do %>
                 <.link
                   navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
@@ -263,29 +265,29 @@
         <div class="px-4 lg:px-8 py-3 border-t border-ds-surface-low">
           <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px] max-w-[280px]">
             <%= if has_value?(@person.nickname) do %>
-              <span class="text-ds-on-surface-variant/60">Nickname</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Nickname")}</span>
               <span class="text-ds-on-surface">{@person.nickname}</span>
             <% end %>
             <%= if has_value?(@person.title) do %>
-              <span class="text-ds-on-surface-variant/60">Title</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Title")}</span>
               <span class="text-ds-on-surface">{@person.title}</span>
             <% end %>
             <%= if has_value?(@person.suffix) do %>
-              <span class="text-ds-on-surface-variant/60">Suffix</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Suffix")}</span>
               <span class="text-ds-on-surface">{@person.suffix}</span>
             <% end %>
             <%= if birth_name_differs?(@person.given_name_at_birth, @person.given_name) do %>
-              <span class="text-ds-on-surface-variant/60">Birth given name</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Birth given name")}</span>
               <span class="text-ds-on-surface">{@person.given_name_at_birth}</span>
             <% end %>
             <%= if birth_name_differs?(@person.surname_at_birth, @person.surname) do %>
-              <span class="text-ds-on-surface-variant/60">Birth surname</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Birth surname")}</span>
               <span class="text-ds-on-surface">{@person.surname_at_birth}</span>
             <% end %>
           </div>
           <%= if (@person.alternate_names || []) != [] do %>
             <div class="mt-2.5 flex gap-1.5 flex-wrap items-center text-[13px]">
-              <span class="text-ds-on-surface-variant/60">Also known as</span>
+              <span class="text-ds-on-surface-variant/60">{gettext("Also known as")}</span>
               <%= for name <- @person.alternate_names do %>
                 <span class="px-2 py-0.5 rounded-full bg-ds-surface-low text-ds-on-surface-variant text-xs">
                   {name}
@@ -299,12 +301,14 @@
 
     <%!-- Relationships Section --%>
     <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-      <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">Relationships</h2>
+      <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">
+        {gettext("Relationships")}
+      </h2>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <%!-- Left Column: Spouses and Children --%>
         <div class="space-y-6">
           <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
-            Spouses &amp; Children
+            {gettext("Spouses & Children")}
           </h3>
 
           <%!-- Partner groups --%>
@@ -335,7 +339,7 @@
                     phx-click="edit_relationship"
                     phx-value-id={rel.id}
                     class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
-                    title="Edit relationship"
+                    title={gettext("Edit relationship")}
                   >
                     <.icon name="hero-pencil" class="w-3.5 h-3.5" />
                   </button>
@@ -343,9 +347,9 @@
                     id={"delete-rel-#{rel.id}"}
                     phx-click="delete_relationship"
                     phx-value-id={rel.id}
-                    data-confirm="Remove this relationship?"
+                    data-confirm={gettext("Remove this relationship?")}
                     class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
-                    title="Remove relationship"
+                    title={gettext("Remove relationship")}
                   >
                     <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
                   </button>
@@ -359,7 +363,7 @@
                   <p class="text-xs text-ds-on-surface-variant px-2 flex items-center gap-1">
                     <.icon name="hero-heart" class="w-3 h-3" />
                     <%= if rel.type in ~w(divorced separated) do %>
-                      Married: {info}
+                      {gettext("Married")}: {info}
                     <% else %>
                       {info}
                     <% end %>
@@ -374,7 +378,7 @@
                     ) %>
                   <%= if divorce_info != "" do %>
                     <p class="text-xs text-ds-error/60 px-2 flex items-center gap-1">
-                      <.icon name="hero-arrow-path" class="w-3 h-3" /> Divorced: {divorce_info}
+                      <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Divorced")}: {divorce_info}
                     </p>
                   <% end %>
                 <% end %>
@@ -387,7 +391,7 @@
                     ) %>
                   <%= if separated_info != "" do %>
                     <p class="text-xs text-ds-tertiary/60 px-2 flex items-center gap-1">
-                      <.icon name="hero-arrow-path" class="w-3 h-3" /> Separated: {separated_info}
+                      <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Separated")}: {separated_info}
                     </p>
                   <% end %>
                 <% end %>
@@ -429,7 +433,7 @@
               class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
             >
               <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                Children with
+                {gettext("Children with")}
               </p>
               <.link
                 navigate={person_path(coparent, @from_family, @current_scope.organization)}
@@ -457,7 +461,7 @@
               class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
             >
               <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                Children (other parent unknown)
+                {gettext("Children (other parent unknown)")}
               </p>
               <%= for child <- @solo_children do %>
                 <.link
@@ -478,7 +482,7 @@
               phx-value-type="partner"
               class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
             >
-              <.icon name="hero-plus" class="w-4 h-4" /> Add Partner
+              <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Partner")}
             </button>
             <button
               id="add-child-solo-btn"
@@ -486,7 +490,7 @@
               phx-value-type="child_solo"
               class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
             >
-              <.icon name="hero-plus" class="w-4 h-4" /> Add Child
+              <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Child")}
             </button>
           </div>
         </div>
@@ -494,7 +498,7 @@
         <%!-- Right Column: Parents and Siblings --%>
         <div class="space-y-6">
           <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
-            Parents &amp; Siblings
+            {gettext("Parents & Siblings")}
           </h3>
 
           <%!-- Parents --%>
@@ -522,7 +526,7 @@
                     phx-click="edit_relationship"
                     phx-value-id={rel.id}
                     class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
-                    title="Edit"
+                    title={gettext("Edit")}
                   >
                     <.icon name="hero-pencil" class="w-3.5 h-3.5" />
                   </button>
@@ -530,9 +534,9 @@
                     id={"delete-parent-rel-#{rel.id}"}
                     phx-click="delete_relationship"
                     phx-value-id={rel.id}
-                    data-confirm="Remove this parent relationship?"
+                    data-confirm={gettext("Remove this parent relationship?")}
                     class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
-                    title="Remove"
+                    title={gettext("Remove")}
                   >
                     <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
                   </button>
@@ -542,7 +546,7 @@
 
             <%= if @parents_marriage do %>
               <div class="text-sm text-ds-on-surface-variant pl-2 border-l-2 border-ds-outline-variant/20">
-                <span class="font-medium text-ds-on-surface">Marriage</span>
+                <span class="font-medium text-ds-on-surface">{gettext("Marriage")}</span>
                 <% info = format_marriage_info(@parents_marriage.metadata) %>
                 <%= if info do %>
                   <div>{info}</div>
@@ -557,7 +561,7 @@
                 phx-value-type="parent"
                 class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
               >
-                <.icon name="hero-plus" class="w-4 h-4" /> Add Parent
+                <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Parent")}
               </button>
             <% end %>
           </div>
@@ -582,7 +586,7 @@
                   </.link>
                   <%= if sibling_type(sib) == :half do %>
                     <span class="text-xs text-ds-on-surface-variant bg-ds-surface-low px-2 py-0.5 rounded-full">
-                      Half
+                      {gettext("Half")}
                     </span>
                   <% end %>
                 </div>
@@ -597,7 +601,9 @@
     <%= if @person_photos_count > 0 do %>
       <div id="person-photos-section" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div class="flex items-center gap-3 mb-6">
-          <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface">Photos</h2>
+          <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface">
+            {gettext("Photos")}
+          </h2>
           <span class="text-sm bg-ds-surface-low text-ds-on-surface-variant px-2.5 py-0.5 rounded-full">
             {@person_photos_count}
           </span>
@@ -627,12 +633,13 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
       <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8">
         <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
-          Remove from Family
+          {gettext("Remove from Family")}
         </h2>
         <p class="text-ds-on-surface-variant mb-6">
           Remove <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>
-          from <span class="font-semibold">{@from_family.name}</span>?
-          The person will still exist and can be linked to other families.
+          from <span class="font-semibold">{@from_family.name}</span>? {gettext(
+            "The person will still exist and can be linked to other families."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -640,13 +647,13 @@
             phx-click="confirm_remove"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
           >
-            Remove
+            {gettext("Remove")}
           </button>
           <button
             phx-click="cancel_remove"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>
@@ -661,10 +668,13 @@
         id="confirm-delete-person-modal"
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">Delete Person</h2>
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+          {gettext("Delete Person")}
+        </h2>
         <p class="text-ds-on-surface-variant mb-6">
-          Permanently delete <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>?
-          This will remove them from all families. This cannot be undone.
+          Permanently delete <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>? {gettext(
+            "This will remove them from all families. This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -672,7 +682,7 @@
             phx-click="confirm_delete"
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"

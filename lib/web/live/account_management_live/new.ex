@@ -15,7 +15,7 @@ defmodule Web.AccountManagementLive.New do
   def handle_unauthorized(_action, socket) do
     {:halt,
      socket
-     |> put_flash(:error, "You don't have permission to access this page")
+     |> put_flash(:error, gettext("You don't have permission to access this page"))
      |> push_navigate(to: ~p"/org")}
   end
 
@@ -26,7 +26,7 @@ defmodule Web.AccountManagementLive.New do
 
     {:ok,
      socket
-     |> assign(:page_title, "New Account")
+     |> assign(:page_title, gettext("New Account"))
      |> assign(:form, to_form(changeset))
      |> assign(:organizations, organizations)
      |> assign(:selected_org_ids, [])
@@ -79,7 +79,7 @@ defmodule Web.AccountManagementLive.New do
 
         {:noreply,
          socket
-         |> put_flash(:info, "Account created successfully")
+         |> put_flash(:info, gettext("Account created successfully"))
          |> push_navigate(to: ~p"/admin/accounts")}
 
       {:error, changeset} ->
@@ -101,7 +101,7 @@ defmodule Web.AccountManagementLive.New do
             type="button"
             phx-click={toggle_nav_drawer()}
             class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Open menu"
+            aria-label={gettext("Open menu")}
             {test_id("hamburger-menu")}
           >
             <.icon name="hero-bars-3" class="size-5" />
@@ -112,7 +112,9 @@ defmodule Web.AccountManagementLive.New do
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">New Account</h1>
+          <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+            {gettext("New Account")}
+          </h1>
         </div>
       </:toolbar>
 
@@ -123,7 +125,7 @@ defmodule Web.AccountManagementLive.New do
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">Organizations</span>
+          <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
         </.link>
         <.link
           href={~p"/admin/accounts"}
@@ -131,7 +133,7 @@ defmodule Web.AccountManagementLive.New do
           class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
         >
           <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">Accounts</span>
+          <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
         </.link>
       </.nav_drawer>
 
@@ -144,24 +146,36 @@ defmodule Web.AccountManagementLive.New do
           class="space-y-6"
           {test_id("account-form")}
         >
-          <.input field={@form[:name]} type="text" label="Full name" />
-          <.input field={@form[:email]} type="email" label="Email" required />
-          <.input field={@form[:password]} type="password" label="Password" required />
+          <.input field={@form[:name]} type="text" label={gettext("Full name")} />
+          <.input field={@form[:email]} type="email" label={gettext("Email")} required />
+          <.input field={@form[:password]} type="password" label={gettext("Password")} required />
           <.input
             field={@form[:password_confirmation]}
             type="password"
-            label="Confirm password"
+            label={gettext("Confirm password")}
           />
           <.input
             field={@form[:role]}
             type="select"
-            label="Role"
-            options={[{"Viewer", :viewer}, {"Editor", :editor}, {"Admin", :admin}]}
+            label={gettext("Role")}
+            options={[
+              {gettext("Viewer"), :viewer},
+              {gettext("Editor"), :editor},
+              {gettext("Admin"), :admin}
+            ]}
+          />
+          <.input
+            field={@form[:locale]}
+            type="select"
+            label={gettext("Language")}
+            options={[{"English", "en-US"}, {"Español", "es-UY"}]}
           />
 
           <%!-- Avatar upload --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">Avatar</label>
+            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+              {gettext("Avatar")}
+            </label>
             <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
             <div :for={entry <- @uploads.avatar.entries} class="mt-2">
               <.live_img_preview entry={entry} class="w-20 h-20 rounded-full object-cover" />
@@ -171,7 +185,7 @@ defmodule Web.AccountManagementLive.New do
                 phx-value-ref={entry.ref}
                 class="text-ds-error text-xs mt-1 hover:underline"
               >
-                Remove
+                {gettext("Remove")}
               </button>
               <p
                 :for={err <- upload_errors(@uploads.avatar, entry)}
@@ -184,7 +198,9 @@ defmodule Web.AccountManagementLive.New do
 
           <%!-- Organization selection --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">Organizations</label>
+            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+              {gettext("Organizations")}
+            </label>
             <div class="space-y-2" {test_id("org-selection")}>
               <label :for={org <- @organizations} class="flex items-center gap-2 cursor-pointer">
                 <input
@@ -206,13 +222,13 @@ defmodule Web.AccountManagementLive.New do
               class="rounded-ds-sharp bg-ds-primary px-6 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
               {test_id("account-submit-btn")}
             >
-              Create Account
+              {gettext("Create Account")}
             </button>
             <.link
               navigate={~p"/admin/accounts"}
               class="rounded-ds-sharp px-6 py-2 text-sm font-ds-body text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
             >
-              Cancel
+              {gettext("Cancel")}
             </.link>
           </div>
         </.form>
@@ -221,8 +237,8 @@ defmodule Web.AccountManagementLive.New do
     """
   end
 
-  defp error_to_string(:too_large), do: "File is too large (max 10MB)"
-  defp error_to_string(:too_many_files), do: "Only one avatar allowed"
-  defp error_to_string(:not_accepted), do: "Invalid file type"
+  defp error_to_string(:too_large), do: gettext("File is too large (max 10MB)")
+  defp error_to_string(:too_many_files), do: gettext("Only one avatar allowed")
+  defp error_to_string(:not_accepted), do: gettext("Invalid file type")
   defp error_to_string(err), do: inspect(err)
 end

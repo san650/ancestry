@@ -12,12 +12,17 @@
             )
           }
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label={if(@live_action == :edit, do: "Back to memory", else: "Back to vault")}
+          aria-label={
+            if(@live_action == :edit,
+              do: gettext("Back to memory"),
+              else: gettext("Back to vault")
+            )
+          }
         >
           <.icon name="hero-arrow-left" class="size-5" />
         </.link>
         <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface truncate">
-          {if @live_action == :new, do: "New Memory", else: "Edit Memory"}
+          {if @live_action == :new, do: gettext("New Memory"), else: gettext("Edit Memory")}
         </h1>
       </div>
     </div>
@@ -32,25 +37,30 @@
       {test_id("memory-form")}
     >
       <%!-- Name input --%>
-      <.input field={@form[:name]} type="text" label="Name" placeholder="Give this memory a name" />
+      <.input
+        field={@form[:name]}
+        type="text"
+        label={gettext("Name")}
+        placeholder={gettext("Give this memory a name")}
+      />
 
       <%!-- Cover photo section --%>
       <div>
         <label class="block text-sm font-ds-body font-semibold text-ds-on-surface mb-2">
-          Cover Photo
+          {gettext("Cover Photo")}
         </label>
         <%= if @cover_photo do %>
           <div class="relative inline-block">
             <img
               src={Ancestry.Uploaders.Photo.url({@cover_photo.image, @cover_photo}, :thumbnail)}
-              alt="Cover photo"
+              alt={gettext("Cover photo")}
               class="w-32 h-24 object-cover rounded-ds-sharp shadow-ds-ambient"
             />
             <button
               type="button"
               phx-click="remove_cover_photo"
               class="absolute -top-2 -right-2 bg-ds-error text-ds-on-primary rounded-full p-1 shadow-ds-ambient hover:opacity-90 transition-opacity"
-              aria-label="Remove cover photo"
+              aria-label={gettext("Remove cover photo")}
             >
               <.icon name="hero-x-mark" class="size-4" />
             </button>
@@ -61,7 +71,7 @@
             phx-click="open_cover_picker"
             class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            <.icon name="hero-photo" class="size-4" /> Choose Cover Photo
+            <.icon name="hero-photo" class="size-4" /> {gettext("Choose Cover Photo")}
           </button>
         <% end %>
       </div>
@@ -69,7 +79,7 @@
       <%!-- Trix editor --%>
       <div>
         <label class="block text-sm font-ds-body font-semibold text-ds-on-surface mb-2">
-          Content
+          {gettext("Content")}
         </label>
         <div id="trix-wrapper" phx-hook="TrixEditor" phx-update="ignore">
           <input
@@ -93,7 +103,7 @@
           class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
           {test_id("memory-save-btn")}
         >
-          {if @live_action == :new, do: "Create Memory", else: "Save Changes"}
+          {if @live_action == :new, do: gettext("Create Memory"), else: gettext("Save Changes")}
         </button>
         <.link
           navigate={
@@ -106,7 +116,7 @@
           }
           class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
         >
-          Cancel
+          {gettext("Cancel")}
         </.link>
         <%= if @live_action == :edit do %>
           <button
@@ -115,7 +125,7 @@
             class="ml-auto inline-flex items-center gap-2 text-ds-error hover:text-ds-error/80 text-sm font-ds-body font-semibold transition-colors"
             {test_id("memory-delete-btn")}
           >
-            <.icon name="hero-trash" class="size-4" /> Delete
+            <.icon name="hero-trash" class="size-4" /> {gettext("Delete")}
           </button>
         <% end %>
       </div>
@@ -150,7 +160,7 @@
                 type="button"
                 phx-click="picker_back_to_galleries"
                 class="p-1 text-ds-on-surface-variant hover:text-ds-on-surface"
-                aria-label="Back to albums"
+                aria-label={gettext("Back to albums")}
               >
                 <.icon name="hero-arrow-left" class="size-5" />
               </button>
@@ -162,7 +172,9 @@
               </h2>
             <% else %>
               <h2 id="photo-picker-title" class="font-ds-heading font-bold text-ds-on-surface">
-                {if @picker_mode == :cover, do: "Choose Cover Photo", else: "Insert Photo"}
+                {if @picker_mode == :cover,
+                  do: gettext("Choose Cover Photo"),
+                  else: gettext("Insert Photo")}
               </h2>
             <% end %>
           </div>
@@ -170,7 +182,7 @@
             type="button"
             phx-click="close_photo_picker"
             class="p-1 text-ds-on-surface-variant hover:text-ds-on-surface"
-            aria-label="Close"
+            aria-label={gettext("Close")}
           >
             <.icon name="hero-x-mark" class="size-5" />
           </button>
@@ -183,7 +195,7 @@
               <div class="flex flex-col items-center justify-center py-12 text-center">
                 <.icon name="hero-photo" class="w-12 h-12 text-ds-on-surface-variant/50 mb-3" />
                 <p class="text-ds-on-surface-variant font-ds-body">
-                  No albums in this family yet. Upload photos to a gallery first.
+                  {gettext("No albums in this family yet. Upload photos to a gallery first.")}
                 </p>
               </div>
             <% else %>
@@ -212,7 +224,7 @@
               <div class="flex flex-col items-center justify-center py-12 text-center">
                 <.icon name="hero-photo" class="w-12 h-12 text-ds-on-surface-variant/50 mb-3" />
                 <p class="text-ds-on-surface-variant font-ds-body">
-                  No processed photos in this album.
+                  {gettext("No processed photos in this album.")}
                 </p>
               </div>
             <% else %>
@@ -226,7 +238,7 @@
                 >
                   <img
                     src={Ancestry.Uploaders.Photo.url({photo.image, photo}, :thumbnail)}
-                    alt="Photo"
+                    alt={gettext("Photo")}
                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </button>
@@ -261,7 +273,9 @@
           Delete Memory
         </h2>
         <p class="text-ds-on-surface-variant mb-6 font-ds-body">
-          Delete <span class="font-semibold">"{@memory && @memory.name}"</span>? This cannot be undone.
+          Delete <span class="font-semibold">"{@memory && @memory.name}"</span>? {gettext(
+            "This cannot be undone."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -269,13 +283,13 @@
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-memory-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>

@@ -11,17 +11,17 @@
       <%!-- Photo --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
         <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right md:pt-2">
-          Photo
+          {gettext("Photo")}
         </label>
         <div>
           <%= if @action == :edit && @person.photo && @person.photo_status == "processed" && @uploads.photo.entries == [] do %>
             <div class="mb-3 flex items-center gap-3">
               <img
                 src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
-                alt="Current photo"
+                alt={gettext("Current photo")}
                 class="w-16 h-16 rounded-ds-sharp object-cover"
               />
-              <span class="text-sm text-ds-on-surface-variant">Current photo</span>
+              <span class="text-sm text-ds-on-surface-variant">{gettext("Current photo")}</span>
               <button
                 type="button"
                 id="remove-photo-btn"
@@ -77,7 +77,7 @@
           for={@form[:given_name].id}
           class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right"
         >
-          Given names
+          {gettext("Given names")}
         </label>
         <.input field={@form[:given_name]} label="" />
       </div>
@@ -86,7 +86,7 @@
       <%= if @show_details do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
           <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-            Given names at birth
+            {gettext("Given names at birth")}
           </label>
           <.input field={@form[:given_name_at_birth]} label="" />
         </div>
@@ -94,7 +94,7 @@
         <%!-- Nickname --%>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
           <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-            Nickname
+            {gettext("Nickname")}
           </label>
           <.input field={@form[:nickname]} label="" />
         </div>
@@ -102,11 +102,11 @@
         <%!-- Title / Suffix side by side --%>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
           <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-            Title / Suffix
+            {gettext("Title / Suffix")}
           </label>
           <div class="grid grid-cols-2 gap-3">
-            <.input field={@form[:title]} label="" placeholder="e.g. Dr., Sir" />
-            <.input field={@form[:suffix]} label="" placeholder="e.g. Jr., III" />
+            <.input field={@form[:title]} label="" placeholder={gettext("e.g. Dr., Sir")} />
+            <.input field={@form[:suffix]} label="" placeholder={gettext("e.g. Jr., III")} />
           </div>
         </div>
       <% end %>
@@ -117,7 +117,7 @@
           for={@form[:surname].id}
           class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right"
         >
-          Surname
+          {gettext("Surname")}
         </label>
         <.input field={@form[:surname]} label="" />
       </div>
@@ -126,7 +126,7 @@
       <%= if @show_details do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
           <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-            Surname at birth
+            {gettext("Surname at birth")}
           </label>
           <.input field={@form[:surname_at_birth]} label="" />
         </div>
@@ -135,7 +135,7 @@
       <%!-- Gender --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
         <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-          Gender
+          {gettext("Gender")}
         </label>
         <div class="flex items-center gap-4">
           <label class="flex items-center gap-1.5 cursor-pointer">
@@ -146,7 +146,7 @@
               checked={to_string(@form[:gender].value) == "female"}
               class="w-4 h-4 accent-ds-primary"
             />
-            <span class="text-sm text-ds-on-surface">Female</span>
+            <span class="text-sm text-ds-on-surface">{gettext("Female")}</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer">
             <input
@@ -156,7 +156,7 @@
               checked={to_string(@form[:gender].value) == "male"}
               class="w-4 h-4 accent-ds-primary"
             />
-            <span class="text-sm text-ds-on-surface">Male</span>
+            <span class="text-sm text-ds-on-surface">{gettext("Male")}</span>
           </label>
           <label class="flex items-center gap-1.5 cursor-pointer">
             <input
@@ -166,7 +166,7 @@
               checked={to_string(@form[:gender].value) == "other"}
               class="w-4 h-4 accent-ds-primary"
             />
-            <span class="text-sm text-ds-on-surface">Other</span>
+            <span class="text-sm text-ds-on-surface">{gettext("Other")}</span>
           </label>
         </div>
       </div>
@@ -174,7 +174,7 @@
       <%!-- Birth date --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
         <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-          Birth date
+          {gettext("Birth date")}
         </label>
         <div class="flex items-center gap-2">
           <select
@@ -182,7 +182,7 @@
             id={@form[:birth_day].id}
             class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface"
           >
-            <option value="">Day</option>
+            <option value="">{gettext("Day")}</option>
             <%= for {label, val} <- day_options() do %>
               <option value={val} selected={to_string(@form[:birth_day].value) == val}>
                 {label}
@@ -194,7 +194,7 @@
             id={@form[:birth_month].id}
             class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface"
           >
-            <option value="">Month</option>
+            <option value="">{gettext("Month")}</option>
             <%= for {label, val} <- month_options() do %>
               <option value={val} selected={to_string(@form[:birth_month].value) == val}>
                 {label}
@@ -208,7 +208,7 @@
             value={@form[:birth_year].value}
             min="1000"
             max="2100"
-            placeholder="Year"
+            placeholder={gettext("Year")}
             class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface w-24"
           />
         </div>
@@ -227,7 +227,7 @@
             checked={living_checked?(@form)}
             class="w-4 h-4 accent-ds-primary rounded"
           />
-          <span class="text-sm text-ds-on-surface">This person is living</span>
+          <span class="text-sm text-ds-on-surface">{gettext("This person is living")}</span>
         </label>
       </div>
 
@@ -235,7 +235,7 @@
       <%= unless living_checked?(@form) do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
           <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right">
-            Death date
+            {gettext("Death date")}
           </label>
           <div class="flex items-center gap-2">
             <select
@@ -243,7 +243,7 @@
               id={@form[:death_day].id}
               class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface"
             >
-              <option value="">Day</option>
+              <option value="">{gettext("Day")}</option>
               <%= for {label, val} <- day_options() do %>
                 <option value={val} selected={to_string(@form[:death_day].value) == val}>
                   {label}
@@ -255,7 +255,7 @@
               id={@form[:death_month].id}
               class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface"
             >
-              <option value="">Month</option>
+              <option value="">{gettext("Month")}</option>
               <%= for {label, val} <- month_options() do %>
                 <option value={val} selected={to_string(@form[:death_month].value) == val}>
                   {label}
@@ -269,7 +269,7 @@
               value={@form[:death_year].value}
               min="1000"
               max="2100"
-              placeholder="Year"
+              placeholder={gettext("Year")}
               class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-2 py-1 text-sm text-ds-on-surface w-24"
             />
           </div>
@@ -286,7 +286,7 @@
             phx-click="toggle_details"
             class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary transition-colors"
           >
-            <.icon name="hero-plus" class="w-4 h-4" /> Add more details
+            <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add more details")}
           </button>
         </div>
       <% end %>
@@ -296,10 +296,12 @@
         <div class="border-t border-ds-outline-variant/20 pt-5">
           <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
             <label class="text-sm font-ds-body font-medium text-ds-on-surface-variant md:text-right md:pt-2">
-              Alternate names
+              {gettext("Alternate names")}
             </label>
             <div>
-              <p class="text-xs text-ds-on-surface-variant mb-2">Also known as (one per line)</p>
+              <p class="text-xs text-ds-on-surface-variant mb-2">
+                {gettext("Also known as (one per line)")}
+              </p>
               <textarea
                 name="person[alternate_names_text]"
                 id="person-alternate-names"
@@ -324,9 +326,9 @@
           {test_id("person-form-submit")}
         >
           <%= if @action == :new do %>
-            Create
+            {gettext("Create")}
           <% else %>
-            Save
+            {gettext("Save")}
           <% end %>
         </button>
         <button
@@ -335,7 +337,7 @@
           phx-click="cancel"
           class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
         >
-          Cancel
+          {gettext("Cancel")}
         </button>
       </div>
     </div>

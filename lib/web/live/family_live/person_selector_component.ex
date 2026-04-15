@@ -31,7 +31,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
           <%= if @focus_person do %>
             {Person.display_name(@focus_person)}
           <% else %>
-            Select a person...
+            {gettext("Select a person...")}
           <% end %>
         </span>
         <.icon name="hero-chevron-down" class="w-4 h-4 text-ds-on-surface-variant ml-auto" />
@@ -44,7 +44,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
               id={"#{@id}-input"}
               type="text"
               value={@query}
-              placeholder="Search people..."
+              placeholder={gettext("Search people...")}
               phx-keyup="filter_people"
               phx-target={@myself}
               phx-debounce="150"
@@ -54,7 +54,9 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
           </div>
           <div class="overflow-y-auto max-h-64">
             <%= if @filtered_people == [] do %>
-              <p class="text-sm text-ds-on-surface-variant py-4 text-center">No matches</p>
+              <p class="text-sm text-ds-on-surface-variant py-4 text-center">
+                {gettext("No matches")}
+              </p>
             <% end %>
             <%= for person <- @filtered_people do %>
               <button

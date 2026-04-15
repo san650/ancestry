@@ -94,17 +94,22 @@ defmodule Web.FamilyLive.Index do
   end
 
   defp put_flash_for_results(socket, ok_count, 0) do
-    put_flash(socket, :info, "Deleted #{pluralize(ok_count, "family", "families")}.")
+    put_flash(
+      socket,
+      :info,
+      ngettext("Deleted 1 family.", "Deleted %{count} families.", ok_count)
+    )
   end
 
   defp put_flash_for_results(socket, _ok_count, error_count) do
     put_flash(
       socket,
       :error,
-      "Could not delete #{pluralize(error_count, "family", "families")}. Try again."
+      ngettext(
+        "Could not delete 1 family. Try again.",
+        "Could not delete %{count} families. Try again.",
+        error_count
+      )
     )
   end
-
-  defp pluralize(1, singular, _plural), do: "1 #{singular}"
-  defp pluralize(n, _singular, plural), do: "#{n} #{plural}"
 end

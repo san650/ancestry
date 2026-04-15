@@ -120,7 +120,7 @@ defmodule Web.PersonLive.Show do
          |> assign(:form, to_form(People.change_person(person)))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to remove photo")}
+        {:noreply, put_flash(socket, :error, gettext("Failed to remove photo"))}
     end
   end
 
@@ -253,10 +253,10 @@ defmodule Web.PersonLive.Show do
          |> load_relationships(socket.assigns.person)
          |> assign(:editing_relationship, nil)
          |> assign(:edit_relationship_form, nil)
-         |> put_flash(:info, "Relationship updated")}
+         |> put_flash(:info, gettext("Relationship updated"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to update relationship")}
+        {:noreply, put_flash(socket, :error, gettext("Failed to update relationship"))}
     end
   end
 
@@ -272,10 +272,10 @@ defmodule Web.PersonLive.Show do
         {:noreply,
          socket
          |> load_relationships(socket.assigns.person)
-         |> put_flash(:info, "Relationship removed")}
+         |> put_flash(:info, gettext("Relationship removed"))}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to remove relationship")}
+        {:noreply, put_flash(socket, :error, gettext("Failed to remove relationship"))}
     end
   end
 
@@ -362,7 +362,7 @@ defmodule Web.PersonLive.Show do
      |> load_relationships(socket.assigns.person)
      |> assign(:adding_relationship, nil)
      |> assign(:adding_partner_id, nil)
-     |> put_flash(:info, "Relationship added")}
+     |> put_flash(:info, gettext("Relationship added"))}
   end
 
   def handle_info({:relationship_error, message}, socket) do
@@ -557,32 +557,33 @@ defmodule Web.PersonLive.Show do
     cond do
       has_birth and has_death ->
         ~H"""
-        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
+        <abbr title={gettext("Born")} class="underline decoration-dotted cursor-help">b.</abbr>
         <time datetime={@birth_datetime}>{@birth}</time>
-        — <abbr title="Deceased" class="underline decoration-dotted cursor-help">d.</abbr>
+        — <abbr title={gettext("Deceased")} class="underline decoration-dotted cursor-help">d.</abbr>
         <time datetime={@death_datetime}>{@death}</time>
         """
 
       has_birth and assigns.person.deceased ->
         ~H"""
-        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
-        <time datetime={@birth_datetime}>{@birth}</time> — deceased
+        <abbr title={gettext("Born")} class="underline decoration-dotted cursor-help">b.</abbr>
+        <time datetime={@birth_datetime}>{@birth}</time> — {gettext("deceased")}
         """
 
       has_birth ->
         ~H"""
-        <abbr title="Born" class="underline decoration-dotted cursor-help">b.</abbr>
+        <abbr title={gettext("Born")} class="underline decoration-dotted cursor-help">b.</abbr>
         <time datetime={@birth_datetime}>{@birth}</time>
         """
 
       has_death ->
         ~H"""
-        <abbr title="Deceased" class="underline decoration-dotted cursor-help">d.</abbr>
+        <abbr title={gettext("Deceased")} class="underline decoration-dotted cursor-help">d.</abbr>
         <time datetime={@death_datetime}>{@death}</time>
         """
 
       assigns.person.deceased ->
-        ~H"Deceased"
+        assigns = assign(assigns, :deceased_text, gettext("Deceased"))
+        ~H"{@deceased_text}"
 
       true ->
         ~H""
@@ -622,9 +623,9 @@ defmodule Web.PersonLive.Show do
 
   defp partner_section_title(rel, partner) do
     cond do
-      Ancestry.Relationships.Relationship.former_partner_type?(rel.type) -> "Ex-partner"
-      partner.deceased -> "Late partner"
-      true -> "Partner"
+      Ancestry.Relationships.Relationship.former_partner_type?(rel.type) -> gettext("Ex-partner")
+      partner.deceased -> gettext("Late partner")
+      true -> gettext("Partner")
     end
   end
 
@@ -719,7 +720,7 @@ defmodule Web.PersonLive.Show do
             -
           <% end %>
           <%= if @person.deceased do %>
-            <span title="This person is deceased.">
+            <span title={gettext("This person is deceased.")}>
               {if @person.death_year, do: "d. #{@person.death_year}", else: "deceased"}
             </span>
           <% end %>

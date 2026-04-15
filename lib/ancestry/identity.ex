@@ -174,6 +174,22 @@ defmodule Ancestry.Identity do
     |> update_account_and_delete_all_tokens()
   end
 
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the account locale.
+  """
+  def change_account_locale(account, attrs \\ %{}) do
+    Account.locale_changeset(account, attrs)
+  end
+
+  @doc """
+  Updates the account locale.
+  """
+  def update_account_locale(account, attrs) do
+    account
+    |> Account.locale_changeset(attrs)
+    |> Repo.update()
+  end
+
   ## Session
 
   @doc """

@@ -7,7 +7,7 @@ defmodule Web.FamilyLive.GalleryListComponent do
     <div id={@id}>
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm font-ds-body font-semibold text-ds-on-surface-variant uppercase tracking-wider">
-          Galleries
+          {gettext("Galleries")}
         </h3>
         <button
           id={"#{@id}-new-btn"}
@@ -20,7 +20,7 @@ defmodule Web.FamilyLive.GalleryListComponent do
       <div id={"#{@id}-items"} class="space-y-1">
         <%= if @galleries == [] do %>
           <div class="text-sm text-ds-on-surface-variant py-2">
-            No galleries yet.
+            {gettext("No galleries yet.")}
           </div>
         <% end %>
         <.link

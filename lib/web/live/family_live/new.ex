@@ -49,10 +49,10 @@ defmodule Web.FamilyLive.New do
     {:noreply, cancel_upload(socket, :cover, ref)}
   end
 
-  defp upload_error_to_string(:too_large), do: "File too large (max 20MB)"
-  defp upload_error_to_string(:not_accepted), do: "File type not supported"
-  defp upload_error_to_string(:too_many_files), do: "Too many files (max 1)"
-  defp upload_error_to_string(err), do: "Upload error: #{inspect(err)}"
+  defp upload_error_to_string(:too_large), do: gettext("File too large (max 20MB)")
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not supported")
+  defp upload_error_to_string(:too_many_files), do: gettext("Too many files (max 1)")
+  defp upload_error_to_string(err), do: gettext("Upload error: %{error}", error: inspect(err))
 
   defp maybe_process_cover(socket, family) do
     uploaded =

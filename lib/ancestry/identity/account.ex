@@ -13,6 +13,7 @@ defmodule Ancestry.Identity.Account do
     field :deactivated_at, :utc_datetime
     field :avatar, :string
     field :avatar_status, :string
+    field :locale, :string, default: "en-US"
 
     belongs_to :deactivator, Ancestry.Identity.Account, foreign_key: :deactivated_by
 
@@ -118,12 +119,22 @@ defmodule Ancestry.Identity.Account do
     end
   end
 
+  @supported_locales ~w(en-US es-UY)
+
   @doc """
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(account) do
     now = DateTime.utc_now(:second)
     change(account, confirmed_at: now)
+  end
+
+  @doc "Changeset for updating locale preference."
+  def locale_changeset(account, attrs) do
+    account
+    |> cast(attrs, [:locale])
+    |> validate_required([:locale])
+    |> validate_inclusion(:locale, @supported_locales)
   end
 
   @doc """
@@ -138,7 +149,7 @@ defmodule Ancestry.Identity.Account do
     mode = Keyword.get(opts, :mode, :create)
 
     account
-    |> cast(attrs, [:email, :name, :role, :password])
+    |> cast(attrs, [:email, :name, :role, :password, :locale])
     |> validate_required([:email])
     |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
       message: "must have the @ sign and no spaces"
@@ -146,6 +157,7 @@ defmodule Ancestry.Identity.Account do
     |> validate_length(:email, max: 160)
     |> unsafe_validate_unique(:email, Ancestry.Repo)
     |> unique_constraint(:email)
+    |> validate_inclusion(:locale, @supported_locales)
     |> validate_confirmation(:password, message: "does not match password")
     |> maybe_validate_password(mode)
     |> maybe_set_confirmed_at(mode)

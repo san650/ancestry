@@ -7,7 +7,7 @@
           type="button"
           phx-click={toggle_nav_drawer()}
           class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Open menu"
+          aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
@@ -20,7 +20,7 @@
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface truncate">
-          People
+          {gettext("People")}
         </h1>
       </div>
       <div class="flex items-center gap-2">
@@ -30,7 +30,7 @@
             class="inline-flex items-center gap-1.5 bg-ds-error text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("org-people-delete-btn")}
           >
-            <.icon name="hero-trash" class="w-4 h-4" /> Delete
+            <.icon name="hero-trash" class="w-4 h-4" /> {gettext("Delete")}
           </button>
         <% end %>
         <button
@@ -46,9 +46,9 @@
           {test_id("org-people-edit-btn")}
         >
           <%= if @editing do %>
-            Done
+            {gettext("Done")}
           <% else %>
-            <.icon name="hero-pencil" class="w-4 h-4" /> Edit
+            <.icon name="hero-pencil" class="w-4 h-4" /> {gettext("Edit")}
           <% end %>
         </button>
       </div>
@@ -62,7 +62,7 @@
       class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
     >
       <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">Organizations</span>
+      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -70,7 +70,7 @@
   <.link
     navigate={~p"/org/#{@current_scope.organization.id}"}
     class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
-    aria-label="Back"
+    aria-label={gettext("Back")}
   >
     <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
   </.link>
@@ -89,7 +89,7 @@
             name="filter"
             value={@filter}
             phx-debounce="300"
-            placeholder="Search people..."
+            placeholder={gettext("Search people...")}
             class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm pl-10"
           />
         </form>
@@ -106,7 +106,7 @@
         ]}
         {test_id("org-people-no-family-chip")}
       >
-        <.icon name="hero-exclamation-triangle-mini" class="w-4 h-4" /> No family
+        <.icon name="hero-exclamation-triangle-mini" class="w-4 h-4" /> {gettext("No family")}
       </button>
     </div>
   </div>
@@ -115,14 +115,16 @@
   <%= if @editing do %>
     <div class="px-4 pb-2 max-w-4xl mx-auto w-full">
       <div class="flex items-center gap-3 text-sm text-ds-on-surface-variant">
-        <button phx-click="select_all" class="text-ds-primary hover:underline">Select all</button>
+        <button phx-click="select_all" class="text-ds-primary hover:underline">
+          {gettext("Select all")}
+        </button>
         <span class="text-ds-on-surface-variant/50">|</span>
         <button phx-click="deselect_all" class="text-ds-primary hover:underline">
           Deselect all
         </button>
         <%= if MapSet.size(@selected) > 0 do %>
           <span class="text-ds-on-surface-variant ml-auto">
-            {MapSet.size(@selected)} selected
+            {ngettext("1 selected", "%{count} selected", MapSet.size(@selected))}
           </span>
         <% end %>
       </div>
@@ -143,14 +145,16 @@
         <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
       <% end %>
       <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">Name</div>
+      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">{gettext("Name")}</div>
       <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
         Est. Age
       </div>
       <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
         Lifespan
       </div>
-      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">Links</div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+        {gettext("Links")}
+      </div>
       <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
     </div>
 
@@ -282,7 +286,7 @@
                 ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_org=true&edit=true"
               }
               class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-primary transition-colors"
-              title="Edit person"
+              title={gettext("Edit person")}
               {test_id("org-people-edit-person-#{person.id}")}
             >
               <.icon name="hero-pencil-square" class="w-4 h-4" />
@@ -291,7 +295,7 @@
               phx-click="request_delete_one"
               phx-value-id={person.id}
               class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-error transition-colors"
-              title="Delete person"
+              title={gettext("Delete person")}
               {test_id("org-people-delete-person-#{person.id}")}
             >
               <.icon name="hero-trash" class="w-4 h-4" />
@@ -325,7 +329,9 @@
         </h2>
         <p class="text-ds-on-surface-variant mb-6">
           Permanently delete <span class="font-semibold">{MapSet.size(@selected)}</span>
-          {if MapSet.size(@selected) == 1, do: "person", else: "people"}? This cannot be undone. All their photos, relationships, and family links will be removed.
+          {if MapSet.size(@selected) == 1, do: gettext("person"), else: gettext("people")}? {gettext(
+            "This cannot be undone. All their photos, relationships, and family links will be removed."
+          )}
         </p>
         <div class="flex gap-3">
           <button
@@ -333,14 +339,14 @@
             class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("org-people-confirm-delete-btn")}
           >
-            Delete
+            {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
             class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
             {test_id("org-people-cancel-delete-btn")}
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>

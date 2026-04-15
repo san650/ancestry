@@ -146,7 +146,11 @@ defmodule Web.PeopleLive.Index do
      |> stream(:people, people, reset: true)
      |> put_flash(
        :info,
-       "Removed #{count} #{if count == 1, do: "person", else: "people"} from the family."
+       ngettext(
+         "Removed 1 person from the family.",
+         "Removed %{count} people from the family.",
+         count
+       )
      )}
   end
 

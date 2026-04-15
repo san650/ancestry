@@ -9,7 +9,7 @@
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
         <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          {@family.name} — Members
+          {@family.name} — {gettext("Members")}
         </h1>
       </div>
       <div class="flex items-center gap-2">
@@ -18,14 +18,14 @@
           phx-click="open_search"
           class="btn btn-ghost btn-sm"
         >
-          <.icon name="hero-magnifying-glass" class="w-4 h-4" /> Link Existing
+          <.icon name="hero-magnifying-glass" class="w-4 h-4" /> {gettext("Link Existing")}
         </button>
         <.link
           id="add-member-btn"
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/members/new"}
           class="btn btn-primary btn-sm"
         >
-          <.icon name="hero-plus" class="w-4 h-4" /> Add Member
+          <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Member")}
         </.link>
       </div>
     </div>
@@ -41,7 +41,7 @@
         id="members-empty"
         class="hidden only:block col-span-full text-center py-20 text-base-content/40"
       >
-        No members yet. Add your first family member.
+        {gettext("No members yet. Add your first family member.")}
       </div>
       <.link
         :for={{id, person} <- @streams.members}
@@ -84,13 +84,15 @@
         id="link-person-modal"
         class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-t-lg lg:rounded-ds-sharp w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
       >
-        <h2 class="text-xl font-bold text-base-content mb-4">Link Existing Person</h2>
+        <h2 class="text-xl font-bold text-base-content mb-4">
+          {gettext("Link Existing Person")}
+        </h2>
         <input
           id="person-search-input"
           type="text"
           name="query"
           value={@search_query}
-          placeholder="Search by name..."
+          placeholder={gettext("Search by name...")}
           phx-keyup="search"
           phx-debounce="300"
           autofocus
@@ -98,7 +100,9 @@
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
-            <p class="text-base-content/40 text-sm text-center py-4">No results found</p>
+            <p class="text-base-content/40 text-sm text-center py-4">
+              {gettext("No results found")}
+            </p>
           <% end %>
           <%= for person <- @search_results do %>
             <button
@@ -131,7 +135,9 @@
             </button>
           <% end %>
         </div>
-        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">Cancel</button>
+        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">
+          {gettext("Cancel")}
+        </button>
       </div>
     </div>
   <% end %>

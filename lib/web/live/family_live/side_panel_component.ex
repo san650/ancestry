@@ -31,7 +31,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
               <span class="text-2xl font-bold text-ds-on-surface">
                 {@metrics.result.people_count}
               </span>
-              <span class="text-xs text-ds-on-surface-variant">Members</span>
+              <span class="text-xs text-ds-on-surface-variant">{gettext("Members")}</span>
             </div>
             <div
               class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
@@ -41,7 +41,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
               <span class="text-2xl font-bold text-ds-on-surface">
                 {@metrics.result.photo_count}
               </span>
-              <span class="text-xs text-ds-on-surface-variant">Photos</span>
+              <span class="text-xs text-ds-on-surface-variant">{gettext("Photos")}</span>
             </div>
           </div>
 
@@ -52,19 +52,22 @@ defmodule Web.FamilyLive.SidePanelComponent do
               {test_id("metric-generations")}
             >
               <span class="text-xs text-ds-on-surface-variant uppercase tracking-wider mb-2">
-                Lineage
+                {gettext("Lineage")}
               </span>
-              <.metric_person_card person={@metrics.result.generations.root} label="Root ancestor" />
+              <.metric_person_card
+                person={@metrics.result.generations.root}
+                label={gettext("Root ancestor")}
+              />
               <div class="flex flex-col items-center my-1">
                 <div class="w-px h-3 bg-ds-on-surface-variant/50"></div>
                 <span class="text-sm font-semibold text-ds-primary py-0.5">
-                  {@metrics.result.generations.count} generations
+                  {ngettext("1 generation", "%{count} generations", @metrics.result.generations.count)}
                 </span>
                 <div class="w-px h-3 bg-ds-on-surface-variant/50"></div>
               </div>
               <.metric_person_card
                 person={@metrics.result.generations.leaf}
-                label="Latest descendant"
+                label={gettext("Latest descendant")}
               />
             </div>
           <% end %>
@@ -76,7 +79,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
               {test_id("metric-oldest-person")}
             >
               <span class="text-xs text-ds-on-surface-variant uppercase tracking-wider mb-2">
-                Oldest Record
+                {gettext("Oldest Record")}
               </span>
               <.metric_person_card
                 person={@metrics.result.oldest_person.person}
@@ -165,9 +168,9 @@ defmodule Web.FamilyLive.SidePanelComponent do
 
   defp age_label(%{person: person, age: age}) do
     if person.deceased do
-      "was #{age} years"
+      gettext("was %{age} years", age: age)
     else
-      "#{age} years"
+      gettext("%{age} years", age: age)
     end
   end
 end

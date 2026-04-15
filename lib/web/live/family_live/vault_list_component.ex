@@ -7,7 +7,7 @@ defmodule Web.FamilyLive.VaultListComponent do
     <div id={@id}>
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm font-ds-body font-semibold text-ds-on-surface-variant uppercase tracking-wider">
-          Memory Vaults
+          {gettext("Memory Vaults")}
         </h3>
         <button
           id={"#{@id}-new-btn"}
@@ -21,7 +21,7 @@ defmodule Web.FamilyLive.VaultListComponent do
       <div id={"#{@id}-items"} class="space-y-1">
         <%= if @vaults == [] do %>
           <div class="text-sm text-ds-on-surface-variant py-2" {test_id("vaults-empty")}>
-            No memory vaults yet.
+            {gettext("No memory vaults yet.")}
           </div>
         <% end %>
         <.link

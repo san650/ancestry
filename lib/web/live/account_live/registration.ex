@@ -11,14 +11,16 @@ defmodule Web.AccountLive.Registration do
       <div class="flex items-center justify-center min-h-[70vh] px-4">
         <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
           <div class="text-center">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">Register</h1>
+            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">
+              {gettext("Register")}
+            </h1>
             <p class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
-              Already registered?
+              {gettext("Already registered?")}
               <.link
                 navigate={~p"/accounts/log-in"}
                 class="font-semibold text-ds-on-surface hover:underline"
               >
-                Log in
+                {gettext("Log in")}
               </.link>
             </p>
           </div>
@@ -27,7 +29,7 @@ defmodule Web.AccountLive.Registration do
             <.input
               field={@form[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               autocomplete="username"
               spellcheck="false"
               required
@@ -36,10 +38,10 @@ defmodule Web.AccountLive.Registration do
 
             <button
               type="submit"
-              phx-disable-with="Creating account..."
+              phx-disable-with={gettext("Creating account...")}
               class="w-full mt-4 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
             >
-              Create an account
+              {gettext("Create an account")}
             </button>
           </.form>
         </div>
@@ -74,7 +76,9 @@ defmodule Web.AccountLive.Registration do
          socket
          |> put_flash(
            :info,
-           "An email was sent to #{account.email}, please access it to confirm your account."
+           gettext("An email was sent to %{email}, please access it to confirm your account.",
+             email: account.email
+           )
          )
          |> push_navigate(to: ~p"/accounts/log-in")}
 

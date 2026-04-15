@@ -11,7 +11,7 @@ defmodule Web.AccountLive.Confirmation do
         <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
           <div class="text-center">
             <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">
-              Welcome {@account.email}
+              {gettext("Welcome %{email}", email: @account.email)}
             </h1>
           </div>
 
@@ -29,17 +29,17 @@ defmodule Web.AccountLive.Confirmation do
               type="submit"
               name={@form[:remember_me].name}
               value="true"
-              phx-disable-with="Confirming..."
+              phx-disable-with={gettext("Confirming...")}
               class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
             >
-              Confirm and stay logged in
+              {gettext("Confirm and stay logged in")}
             </button>
             <button
               type="submit"
-              phx-disable-with="Confirming..."
+              phx-disable-with={gettext("Confirming...")}
               class="w-full mt-2 py-2.5 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
             >
-              Confirm and log in only this time
+              {gettext("Confirm and log in only this time")}
             </button>
           </.form>
 
@@ -56,27 +56,27 @@ defmodule Web.AccountLive.Confirmation do
             <%= if @current_scope do %>
               <button
                 type="submit"
-                phx-disable-with="Logging in..."
+                phx-disable-with={gettext("Logging in...")}
                 class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
               >
-                Log in
+                {gettext("Log in")}
               </button>
             <% else %>
               <button
                 type="submit"
                 name={@form[:remember_me].name}
                 value="true"
-                phx-disable-with="Logging in..."
+                phx-disable-with={gettext("Logging in...")}
                 class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
               >
-                Keep me logged in on this device
+                {gettext("Keep me logged in on this device")}
               </button>
               <button
                 type="submit"
-                phx-disable-with="Logging in..."
+                phx-disable-with={gettext("Logging in...")}
                 class="w-full mt-2 py-2.5 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
               >
-                Log me in only this time
+                {gettext("Log me in only this time")}
               </button>
             <% end %>
           </.form>
@@ -85,7 +85,7 @@ defmodule Web.AccountLive.Confirmation do
             :if={!@account.confirmed_at}
             class="bg-ds-surface-low rounded-ds-sharp p-4 text-sm font-ds-body text-ds-on-surface-variant"
           >
-            Tip: If you prefer passwords, you can enable them in the account settings.
+            {gettext("Tip: If you prefer passwords, you can enable them in the account settings.")}
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ defmodule Web.AccountLive.Confirmation do
     else
       {:ok,
        socket
-       |> put_flash(:error, "Magic link is invalid or it has expired.")
+       |> put_flash(:error, gettext("Magic link is invalid or it has expired."))
        |> push_navigate(to: ~p"/accounts/log-in")}
     end
   end

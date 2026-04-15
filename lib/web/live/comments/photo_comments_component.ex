@@ -91,7 +91,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
     <div id="photo-comments-panel" class="flex flex-col h-full bg-black/80 text-white">
       <%!-- Header --%>
       <div class="px-4 py-3 border-b border-white/10 shrink-0">
-        <h3 class="text-sm font-semibold text-white/90 tracking-wide">Comments</h3>
+        <h3 class="text-sm font-semibold text-white/90 tracking-wide">{gettext("Comments")}</h3>
       </div>
 
       <%!-- Scrollable comment list --%>
@@ -99,7 +99,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
         <div id="comments-list" phx-update="stream" class="space-y-3">
           <div id="comments-empty" class="hidden only:block text-center py-10">
             <.icon name="hero-chat-bubble-left-right" class="w-8 h-8 text-white/15 mx-auto mb-2" />
-            <p class="text-sm text-white/30">No comments yet</p>
+            <p class="text-sm text-white/30">{gettext("No comments yet")}</p>
           </div>
 
           <div
@@ -135,7 +135,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     phx-target={@myself}
                     class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white/70 text-xs font-medium rounded-md transition-colors"
                   >
-                    Cancel
+                    {gettext("Cancel")}
                   </button>
                 </div>
               </.form>
@@ -151,7 +151,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     phx-value-id={comment.id}
                     phx-target={@myself}
                     class="p-1 rounded text-white/30 hover:text-white hover:bg-white/10 transition-colors"
-                    title="Edit comment"
+                    title={gettext("Edit comment")}
                   >
                     <.icon name="hero-pencil-square" class="w-3.5 h-3.5" />
                   </button>
@@ -159,9 +159,9 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     phx-click="delete_comment"
                     phx-value-id={comment.id}
                     phx-target={@myself}
-                    data-confirm="Delete this comment?"
+                    data-confirm={gettext("Delete this comment?")}
                     class="p-1 rounded text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors"
-                    title="Delete comment"
+                    title={gettext("Delete comment")}
                   >
                     <.icon name="hero-trash" class="w-3.5 h-3.5" />
                   </button>
@@ -186,14 +186,14 @@ defmodule Web.Comments.PhotoCommentsComponent do
               name="comment[text]"
               id="new-comment-text"
               rows="1"
-              placeholder="Add a comment..."
+              placeholder={gettext("Add a comment...")}
               class="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/15 resize-none"
             >{Phoenix.HTML.Form.normalize_value("textarea", @form[:text].value)}</textarea>
           </div>
           <button
             type="submit"
             class="p-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shrink-0"
-            title="Post comment"
+            title={gettext("Post comment")}
           >
             <.icon name="hero-paper-airplane" class="w-4 h-4" />
           </button>
@@ -208,10 +208,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
     diff = NaiveDateTime.diff(now, datetime, :second)
 
     cond do
-      diff < 60 -> "just now"
-      diff < 3600 -> "#{div(diff, 60)}m ago"
-      diff < 86400 -> "#{div(diff, 3600)}h ago"
-      diff < 604_800 -> "#{div(diff, 86400)}d ago"
+      diff < 60 -> gettext("just now")
+      diff < 3600 -> gettext("%{count}m ago", count: div(diff, 60))
+      diff < 86400 -> gettext("%{count}h ago", count: div(diff, 3600))
+      diff < 604_800 -> gettext("%{count}d ago", count: div(diff, 86400))
       true -> Calendar.strftime(datetime, "%b %d, %Y")
     end
   end
