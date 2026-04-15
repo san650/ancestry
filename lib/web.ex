@@ -88,6 +88,7 @@ defmodule Web do
       import Web.CoreComponents
       import Web.Components.Mobile
       import Web.Components.NavDrawer
+      import Web.Components.AvatarComponents
       import Web.Helpers.TestHelpers
       import Ancestry.Authorization, only: [can?: 3]
 
