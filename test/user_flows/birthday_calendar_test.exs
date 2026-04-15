@@ -112,8 +112,8 @@ defmodule Web.UserFlows.BirthdayCalendarTest do
     # January person shown
     |> assert_has(test_id("birthday-entry-#{jan_person.id}"), text: "January Person")
 
-    # Deceased tagged
-    |> assert_has(test_id("birthday-entry-#{deceased_person.id}"), text: "deceased")
+    # Deceased person hidden by default
+    |> refute_has(test_id("birthday-entry-#{deceased_person.id}"))
 
     # December person shown
     |> assert_has(test_id("birthday-entry-#{dec_person.id}"), text: "December Person")
@@ -123,6 +123,16 @@ defmodule Web.UserFlows.BirthdayCalendarTest do
 
     # Today marker is present
     |> assert_has("#today-marker")
+
+    # Toggle "Show all people" to reveal deceased
+    conn =
+      conn
+      |> click(test_id("show-all-toggle"))
+      |> wait_liveview()
+
+    # Deceased person now visible with tag
+    conn
+    |> assert_has(test_id("birthday-entry-#{deceased_person.id}"), text: "deceased")
 
     # Click a person navigates to their profile
     conn

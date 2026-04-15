@@ -14,12 +14,16 @@ defmodule Web.BirthdayLive.Index do
     end
 
     today = Date.utc_today()
-    people = People.list_birthdays_for_family(family_id)
-    months = group_by_month(people, today)
+    all_people = People.list_birthdays_for_family(family_id)
+    show_all = false
+    visible = filter_people(all_people, show_all)
+    months = group_by_month(visible, today)
 
     {:ok,
      socket
      |> assign(:family, family)
+     |> assign(:all_people, all_people)
+     |> assign(:show_all, show_all)
      |> assign(:months, months)
      |> assign(:today, today)}
   end
@@ -40,6 +44,27 @@ defmodule Web.BirthdayLive.Index do
           <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface">
             {gettext("Birthdays")}
           </h1>
+          <label
+            class="ml-auto flex items-center gap-2 cursor-pointer select-none"
+            {test_id("show-all-toggle")}
+          >
+            <span class="text-xs text-ds-on-surface-variant">{gettext("Show all people")}</span>
+            <button
+              type="button"
+              phx-click="toggle_show_all"
+              role="switch"
+              aria-checked={to_string(@show_all)}
+              class={[
+                "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200",
+                if(@show_all, do: "bg-ds-primary", else: "bg-ds-on-surface-variant/30")
+              ]}
+            >
+              <span class={[
+                "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5",
+                if(@show_all, do: "translate-x-4 ml-0.5", else: "translate-x-0 ml-0.5")
+              ]} />
+            </button>
+          </label>
         </div>
 
         <div id="birthday-calendar">
@@ -140,7 +165,22 @@ defmodule Web.BirthdayLive.Index do
     """
   end
 
+  @impl true
+  def handle_event("toggle_show_all", _, socket) do
+    show_all = !socket.assigns.show_all
+    visible = filter_people(socket.assigns.all_people, show_all)
+    months = group_by_month(visible, socket.assigns.today)
+
+    {:noreply,
+     socket
+     |> assign(:show_all, show_all)
+     |> assign(:months, months)}
+  end
+
   # --- Helpers ---
+
+  defp filter_people(people, true), do: people
+  defp filter_people(people, false), do: Enum.reject(people, & &1.deceased)
 
   defp group_by_month(people, today) do
     people_by_month = Enum.group_by(people, & &1.birth_month)
