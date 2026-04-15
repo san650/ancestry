@@ -24,6 +24,22 @@ defmodule Ancestry.Storage do
     end
   end
 
+  def store_original_bytes(contents, dest_key) do
+    case storage_backend() do
+      Waffle.Storage.S3 ->
+        ExAws.S3.put_object(bucket(), dest_key, contents)
+        |> ExAws.request!()
+
+        dest_key
+
+      _ ->
+        dest_path = Path.join(local_prefix(), dest_key)
+        dest_path |> Path.dirname() |> File.mkdir_p!()
+        File.write!(dest_path, contents)
+        dest_path
+    end
+  end
+
   def fetch_original(original_path) do
     case storage_backend() do
       Waffle.Storage.S3 ->

@@ -35,7 +35,8 @@ defmodule Ancestry.Factory do
       original_path: "test/fixtures/test_image.jpg",
       original_filename: "test.jpg",
       content_type: "image/jpeg",
-      status: "processed"
+      status: "processed",
+      file_hash: nil
     }
   end
 

@@ -127,6 +127,43 @@ defmodule Ancestry.GalleriesTest do
       assert {:ok, updated} = Galleries.update_photo_failed(photo)
       assert updated.status == "failed"
     end
+
+    test "photo_exists_in_gallery?/2 returns true when hash exists in gallery", %{
+      gallery: gallery
+    } do
+      {:ok, _photo} =
+        Galleries.create_photo(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/test.jpg",
+          original_filename: "test.jpg",
+          content_type: "image/jpeg",
+          file_hash: "abc123"
+        })
+
+      assert Galleries.photo_exists_in_gallery?(gallery.id, "abc123")
+    end
+
+    test "photo_exists_in_gallery?/2 returns false when hash does not exist", %{gallery: gallery} do
+      refute Galleries.photo_exists_in_gallery?(gallery.id, "nonexistent")
+    end
+
+    test "photo_exists_in_gallery?/2 returns false when same hash is in different gallery", %{
+      gallery: gallery,
+      family: family
+    } do
+      {:ok, other_gallery} = Galleries.create_gallery(%{name: "Other", family_id: family.id})
+
+      {:ok, _photo} =
+        Galleries.create_photo(%{
+          gallery_id: other_gallery.id,
+          original_path: "/tmp/test.jpg",
+          original_filename: "test.jpg",
+          content_type: "image/jpeg",
+          file_hash: "abc123"
+        })
+
+      refute Galleries.photo_exists_in_gallery?(gallery.id, "abc123")
+    end
   end
 
   describe "photo_people" do

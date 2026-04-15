@@ -68,6 +68,13 @@ defmodule Ancestry.Galleries do
     end
   end
 
+  def photo_exists_in_gallery?(gallery_id, file_hash) do
+    Repo.exists?(
+      from p in Photo,
+        where: p.gallery_id == ^gallery_id and p.file_hash == ^file_hash
+    )
+  end
+
   def tag_person_in_photo(photo_id, person_id, x, y) do
     %PhotoPerson{photo_id: photo_id, person_id: person_id}
     |> PhotoPerson.changeset(%{x: x, y: y})
