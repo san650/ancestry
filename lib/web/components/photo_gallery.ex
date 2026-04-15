@@ -101,6 +101,7 @@ defmodule Web.Components.PhotoGallery do
   attr :photos, :list, required: true
   attr :panel_open, :boolean, default: false
   attr :photo_people, :list, default: []
+  attr :current_scope, :any, required: true
 
   def lightbox(assigns) do
     current_index = Enum.find_index(assigns.photos, &(&1.id == assigns.selected_photo.id)) || 0
@@ -289,6 +290,7 @@ defmodule Web.Components.PhotoGallery do
                   module={PhotoCommentsComponent}
                   id="photo-comments"
                   photo_id={@selected_photo.id}
+                  current_scope={@current_scope}
                 />
               </div>
             </div>
