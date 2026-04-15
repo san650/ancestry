@@ -2889,7 +2889,7 @@ msgstr "Sister-in-law"
 msgctxt "other"
 msgid "Sibling-in-law"
 msgstr "Sibling-in-law"
-=======
+
 #: lib/web/live/birthday_live/index.ex:228
 #, elixir-autogen, elixir-format, fuzzy
 msgid "April"
@@ -2995,6 +2995,6 @@ msgstr "deceased"
 
 #: lib/web/live/birthday_live/index.ex:257
 #, elixir-autogen, elixir-format
-msgctxt "neutral"
+msgctxt "other"
 msgid "deceased"
 msgstr "deceased"
