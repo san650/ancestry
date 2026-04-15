@@ -53,3 +53,4 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | template-struct-field-blind-spot | liveview, heex, templates, testing, silent-failure | Template struct field access is a runtime-only failure — compile and unit tests miss it |
 | checkbox-server-state-revert | liveview, forms, checkbox, phx-change, state, silent-failure | Checkboxes with server-controlled checked attr revert on phx-change |
 | pgettext-gendered-adjectives | i18n, gettext, spanish, gender, pgettext, translation | Use pgettext contexts for gendered adjectives in Spanish |
+| hook-mounted-scroll-timing | liveview, js-hooks, scroll, live-navigation, timing | JS hook scrollIntoView fails on live navigation without requestAnimationFrame |
