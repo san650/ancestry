@@ -252,9 +252,9 @@ defmodule Web.BirthdayLive.Index do
     "#{month_abbrev(date.month) |> String.upcase()} #{date.day}"
   end
 
-  defp deceased_label("male"), do: gettext("deceased_male")
-  defp deceased_label("female"), do: gettext("deceased_female")
-  defp deceased_label(_), do: gettext("deceased")
+  defp deceased_label("male"), do: pgettext("male", "deceased")
+  defp deceased_label("female"), do: pgettext("female", "deceased")
+  defp deceased_label(_), do: pgettext("neutral", "deceased")
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"
