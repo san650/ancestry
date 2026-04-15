@@ -27,6 +27,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
      |> assign(:photo_id, photo_id)
      |> assign(:current_scope, assigns.current_scope)
      |> assign(:editing_comment_id, nil)
+     |> assign(:selected_comment_id, nil)
      |> assign(:edit_form, nil)
      |> assign(:form, to_form(changeset, as: :comment))
      |> stream(:comments, comments, reset: true)}
@@ -46,6 +47,15 @@ defmodule Web.Comments.PhotoCommentsComponent do
     end
   end
 
+  def handle_event("select_comment", %{"id" => id}, socket) do
+    comment_id = String.to_integer(id)
+
+    selected =
+      if socket.assigns.selected_comment_id == comment_id, do: nil, else: comment_id
+
+    {:noreply, assign(socket, :selected_comment_id, selected)}
+  end
+
   def handle_event("edit_comment", %{"id" => id}, socket) do
     comment = Comments.get_photo_comment!(id)
 
@@ -55,6 +65,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
       {:noreply,
        socket
        |> assign(:editing_comment_id, comment.id)
+       |> assign(:selected_comment_id, nil)
        |> assign(:edit_form, to_form(changeset, as: :comment))
        |> stream_insert(:comments, comment)}
     else
@@ -158,8 +169,17 @@ defmodule Web.Comments.PhotoCommentsComponent do
                 </div>
               </.form>
             <% else %>
-              <%!-- Mobile: ultra-compact inline --%>
-              <div {test_id("mobile-comment-list")} class="flex gap-2 items-start py-0.5 md:hidden">
+              <%!-- Mobile: ultra-compact inline with tap-to-select --%>
+              <div
+                {test_id("mobile-comment-list")}
+                class={[
+                  "flex gap-2 items-start py-1 px-1 -mx-1 rounded-md md:hidden transition-colors",
+                  @selected_comment_id == comment.id && "bg-white/10"
+                ]}
+                phx-click="select_comment"
+                phx-value-id={comment.id}
+                phx-target={@myself}
+              >
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
                   <p class="text-[13px] text-white/75 leading-snug break-words">
@@ -168,13 +188,15 @@ defmodule Web.Comments.PhotoCommentsComponent do
                       {format_short_time(comment.inserted_at)}
                     </span>
                   </p>
-                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
-                    <.comment_actions
-                      comment={comment}
-                      current_scope={@current_scope}
-                      myself={@myself}
-                    />
-                  </div>
+                  <%= if @selected_comment_id == comment.id do %>
+                    <div class="flex items-center gap-2 mt-1">
+                      <.comment_actions
+                        comment={comment}
+                        current_scope={@current_scope}
+                        myself={@myself}
+                      />
+                    </div>
+                  <% end %>
                 </div>
               </div>
 
@@ -252,7 +274,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
         phx-click="edit_comment"
         phx-value-id={@comment.id}
         phx-target={@myself}
-        class="p-1 rounded text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+        class="p-1.5 rounded-md text-white/50 hover:text-white bg-white/5 hover:bg-white/15 transition-colors"
         title={gettext("Edit comment")}
       >
         <.icon name="hero-pencil-square" class="w-3.5 h-3.5" />
@@ -264,7 +286,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
         phx-value-id={@comment.id}
         phx-target={@myself}
         data-confirm={gettext("Delete this comment?")}
-        class="p-1 rounded text-white/30 hover:text-red-400 hover:bg-white/10 transition-colors"
+        class="p-1.5 rounded-md text-white/50 hover:text-red-400 bg-white/5 hover:bg-white/15 transition-colors"
         title={gettext("Delete comment")}
       >
         <.icon name="hero-trash" class="w-3.5 h-3.5" />
