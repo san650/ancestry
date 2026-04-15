@@ -94,7 +94,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       assert has_element?(view, "#photo-comments-panel", "Original")
 
       view
-      |> element(".md\\:flex [phx-click='edit_comment'][phx-value-id='#{comment.id}']")
+      |> element(
+        "[data-testid='desktop-comment-list'] [phx-click='edit_comment'][phx-value-id='#{comment.id}']"
+      )
       |> render_click()
 
       assert has_element?(view, "#edit-comment-#{comment.id}")
@@ -120,7 +122,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       view |> element("#toggle-panel-btn") |> render_click()
 
       view
-      |> element(".md\\:flex [phx-click='edit_comment'][phx-value-id='#{comment.id}']")
+      |> element(
+        "[data-testid='desktop-comment-list'] [phx-click='edit_comment'][phx-value-id='#{comment.id}']"
+      )
       |> render_click()
 
       assert has_element?(view, "#edit-comment-#{comment.id}")
@@ -145,7 +149,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       assert has_element?(view, "#photo-comments-panel", "Delete me")
 
       view
-      |> element(".md\\:flex [phx-click='delete_comment'][phx-value-id='#{comment.id}']")
+      |> element(
+        "[data-testid='desktop-comment-list'] [phx-click='delete_comment'][phx-value-id='#{comment.id}']"
+      )
       |> render_click()
 
       # The PubSub broadcast triggers send_update for stream_delete; render to flush

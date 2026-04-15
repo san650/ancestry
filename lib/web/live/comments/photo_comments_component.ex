@@ -159,7 +159,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
               </.form>
             <% else %>
               <%!-- Mobile: ultra-compact inline --%>
-              <div class="flex gap-2 items-start py-1 md:hidden">
+              <div {test_id("mobile-comment-list")} class="flex gap-2 items-start py-1 md:hidden">
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
                   <p class="text-[13px] text-white/75 leading-relaxed whitespace-pre-wrap break-words">
@@ -182,7 +182,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
               </div>
 
               <%!-- Desktop: bubble style --%>
-              <div class="hidden md:flex gap-2 items-start rounded-lg px-2 py-2 hover:bg-white/5 transition-colors">
+              <div
+                {test_id("desktop-comment-list")}
+                class="hidden md:flex gap-2 items-start rounded-lg px-2 py-2 hover:bg-white/5 transition-colors"
+              >
                 <.user_avatar account={comment.account} size={:md} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
                   <span class="text-[11px] font-semibold text-white/60 block mb-1">
