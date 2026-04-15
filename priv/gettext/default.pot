@@ -2629,6 +2629,6 @@ msgstr ""
 
 #: lib/web/live/birthday_live/index.ex:257
 #, elixir-autogen, elixir-format
-msgctxt "neutral"
+msgctxt "other"
 msgid "deceased"
 msgstr ""

@@ -254,7 +254,7 @@ defmodule Web.BirthdayLive.Index do
 
   defp deceased_label("male"), do: pgettext("male", "deceased")
   defp deceased_label("female"), do: pgettext("female", "deceased")
-  defp deceased_label(_), do: pgettext("neutral", "deceased")
+  defp deceased_label(_), do: pgettext("other", "deceased")
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"

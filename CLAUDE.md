@@ -144,6 +144,18 @@ MANDATORY: Use the design system and rules defined in ./DESIGN.md
   - After fixing a recurring issue or completing a recurring refactor, append a new entry to the JSONL file **and** update the index in `docs/learnings.md` to keep them in sync
 - When writing a new feature use the elixir:elixir-thinking and elixir:phoenix-thinking skills
 
+### Internationalization (i18n)
+
+- The app uses `gettext` with locale `es-UY` for Spanish translations. PO files are in `priv/gettext/es-UY/LC_MESSAGES/`.
+- After adding new gettext strings, run `mix gettext.extract --merge` to update `.pot` and `.po` files, then fill in Spanish translations.
+- **Gendered adjectives in Spanish:** Use `pgettext/2` with gender contexts instead of separate keys or a single `fallecido/a` string. Example:
+  ```elixir
+  pgettext("male", "deceased")    # → "fallecido"
+  pgettext("female", "deceased")  # → "fallecida"
+  pgettext("other", "deceased")   # → "fallecido/a"
+  ```
+  This produces `msgctxt` entries in the PO file, keeping translations scoped to the same `msgid`. Apply this pattern to any adjective that must agree with grammatical gender.
+
 ### Phoenix v1.8 guidelines
 
 - **Always** begin your LiveView templates with `<Layouts.app flash={@flash} ...>` which wraps all inner content
