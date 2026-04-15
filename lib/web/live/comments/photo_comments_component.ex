@@ -33,7 +33,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   @impl true
   def handle_event("save_comment", %{"comment" => %{"text" => text}}, socket) do
-    case Comments.create_photo_comment(%{photo_id: socket.assigns.photo_id, text: text}) do
+    account_id =
+      case socket.assigns do
+        %{current_scope: %{account: %{id: id}}} -> id
+        _ -> nil
+      end
+
+    case Comments.create_photo_comment(socket.assigns.photo_id, account_id, %{text: text}) do
       {:ok, _comment} ->
         changeset = Comments.change_photo_comment(%PhotoComment{})
         {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}

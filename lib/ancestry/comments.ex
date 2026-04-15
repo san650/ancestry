@@ -3,13 +3,16 @@ defmodule Ancestry.Comments do
   alias Ancestry.Repo
   alias Ancestry.Comments.PhotoComment
 
-  def create_photo_comment(attrs) do
+  def create_photo_comment(photo_id, account_id, attrs) do
     %PhotoComment{}
     |> PhotoComment.changeset(attrs)
-    |> Ecto.Changeset.put_change(:photo_id, attrs[:photo_id] || attrs["photo_id"])
+    |> Ecto.Changeset.put_change(:photo_id, photo_id)
+    |> Ecto.Changeset.put_change(:account_id, account_id)
     |> Repo.insert()
     |> case do
       {:ok, comment} ->
+        comment = Repo.preload(comment, :account)
+
         Phoenix.PubSub.broadcast(
           Ancestry.PubSub,
           "photo_comments:#{comment.photo_id}",
@@ -27,11 +30,12 @@ defmodule Ancestry.Comments do
     Repo.all(
       from c in PhotoComment,
         where: c.photo_id == ^photo_id,
-        order_by: [asc: c.inserted_at, asc: c.id]
+        order_by: [asc: c.inserted_at, asc: c.id],
+        preload: [:account]
     )
   end
 
-  def get_photo_comment!(id), do: Repo.get!(PhotoComment, id)
+  def get_photo_comment!(id), do: Repo.get!(PhotoComment, id) |> Repo.preload(:account)
 
   def change_photo_comment(%PhotoComment{} = comment, attrs \\ %{}) do
     PhotoComment.changeset(comment, attrs)
@@ -43,6 +47,8 @@ defmodule Ancestry.Comments do
     |> Repo.update()
     |> case do
       {:ok, comment} ->
+        comment = Repo.preload(comment, :account)
+
         Phoenix.PubSub.broadcast(
           Ancestry.PubSub,
           "photo_comments:#{comment.photo_id}",
@@ -57,6 +63,8 @@ defmodule Ancestry.Comments do
   end
 
   def delete_photo_comment(%PhotoComment{} = comment) do
+    comment = Repo.preload(comment, :account)
+
     Repo.delete(comment)
     |> case do
       {:ok, comment} ->

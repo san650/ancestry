@@ -10,11 +10,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   setup :register_and_log_in_account
 
   describe "rendering" do
-    test "shows existing comments for a photo", %{conn: conn} do
+    test "shows existing comments for a photo", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, _} = Comments.create_photo_comment(%{text: "Great shot!", photo_id: photo.id})
-      {:ok, _} = Comments.create_photo_comment(%{text: "Love it", photo_id: photo.id})
+      {:ok, _} = Comments.create_photo_comment(photo.id, account.id, %{text: "Great shot!"})
+      {:ok, _} = Comments.create_photo_comment(photo.id, account.id, %{text: "Love it"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -81,9 +81,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   end
 
   describe "editing comments" do
-    test "edit and save updates the comment", %{conn: conn} do
+    test "edit and save updates the comment", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -109,9 +109,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       refute has_element?(view, "#edit-comment-#{comment.id}")
     end
 
-    test "cancel edit hides the edit form", %{conn: conn} do
+    test "cancel edit hides the edit form", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -132,9 +132,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   end
 
   describe "deleting comments" do
-    test "clicking delete removes the comment", %{conn: conn} do
+    test "clicking delete removes the comment", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Delete me", photo_id: photo.id})
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Delete me"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -189,15 +189,15 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       refute has_element?(view, "#photo-comments-panel")
     end
 
-    test "navigating photos loads comments for the new photo", %{conn: conn} do
+    test "navigating photos loads comments for the new photo", %{conn: conn, account: account} do
       {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
       {:ok, _} =
-        Comments.create_photo_comment(%{text: "Comment on photo 1", photo_id: photo1.id})
+        Comments.create_photo_comment(photo1.id, account.id, %{text: "Comment on photo 1"})
 
       {:ok, _} =
-        Comments.create_photo_comment(%{text: "Comment on photo 2", photo_id: photo2.id})
+        Comments.create_photo_comment(photo2.id, account.id, %{text: "Comment on photo 2"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -216,12 +216,12 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       refute has_element?(view, "#photo-comments-panel", "Comment on photo 1")
     end
 
-    test "navigating to photo with no comments shows empty state", %{conn: conn} do
+    test "navigating to photo with no comments shows empty state", %{conn: conn, account: account} do
       {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
       {:ok, _} =
-        Comments.create_photo_comment(%{text: "Only on photo 1", photo_id: photo1.id})
+        Comments.create_photo_comment(photo1.id, account.id, %{text: "Only on photo 1"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -241,7 +241,10 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   end
 
   describe "real-time updates" do
-    test "receiving comment_created message adds comment to panel", %{conn: conn} do
+    test "receiving comment_created message adds comment to panel", %{
+      conn: conn,
+      account: account
+    } do
       {family, gallery, photo, org} = setup_gallery_with_photo()
 
       {:ok, view, _html} =
@@ -252,7 +255,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
       # Simulate a PubSub broadcast by sending the message directly to the LiveView
       {:ok, comment} =
-        Comments.create_photo_comment(%{text: "From another user", photo_id: photo.id})
+        Comments.create_photo_comment(photo.id, account.id, %{text: "From another user"})
 
       send(view.pid, {:comment_created, comment})
 
@@ -262,9 +265,12 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       assert has_element?(view, "#photo-comments-panel", "From another user")
     end
 
-    test "receiving comment_updated message updates comment in panel", %{conn: conn} do
+    test "receiving comment_updated message updates comment in panel", %{
+      conn: conn,
+      account: account
+    } do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Before edit", photo_id: photo.id})
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Before edit"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -281,9 +287,12 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       assert has_element?(view, "#photo-comments-panel", "After edit")
     end
 
-    test "receiving comment_deleted message removes comment from panel", %{conn: conn} do
+    test "receiving comment_deleted message removes comment from panel", %{
+      conn: conn,
+      account: account
+    } do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Will vanish", photo_id: photo.id})
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Will vanish"})
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
