@@ -114,7 +114,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
       <%!-- Scrollable comment list --%>
       <div class="flex-1 overflow-y-auto min-h-0 px-4 py-3">
-        <div id="comments-list" phx-update="stream" class="space-y-2 md:space-y-3">
+        <div id="comments-list" phx-update="stream" class="space-y-2">
           <div id="comments-empty" class="hidden only:block text-center py-10">
             <.icon name="hero-chat-bubble-left-right" class="w-8 h-8 text-white/15 mx-auto mb-2" />
             <p class="text-sm text-white/30">{gettext("No comments yet")}</p>
@@ -159,15 +159,12 @@ defmodule Web.Comments.PhotoCommentsComponent do
               </.form>
             <% else %>
               <%!-- Mobile: ultra-compact inline --%>
-              <div {test_id("mobile-comment-list")} class="flex gap-2 items-start py-1 md:hidden">
+              <div {test_id("mobile-comment-list")} class="flex gap-2 items-start py-0.5 md:hidden">
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
-                  <p class="text-[13px] text-white/75 leading-relaxed whitespace-pre-wrap break-words">
-                    <span class="font-semibold text-white/85">
-                      {display_first_name(comment.account)}
-                    </span>
-                    {" "}{comment.text}
-                    <span class="text-[10px] text-white/30 ml-1">
+                  <p class="text-[13px] text-white/75 leading-snug break-words">
+                    <span class="font-semibold text-white/85">{display_first_name(comment.account)}</span>{" "}<span class="whitespace-pre-wrap">{comment.text}</span>
+                    <span class="text-[10px] text-white/30">
                       {format_short_time(comment.inserted_at)}
                     </span>
                   </p>
@@ -184,29 +181,29 @@ defmodule Web.Comments.PhotoCommentsComponent do
               <%!-- Desktop: bubble style --%>
               <div
                 {test_id("desktop-comment-list")}
-                class="hidden md:flex gap-2 items-start rounded-lg px-2 py-2 hover:bg-white/5 transition-colors"
+                class="hidden md:flex gap-2 items-start"
               >
-                <.user_avatar account={comment.account} size={:md} class="mt-0.5" />
-                <div class="flex-1 min-w-0">
-                  <span class="text-[11px] font-semibold text-white/60 block mb-1">
-                    {display_name(comment.account)}
-                  </span>
-                  <div class="bg-white/[0.08] rounded-[0_10px_10px_10px] px-3 py-2">
-                    <p class="text-[13px] text-white/80 leading-relaxed whitespace-pre-wrap break-words">
+                <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
+                <div class="min-w-0">
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-xs font-semibold text-white/70">
+                      {display_name(comment.account)}
+                    </span>
+                    <time class="text-[10px] text-white/30">
+                      {format_relative_time(comment.inserted_at)}
+                    </time>
+                  </div>
+                  <div class="bg-white/[0.06] rounded-lg mt-0.5 px-2.5 py-1.5 inline-block max-w-full">
+                    <p class="text-[13px] text-white/80 leading-snug whitespace-pre-wrap break-words">
                       {comment.text}
                     </p>
                   </div>
-                  <div class="flex items-center justify-between mt-1">
-                    <time class="text-[10px] text-white/25 pl-0.5">
-                      {format_relative_time(comment.inserted_at)}
-                    </time>
-                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <.comment_actions
-                        comment={comment}
-                        current_scope={@current_scope}
-                        myself={@myself}
-                      />
-                    </div>
+                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
+                    <.comment_actions
+                      comment={comment}
+                      current_scope={@current_scope}
+                      myself={@myself}
+                    />
                   </div>
                 </div>
               </div>
