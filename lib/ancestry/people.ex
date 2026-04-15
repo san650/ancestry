@@ -6,6 +6,28 @@ defmodule Ancestry.People do
   alias Ancestry.People.Person
   alias Ancestry.Relationships.Relationship
 
+  def list_birthdays_for_family(family_id) do
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id and fm.family_id == ^family_id,
+        where: not is_nil(p.birth_month) and not is_nil(p.birth_day),
+        where:
+          fragment(
+            """
+            ? <= CASE ?
+              WHEN 1 THEN 31 WHEN 2 THEN 29 WHEN 3 THEN 31 WHEN 4 THEN 30
+              WHEN 5 THEN 31 WHEN 6 THEN 30 WHEN 7 THEN 31 WHEN 8 THEN 31
+              WHEN 9 THEN 30 WHEN 10 THEN 31 WHEN 11 THEN 30 WHEN 12 THEN 31
+            END
+            """,
+            p.birth_day,
+            p.birth_month
+          ),
+        order_by: [asc: p.birth_month, asc: p.birth_day]
+    )
+  end
+
   def list_people_for_family(family_id) do
     Repo.all(
       from p in Person,
