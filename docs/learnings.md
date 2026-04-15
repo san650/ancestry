@@ -52,3 +52,4 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | use-descriptive-fk-names | ecto, database, schema, naming, readability | Use descriptive FK column names over generic entity_id |
 | template-struct-field-blind-spot | liveview, heex, templates, testing, silent-failure | Template struct field access is a runtime-only failure — compile and unit tests miss it |
 | checkbox-server-state-revert | liveview, forms, checkbox, phx-change, state, silent-failure | Checkboxes with server-controlled checked attr revert on phx-change |
+| playwright-dual-responsive-layout | testing, playwright, e2e, css, responsive, silent-failure | Playwright assert_has fails on responsive dual-layout components |
