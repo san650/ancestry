@@ -250,7 +250,7 @@ msgstr ""
 msgid "Ancestry"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:241
+#: lib/web/live/birthday_live/index.ex:281
 #: lib/web/live/shared/person_form_component.ex:16
 #, elixir-autogen, elixir-format
 msgid "Apr"
@@ -274,7 +274,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:245
+#: lib/web/live/birthday_live/index.ex:285
 #: lib/web/live/shared/person_form_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Aug"
@@ -320,7 +320,7 @@ msgstr ""
 msgid "Back to families"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:36
+#: lib/web/live/birthday_live/index.ex:40
 #: lib/web/live/gallery_live/show.html.heex:18
 #: lib/web/live/gallery_live/show.html.heex:113
 #: lib/web/live/vault_live/show.html.heex:8
@@ -641,7 +641,7 @@ msgstr ""
 msgid "Death date"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:249
+#: lib/web/live/birthday_live/index.ex:289
 #: lib/web/live/shared/person_form_component.ex:24
 #, elixir-autogen, elixir-format
 msgid "Dec"
@@ -971,7 +971,7 @@ msgstr ""
 msgid "Father"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:239
+#: lib/web/live/birthday_live/index.ex:279
 #: lib/web/live/shared/person_form_component.ex:14
 #, elixir-autogen, elixir-format
 msgid "Feb"
@@ -1171,19 +1171,19 @@ msgstr ""
 msgid "Invalid relationship data"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:238
+#: lib/web/live/birthday_live/index.ex:278
 #: lib/web/live/shared/person_form_component.ex:13
 #, elixir-autogen, elixir-format
 msgid "Jan"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:244
+#: lib/web/live/birthday_live/index.ex:284
 #: lib/web/live/shared/person_form_component.ex:19
 #, elixir-autogen, elixir-format
 msgid "Jul"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:243
+#: lib/web/live/birthday_live/index.ex:283
 #: lib/web/live/shared/person_form_component.ex:18
 #, elixir-autogen, elixir-format
 msgid "Jun"
@@ -1333,7 +1333,7 @@ msgstr ""
 msgid "Manage your account email address and password settings"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:240
+#: lib/web/live/birthday_live/index.ex:280
 #: lib/web/live/shared/person_form_component.ex:15
 #, elixir-autogen, elixir-format
 msgid "Mar"
@@ -1360,8 +1360,8 @@ msgstr ""
 msgid "Masonry layout"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:229
-#: lib/web/live/birthday_live/index.ex:242
+#: lib/web/live/birthday_live/index.ex:269
+#: lib/web/live/birthday_live/index.ex:282
 #: lib/web/live/shared/person_form_component.ex:17
 #, elixir-autogen, elixir-format
 msgid "May"
@@ -1580,13 +1580,13 @@ msgstr ""
 msgid "None"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:248
+#: lib/web/live/birthday_live/index.ex:288
 #: lib/web/live/shared/person_form_component.ex:23
 #, elixir-autogen, elixir-format
 msgid "Nov"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:247
+#: lib/web/live/birthday_live/index.ex:287
 #: lib/web/live/shared/person_form_component.ex:22
 #, elixir-autogen, elixir-format
 msgid "Oct"
@@ -1967,7 +1967,7 @@ msgstr ""
 msgid "Select two people"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:246
+#: lib/web/live/birthday_live/index.ex:286
 #: lib/web/live/shared/person_form_component.ex:21
 #, elixir-autogen, elixir-format
 msgid "Sep"
@@ -2891,110 +2891,116 @@ msgid "Sibling-in-law"
 msgstr "Sibling-in-law"
 
 #: lib/web/live/birthday_live/index.ex:228
+#: lib/web/live/birthday_live/index.ex:268
 #, elixir-autogen, elixir-format, fuzzy
 msgid "April"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:232
+#: lib/web/live/birthday_live/index.ex:272
 #, elixir-autogen, elixir-format, fuzzy
 msgid "August"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:41
+#: lib/web/live/birthday_live/index.ex:45
 #: lib/web/live/family_live/show.html.heex:104
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Birthdays"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:236
+#: lib/web/live/birthday_live/index.ex:276
 #, elixir-autogen, elixir-format
 msgid "December"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:226
+#: lib/web/live/birthday_live/index.ex:266
 #, elixir-autogen, elixir-format
 msgid "February"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:225
+#: lib/web/live/birthday_live/index.ex:265
 #, elixir-autogen, elixir-format, fuzzy
 msgid "January"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:231
+#: lib/web/live/birthday_live/index.ex:271
 #, elixir-autogen, elixir-format, fuzzy
 msgid "July"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:230
+#: lib/web/live/birthday_live/index.ex:270
 #, elixir-autogen, elixir-format, fuzzy
 msgid "June"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:227
+#: lib/web/live/birthday_live/index.ex:267
 #, elixir-autogen, elixir-format, fuzzy
 msgid "March"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:59
+#: lib/web/live/birthday_live/index.ex:84
 #, elixir-autogen, elixir-format
 msgid "No birthdays"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:235
+#: lib/web/live/birthday_live/index.ex:275
 #, elixir-autogen, elixir-format
 msgid "November"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:234
+#: lib/web/live/birthday_live/index.ex:274
 #, elixir-autogen, elixir-format, fuzzy
 msgid "October"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:233
+#: lib/web/live/birthday_live/index.ex:273
 #, elixir-autogen, elixir-format
 msgid "September"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:71
+#: lib/web/live/birthday_live/index.ex:96
 #, elixir-autogen, elixir-format
 msgid "TODAY"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:218
+#: lib/web/live/birthday_live/index.ex:258
 #, elixir-autogen, elixir-format
 msgid "Turned %{age}"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:221
+#: lib/web/live/birthday_live/index.ex:261
 #, elixir-autogen, elixir-format
 msgid "Turns %{age}"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:215
+#: lib/web/live/birthday_live/index.ex:255
 #, elixir-autogen, elixir-format
 msgid "Turns %{age} today!"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:212
+#: lib/web/live/birthday_live/index.ex:252
 #, elixir-autogen, elixir-format
 msgid "Would have turned %{age}"
 msgstr ""
 
-#: lib/web/live/birthday_live/index.ex:256
+#: lib/web/live/birthday_live/index.ex:296
 #, elixir-autogen, elixir-format
 msgctxt "female"
 msgid "deceased"
 msgstr "deceased"
 
-#: lib/web/live/birthday_live/index.ex:255
+#: lib/web/live/birthday_live/index.ex:295
 #, elixir-autogen, elixir-format
 msgctxt "male"
 msgid "deceased"
 msgstr "deceased"
 
-#: lib/web/live/birthday_live/index.ex:257
+#: lib/web/live/birthday_live/index.ex:297
 #, elixir-autogen, elixir-format
 msgctxt "other"
 msgid "deceased"
 msgstr "deceased"
+
+#: lib/web/live/birthday_live/index.ex:51
+#, elixir-autogen, elixir-format
+msgid "Show all people"
+msgstr ""
