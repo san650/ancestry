@@ -213,7 +213,7 @@ Replace the entire `<%= if @panel_open do %>...<% end %>` block (currently lines
         <button
           type="button"
           phx-click="toggle_panel"
-          class="p-2 -mr-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/[0.08] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
+          class="p-2 -mr-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/[0.10] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
           aria-label={gettext("Close info")}
         >
           <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
@@ -229,7 +229,7 @@ Replace the entire `<%= if @panel_open do %>...<% end %>` block (currently lines
           <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
             {gettext("People")}
           </h4>
-          <span :if={@photo_people != []} class="text-[11px] text-white/50 bg-white/[0.08] px-1.5 py-0.5 rounded-full">
+          <span :if={@photo_people != []} class="text-[11px] text-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-full">
             {length(@photo_people)}
           </span>
         </div>
@@ -366,7 +366,7 @@ def render(assigns) do
       </h4>
       <span
         :if={@stream_count_comments > 0}
-        class="text-[11px] text-white/50 bg-white/[0.08] px-1.5 py-0.5 rounded-full"
+        class="text-[11px] text-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-full"
       >
         {@stream_count_comments}
       </span>

@@ -85,7 +85,7 @@ A small markup pattern, not a Phoenix function component (it's used twice in the
     <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
       {section_label}
     </h4>
-    <span :if={count > 0} class="text-[11px] text-white/50 bg-white/[0.08] px-1.5 py-0.5 rounded-full">
+    <span :if={count > 0} class="text-[11px] text-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-full">
       {count}
     </span>
   </div>
