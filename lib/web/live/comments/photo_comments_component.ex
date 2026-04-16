@@ -219,9 +219,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     </time>
                   </div>
                   <div class="bg-white/[0.06] rounded-lg px-2.5 py-1.5 inline-block max-w-full mt-0.5">
-                    <p class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line">
-                      {comment.text}
-                    </p>
+                    <p class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line">{comment.text}</p>
                   </div>
                 </div>
                 <%!-- Floating actions at top-right of comment row, absolute to outer group --%>

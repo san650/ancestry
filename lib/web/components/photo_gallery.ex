@@ -115,7 +115,7 @@ defmodule Web.Components.PhotoGallery do
     ~H"""
     <div
       id="lightbox"
-      class="fixed inset-0 z-50 bg-black/95 flex flex-col select-none"
+      class="fixed inset-0 z-50 bg-black flex flex-col select-none"
       phx-window-keydown="lightbox_keydown"
     >
       <%!-- Lightbox top bar --%>
@@ -204,8 +204,8 @@ defmodule Web.Components.PhotoGallery do
         <%= if @panel_open do %>
           <%!-- Info panel: full-screen overlay on mobile, side panel on desktop --%>
           <div class={[
-            "fixed inset-0 z-50 flex flex-col bg-black/95 text-white",
-            "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:border-l lg:border-white/10 lg:bg-black/80"
+            "fixed inset-0 z-50 flex flex-col bg-black text-white",
+            "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:border-l lg:border-white/10"
           ]}>
             <%!-- Mobile header with close button --%>
             <div class="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
