@@ -264,20 +264,17 @@ defmodule Web.Comments.PhotoCommentsComponent do
           phx-target={@myself}
           class="flex items-end gap-2"
         >
-          <.user_avatar account={@current_scope.account} size={:sm} class="mb-1 md:hidden" />
-          <.user_avatar account={@current_scope.account} size={:md} class="mb-1 hidden md:flex" />
-          <div class="flex-1">
-            <textarea
-              name="comment[text]"
-              id="new-comment-text"
-              rows="1"
-              placeholder={gettext("Add a comment...")}
-              class="w-full bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/15 resize-none"
-            >{Phoenix.HTML.Form.normalize_value("textarea", @form[:text].value)}</textarea>
-          </div>
+          <textarea
+            name="comment[text]"
+            id="new-comment-text"
+            phx-hook="TextareaAutogrow"
+            rows="1"
+            placeholder={gettext("Add a comment...")}
+            class="flex-1 block bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm leading-5 text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/15 resize-none overflow-y-auto max-h-[180px]"
+          >{Phoenix.HTML.Form.normalize_value("textarea", @form[:text].value)}</textarea>
           <button
             type="submit"
-            class="p-2 bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shrink-0"
+            class="h-[38px] w-[38px] flex items-center justify-center bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shrink-0"
             title={gettext("Post comment")}
           >
             <.icon name="hero-paper-airplane" class="w-4 h-4" />
