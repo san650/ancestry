@@ -6,7 +6,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   @impl true
   def update(%{comment_created: comment}, socket) do
-    {:ok, stream_insert(socket, :comments, comment)}
+    {:ok,
+     socket
+     |> update(:stream_count_comments, &(&1 + 1))
+     |> stream_insert(:comments, comment)}
   end
 
   def update(%{comment_updated: comment}, socket) do
@@ -14,7 +17,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   def update(%{comment_deleted: comment}, socket) do
-    {:ok, stream_delete(socket, :comments, comment)}
+    {:ok,
+     socket
+     |> update(:stream_count_comments, &max(&1 - 1, 0))
+     |> stream_delete(:comments, comment)}
   end
 
   def update(assigns, socket) do
@@ -30,6 +36,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
      |> assign(:selected_comment_id, nil)
      |> assign(:edit_form, nil)
      |> assign(:form, to_form(changeset, as: :comment))
+     |> assign(:stream_count_comments, length(comments))
      |> stream(:comments, comments, reset: true)}
   end
 
@@ -133,38 +140,46 @@ defmodule Web.Comments.PhotoCommentsComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="photo-comments-panel" class="flex flex-col h-full bg-black/80 text-white">
-      <%!-- Header --%>
-      <div class="px-4 py-3 border-b border-white/10 shrink-0">
-        <h3 class="text-sm font-semibold text-white/90 tracking-wide">{gettext("Comments")}</h3>
+    <div id="photo-comments-panel" class="flex flex-col h-full p-2.5 gap-2 text-white">
+      <%!-- Section title row --%>
+      <div class="flex items-center gap-2 px-1 shrink-0">
+        <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
+          {gettext("Comments")}
+        </h4>
+        <span
+          :if={@stream_count_comments > 0}
+          class="text-[11px] text-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-full"
+        >
+          {@stream_count_comments}
+        </span>
       </div>
 
       <%!-- Scrollable comment list --%>
-      <div class="flex-1 overflow-y-auto min-h-0 px-4 py-3">
-        <div id="comments-list" phx-update="stream" class="space-y-2">
-          <div id="comments-empty" class="hidden only:block text-center py-10">
-            <.icon name="hero-chat-bubble-left-right" class="w-8 h-8 text-white/15 mx-auto mb-2" />
-            <p class="text-sm text-white/30">{gettext("No comments yet")}</p>
+      <div class="flex-1 overflow-y-auto min-h-0 px-1">
+        <div id="comments-list" phx-update="stream" class="flex flex-col gap-1">
+          <div id="comments-empty" class="hidden only:block text-center py-8 text-white/50">
+            <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/[0.04] mb-2">
+              <.icon name="hero-chat-bubble-left-right" class="w-4 h-4 text-white/40" />
+            </div>
+            <p class="text-[12.5px] leading-snug">
+              {gettext("No comments yet. Be the first to add one.")}
+            </p>
           </div>
 
-          <div
-            :for={{id, comment} <- @streams.comments}
-            id={id}
-            class="group relative"
-          >
+          <div :for={{id, comment} <- @streams.comments} id={id} class="group relative">
             <%= if @editing_comment_id == comment.id do %>
               <.form
                 for={@edit_form}
                 id={"edit-comment-#{comment.id}"}
                 phx-submit="save_edit"
                 phx-target={@myself}
-                class="space-y-2"
+                class="space-y-2 p-1.5"
               >
                 <textarea
                   name="comment[text]"
                   id={"edit-comment-text-#{comment.id}"}
                   rows="2"
-                  class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 resize-none"
+                  class="w-full bg-white/[0.10] rounded-ds-sharp px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:bg-white/[0.16] resize-none"
                   phx-mounted={JS.dispatch("focus", to: "#edit-comment-text-#{comment.id}")}
                 >{Phoenix.HTML.Form.normalize_value("textarea", Ecto.Changeset.get_field(@edit_form.source, :text))}</textarea>
                 <div class="flex items-center gap-2">
@@ -178,7 +193,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     type="button"
                     phx-click="cancel_edit"
                     phx-target={@myself}
-                    class="px-3 py-1 bg-white/10 hover:bg-white/20 text-white/70 text-xs font-medium rounded-md transition-colors"
+                    class="px-3 py-1 bg-white/[0.10] hover:bg-white/[0.16] text-white/80 text-xs font-medium rounded-md transition-colors"
                   >
                     {gettext("Cancel")}
                   </button>
@@ -189,8 +204,8 @@ defmodule Web.Comments.PhotoCommentsComponent do
               <div
                 {test_id("mobile-comment-list")}
                 class={[
-                  "flex gap-2 items-start py-1 px-1 -mx-1 rounded-md md:hidden transition-colors",
-                  @selected_comment_id == comment.id && "bg-white/10"
+                  "flex gap-2 items-start py-1.5 px-1.5 rounded-ds-sharp md:hidden transition-colors",
+                  @selected_comment_id == comment.id && "bg-white/[0.16]"
                 ]}
                 phx-click="select_comment"
                 phx-value-id={comment.id}
@@ -198,17 +213,17 @@ defmodule Web.Comments.PhotoCommentsComponent do
               >
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
-                  <p class="text-[13px] text-white/75 leading-snug break-words">
-                    <span class="font-semibold text-white/85">
+                  <p class="text-[13px] text-white/85 leading-snug break-words">
+                    <span class="font-semibold text-white/95">
                       {display_first_name(comment.account)}
                     </span>
                     <span phx-no-format class="whitespace-pre-line">{comment.text}</span>
-                    <span class="text-[10px] text-white/30">
+                    <span class="text-[10px] text-white/40">
                       {format_short_time(comment.inserted_at)}
                     </span>
                   </p>
                   <%= if @selected_comment_id == comment.id do %>
-                    <div class="flex items-center gap-2 mt-1">
+                    <div class="flex items-center gap-2 mt-2">
                       <.comment_actions
                         comment={comment}
                         current_scope={@current_scope}
@@ -220,34 +235,27 @@ defmodule Web.Comments.PhotoCommentsComponent do
               </div>
 
               <%!-- Desktop: bubble style with floating hover actions --%>
-              <div
-                {test_id("desktop-comment-list")}
-                class="hidden md:flex gap-2 items-start"
-              >
+              <div {test_id("desktop-comment-list")} class="hidden md:flex gap-2 items-start py-1">
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
                   <div class="flex items-baseline gap-1.5">
-                    <span class="text-xs font-semibold text-white/70">
+                    <span class="text-xs font-semibold text-white/95">
                       {display_name(comment.account)}
                     </span>
-                    <time class="text-[10px] text-white/30">
+                    <time class="text-[10px] text-white/40">
                       {format_relative_time(comment.inserted_at)}
                     </time>
                   </div>
-                  <div class="bg-white/[0.06] rounded-lg px-2.5 py-1.5 inline-block max-w-full mt-0.5">
+                  <div class="bg-white/[0.10] rounded-ds-sharp px-2.5 py-1.5 inline-block max-w-full mt-0.5">
                     <p
                       phx-no-format
-                      class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line"
+                      class="text-[13px] text-white/85 leading-snug break-words whitespace-pre-line"
                     >{comment.text}</p>
                   </div>
                 </div>
                 <%!-- Floating actions at top-right of comment row, absolute to outer group --%>
-                <div class="absolute top-0 right-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm rounded-md shadow-lg px-1 py-0.5">
-                  <.comment_actions
-                    comment={comment}
-                    current_scope={@current_scope}
-                    myself={@myself}
-                  />
+                <div class="absolute top-0 right-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white/[0.16] rounded-md shadow-lg px-1 py-0.5">
+                  <.comment_actions comment={comment} current_scope={@current_scope} myself={@myself} />
                 </div>
               </div>
             <% end %>
@@ -255,14 +263,14 @@ defmodule Web.Comments.PhotoCommentsComponent do
         </div>
       </div>
 
-      <%!-- New comment form --%>
-      <div class="shrink-0 border-t border-white/10 px-4 py-3">
+      <%!-- Composer — L3 tonal block, transparent textarea inside --%>
+      <div class="shrink-0">
         <.form
           for={@form}
           id="new-comment-form"
           phx-submit="save_comment"
           phx-target={@myself}
-          class="flex items-end gap-2"
+          class="bg-white/[0.10] rounded-ds-sharp px-3 py-1.5 flex items-end gap-2"
         >
           <textarea
             name="comment[text]"
@@ -270,11 +278,11 @@ defmodule Web.Comments.PhotoCommentsComponent do
             phx-hook="TextareaAutogrow"
             rows="1"
             placeholder={gettext("Add a comment...")}
-            class="flex-1 block bg-white/10 border border-white/15 rounded-lg px-3 py-2 text-sm leading-5 text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/15 resize-none overflow-y-auto max-h-[180px]"
+            class="flex-1 bg-transparent border-0 px-0 py-2 text-sm leading-5 text-white placeholder-white/40 focus:outline-none focus:ring-0 resize-none overflow-y-auto max-h-[180px]"
           >{Phoenix.HTML.Form.normalize_value("textarea", @form[:text].value)}</textarea>
           <button
             type="submit"
-            class="h-[38px] w-[38px] flex items-center justify-center bg-primary hover:bg-primary/80 text-white rounded-lg transition-colors shrink-0"
+            class="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 text-white rounded-md transition-colors shrink-0 mb-1"
             title={gettext("Post comment")}
           >
             <.icon name="hero-paper-airplane" class="w-4 h-4" />
@@ -292,7 +300,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
         phx-click="edit_comment"
         phx-value-id={@comment.id}
         phx-target={@myself}
-        class="p-1.5 rounded-md text-white/50 hover:text-white bg-white/5 hover:bg-white/15 transition-colors"
+        class="p-1.5 rounded-md text-white/60 hover:text-white bg-white/[0.10] hover:bg-white/[0.16] transition-colors"
         title={gettext("Edit comment")}
       >
         <.icon name="hero-pencil-square" class="w-3.5 h-3.5" />
@@ -304,7 +312,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
         phx-value-id={@comment.id}
         phx-target={@myself}
         data-confirm={gettext("Delete this comment?")}
-        class="p-1.5 rounded-md text-white/50 hover:text-red-400 bg-white/5 hover:bg-white/15 transition-colors"
+        class="p-1.5 rounded-md text-white/60 hover:text-red-400 bg-white/[0.10] hover:bg-white/[0.16] transition-colors"
         title={gettext("Delete comment")}
       >
         <.icon name="hero-trash" class="w-3.5 h-3.5" />

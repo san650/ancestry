@@ -59,7 +59,6 @@ defmodule Web.UserFlows.LightboxPanelTest do
     |> assert_has(test_id("lightbox-comments-card"), text: "No comments yet")
   end
 
-  @tag :skip
   test "adding a comment dismisses the empty state", %{
     conn: conn,
     family: family,
@@ -81,17 +80,15 @@ defmodule Web.UserFlows.LightboxPanelTest do
     # element — it has only a placeholder — so PhoenixTest.fill_in/3 (which
     # takes a label) does not apply. Use Playwright.type/3 with a CSS selector
     # (matches the pattern in test/user_flows/photo_comments_test.exs).
+    conn = PhoenixTest.Playwright.type(conn, "#new-comment-text", "Hello from the test")
+
     conn =
-      conn
-      |> PhoenixTest.Playwright.type("#new-comment-text", "Hello from the test")
-      |> PhoenixTest.Playwright.evaluate("""
-        document.querySelector('#new-comment-form').dispatchEvent(
-          new Event('submit', { bubbles: true, cancelable: true })
-        );
+      PhoenixTest.Playwright.evaluate(conn, """
+        document.querySelector('#new-comment-form button[type="submit"]').click();
       """)
 
     conn
-    |> assert_has(test_id("lightbox-comments-card"), text: "Hello from the test", timeout: 5_000)
+    |> assert_has(test_id("desktop-comment-list"), text: "Hello from the test", timeout: 5_000)
     |> refute_has(test_id("lightbox-comments-card"), text: "No comments yet")
   end
 end
