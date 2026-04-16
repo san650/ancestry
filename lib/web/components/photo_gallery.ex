@@ -1,7 +1,9 @@
 defmodule Web.Components.PhotoGallery do
   use Phoenix.Component
+  use Gettext, backend: Web.Gettext
 
   import Web.CoreComponents
+  import Web.Helpers.TestHelpers
   alias Web.Comments.PhotoCommentsComponent
 
   alias Phoenix.LiveView.JS
@@ -203,50 +205,63 @@ defmodule Web.Components.PhotoGallery do
 
         <%= if @panel_open do %>
           <%!-- Info panel: full-screen overlay on mobile, side panel on desktop --%>
+          <%!-- L1 panel base — no border, slightly lifted from the lightbox black backdrop --%>
           <div class={[
             "fixed inset-0 z-50 flex flex-col bg-black text-white",
-            "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0 lg:border-l lg:border-white/10"
+            "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0"
           ]}>
-            <%!-- Mobile header with close button --%>
-            <div class="shrink-0 flex items-center justify-between px-4 py-3 border-b border-white/10">
-              <h3 class="text-base font-ds-heading font-bold text-white lg:text-sm lg:font-semibold lg:text-white/90">
-                <span class="lg:hidden">Photo Info</span>
-                <span class="hidden lg:inline">People</span>
-              </h3>
-              <button
-                type="button"
-                phx-click="toggle_panel"
-                class="p-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/10 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 lg:text-white/40 flex items-center justify-center"
-                aria-label="Close info"
-              >
-                <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
-              </button>
-            </div>
+            <div class="flex flex-col h-full bg-white/[0.03] p-2 gap-2">
+              <%!-- Panel header — close X, no bottom border --%>
+              <div class="flex items-center justify-between px-2 py-2 shrink-0">
+                <h3 class="text-sm font-ds-heading font-bold text-white/90">
+                  {gettext("Photo info")}
+                </h3>
+                <button
+                  type="button"
+                  phx-click="toggle_panel"
+                  class="p-2 -mr-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/[0.08] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
+                  aria-label={gettext("Close info")}
+                >
+                  <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
+                </button>
+              </div>
 
-            <%!-- Scrollable content --%>
-            <div class="flex-1 overflow-y-auto min-h-0">
-              <%!-- People section --%>
-              <div class="shrink-0 border-b border-white/10">
-                <div class="flex items-center gap-2 px-4 py-3 lg:hidden">
-                  <h4 class="text-sm font-semibold text-white/90">People</h4>
-                  <%= if @photo_people != [] do %>
-                    <span class="text-xs bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full">
-                      {length(@photo_people)}
-                    </span>
-                  <% end %>
+              <%!-- People card (L2) --%>
+              <div
+                {test_id("lightbox-people-card")}
+                class="bg-white/[0.06] rounded-ds-sharp p-2.5 flex flex-col gap-2 shrink-0 max-h-[30vh] lg:max-h-none overflow-hidden"
+              >
+                <div class="flex items-center gap-2 px-1">
+                  <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
+                    {gettext("People")}
+                  </h4>
+                  <span
+                    :if={@photo_people != []}
+                    class="text-[11px] text-white/50 bg-white/[0.08] px-1.5 py-0.5 rounded-full"
+                  >
+                    {length(@photo_people)}
+                  </span>
                 </div>
-                <div id="photo-person-list" class="px-4 pb-3 max-h-48 lg:max-h-none overflow-y-auto">
+
+                <div id="photo-person-list" class="overflow-y-auto">
                   <%= if @photo_people == [] do %>
-                    <p class="text-sm text-white/30 py-2">
-                      <span class="lg:hidden">No people tagged in this photo</span>
-                      <span class="hidden lg:inline">Click on the photo to tag people</span>
-                    </p>
+                    <div class="text-center py-5 text-white/50">
+                      <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/[0.04] mb-2">
+                        <.icon name="hero-user" class="w-4 h-4 text-white/40" />
+                      </div>
+                      <p class="text-[12.5px] leading-snug">
+                        <span class="lg:hidden">{gettext("No people tagged yet.")}</span>
+                        <span class="hidden lg:inline">
+                          {gettext("Click on the photo to tag people")}
+                        </span>
+                      </p>
+                    </div>
                   <% else %>
-                    <div class="space-y-1">
+                    <div class="flex flex-col">
                       <%= for pp <- @photo_people do %>
                         <div
                           id={"photo-person-#{pp.id}"}
-                          class="flex items-center gap-3 lg:gap-2 px-2 py-2.5 lg:py-1.5 rounded-ds-sharp hover:bg-white/10 transition-colors group"
+                          class="group flex items-center gap-3 lg:gap-2 px-1.5 py-2 lg:py-1.5 rounded-ds-sharp hover:bg-white/[0.06] transition-colors min-h-[44px] lg:min-h-0"
                           data-person-id={pp.person_id}
                           phx-hook="PersonHighlight"
                         >
@@ -258,24 +273,24 @@ defmodule Web.Components.PhotoGallery do
                                   :thumbnail
                                 )
                               }
-                              class="w-8 h-8 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
+                              class="w-7 h-7 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
                             />
                           <% else %>
-                            <div class="w-8 h-8 lg:w-6 lg:h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                            <div class="w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
                               <.icon name="hero-user" class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white/40" />
                             </div>
                           <% end %>
-                          <span class="text-sm text-white/80 truncate flex-1">
+                          <span class="text-sm text-white/85 truncate flex-1">
                             {Ancestry.People.Person.display_name(pp.person)}
                           </span>
                           <button
                             phx-click="untag_person"
                             phx-value-photo-id={pp.photo_id}
                             phx-value-person-id={pp.person_id}
-                            class="p-1 rounded text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0 hidden lg:block"
-                            title="Remove tag"
+                            class="p-2 lg:p-1 rounded text-white/40 hover:text-red-400 lg:opacity-0 lg:group-hover:opacity-100 transition-all shrink-0"
+                            title={gettext("Remove tag")}
                           >
-                            <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                            <.icon name="hero-x-mark" class="w-4 h-4 lg:w-3.5 lg:h-3.5" />
                           </button>
                         </div>
                       <% end %>
@@ -284,8 +299,11 @@ defmodule Web.Components.PhotoGallery do
                 </div>
               </div>
 
-              <%!-- Comments section --%>
-              <div class="flex-1 min-h-0">
+              <%!-- Comments card (L2) — wraps the live component --%>
+              <div
+                {test_id("lightbox-comments-card")}
+                class="bg-white/[0.06] rounded-ds-sharp flex-1 min-h-0 flex flex-col overflow-hidden"
+              >
                 <.live_component
                   module={PhotoCommentsComponent}
                   id="photo-comments"
@@ -293,21 +311,16 @@ defmodule Web.Components.PhotoGallery do
                   current_scope={@current_scope}
                 />
               </div>
-            </div>
 
-            <%!-- Download button: mobile only --%>
-            <div class="shrink-0 px-4 py-3 border-t border-white/10 lg:hidden">
+              <%!-- Download tonal block: mobile only --%>
               <a
                 href={
-                  Ancestry.Uploaders.Photo.url(
-                    {@selected_photo.image, @selected_photo},
-                    :original
-                  )
+                  Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)
                 }
                 download={@selected_photo.original_filename}
-                class="flex items-center justify-center gap-2 w-full py-2.5 bg-white/10 text-white rounded-ds-sharp text-sm font-ds-body font-semibold hover:bg-white/20 transition-colors"
+                class="lg:hidden shrink-0 flex items-center justify-center gap-2 bg-white/[0.10] rounded-ds-sharp py-3 text-sm font-ds-body font-semibold text-white/90 hover:bg-white/[0.16] transition-colors"
               >
-                <.icon name="hero-arrow-down-tray" class="size-5" /> Download
+                <.icon name="hero-arrow-down-tray" class="size-5" /> {gettext("Download")}
               </a>
             </div>
           </div>
