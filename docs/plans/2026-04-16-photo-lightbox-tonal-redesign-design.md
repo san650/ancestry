@@ -67,6 +67,8 @@ Same primitives; differences:
 - Add a **Download** tonal block at the very bottom of the panel (today's lightbox top-bar download icon is hidden on mobile because the panel covers it)
 - People card capped at `max-h-[30vh]` to avoid eating the screen when many people are tagged
 
+**Mobile header layout after removing the bottom border:** the panel header row remains a single flex row at the top of the panel (`flex justify-between items-center px-2 py-2`) — h3 title left-aligned, close `×` button right-aligned with `min-w-[44px] min-h-[44px]`. The L1 panel base provides the visual containment; nothing replaces the border.
+
 ### Header label
 
 Unify to **"Photo info"** in both modes. The current "Photo Info" / "People" split (mobile vs desktop) doesn't match either screen — both contain People + Comments.
@@ -117,18 +119,18 @@ Section-specific copy:
 ```heex
 <div class="bg-white/[0.10] rounded-ds-sharp px-3 py-1.5 flex items-end gap-2">
   <textarea ... class="flex-1 bg-transparent border-0 text-sm text-white placeholder-white/40 resize-none focus:outline-none focus:ring-0 ..." />
-  <button type="submit" class="h-8 w-8 rounded-md bg-gradient-to-b from-ds-primary to-ds-primary-container ...">
+  <button type="submit" class="h-8 w-8 rounded-md bg-primary hover:bg-primary/80 ...">
     <.icon name="hero-paper-airplane" class="w-4 h-4" />
   </button>
 </div>
 ```
 
-The textarea loses its individual `bg-white/10 border border-white/15 rounded-lg` shell. The composer-as-a-whole is now the L3 tonal block; the textarea is transparent inside it. The send button keeps its primary gradient.
+The textarea loses its individual `bg-white/10 border border-white/15 rounded-lg` shell. The composer-as-a-whole is now the L3 tonal block; the textarea is transparent inside it. The send button keeps its existing `bg-primary hover:bg-primary/80` styling — the gradient in the mockups was illustrative, not prescriptive.
 
 ### Selected comment
 
 - Mobile (existing inline-compact format): the row gains `bg-white/[0.16]` instead of today's `bg-white/10`. Action chips appear inline below the text.
-- Desktop (existing bubble format): selected state currently doesn't exist visually (only hover-revealed actions). Add the same `bg-white/[0.16]` row treatment for consistency, and keep the bubble for the comment text within it.
+- Desktop (existing bubble format): the selected-row pattern is **mobile-only** in this pass. The desktop branch has no `phx-click="select_comment"` wiring today and adding it is out of scope. Keep the existing hover-revealed floating action chip on desktop. (Future work: unify selection model across breakpoints — tracked in `COMPONENTS.jsonl` under a follow-up component note.)
 
 ### Person row
 
@@ -188,7 +190,7 @@ A new E2E test in `test/user_flows/lightbox_panel_test.exs` covering the side-pa
 - Edit and Delete buttons appear inline
 - Tapping Delete with confirmation removes the comment from the list
 
-Add `data-section` attributes to the new tonal cards (`data-section="people"`, `data-section="comments"`) so tests can target them stably across visual revisions.
+Use the project's `test_id/1` helper from `Web.Helpers.TestHelpers` on the new tonal cards: `{test_id("lightbox-people-card")}` and `{test_id("lightbox-comments-card")}`. This emits `data-testid` attributes that are stripped in production builds (per `test/CLAUDE.md`). E2E tests target them via `Web.E2ECase.test_id/1`.
 
 ## Risks and Trade-offs
 
