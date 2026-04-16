@@ -5,6 +5,7 @@ defmodule Ancestry.Comments.PhotoComment do
   schema "photo_comments" do
     field :text, :string
     belongs_to :photo, Ancestry.Galleries.Photo
+    belongs_to :account, Ancestry.Identity.Account
 
     timestamps()
   end

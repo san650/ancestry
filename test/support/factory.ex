@@ -40,6 +40,14 @@ defmodule Ancestry.Factory do
     }
   end
 
+  def photo_comment_factory do
+    %Ancestry.Comments.PhotoComment{
+      text: sequence(:comment_text, &"Comment #{&1}"),
+      photo: build(:photo),
+      account: build(:account)
+    }
+  end
+
   def account_factory do
     %Ancestry.Identity.Account{
       email: sequence(:account_email, &"account#{&1}@example.com"),

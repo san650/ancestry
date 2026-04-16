@@ -4,26 +4,41 @@ defmodule Ancestry.CommentsTest do
   alias Ancestry.Comments
   alias Ancestry.Comments.PhotoComment
 
-  describe "create_photo_comment/1" do
+  describe "create_photo_comment/3" do
     test "creates a comment with valid attrs" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
+      account = account_fixture()
 
       assert {:ok, %PhotoComment{} = comment} =
-               Comments.create_photo_comment(%{text: "Nice photo!", photo_id: photo.id})
+               Comments.create_photo_comment(photo.id, account.id, %{text: "Nice photo!"})
 
       assert comment.text == "Nice photo!"
       assert comment.photo_id == photo.id
+      assert comment.account_id == account.id
+    end
+
+    test "returns comment with preloaded account" do
+      gallery = gallery_fixture()
+      photo = photo_fixture(gallery)
+      account = account_fixture()
+
+      assert {:ok, %PhotoComment{} = comment} =
+               Comments.create_photo_comment(photo.id, account.id, %{text: "Nice photo!"})
+
+      assert %Ancestry.Identity.Account{} = comment.account
+      assert comment.account.id == account.id
     end
   end
 
-  describe "create_photo_comment/1 validations" do
+  describe "create_photo_comment/3 validations" do
     test "rejects empty text" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
+      account = account_fixture()
 
       assert {:error, changeset} =
-               Comments.create_photo_comment(%{text: "", photo_id: photo.id})
+               Comments.create_photo_comment(photo.id, account.id, %{text: ""})
 
       assert "can't be blank" in errors_on(changeset).text
     end
@@ -31,9 +46,10 @@ defmodule Ancestry.CommentsTest do
     test "rejects nil text" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
+      account = account_fixture()
 
       assert {:error, changeset} =
-               Comments.create_photo_comment(%{photo_id: photo.id})
+               Comments.create_photo_comment(photo.id, account.id, %{})
 
       assert "can't be blank" in errors_on(changeset).text
     end
@@ -43,9 +59,10 @@ defmodule Ancestry.CommentsTest do
     test "returns comments ordered oldest first" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
+      account = account_fixture()
 
-      {:ok, first} = Comments.create_photo_comment(%{text: "First", photo_id: photo.id})
-      {:ok, second} = Comments.create_photo_comment(%{text: "Second", photo_id: photo.id})
+      {:ok, first} = Comments.create_photo_comment(photo.id, account.id, %{text: "First"})
+      {:ok, second} = Comments.create_photo_comment(photo.id, account.id, %{text: "Second"})
 
       comments = Comments.list_photo_comments(photo.id)
       assert [%{id: id1}, %{id: id2}] = comments
@@ -64,12 +81,25 @@ defmodule Ancestry.CommentsTest do
       gallery = gallery_fixture()
       photo1 = photo_fixture(gallery)
       photo2 = photo_fixture(gallery)
+      account = account_fixture()
 
-      {:ok, _} = Comments.create_photo_comment(%{text: "On photo 1", photo_id: photo1.id})
-      {:ok, _} = Comments.create_photo_comment(%{text: "On photo 2", photo_id: photo2.id})
+      {:ok, _} = Comments.create_photo_comment(photo1.id, account.id, %{text: "On photo 1"})
+      {:ok, _} = Comments.create_photo_comment(photo2.id, account.id, %{text: "On photo 2"})
 
       assert [comment] = Comments.list_photo_comments(photo1.id)
       assert comment.text == "On photo 1"
+    end
+
+    test "preloads accounts" do
+      gallery = gallery_fixture()
+      photo = photo_fixture(gallery)
+      account = account_fixture()
+
+      {:ok, _} = Comments.create_photo_comment(photo.id, account.id, %{text: "Hello"})
+
+      [comment] = Comments.list_photo_comments(photo.id)
+      assert %Ancestry.Identity.Account{} = comment.account
+      assert comment.account.id == account.id
     end
   end
 
@@ -77,7 +107,8 @@ defmodule Ancestry.CommentsTest do
     test "returns the comment" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Hello", photo_id: photo.id})
+      account = account_fixture()
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Hello"})
 
       fetched = Comments.get_photo_comment!(comment.id)
       assert fetched.id == comment.id
@@ -89,7 +120,8 @@ defmodule Ancestry.CommentsTest do
     test "updates text" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
+      account = account_fixture()
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
 
       assert {:ok, updated} = Comments.update_photo_comment(comment, %{text: "Edited"})
       assert updated.text == "Edited"
@@ -98,7 +130,8 @@ defmodule Ancestry.CommentsTest do
     test "rejects empty text on update" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Original", photo_id: photo.id})
+      account = account_fixture()
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
 
       assert {:error, changeset} = Comments.update_photo_comment(comment, %{text: ""})
       assert "can't be blank" in errors_on(changeset).text
@@ -109,7 +142,8 @@ defmodule Ancestry.CommentsTest do
     test "deletes the comment" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Delete me", photo_id: photo.id})
+      account = account_fixture()
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Delete me"})
 
       assert {:ok, _} = Comments.delete_photo_comment(comment)
       assert_raise Ecto.NoResultsError, fn -> Comments.get_photo_comment!(comment.id) end
@@ -120,11 +154,26 @@ defmodule Ancestry.CommentsTest do
     test "deleting a photo deletes its comments" do
       gallery = gallery_fixture()
       photo = photo_fixture(gallery)
-      {:ok, comment} = Comments.create_photo_comment(%{text: "Cascade me", photo_id: photo.id})
+      account = account_fixture()
+      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Cascade me"})
 
       {:ok, _} = Ancestry.Galleries.delete_photo(photo)
       assert_raise Ecto.NoResultsError, fn -> Comments.get_photo_comment!(comment.id) end
     end
+  end
+
+  defp account_fixture do
+    {:ok, account} =
+      %Ancestry.Identity.Account{}
+      |> Ecto.Changeset.change(%{
+        email: "test#{System.unique_integer([:positive])}@example.com",
+        hashed_password: Bcrypt.hash_pwd_salt("valid_password123"),
+        confirmed_at: DateTime.utc_now(:second),
+        name: "Test User"
+      })
+      |> Ancestry.Repo.insert()
+
+    account
   end
 
   defp gallery_fixture(attrs \\ %{}) do
