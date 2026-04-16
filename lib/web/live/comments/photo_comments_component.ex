@@ -48,12 +48,15 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   def handle_event("select_comment", %{"id" => id}, socket) do
-    comment_id = String.to_integer(id)
+    comment = Comments.get_photo_comment!(id)
 
     selected =
-      if socket.assigns.selected_comment_id == comment_id, do: nil, else: comment_id
+      if socket.assigns.selected_comment_id == comment.id, do: nil, else: comment.id
 
-    {:noreply, assign(socket, :selected_comment_id, selected)}
+    {:noreply,
+     socket
+     |> assign(:selected_comment_id, selected)
+     |> stream_insert(:comments, comment)}
   end
 
   def handle_event("edit_comment", %{"id" => id}, socket) do
@@ -219,7 +222,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     </time>
                   </div>
                   <div class="bg-white/[0.06] rounded-lg px-2.5 py-1.5 inline-block max-w-full mt-0.5">
-                    <p class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line">{comment.text}</p>
+                    <p
+                      phx-no-format
+                      class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line"
+                    >{comment.text}</p>
                   </div>
                 </div>
                 <%!-- Floating actions at top-right of comment row, absolute to outer group --%>
