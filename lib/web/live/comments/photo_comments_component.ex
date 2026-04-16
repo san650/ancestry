@@ -183,7 +183,10 @@ defmodule Web.Comments.PhotoCommentsComponent do
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
                 <div class="flex-1 min-w-0">
                   <p class="text-[13px] text-white/75 leading-snug break-words">
-                    <span class="font-semibold text-white/85">{display_first_name(comment.account)}</span>{" "}<span class="whitespace-pre-wrap">{comment.text}</span>
+                    <span class="font-semibold text-white/85">
+                      {display_first_name(comment.account)}
+                    </span>
+                    <span class="whitespace-pre-line">{comment.text}</span>
                     <span class="text-[10px] text-white/30">
                       {format_short_time(comment.inserted_at)}
                     </span>
@@ -200,13 +203,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
                 </div>
               </div>
 
-              <%!-- Desktop: bubble style --%>
+              <%!-- Desktop: bubble style with floating hover actions --%>
               <div
                 {test_id("desktop-comment-list")}
                 class="hidden md:flex gap-2 items-start"
               >
                 <.user_avatar account={comment.account} size={:sm} class="mt-0.5" />
-                <div class="min-w-0">
+                <div class="flex-1 min-w-0">
                   <div class="flex items-baseline gap-1.5">
                     <span class="text-xs font-semibold text-white/70">
                       {display_name(comment.account)}
@@ -215,18 +218,19 @@ defmodule Web.Comments.PhotoCommentsComponent do
                       {format_relative_time(comment.inserted_at)}
                     </time>
                   </div>
-                  <div class="bg-white/[0.06] rounded-lg mt-0.5 px-2.5 py-1.5 inline-block max-w-full">
-                    <p class="text-[13px] text-white/80 leading-snug whitespace-pre-wrap break-words">
+                  <div class="bg-white/[0.06] rounded-lg px-2.5 py-1.5 inline-block max-w-full mt-0.5">
+                    <p class="text-[13px] text-white/80 leading-snug break-words whitespace-pre-line">
                       {comment.text}
                     </p>
                   </div>
-                  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-0.5">
-                    <.comment_actions
-                      comment={comment}
-                      current_scope={@current_scope}
-                      myself={@myself}
-                    />
-                  </div>
+                </div>
+                <%!-- Floating actions at top-right of comment row, absolute to outer group --%>
+                <div class="absolute top-0 right-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 backdrop-blur-sm rounded-md shadow-lg px-1 py-0.5">
+                  <.comment_actions
+                    comment={comment}
+                    current_scope={@current_scope}
+                    myself={@myself}
+                  />
                 </div>
               </div>
             <% end %>
