@@ -70,4 +70,55 @@ defmodule Web.UserFlows.PhotoCommentsMobileTest do
     |> assert_has("#{test_id("mobile-comment-list")} button[phx-click='edit_comment']")
     |> assert_has("#{test_id("mobile-comment-list")} button[phx-click='delete_comment']")
   end
+
+  # Given two comments A and B
+  # When the user taps A (A becomes selected, action buttons visible on A)
+  # And then taps B
+  # Then only B is selected (action buttons visible on B, hidden on A)
+  test "selecting a different comment deselects the previously-selected one", %{
+    conn: conn,
+    family: family,
+    org: org,
+    gallery: gallery,
+    photo: photo
+  } do
+    conn = log_in_e2e(conn)
+    account = Ancestry.Repo.one!(Ancestry.Identity.Account)
+
+    {:ok, comment_a} =
+      Ancestry.Comments.create_photo_comment(photo.id, account.id, %{text: "First comment"})
+
+    {:ok, comment_b} =
+      Ancestry.Comments.create_photo_comment(photo.id, account.id, %{text: "Second comment"})
+
+    conn =
+      conn
+      |> visit(~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+      |> wait_liveview()
+      |> click("#photos-#{photo.id}")
+      |> assert_has("#lightbox")
+      |> click("#toggle-panel-btn")
+      |> assert_has("#photo-comments-panel")
+
+    # Tap comment A (first mobile-comment-list in DOM order)
+    conn = click(conn, "#comments-#{comment_a.id} #{test_id("mobile-comment-list")}")
+
+    # A should now show action buttons
+    conn
+    |> assert_has(
+      "#comments-#{comment_a.id} #{test_id("mobile-comment-list")} button[phx-click='edit_comment']"
+    )
+
+    # Tap comment B
+    conn = click(conn, "#comments-#{comment_b.id} #{test_id("mobile-comment-list")}")
+
+    # Now B should show action buttons, and A should NOT show them anymore
+    conn
+    |> assert_has(
+      "#comments-#{comment_b.id} #{test_id("mobile-comment-list")} button[phx-click='edit_comment']"
+    )
+    |> refute_has(
+      "#comments-#{comment_a.id} #{test_id("mobile-comment-list")} button[phx-click='edit_comment']"
+    )
+  end
 end

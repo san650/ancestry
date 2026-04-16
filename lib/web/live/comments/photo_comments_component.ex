@@ -49,14 +49,27 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   def handle_event("select_comment", %{"id" => id}, socket) do
     comment = Comments.get_photo_comment!(id)
+    previous_id = socket.assigns.selected_comment_id
 
     selected =
-      if socket.assigns.selected_comment_id == comment.id, do: nil, else: comment.id
+      if previous_id == comment.id, do: nil, else: comment.id
 
-    {:noreply,
-     socket
-     |> assign(:selected_comment_id, selected)
-     |> stream_insert(:comments, comment)}
+    socket =
+      socket
+      |> assign(:selected_comment_id, selected)
+      |> stream_insert(:comments, comment)
+
+    # If we just switched selection from a different comment, re-insert
+    # the previously-selected comment so it re-renders in unselected state.
+    socket =
+      if previous_id && previous_id != comment.id do
+        previous = Comments.get_photo_comment!(previous_id)
+        stream_insert(socket, :comments, previous)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   def handle_event("edit_comment", %{"id" => id}, socket) do
