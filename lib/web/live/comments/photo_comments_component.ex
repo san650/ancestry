@@ -189,7 +189,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     <span class="font-semibold text-white/85">
                       {display_first_name(comment.account)}
                     </span>
-                    <span class="whitespace-pre-line">{comment.text}</span>
+                    <span phx-no-format class="whitespace-pre-line">{comment.text}</span>
                     <span class="text-[10px] text-white/30">
                       {format_short_time(comment.inserted_at)}
                     </span>
