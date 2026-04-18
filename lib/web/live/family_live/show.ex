@@ -8,8 +8,10 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.Memories
   alias Ancestry.Memories.Vault
   alias Ancestry.People
+  alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
   alias Ancestry.People.PersonTree
+  alias Ancestry.Relationships
 
   import Web.FamilyLive.PersonCardComponent
 
@@ -26,6 +28,8 @@ defmodule Web.FamilyLive.Show do
     end
 
     people = People.list_people_for_family(family_id)
+    relationships = Relationships.list_relationships_for_family(family_id)
+    family_graph = FamilyGraph.from(people, relationships, family.id)
     galleries = Galleries.list_galleries(family_id)
     vaults = Memories.list_vaults(family_id)
 
@@ -33,6 +37,7 @@ defmodule Web.FamilyLive.Show do
      socket
      |> assign(:family, family)
      |> assign(:people, people)
+     |> assign(:family_graph, family_graph)
      |> assign(:galleries, galleries)
      |> assign(:vaults, vaults)
      |> assign(:show_new_vault_modal, false)
@@ -90,7 +95,7 @@ defmodule Web.FamilyLive.Show do
 
     tree =
       if focus_person do
-        PersonTree.build(focus_person, socket.assigns.family.id)
+        PersonTree.build(focus_person, socket.assigns.family_graph)
       else
         nil
       end
@@ -171,7 +176,10 @@ defmodule Web.FamilyLive.Show do
 
             person_id ->
               person = Enum.find(socket.assigns.people, &(&1.id == person_id))
-              tree = if person, do: PersonTree.build(person, family.id), else: nil
+
+              tree =
+                if person, do: PersonTree.build(person, socket.assigns.family_graph), else: nil
+
               {person, tree}
           end
 
@@ -349,17 +357,12 @@ defmodule Web.FamilyLive.Show do
 
     case People.add_to_family(person, family) do
       {:ok, _} ->
-        people = People.list_people_for_family(family.id)
+        socket = refresh_graph_and_tree(socket)
         metrics = Metrics.compute(family.id)
-
-        focus_person = socket.assigns.focus_person
-        tree = if focus_person, do: PersonTree.build(focus_person, family.id), else: nil
 
         {:noreply,
          socket
-         |> assign(:people, people)
          |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))
-         |> assign(:tree, tree)
          |> assign(:search_mode, false)
          |> assign(:search_results, [])
          |> assign(:search_query, "")}
@@ -405,29 +408,14 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("close_import", _, socket) do
     family = socket.assigns.family
-    people = People.list_people_for_family(family.id)
+    socket = refresh_graph_and_tree(socket)
     metrics = Metrics.compute(family.id)
-    focus_person = socket.assigns.focus_person
-
-    # Refresh focus_person from updated list (same pattern as handle_info :relationship_saved)
-    focus_person =
-      if focus_person do
-        Enum.find(people, &(&1.id == focus_person.id))
-      end
-
-    tree =
-      if focus_person do
-        PersonTree.build(focus_person, family.id)
-      end
 
     {:noreply,
      socket
      |> assign(:show_import_modal, false)
      |> assign(:import_summary, nil)
      |> assign(:import_error, nil)
-     |> assign(:people, people)
-     |> assign(:focus_person, focus_person)
-     |> assign(:tree, tree)
      |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
   end
 
@@ -566,26 +554,12 @@ defmodule Web.FamilyLive.Show do
 
   def handle_info({:relationship_saved, _type, _person}, socket) do
     family = socket.assigns.family
-    people = People.list_people_for_family(family.id)
+    socket = refresh_graph_and_tree(socket)
     metrics = Metrics.compute(family.id)
-    focus_person = socket.assigns.focus_person
-
-    focus_person =
-      if focus_person do
-        Enum.find(people, &(&1.id == focus_person.id))
-      end
-
-    tree =
-      if focus_person do
-        PersonTree.build(focus_person, family.id)
-      end
 
     {:noreply,
      socket
-     |> assign(:people, people)
      |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))
-     |> assign(:focus_person, focus_person)
-     |> assign(:tree, tree)
      |> assign(:adding_relationship, nil)
      |> put_flash(:info, gettext("Relationship added"))}
   end
@@ -621,6 +595,30 @@ defmodule Web.FamilyLive.Show do
   defp upload_error_to_string(:not_accepted), do: gettext("Only .csv files are accepted")
   defp upload_error_to_string(:too_many_files), do: gettext("Only one file can be uploaded")
   defp upload_error_to_string(err), do: gettext("Upload error: %{error}", error: inspect(err))
+
+  defp refresh_graph_and_tree(socket) do
+    family_id = socket.assigns.family.id
+    people = People.list_people_for_family(family_id)
+    relationships = Relationships.list_relationships_for_family(family_id)
+    graph = FamilyGraph.from(people, relationships, family_id)
+
+    focus_person =
+      case socket.assigns.focus_person do
+        nil -> nil
+        fp -> Enum.find(people, &(&1.id == fp.id))
+      end
+
+    tree =
+      if focus_person do
+        PersonTree.build(focus_person, graph)
+      end
+
+    socket
+    |> assign(:people, people)
+    |> assign(:family_graph, graph)
+    |> assign(:focus_person, focus_person)
+    |> assign(:tree, tree)
+  end
 
   defp filtered_people(people, filter) do
     if String.trim(filter) == "" do
