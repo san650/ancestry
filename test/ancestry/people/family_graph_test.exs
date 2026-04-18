@@ -49,18 +49,23 @@ defmodule Ancestry.People.FamilyGraphTest do
     setup :family_with_tree
 
     test "emits exactly 2 DB queries", %{family: family} do
+      test_pid = self()
+      handler_id = "test-query-count-#{System.unique_integer()}"
+
       :telemetry.attach(
-        "test-query-count",
+        handler_id,
         [:ancestry, :repo, :query],
-        fn _, _, _, _ ->
-          send(self(), :query_fired)
+        fn _, _, _, pid ->
+          if self() == pid do
+            send(pid, :query_fired)
+          end
         end,
-        nil
+        test_pid
       )
 
       _graph = FamilyGraph.for_family(family.id)
 
-      :telemetry.detach("test-query-count")
+      :telemetry.detach(handler_id)
 
       count = count_messages(:query_fired)
       assert count == 2, "Expected 2 queries, got #{count}"
