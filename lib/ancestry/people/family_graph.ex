@@ -6,6 +6,7 @@ defmodule Ancestry.People.FamilyGraph do
 
   alias Ancestry.People
   alias Ancestry.Relationships
+  alias Ancestry.Relationships.Relationship
 
   defstruct [
     :family_id,
@@ -40,6 +41,65 @@ defmodule Ancestry.People.FamilyGraph do
       children_by_parent: children_by_parent,
       partners_by_person: partners_by_person
     }
+  end
+
+  @doc "Returns [{%Person{}, %Relationship{}}] for active partners (married, relationship)."
+  def active_partners(%__MODULE__{} = graph, person_id) do
+    graph.partners_by_person
+    |> Map.get(person_id, [])
+    |> Enum.filter(fn {_p, rel} -> Relationship.active_partner_type?(rel.type) end)
+  end
+
+  @doc "Returns [{%Person{}, %Relationship{}}] for former partners (divorced, separated)."
+  def former_partners(%__MODULE__{} = graph, person_id) do
+    graph.partners_by_person
+    |> Map.get(person_id, [])
+    |> Enum.filter(fn {_p, rel} -> Relationship.former_partner_type?(rel.type) end)
+  end
+
+  @doc "Returns [{%Person{}, %Relationship{}}] — parents of the given child."
+  def parents(%__MODULE__{} = graph, child_id) do
+    Map.get(graph.parents_by_child, child_id, [])
+  end
+
+  @doc "Returns [%Person{}] — all children of the given parent."
+  def children(%__MODULE__{} = graph, parent_id) do
+    Map.get(graph.children_by_parent, parent_id, [])
+  end
+
+  @doc "Returns [%Person{}] — children of pair (both A and B are parents)."
+  def children_of_pair(%__MODULE__{} = graph, parent_a_id, parent_b_id) do
+    a_children = Map.get(graph.children_by_parent, parent_a_id, [])
+
+    Enum.filter(a_children, fn child ->
+      parent_ids =
+        graph.parents_by_child
+        |> Map.get(child.id, [])
+        |> Enum.map(fn {p, _r} -> p.id end)
+        |> MapSet.new()
+
+      MapSet.member?(parent_ids, parent_b_id)
+    end)
+  end
+
+  @doc "Returns [%Person{}] — children where this person is the ONLY parent."
+  def solo_children(%__MODULE__{} = graph, person_id) do
+    all_children = Map.get(graph.children_by_parent, person_id, [])
+
+    Enum.filter(all_children, fn child ->
+      parent_count = length(Map.get(graph.parents_by_child, child.id, []))
+      parent_count == 1
+    end)
+  end
+
+  @doc "Returns true if the person has any children."
+  def has_children?(%__MODULE__{} = graph, person_id) do
+    Map.get(graph.children_by_parent, person_id, []) != []
+  end
+
+  @doc "Fetches a person from the graph. Raises if not found."
+  def fetch_person!(%__MODULE__{} = graph, person_id) do
+    Map.fetch!(graph.people_by_id, person_id)
   end
 
   defp build_indexes(relationships, people_by_id) do
