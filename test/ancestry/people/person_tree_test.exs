@@ -2,6 +2,7 @@ defmodule Ancestry.People.PersonTreeTest do
   use Ancestry.DataCase, async: true
 
   alias Ancestry.People
+  alias Ancestry.People.FamilyGraph
   alias Ancestry.People.PersonTree
   alias Ancestry.Relationships
 
@@ -41,13 +42,14 @@ defmodule Ancestry.People.PersonTreeTest do
       assert hd(tree.center.solo_children).focus.id == f1_child.id
     end
 
-    test "build/1 without family_id returns all relatives (backwards compat)" do
+    test "build/2 accepts a pre-built FamilyGraph" do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "P"})
       {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "P"})
       {:ok, _} = Relationships.create_relationship(parent, person, "parent", %{role: "father"})
 
-      tree = PersonTree.build(person)
+      graph = FamilyGraph.for_family(family.id)
+      tree = PersonTree.build(person, graph)
       assert tree.ancestors != nil
       assert tree.ancestors.couple.person_a.id == parent.id
     end

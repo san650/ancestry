@@ -4,44 +4,38 @@ defmodule Ancestry.People.PersonTree do
   above and N generations of descendants below a focus person.
   """
 
+  alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
-  alias Ancestry.Relationships
 
   @max_depth 3
 
   defstruct [:focus_person, :ancestors, :center, :descendants, :family_id]
 
   @doc """
-  Builds a person-centered tree from the given focus person.
-  Optionally scoped to a family_id to only include family members.
+  Builds a person-centered tree. Accepts a family_id (builds graph internally)
+  or a pre-built %FamilyGraph{} (zero queries).
   """
-  def build(%Person{} = focus_person, family_id \\ nil) do
-    opts = if family_id, do: [family_id: family_id], else: []
+  def build(%Person{} = focus_person, family_id) when is_integer(family_id) do
+    build(focus_person, FamilyGraph.for_family(family_id))
+  end
 
-    center = build_center(focus_person, opts)
-    ancestor_tree = build_ancestor_tree(focus_person.id, 0, opts)
+  def build(%Person{} = focus_person, %FamilyGraph{} = graph) do
+    center = build_family_unit_full(focus_person, 0, graph)
+    ancestor_tree = build_ancestor_tree(focus_person.id, 0, graph)
 
     %__MODULE__{
       focus_person: focus_person,
       ancestors: ancestor_tree,
       center: center,
-      family_id: family_id
+      family_id: graph.family_id
     }
   end
 
   # --- Center Row ---
 
-  defp build_center(focus_person, opts) do
-    build_family_unit_full(focus_person, 0, opts)
-  end
-
-  @doc """
-  Builds a full family unit for a person, including partner, ex-partners,
-  and children grouped by couple. Recurses for descendant generations.
-  """
-  def build_family_unit_full(person, depth, opts \\ []) do
-    partners = Relationships.get_active_partners(person.id, opts)
-    ex_partners = Relationships.get_former_partners(person.id, opts)
+  defp build_family_unit_full(person, depth, %FamilyGraph{} = graph) do
+    partners = FamilyGraph.active_partners(graph, person.id)
+    ex_partners = FamilyGraph.former_partners(graph, person.id)
 
     # Sort partners: latest marriage year first, then highest person id as tiebreaker
     sorted_partners =
@@ -66,8 +60,8 @@ defmodule Ancestry.People.PersonTree do
     # Children with current partner
     partner_children =
       if partner do
-        Relationships.get_children_of_pair(person.id, partner.id, opts)
-        |> build_child_units(depth, at_limit, opts)
+        FamilyGraph.children_of_pair(graph, person.id, partner.id)
+        |> build_child_units(depth, at_limit, graph)
       else
         []
       end
@@ -76,8 +70,8 @@ defmodule Ancestry.People.PersonTree do
     previous_partner_groups =
       Enum.map(previous, fn {prev, _rel} ->
         children =
-          Relationships.get_children_of_pair(person.id, prev.id, opts)
-          |> build_child_units(depth, at_limit, opts)
+          FamilyGraph.children_of_pair(graph, person.id, prev.id)
+          |> build_child_units(depth, at_limit, graph)
 
         %{person: prev, children: children}
       end)
@@ -86,16 +80,16 @@ defmodule Ancestry.People.PersonTree do
     ex_partner_groups =
       Enum.map(ex_partners, fn {ex, _rel} ->
         children =
-          Relationships.get_children_of_pair(person.id, ex.id, opts)
-          |> build_child_units(depth, at_limit, opts)
+          FamilyGraph.children_of_pair(graph, person.id, ex.id)
+          |> build_child_units(depth, at_limit, graph)
 
         %{person: ex, children: children}
       end)
 
     # Solo children (no co-parent)
     solo_children =
-      Relationships.get_solo_children(person.id, opts)
-      |> build_child_units(depth, at_limit, opts)
+      FamilyGraph.solo_children(graph, person.id)
+      |> build_child_units(depth, at_limit, graph)
 
     %{
       focus: person,
@@ -107,14 +101,14 @@ defmodule Ancestry.People.PersonTree do
     }
   end
 
-  defp build_child_units(_children, depth, _at_limit, _opts) when depth >= @max_depth, do: []
+  defp build_child_units(_children, depth, _at_limit, _graph) when depth >= @max_depth, do: []
 
-  defp build_child_units(children, depth, at_limit, opts) do
+  defp build_child_units(children, depth, at_limit, graph) do
     Enum.map(children, fn child ->
       if at_limit do
         # At the limit — just check if they have more, don't recurse
-        has_more = Relationships.get_children(child.id, opts) != []
-        partners = Relationships.get_active_partners(child.id, opts)
+        has_more = FamilyGraph.has_children?(graph, child.id)
+        partners = FamilyGraph.active_partners(graph, child.id)
 
         partner =
           case partners do
@@ -125,7 +119,7 @@ defmodule Ancestry.People.PersonTree do
         %{person: child, partner: partner, has_more: has_more, children: nil}
       else
         # Recurse to build the full subtree
-        unit = build_family_unit_full(child, depth + 1, opts)
+        unit = build_family_unit_full(child, depth + 1, graph)
 
         has_children =
           unit.partner_children != [] or unit.solo_children != [] or unit.ex_partners != []
@@ -137,11 +131,10 @@ defmodule Ancestry.People.PersonTree do
 
   # --- Ancestors (recursive tree) ---
 
-  @doc false
-  defp build_ancestor_tree(_person_id, depth, _opts) when depth >= @max_depth, do: nil
+  defp build_ancestor_tree(_person_id, depth, _graph) when depth >= @max_depth, do: nil
 
-  defp build_ancestor_tree(person_id, depth, opts) do
-    parents = Relationships.get_parents(person_id, opts)
+  defp build_ancestor_tree(person_id, depth, graph) do
+    parents = FamilyGraph.parents(graph, person_id)
 
     {person_a, person_b} =
       case parents do
@@ -157,7 +150,7 @@ defmodule Ancestry.People.PersonTree do
         [person_a, person_b]
         |> Enum.reject(&is_nil/1)
         |> Enum.map(fn person ->
-          case build_ancestor_tree(person.id, depth + 1, opts) do
+          case build_ancestor_tree(person.id, depth + 1, graph) do
             nil -> nil
             tree -> %{tree: tree, for_person_id: person.id}
           end
