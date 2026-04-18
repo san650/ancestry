@@ -7,8 +7,7 @@ defmodule Ancestry.Kinship do
   based on generational distance from each person to the MRCA.
   """
 
-  alias Ancestry.People
-  alias Ancestry.Relationships
+  alias Ancestry.People.FamilyGraph
 
   @max_depth 10
 
@@ -46,13 +45,13 @@ defmodule Ancestry.Kinship do
   or `{:error, :same_person}` if the IDs match,
   or `{:error, :no_common_ancestor}` if BFS exhausts max depth.
   """
-  def calculate(person_a_id, person_b_id) when person_a_id == person_b_id do
+  def calculate(person_a_id, person_b_id, _graph) when person_a_id == person_b_id do
     {:error, :same_person}
   end
 
-  def calculate(person_a_id, person_b_id) do
-    ancestors_a = build_ancestor_map(person_a_id)
-    ancestors_b = build_ancestor_map(person_b_id)
+  def calculate(person_a_id, person_b_id, %FamilyGraph{} = graph) do
+    ancestors_a = build_ancestor_map(person_a_id, graph)
+    ancestors_b = build_ancestor_map(person_b_id, graph)
 
     common_ancestor_ids =
       ancestors_a
@@ -72,10 +71,10 @@ defmodule Ancestry.Kinship do
         end)
         |> Enum.min_by(fn {_id, da, db, _pa, _pb} -> da + db end)
 
-      mrca = People.get_person!(mrca_id)
+      mrca = FamilyGraph.fetch_person!(graph, mrca_id)
       half? = half_relationship?(mrca_id, steps_a, steps_b, ancestors_a, ancestors_b)
       relationship = classify(steps_a, steps_b, half?)
-      path = build_path(path_a, path_b, steps_a, steps_b)
+      path = build_path(path_a, path_b, steps_a, steps_b, graph)
       dna_pct = dna_percentage(steps_a, steps_b, half?)
 
       {:ok,
@@ -93,19 +92,19 @@ defmodule Ancestry.Kinship do
 
   # Build an ancestor map using BFS. Returns %{person_id => {depth, path_from_start}}
   # where path_from_start is the list of person IDs from the starting person to this ancestor.
-  defp build_ancestor_map(person_id) do
+  defp build_ancestor_map(person_id, graph) do
     initial = %{person_id => {0, [person_id]}}
-    bfs_expand([person_id], initial, 1)
+    bfs_expand([person_id], initial, 1, graph)
   end
 
-  defp bfs_expand(_frontier, ancestors, depth) when depth > @max_depth, do: ancestors
-  defp bfs_expand([], ancestors, _depth), do: ancestors
+  defp bfs_expand(_frontier, ancestors, depth, _graph) when depth > @max_depth, do: ancestors
+  defp bfs_expand([], ancestors, _depth, _graph), do: ancestors
 
-  defp bfs_expand(frontier, ancestors, depth) do
+  defp bfs_expand(frontier, ancestors, depth, graph) do
     next_frontier =
       frontier
       |> Enum.flat_map(fn person_id ->
-        Relationships.get_parents(person_id)
+        FamilyGraph.parents(graph, person_id)
         |> Enum.map(fn {parent, _rel} -> {parent.id, person_id} end)
       end)
       |> Enum.reject(fn {parent_id, _child_id} -> Map.has_key?(ancestors, parent_id) end)
@@ -121,7 +120,7 @@ defmodule Ancestry.Kinship do
       |> Enum.map(fn {parent_id, _} -> parent_id end)
       |> Enum.uniq()
 
-    bfs_expand(new_frontier_ids, new_ancestors, depth + 1)
+    bfs_expand(new_frontier_ids, new_ancestors, depth + 1, graph)
   end
 
   # Determine if the relationship is a half-relationship.
@@ -259,7 +258,7 @@ defmodule Ancestry.Kinship do
   defp numeric_ordinal(n), do: "#{n}th"
 
   # Build the full path from person A through MRCA down to person B.
-  defp build_path(path_a, path_b, steps_a, steps_b) do
+  defp build_path(path_a, path_b, steps_a, steps_b, graph) do
     # path_a goes from person_a up to MRCA (inclusive)
     # path_b goes from person_b up to MRCA (inclusive)
     # We want: path_a ++ reverse(path_b) without duplicating MRCA
@@ -273,7 +272,7 @@ defmodule Ancestry.Kinship do
     full_ids
     |> Enum.with_index()
     |> Enum.map(fn {id, index} ->
-      person = People.get_person!(id)
+      person = FamilyGraph.fetch_person!(graph, id)
       label = path_label(index, steps_a, steps_b)
       %{person: person, label: label}
     end)

@@ -4,7 +4,9 @@ defmodule Web.KinshipLive do
   alias Ancestry.Families
   alias Ancestry.Kinship
   alias Ancestry.People
+  alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
+  alias Ancestry.Relationships
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
@@ -15,11 +17,14 @@ defmodule Web.KinshipLive do
     end
 
     people = People.list_people_for_family(family_id)
+    relationships = Relationships.list_relationships_for_family(family_id)
+    family_graph = FamilyGraph.from(people, relationships, family.id)
 
     {:ok,
      socket
      |> assign(:family, family)
      |> assign(:people, people)
+     |> assign(:family_graph, family_graph)
      |> assign(:person_a, nil)
      |> assign(:person_b, nil)
      |> assign(:result, nil)
@@ -182,7 +187,7 @@ defmodule Web.KinshipLive do
   defp maybe_calculate(socket) do
     case {socket.assigns.person_a, socket.assigns.person_b} do
       {%Person{id: a_id}, %Person{id: b_id}} ->
-        result = Kinship.calculate(a_id, b_id)
+        result = Kinship.calculate(a_id, b_id, socket.assigns.family_graph)
 
         case result do
           {:ok, kinship} ->
