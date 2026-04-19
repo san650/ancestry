@@ -70,7 +70,17 @@ defmodule Ancestry.Kinship.InLaw do
 
       {steps_a, steps_b, path_ids, partner_person, side, _rel} ->
         relationship = InLawLabel.format(steps_a, steps_b, person_a.gender)
-        path = build_in_law_path(path_ids, person_a, person_b, partner_person, side)
+
+        path =
+          build_in_law_path(
+            path_ids,
+            person_a,
+            person_b,
+            partner_person,
+            side,
+            steps_a,
+            steps_b
+          )
 
         {:ok,
          %__MODULE__{
@@ -162,72 +172,79 @@ defmodule Ancestry.Kinship.InLaw do
 
   # Build the full path including the partner-hop node.
   #
-  # For side :a — A is prepended before the blood path (partner → B)
-  #   path_ids = {person_a_id, path_partner_to_mrca, path_b_to_mrca}
-  #   final path: [A, partner, ..blood nodes..., B]
-  #   A and partner are marked partner_link?: true
-  #
-  # For side :b — B is appended after the blood path (A → partner)
+  # For side :b — B is appended after the blood path (A → partner_of_B)
   #   path_ids = {path_a_to_mrca, path_partner_to_mrca, person_b_id}
   #   final path: [A, ..blood nodes..., partner, B]
   #   partner and B are marked partner_link?: true
-  defp build_in_law_path(path_ids, person_a, person_b, partner_person, side) do
+  #   Blood labels use Label.format (what each person is TO person A)
+  #   B gets the in-law label (what B is to A)
+  #
+  # For side :a — A is prepended before the blood path (partner_of_A → B)
+  #   path_ids = {person_a_id, path_partner_to_mrca, path_b_to_mrca}
+  #   final path: [A, partner, ..blood nodes..., B]
+  #   A and partner are marked partner_link?: true
+  defp build_in_law_path(path_ids, person_a, person_b, _partner_person, side, steps_a, steps_b) do
     case side do
-      :a ->
-        {_a_id, path_partner, path_b} = path_ids
-        blood_ids = blood_path_ids(path_partner, path_b)
-
-        # blood_ids[0] = partner (start), blood_ids[-1] = B
-        blood_nodes =
-          Enum.with_index(blood_ids)
-          |> Enum.map(fn {id, idx} ->
-            person = People.get_person!(id)
-            # index 0 is the partner itself — label it "-" like the start node
-            label = if idx == 0, do: "-", else: "#{idx}"
-            %{person: person, label: label, partner_link?: false}
-          end)
-
-        partner_node = %{person: partner_person, label: "-", partner_link?: true}
-        # Replace the first blood node (which is the partner) with the partner_link? version
-        [_first | rest_blood] = blood_nodes
-
-        [
-          %{person: person_a, label: "-", partner_link?: true},
-          partner_node
-          | rest_blood
-        ]
-
       :b ->
         {path_a, path_partner, _b_id} = path_ids
-        blood_ids = blood_path_ids(path_a, path_partner)
+        blood_ids = merge_blood_path(path_a, path_partner)
 
-        # blood_ids[0] = A (start), blood_ids[-1] = B's partner
+        # Blood nodes: labeled with what each person is TO person A
         blood_nodes =
-          Enum.with_index(blood_ids)
-          |> Enum.map(fn {id, idx} ->
+          blood_ids
+          |> Enum.with_index()
+          |> Enum.map(fn {id, index} ->
             person = People.get_person!(id)
-            label = if idx == 0, do: "-", else: "#{idx}"
-            %{person: person, label: label, partner_link?: false}
+            label = blood_path_label(index, steps_a, steps_b, person.gender)
+            is_last = index == length(blood_ids) - 1
+            %{person: person, label: label, partner_link?: is_last}
           end)
 
-        # Replace the last blood node (B's partner) with partner_link?: true
-        {all_but_last, [last_blood]} = Enum.split(blood_nodes, length(blood_nodes) - 1)
-        partner_node = %{last_blood | partner_link?: true}
+        # B node: labeled with what B is to A (in-law, swapped coords, B's gender)
+        b_label = InLawLabel.format(steps_b, steps_a, person_b.gender)
 
-        all_but_last ++
-          [
-            partner_node,
-            %{person: person_b, label: "-", partner_link?: true}
-          ]
+        blood_nodes ++
+          [%{person: person_b, label: b_label, partner_link?: true}]
+
+      :a ->
+        {_a_id, path_partner, path_b} = path_ids
+        blood_ids = merge_blood_path(path_partner, path_b)
+
+        # Blood nodes: labeled with what each person is TO A's partner
+        # (these are the partner's blood relatives, not A's)
+        blood_nodes =
+          blood_ids
+          |> Enum.with_index()
+          |> Enum.map(fn {id, index} ->
+            person = People.get_person!(id)
+            label = blood_path_label(index, steps_a, steps_b, person.gender)
+            %{person: person, label: label, partner_link?: index == 0}
+          end)
+
+        # Prepend A with partner_link?: true
+        [%{person: person_a, label: "-", partner_link?: true} | blood_nodes]
     end
   end
 
-  # Given path_from_start (ascending) and path_to_end (ascending, ends at same MRCA),
-  # produce the full linear path IDs: start -> ... -> mrca -> ... -> end
-  defp blood_path_ids(path_ascending, path_descending) do
-    # path_ascending: [start_id, ..., mrca_id]
-    # path_descending: [end_id, ..., mrca_id]
-    # We want: path_ascending ++ reverse(tail of path_descending)
+  # Same logic as Kinship.path_label — computes what a person at `index` is TO person A
+  defp blood_path_label(0, _steps_a, _steps_b, _gender), do: "-"
+
+  defp blood_path_label(index, steps_a, _steps_b, gender) when index <= steps_a do
+    Ancestry.Kinship.Label.format(0, index, false, gender)
+  end
+
+  defp blood_path_label(index, steps_a, _steps_b, gender) do
+    down_steps = index - steps_a
+
+    cond do
+      steps_a == 0 -> Ancestry.Kinship.Label.format(down_steps, 0, false, gender)
+      true -> Ancestry.Kinship.Label.format(down_steps, steps_a, false, gender)
+    end
+  end
+
+  # Given two ascending paths that share the same MRCA at the end,
+  # produce the full linear path: start -> ... -> mrca -> ... -> end
+  defp merge_blood_path(path_ascending, path_descending) do
     descending_tail =
       path_descending
       |> Enum.reverse()
