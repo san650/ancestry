@@ -805,7 +805,6 @@ defmodule Ancestry.KinshipTest do
   end
 
   describe "family-scoped behavior" do
-    @tag :skip
     test "returns :no_common_ancestor when ancestor is outside family" do
       family = family_fixture()
       org = Ancestry.Organizations.get_organization!(family.organization_id)
