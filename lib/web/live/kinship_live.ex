@@ -3,7 +3,6 @@ defmodule Web.KinshipLive do
 
   alias Ancestry.Families
   alias Ancestry.Kinship
-  alias Ancestry.Kinship.InLaw
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
@@ -188,49 +187,15 @@ defmodule Web.KinshipLive do
   defp maybe_calculate(socket) do
     case {socket.assigns.person_a, socket.assigns.person_b} do
       {%Person{id: a_id}, %Person{id: b_id}} ->
-        result = Kinship.calculate(a_id, b_id, socket.assigns.family_graph)
-
-        case result do
-          {:ok, kinship} ->
-            path_a = Enum.slice(kinship.path, 0, kinship.steps_a + 1) |> Enum.reverse()
-
-            path_b =
-              Enum.slice(kinship.path, kinship.steps_a, length(kinship.path) - kinship.steps_a)
+        case Kinship.calculate(a_id, b_id, socket.assigns.family_graph) do
+          {:ok, result} ->
+            path_a = Enum.slice(result.path, 0, result.steps_a + 1) |> Enum.reverse()
+            path_b = Enum.slice(result.path, result.steps_a, length(result.path) - result.steps_a)
 
             socket
-            |> assign(:result, result)
+            |> assign(:result, {:ok, result})
             |> assign(:path_a, path_a)
             |> assign(:path_b, path_b)
-
-          {:error, :no_common_ancestor} ->
-            in_law_result = InLaw.calculate(a_id, b_id, socket.assigns.family_graph)
-
-            case in_law_result do
-              {:ok, in_law} ->
-                # Split into two branches like blood kinship
-                # path_a: MRCA down to person A (reversed for top-down display)
-                # path_b: MRCA down to person B (through partner hop)
-                in_law_path_a =
-                  Enum.slice(in_law.path, 0, in_law.steps_a + 1) |> Enum.reverse()
-
-                in_law_path_b =
-                  Enum.slice(
-                    in_law.path,
-                    in_law.steps_a,
-                    length(in_law.path) - in_law.steps_a
-                  )
-
-                socket
-                |> assign(:result, in_law_result)
-                |> assign(:path_a, in_law_path_a)
-                |> assign(:path_b, in_law_path_b)
-
-              {:error, _} ->
-                socket
-                |> assign(:result, {:error, :no_relationship})
-                |> assign(:path_a, [])
-                |> assign(:path_b, [])
-            end
 
           error ->
             socket
@@ -240,10 +205,7 @@ defmodule Web.KinshipLive do
         end
 
       _ ->
-        socket
-        |> assign(:result, nil)
-        |> assign(:path_a, [])
-        |> assign(:path_b, [])
+        assign(socket, result: nil, path_a: [], path_b: [])
     end
   end
 

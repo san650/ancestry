@@ -43,13 +43,13 @@ defmodule Ancestry.KinshipTest do
       assert {:error, :same_person} = Kinship.calculate(person.id, person.id, graph)
     end
 
-    test "returns error when no common ancestor is found" do
+    test "returns error when no relationship is found" do
       family = family_fixture()
       alice = person_fixture(family, %{given_name: "Alice", surname: "Smith"})
       bob = person_fixture(family, %{given_name: "Bob", surname: "Jones"})
 
       graph = FamilyGraph.for_family(family.id)
-      assert {:error, :no_common_ancestor} = Kinship.calculate(alice.id, bob.id, graph)
+      assert {:error, :no_relationship} = Kinship.calculate(alice.id, bob.id, graph)
     end
   end
 
@@ -805,7 +805,7 @@ defmodule Ancestry.KinshipTest do
   end
 
   describe "family-scoped behavior" do
-    test "returns :no_common_ancestor when ancestor is outside family" do
+    test "returns :no_relationship when ancestor is outside family" do
       family = family_fixture()
       org = Ancestry.Organizations.get_organization!(family.organization_id)
       {:ok, other_family} = Ancestry.Families.create_family(org, %{name: "Other"})
@@ -818,7 +818,7 @@ defmodule Ancestry.KinshipTest do
       make_parent!(ancestor, person_b, "father")
 
       graph = FamilyGraph.for_family(family.id)
-      assert {:error, :no_common_ancestor} = Kinship.calculate(person_a.id, person_b.id, graph)
+      assert {:error, :no_relationship} = Kinship.calculate(person_a.id, person_b.id, graph)
     end
   end
 end

@@ -5,6 +5,7 @@ defmodule Ancestry.Kinship do
   """
 
   alias Ancestry.Kinship.Blood
+  alias Ancestry.Kinship.InLaw
   alias Ancestry.People.FamilyGraph
 
   @max_depth 10
@@ -34,19 +35,29 @@ defmodule Ancestry.Kinship do
   @doc """
   Calculates the kinship relationship between two people using a pre-built graph.
 
-  Returns `{:ok, %Kinship{}}` for blood relatives,
-  `{:error, :same_person}` if the IDs match,
-  or `{:error, :no_common_ancestor}` if BFS exhausts max depth.
+  Tries blood kinship first. If no common ancestor is found, falls back to
+  in-law detection via partner-hop BFS.
 
-  Note: The orchestrator fallback to InLaw will be added in a later commit.
-  Currently delegates directly to Blood.calculate/3.
+  Returns `{:ok, %Kinship{}}` for blood relatives,
+  `{:ok, %InLaw{}}` for in-law relatives,
+  `{:error, :same_person}` if the IDs match,
+  or `{:error, :no_relationship}` if neither path finds a connection.
   """
   def calculate(person_a_id, person_b_id, _graph) when person_a_id == person_b_id do
     {:error, :same_person}
   end
 
   def calculate(person_a_id, person_b_id, %FamilyGraph{} = graph) do
-    Blood.calculate(person_a_id, person_b_id, graph)
+    case Blood.calculate(person_a_id, person_b_id, graph) do
+      {:ok, _} = result ->
+        result
+
+      {:error, :no_common_ancestor} ->
+        case InLaw.calculate(person_a_id, person_b_id, graph) do
+          {:ok, _} = result -> result
+          {:error, _} -> {:error, :no_relationship}
+        end
+    end
   end
 
   @doc """
