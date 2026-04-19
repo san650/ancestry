@@ -80,7 +80,7 @@ defmodule Ancestry.KinshipTest do
 
       # Path: parent (Self) -> child
       assert length(result.path) == 2
-      assert Enum.at(result.path, 0).label == "Self"
+      assert Enum.at(result.path, 0).label == "-"
       assert Enum.at(result.path, 0).person.id == parent.id
       assert Enum.at(result.path, 1).label == "Child"
       assert Enum.at(result.path, 1).person.id == child.id
@@ -99,7 +99,7 @@ defmodule Ancestry.KinshipTest do
 
       # Path: child (Self) -> parent
       assert length(result.path) == 2
-      assert Enum.at(result.path, 0).label == "Self"
+      assert Enum.at(result.path, 0).label == "-"
       assert Enum.at(result.path, 0).person.id == child.id
       assert Enum.at(result.path, 1).label == "Parent"
       assert Enum.at(result.path, 1).person.id == parent.id
@@ -141,7 +141,7 @@ defmodule Ancestry.KinshipTest do
       assert result.mrca.id == grandparent.id
 
       assert length(result.path) == 3
-      assert Enum.at(result.path, 0).label == "Self"
+      assert Enum.at(result.path, 0).label == "-"
       assert Enum.at(result.path, 1).label == "Child"
       assert Enum.at(result.path, 2).label == "Grandchild"
     end
@@ -160,7 +160,7 @@ defmodule Ancestry.KinshipTest do
       assert result.mrca.id == grandparent.id
 
       assert length(result.path) == 3
-      assert Enum.at(result.path, 0).label == "Self"
+      assert Enum.at(result.path, 0).label == "-"
       assert Enum.at(result.path, 1).label == "Parent"
       assert Enum.at(result.path, 2).label == "Grandparent"
     end
@@ -615,7 +615,7 @@ defmodule Ancestry.KinshipTest do
       assert {:ok, result} = Kinship.calculate(parent.id, child.id, graph)
 
       path_labels = Enum.map(result.path, & &1.label)
-      assert path_labels == ["Self", "Child"]
+      assert path_labels == ["-", "Child"]
     end
 
     test "path for siblings includes correct labels" do
@@ -634,7 +634,7 @@ defmodule Ancestry.KinshipTest do
       assert {:ok, result} = Kinship.calculate(alice.id, bob.id, graph)
 
       path_labels = Enum.map(result.path, & &1.label)
-      assert path_labels == ["Self", "Parent", "Sibling"]
+      assert path_labels == ["-", "Parent", "Sibling"]
     end
 
     test "path for grandchild to grandparent" do
@@ -650,7 +650,7 @@ defmodule Ancestry.KinshipTest do
       assert {:ok, result} = Kinship.calculate(grandchild.id, grandparent.id, graph)
 
       path_labels = Enum.map(result.path, & &1.label)
-      assert path_labels == ["Self", "Parent", "Grandparent"]
+      assert path_labels == ["-", "Parent", "Grandparent"]
     end
 
     test "path for second cousins includes correct intermediate labels" do
@@ -681,7 +681,7 @@ defmodule Ancestry.KinshipTest do
       # CousinA (Self) -> ParentA (Parent) -> GPA (Grandparent) -> GreatGP (Great Grandparent)
       #   -> GPB (Great Uncle & Aunt) -> ParentB (First Cousin, Once Removed) -> CousinB (Second Cousin)
       assert path_labels == [
-               "Self",
+               "-",
                "Parent",
                "Grandparent",
                "Great Grandparent",
@@ -711,7 +711,7 @@ defmodule Ancestry.KinshipTest do
       assert {:ok, result} = Kinship.calculate(cousin_a.id, cousin_b.id, graph)
 
       path_labels = Enum.map(result.path, & &1.label)
-      assert path_labels == ["Self", "Parent", "Grandparent", "Uncle & Aunt", "First Cousin"]
+      assert path_labels == ["-", "Parent", "Grandparent", "Uncle & Aunt", "First Cousin"]
     end
   end
 

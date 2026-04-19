@@ -274,7 +274,7 @@
             </div>
 
             <%!-- "Times Removed" footnote --%>
-            <%= if String.contains?(kinship.relationship, "Removed") do %>
+            <%= if kinship.steps_a != kinship.steps_b and min(kinship.steps_a, kinship.steps_b) >= 2 do %>
               <div
                 class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-ds-sharp bg-ds-surface-low/50 text-xs text-ds-on-surface-variant"
                 {test_id("kinship-removed-footnote")}
