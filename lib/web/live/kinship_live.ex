@@ -424,17 +424,21 @@ defmodule Web.KinshipLive do
   attr :label_right, :string, default: nil
   attr :highlight_left, :boolean, default: false
   attr :highlight_right, :boolean, default: false
+  attr :org_id, :any, default: nil
 
   defp partner_pair_node(assigns) do
     ~H"""
     <div class="flex items-center gap-2 w-full">
-      <div class={[
-        "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0",
-        if(@highlight_left,
-          do: "bg-ds-primary/10 border-ds-primary/30",
-          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
-        )
-      ]}>
+      <.link
+        navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_left.id}", else: "#"}
+        class={[
+          "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@highlight_left,
+            do: "bg-ds-primary/10 border-ds-primary/30",
+            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+          )
+        ]}
+      >
         <.kinship_person_avatar person={@person_left} />
         <div class="min-w-0 flex-1">
           <p class="font-medium text-sm text-ds-on-surface truncate">
@@ -444,17 +448,20 @@ defmodule Web.KinshipLive do
             <p class="text-xs text-ds-on-surface-variant">{@label_left}</p>
           <% end %>
         </div>
-      </div>
+      </.link>
       <div class="shrink-0 text-ds-on-surface-variant/50">
         <.icon name="hero-arrows-right-left" class="w-4 h-4" />
       </div>
-      <div class={[
-        "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0",
-        if(@highlight_right,
-          do: "bg-ds-primary/10 border-ds-primary/30",
-          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
-        )
-      ]}>
+      <.link
+        navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_right.id}", else: "#"}
+        class={[
+          "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@highlight_right,
+            do: "bg-ds-primary/10 border-ds-primary/30",
+            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+          )
+        ]}
+      >
         <.kinship_person_avatar person={@person_right} />
         <div class="min-w-0 flex-1">
           <p class="font-medium text-sm text-ds-on-surface truncate">
@@ -464,8 +471,42 @@ defmodule Web.KinshipLive do
             <p class="text-xs text-ds-on-surface-variant">{@label_right}</p>
           <% end %>
         </div>
-      </div>
+      </.link>
     </div>
+    """
+  end
+
+  attr :person, :any, required: true
+  attr :label, :string, default: nil
+  attr :highlight, :boolean, default: false
+  attr :extra_label, :string, default: nil
+  attr :org_id, :any, required: true
+
+  defp kinship_person_node(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/org/#{@org_id}/people/#{@person.id}"}
+      class={[
+        "flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full hover:shadow-ds-ambient transition-shadow",
+        if(@highlight,
+          do: "bg-ds-primary/10 border-ds-primary/30",
+          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+        )
+      ]}
+    >
+      <.kinship_person_avatar person={@person} />
+      <div class="min-w-0 flex-1">
+        <p class="font-medium text-sm text-ds-on-surface truncate">
+          {Person.display_name(@person)}
+        </p>
+        <%= if @label do %>
+          <p class="text-xs text-ds-on-surface-variant">{@label}</p>
+        <% end %>
+        <%= if @extra_label do %>
+          <p class="text-xs text-ds-on-surface-variant">{@extra_label}</p>
+        <% end %>
+      </div>
+    </.link>
     """
   end
 
