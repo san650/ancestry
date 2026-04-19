@@ -2,6 +2,11 @@ defmodule Web.Components.PhotoGallery do
   use Phoenix.Component
   use Gettext, backend: Web.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: Web.Endpoint,
+    router: Web.Router,
+    statics: Web.static_paths()
+
   import Web.CoreComponents
   import Web.Helpers.TestHelpers
   alias Web.Comments.PhotoCommentsComponent
@@ -265,24 +270,34 @@ defmodule Web.Components.PhotoGallery do
                           data-person-id={pp.person_id}
                           phx-hook="PersonHighlight"
                         >
-                          <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
-                            <img
-                              src={
-                                Ancestry.Uploaders.PersonPhoto.url(
-                                  {pp.person.photo, pp.person},
-                                  :thumbnail
-                                )
-                              }
-                              class="w-7 h-7 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
-                            />
-                          <% else %>
-                            <div class="w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
-                              <.icon name="hero-user" class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white/40" />
-                            </div>
-                          <% end %>
-                          <span class="text-sm text-white/85 truncate flex-1">
-                            {Ancestry.People.Person.display_name(pp.person)}
-                          </span>
+                          <.link
+                            navigate={
+                              ~p"/org/#{@current_scope.organization.id}/people/#{pp.person_id}"
+                            }
+                            class="flex items-center gap-3 lg:gap-2 flex-1 min-w-0 hover:text-white focus-visible:text-white transition-colors"
+                          >
+                            <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
+                              <img
+                                src={
+                                  Ancestry.Uploaders.PersonPhoto.url(
+                                    {pp.person.photo, pp.person},
+                                    :thumbnail
+                                  )
+                                }
+                                class="w-7 h-7 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
+                              />
+                            <% else %>
+                              <div class="w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
+                                <.icon
+                                  name="hero-user"
+                                  class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white/40"
+                                />
+                              </div>
+                            <% end %>
+                            <span class="text-sm text-white/85 truncate flex-1">
+                              {Ancestry.People.Person.display_name(pp.person)}
+                            </span>
+                          </.link>
                           <button
                             phx-click="untag_person"
                             phx-value-photo-id={pp.photo_id}
