@@ -94,7 +94,11 @@ defmodule Web.Router do
     scope "/dev" do
       pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: Web.Telemetry
+      live_dashboard "/dashboard", metrics: Web.Telemetry,
+        additional_pages: [
+          oban: Oban.LiveDashboard
+        ]
+
       forward "/mailbox", Plug.Swoosh.MailboxPreview
     end
   end

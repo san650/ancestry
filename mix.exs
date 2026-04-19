@@ -58,6 +58,7 @@ defmodule Ancestry.MixProject do
       {:lazy_html, ">= 0.1.0"},
       {:nimble_csv, "~> 1.2"},
       {:oban, "~> 2.18"},
+      {:oban_live_dashboard, "~> 0.2", only: [:dev]},
       {:permit, "~> 0.3.3"},
       {:permit_phoenix, "~> 0.4.0"},
       {:phoenix, "~> 1.8.4"},
