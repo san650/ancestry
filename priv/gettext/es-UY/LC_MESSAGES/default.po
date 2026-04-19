@@ -16,65 +16,25 @@ msgstr ""
 msgid "%{age} years"
 msgstr "%{age} años"
 
-#: lib/web/live/comments/photo_comments_component.ex:214
+#: lib/web/live/comments/photo_comments_component.ex:368
 #, elixir-autogen, elixir-format
 msgid "%{count}d ago"
 msgstr "hace %{count}d"
 
-#: lib/web/live/comments/photo_comments_component.ex:213
+#: lib/web/live/comments/photo_comments_component.ex:367
 #, elixir-autogen, elixir-format
 msgid "%{count}h ago"
 msgstr "hace %{count}h"
 
-#: lib/web/live/comments/photo_comments_component.ex:212
+#: lib/web/live/comments/photo_comments_component.ex:366
 #, elixir-autogen, elixir-format
 msgid "%{count}m ago"
 msgstr "hace %{count}m"
 
-#: lib/ancestry/kinship.ex:240
-#, elixir-autogen, elixir-format
-msgid "%{degree} Cousin%{removed}"
-msgstr "Primo/a %{degree}%{removed}"
-
-#: lib/ancestry/kinship.ex:199
-#, elixir-autogen, elixir-format
-msgid "%{nth} Great Grand Nephew & Niece"
-msgstr "%{nth} Resobrino/a nieto/a"
-
-#: lib/ancestry/kinship.ex:187
-#, elixir-autogen, elixir-format
-msgid "%{nth} Great Grand Uncle & Aunt"
-msgstr "%{nth} Retío/a abuelo/a"
-
-#: lib/ancestry/kinship.ex:223
-#, elixir-autogen, elixir-format
-msgid "%{nth} Great Grandchild"
-msgstr "%{nth} Tataranieto/a"
-
-#: lib/ancestry/kinship.ex:213
-#, elixir-autogen, elixir-format
-msgid "%{nth} Great Grandparent"
-msgstr "%{nth} Tatarabuelo/a"
-
-#: lib/web/live/kinship_live.html.heex:215
+#: lib/web/live/kinship_live.html.heex:217
 #, elixir-autogen, elixir-format
 msgid "(Common Ancestor)"
 msgstr "(Ancestro común)"
-
-#: lib/ancestry/kinship.ex:237
-#, elixir-autogen, elixir-format
-msgid ", %{count} Times Removed"
-msgstr ", %{count} veces separado/a"
-
-#: lib/ancestry/kinship.ex:235
-#, elixir-autogen, elixir-format
-msgid ", Once Removed"
-msgstr ", una vez separado/a"
-
-#: lib/ancestry/kinship.ex:236
-#, elixir-autogen, elixir-format
-msgid ", Twice Removed"
-msgstr ", dos veces separado/a"
 
 #: lib/web/live/family_live/side_panel_component.ex:64
 #, elixir-autogen, elixir-format
@@ -95,7 +55,7 @@ msgid_plural "%{count} selected"
 msgstr[0] "1 seleccionado"
 msgstr[1] "%{count} seleccionados"
 
-#: lib/web/live/kinship_live.html.heex:282
+#: lib/web/live/kinship_live.html.heex:284
 #, elixir-autogen, elixir-format
 msgid "A \"removed\" cousin is a relative from a different generation. The number indicates how many generations apart you are. For example, your parent's first cousin is your first cousin, once removed."
 msgstr "Un primo \"separado\" es un pariente de una generación diferente. El número indica cuántas generaciones de distancia hay. Por ejemplo, el primo hermano de tu padre es tu primo hermano, una vez separado."
@@ -207,7 +167,7 @@ msgstr "Agregar pareja"
 msgid "Add Relationship"
 msgstr "Agregar relación"
 
-#: lib/web/live/comments/photo_comments_component.ex:189
+#: lib/web/live/comments/photo_comments_component.ex:280
 #, elixir-autogen, elixir-format
 msgid "Add a comment..."
 msgstr "Agregar un comentario..."
@@ -419,14 +379,14 @@ msgstr "El archivo CSV está vacío o no tiene filas de datos"
 #: lib/web/live/account_management_live/new.ex:231
 #: lib/web/live/account_management_live/show.ex:297
 #: lib/web/live/account_management_live/show.ex:332
-#: lib/web/live/comments/photo_comments_component.ex:138
+#: lib/web/live/comments/photo_comments_component.ex:198
 #: lib/web/live/family_live/index.html.heex:218
 #: lib/web/live/family_live/new.html.heex:118
 #: lib/web/live/family_live/show.html.heex:412
 #: lib/web/live/family_live/show.html.heex:460
 #: lib/web/live/gallery_live/index.html.heex:110
 #: lib/web/live/gallery_live/index.html.heex:145
-#: lib/web/live/gallery_live/show.html.heex:397
+#: lib/web/live/gallery_live/show.html.heex:398
 #: lib/web/live/memory_live/form.html.heex:119
 #: lib/web/live/memory_live/form.html.heex:292
 #: lib/web/live/org_people_live/index.html.heex:349
@@ -434,7 +394,7 @@ msgstr "El archivo CSV está vacío o no tiene filas de datos"
 #: lib/web/live/organization_live/index.html.heex:230
 #: lib/web/live/people_live/index.html.heex:351
 #: lib/web/live/person_live/index.html.heex:139
-#: lib/web/live/person_live/show.html.heex:656
+#: lib/web/live/person_live/show.html.heex:657
 #: lib/web/live/shared/add_relationship_component.ex:476
 #: lib/web/live/shared/person_form_component.html.heex:340
 #: lib/web/live/vault_live/show.html.heex:220
@@ -458,12 +418,6 @@ msgstr "Cambiar correo"
 #, elixir-autogen, elixir-format
 msgid "Changing..."
 msgstr "Cambiando..."
-
-#: lib/ancestry/kinship.ex:163
-#: lib/ancestry/kinship.ex:323
-#, elixir-autogen, elixir-format
-msgid "Child"
-msgstr "Hijo/a"
 
 #: lib/web/live/person_live/show.html.heex:464
 #, elixir-autogen, elixir-format
@@ -497,7 +451,7 @@ msgstr "Cerrar"
 msgid "Close menu"
 msgstr "Cerrar menú"
 
-#: lib/web/live/comments/photo_comments_component.ex:94
+#: lib/web/live/comments/photo_comments_component.ex:147
 #, elixir-autogen, elixir-format
 msgid "Comments"
 msgstr "Comentarios"
@@ -705,14 +659,14 @@ msgstr "Persona predeterminada"
 #: lib/web/live/family_live/index.html.heex:212
 #: lib/web/live/gallery_live/index.html.heex:139
 #: lib/web/live/gallery_live/show.html.heex:157
-#: lib/web/live/gallery_live/show.html.heex:391
+#: lib/web/live/gallery_live/show.html.heex:392
 #: lib/web/live/memory_live/form.html.heex:128
 #: lib/web/live/memory_live/form.html.heex:286
 #: lib/web/live/org_people_live/index.html.heex:33
 #: lib/web/live/org_people_live/index.html.heex:342
 #: lib/web/live/organization_live/index.html.heex:76
 #: lib/web/live/organization_live/index.html.heex:224
-#: lib/web/live/person_live/show.html.heex:685
+#: lib/web/live/person_live/show.html.heex:686
 #: lib/web/live/vault_live/show.html.heex:78
 #: lib/web/live/vault_live/show.html.heex:214
 #: lib/web/live/vault_live/show.html.heex:266
@@ -747,7 +701,7 @@ msgstr[1] "¿Eliminar %{count} recuerdos? Esta acción no se puede deshacer."
 msgid "Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone."
 msgstr "¿Eliminar 1 organización? Todas las familias, galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
 
-#: lib/web/live/gallery_live/show.html.heex:380
+#: lib/web/live/gallery_live/show.html.heex:381
 #, elixir-autogen, elixir-format
 msgid "Delete 1 photo? This cannot be undone."
 msgid_plural "Delete %{count} photos? This cannot be undone."
@@ -765,17 +719,17 @@ msgstr "Eliminar familia"
 msgid "Delete Gallery"
 msgstr "Eliminar galería"
 
-#: lib/web/live/person_live/show.html.heex:672
+#: lib/web/live/person_live/show.html.heex:673
 #, elixir-autogen, elixir-format
 msgid "Delete Person"
 msgstr "Eliminar persona"
 
-#: lib/web/live/gallery_live/show.html.heex:377
+#: lib/web/live/gallery_live/show.html.heex:378
 #, elixir-autogen, elixir-format
 msgid "Delete Photos"
 msgstr "Eliminar fotos"
 
-#: lib/web/live/comments/photo_comments_component.ex:164
+#: lib/web/live/comments/photo_comments_component.ex:316
 #, elixir-autogen, elixir-format
 msgid "Delete comment"
 msgstr "Eliminar comentario"
@@ -798,7 +752,7 @@ msgstr "Eliminar familia"
 msgid "Delete person"
 msgstr "Eliminar persona"
 
-#: lib/web/live/comments/photo_comments_component.ex:162
+#: lib/web/live/comments/photo_comments_component.ex:314
 #, elixir-autogen, elixir-format
 msgid "Delete this comment?"
 msgstr "¿Eliminar este comentario?"
@@ -874,7 +828,7 @@ msgstr "Editar familia"
 msgid "Edit Memory"
 msgstr "Editar recuerdo"
 
-#: lib/web/live/comments/photo_comments_component.ex:154
+#: lib/web/live/comments/photo_comments_component.ex:304
 #, elixir-autogen, elixir-format
 msgid "Edit comment"
 msgstr "Editar comentario"
@@ -902,11 +856,6 @@ msgstr "Editar relación"
 #, elixir-autogen, elixir-format
 msgid "Editor"
 msgstr "Editor"
-
-#: lib/ancestry/kinship.ex:250
-#, elixir-autogen, elixir-format
-msgid "Eighth"
-msgstr "Octavo"
 
 #: lib/web/live/account_live/login.ex:34
 #: lib/web/live/account_live/registration.ex:32
@@ -1028,11 +977,6 @@ msgstr "Feb"
 msgid "Female"
 msgstr "Femenino"
 
-#: lib/ancestry/kinship.ex:247
-#, elixir-autogen, elixir-format
-msgid "Fifth"
-msgstr "Quinto"
-
 #: lib/web/live/account_management_live/edit.ex:447
 #: lib/web/live/account_management_live/new.ex:240
 #: lib/web/live/family_live/show.ex:620
@@ -1051,13 +995,13 @@ msgstr "Archivo no encontrado: %{path}"
 msgid "File too large (max 20MB)"
 msgstr "Archivo demasiado grande (máximo 20MB)"
 
-#: lib/web/live/gallery_live/show.ex:276
+#: lib/web/live/gallery_live/show.ex:293
 #, elixir-autogen, elixir-format
 msgid "File too large (max 300MB)"
 msgstr "Archivo demasiado grande (máximo 300MB)"
 
 #: lib/web/live/family_live/new.ex:53
-#: lib/web/live/gallery_live/show.ex:277
+#: lib/web/live/gallery_live/show.ex:294
 #: lib/web/live/shared/person_form_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "File type not supported"
@@ -1073,20 +1017,10 @@ msgstr "Filtrar miembros..."
 msgid "Filter people..."
 msgstr "Filtrar personas..."
 
-#: lib/ancestry/kinship.ex:243
-#, elixir-autogen, elixir-format
-msgid "First"
-msgstr "Primero"
-
 #: lib/web/live/family_live/show.html.heex:970
 #, elixir-autogen, elixir-format
 msgid "Format"
 msgstr "Formato"
-
-#: lib/ancestry/kinship.ex:246
-#, elixir-autogen, elixir-format
-msgid "Fourth"
-msgstr "Cuarto"
 
 #: lib/web/live/account_management_live/edit.ex:256
 #: lib/web/live/account_management_live/new.ex:149
@@ -1136,76 +1070,10 @@ msgstr "Nombres de nacimiento"
 msgid "Go back to add members"
 msgstr "Volver para agregar miembros"
 
-#: lib/ancestry/kinship.ex:193
-#, elixir-autogen, elixir-format
-msgid "Grand Nephew & Niece"
-msgstr "Sobrino/a nieto/a"
-
-#: lib/ancestry/kinship.ex:166
-#: lib/ancestry/kinship.ex:324
-#, elixir-autogen, elixir-format
-msgid "Grandchild"
-msgstr "Nieto/a"
-
-#: lib/ancestry/kinship.ex:157
-#: lib/ancestry/kinship.ex:295
-#, elixir-autogen, elixir-format
-msgid "Grandparent"
-msgstr "Abuelo/a"
-
-#: lib/ancestry/kinship.ex:196
-#, elixir-autogen, elixir-format
-msgid "Great Grand Nephew & Niece"
-msgstr "Resobrino/a nieto/a"
-
-#: lib/ancestry/kinship.ex:184
-#, elixir-autogen, elixir-format
-msgid "Great Grand Uncle & Aunt"
-msgstr "Retío/a abuelo/a"
-
-#: lib/ancestry/kinship.ex:221
-#: lib/ancestry/kinship.ex:325
-#, elixir-autogen, elixir-format
-msgid "Great Grandchild"
-msgstr "Bisnieto/a"
-
-#: lib/ancestry/kinship.ex:211
-#: lib/ancestry/kinship.ex:296
-#, elixir-autogen, elixir-format
-msgid "Great Grandparent"
-msgstr "Bisabuelo/a"
-
-#: lib/ancestry/kinship.ex:222
-#: lib/ancestry/kinship.ex:326
-#, elixir-autogen, elixir-format
-msgid "Great Great Grandchild"
-msgstr "Tataranieto/a"
-
-#: lib/ancestry/kinship.ex:212
-#: lib/ancestry/kinship.ex:297
-#, elixir-autogen, elixir-format
-msgid "Great Great Grandparent"
-msgstr "Tatarabuelo/a"
-
-#: lib/ancestry/kinship.ex:181
-#, elixir-autogen, elixir-format
-msgid "Great Uncle & Aunt"
-msgstr "Tío/a abuelo/a"
-
 #: lib/web/live/person_live/show.html.heex:589
 #, elixir-autogen, elixir-format
 msgid "Half"
 msgstr "Medio"
-
-#: lib/ancestry/kinship.ex:202
-#, elixir-autogen, elixir-format
-msgid "Half-"
-msgstr "Medio-"
-
-#: lib/ancestry/kinship.ex:172
-#, elixir-autogen, elixir-format
-msgid "Half-Sibling"
-msgstr "Medio hermano/a"
 
 #: lib/web/live/family_live/person_card_component.ex:75
 #: lib/web/live/family_live/person_card_component.ex:288
@@ -1540,11 +1408,6 @@ msgstr "Nombre"
 msgid "Navigation"
 msgstr "Navegación"
 
-#: lib/ancestry/kinship.ex:190
-#, elixir-autogen, elixir-format
-msgid "Nephew & Niece"
-msgstr "Sobrino/a"
-
 #: lib/web/live/account_management_live/index.ex:55
 #: lib/web/live/account_management_live/index.ex:87
 #: lib/web/live/account_management_live/new.ex:29
@@ -1611,11 +1474,6 @@ msgstr "Apodo"
 #, elixir-autogen, elixir-format
 msgid "No albums in this family yet. Upload photos to a gallery first."
 msgstr "Aún no hay álbumes en esta familia. Sube fotos a una galería primero."
-
-#: lib/web/live/comments/photo_comments_component.ex:102
-#, elixir-autogen, elixir-format
-msgid "No comments yet"
-msgstr "Aún no hay comentarios"
 
 #: lib/web/live/kinship_live.html.heex:132
 #, elixir-autogen, elixir-format
@@ -1801,12 +1659,6 @@ msgstr "Otro"
 msgid "Page Actions"
 msgstr "Acciones de página"
 
-#: lib/ancestry/kinship.ex:154
-#: lib/ancestry/kinship.ex:294
-#, elixir-autogen, elixir-format
-msgid "Parent"
-msgstr "Padre/Madre"
-
 #: lib/web/live/person_live/show.html.heex:501
 #, elixir-autogen, elixir-format
 msgid "Parents & Siblings"
@@ -1824,6 +1676,7 @@ msgstr "Pareja"
 msgid "Password"
 msgstr "Contraseña"
 
+#: lib/web/components/photo_gallery.ex:236
 #: lib/web/live/family_live/index.html.heex:40
 #: lib/web/live/family_live/index.html.heex:64
 #: lib/web/live/family_live/people_list_component.ex:15
@@ -1843,7 +1696,7 @@ msgstr "Personas agregadas a la familia"
 msgid "People created"
 msgstr "Personas creadas"
 
-#: lib/web/live/kinship_live.html.heex:291
+#: lib/web/live/kinship_live.html.heex:293
 #, elixir-autogen, elixir-format
 msgid "Percentages are approximate and may vary."
 msgstr "Los porcentajes son aproximados y pueden variar."
@@ -1875,7 +1728,7 @@ msgstr "Fotos"
 msgid "Please select two different people"
 msgstr "Selecciona dos personas diferentes"
 
-#: lib/web/live/comments/photo_comments_component.ex:196
+#: lib/web/live/comments/photo_comments_component.ex:286
 #, elixir-autogen, elixir-format
 msgid "Post comment"
 msgstr "Publicar comentario"
@@ -1929,7 +1782,7 @@ msgstr "Relaciones"
 #: lib/web/live/account_management_live/new.ex:188
 #: lib/web/live/people_live/index.html.heex:344
 #: lib/web/live/person_live/show.html.heex:539
-#: lib/web/live/person_live/show.html.heex:650
+#: lib/web/live/person_live/show.html.heex:651
 #, elixir-autogen, elixir-format
 msgid "Remove"
 msgstr "Eliminar"
@@ -1939,7 +1792,7 @@ msgstr "Eliminar"
 msgid "Remove cover photo"
 msgstr "Eliminar foto de portada"
 
-#: lib/web/live/person_live/show.html.heex:636
+#: lib/web/live/person_live/show.html.heex:637
 #, elixir-autogen, elixir-format
 msgid "Remove from Family"
 msgstr "Eliminar de la familia"
@@ -1993,6 +1846,7 @@ msgstr "Ancestro raíz"
 msgid "Same person selected"
 msgstr "Se seleccionó la misma persona"
 
+#: lib/web/live/comments/photo_comments_component.ex:190
 #: lib/web/live/family_live/show.html.heex:405
 #: lib/web/live/shared/person_form_component.html.heex:331
 #, elixir-autogen, elixir-format
@@ -2054,11 +1908,6 @@ msgstr "Buscar personas..."
 msgid "Search..."
 msgstr "Buscar..."
 
-#: lib/ancestry/kinship.ex:244
-#, elixir-autogen, elixir-format
-msgid "Second"
-msgstr "Segundo"
-
 #: lib/web/live/family_live/index.html.heex:32
 #: lib/web/live/family_live/index.html.heex:59
 #: lib/web/live/organization_live/index.html.heex:32
@@ -2115,21 +1964,6 @@ msgstr "Separado/a"
 msgid "Settings"
 msgstr "Configuración"
 
-#: lib/ancestry/kinship.ex:249
-#, elixir-autogen, elixir-format
-msgid "Seventh"
-msgstr "Séptimo"
-
-#: lib/ancestry/kinship.ex:175
-#, elixir-autogen, elixir-format
-msgid "Sibling"
-msgstr "Hermano/a"
-
-#: lib/ancestry/kinship.ex:248
-#, elixir-autogen, elixir-format
-msgid "Sixth"
-msgstr "Sexto"
-
 #: lib/web/components/layouts.ex:157
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
@@ -2173,7 +2007,7 @@ msgstr "Apellido"
 msgid "Surname at birth"
 msgstr "Apellido de nacimiento"
 
-#: lib/web/live/person_live/show.html.heex:640
+#: lib/web/live/person_live/show.html.heex:641
 #, elixir-autogen, elixir-format
 msgid "The person will still exist and can be linked to other families."
 msgstr "La persona seguirá existiendo y podrá vincularse a otras familias."
@@ -2182,11 +2016,6 @@ msgstr "La persona seguirá existiendo y podrá vincularse a otras familias."
 #, elixir-autogen, elixir-format
 msgid "They won't be deleted, just detached from this family."
 msgstr "No serán eliminados, solo desvinculados de esta familia."
-
-#: lib/ancestry/kinship.ex:245
-#, elixir-autogen, elixir-format
-msgid "Third"
-msgstr "Tercero"
 
 #: lib/web/live/memory_live/form.html.heex:276
 #, elixir-autogen, elixir-format
@@ -2213,7 +2042,7 @@ msgstr "Esta persona es fallecida."
 msgid "This person is living"
 msgstr "Esta persona está viva"
 
-#: lib/web/live/person_live/show.html.heex:675
+#: lib/web/live/person_live/show.html.heex:676
 #, elixir-autogen, elixir-format
 msgid "This will remove them from all families. This cannot be undone."
 msgstr "Esto la eliminará de todas las familias. Esta acción no se puede deshacer."
@@ -2244,7 +2073,7 @@ msgstr "Cambiar vista"
 msgid "Too many files (max 1)"
 msgstr "Demasiados archivos (máximo 1)"
 
-#: lib/web/live/gallery_live/show.ex:278
+#: lib/web/live/gallery_live/show.ex:295
 #, elixir-autogen, elixir-format
 msgid "Too many files (max 50)"
 msgstr "Demasiados archivos (máximo 50)"
@@ -2254,17 +2083,14 @@ msgstr "Demasiados archivos (máximo 50)"
 msgid "Type a name to search..."
 msgstr "Escribe un nombre para buscar..."
 
-#: lib/ancestry/kinship.ex:178
-#, elixir-autogen, elixir-format
-msgid "Uncle & Aunt"
-msgstr "Tío/a"
-
 #: lib/web/live/gallery_live/show.html.heex:91
 #, elixir-autogen, elixir-format
 msgid "Uniform grid"
 msgstr "Cuadrícula uniforme"
 
 #: lib/web/live/account_management_live/show.ex:245
+#: lib/web/live/comments/photo_comments_component.ex:335
+#: lib/web/live/comments/photo_comments_component.ex:339
 #, elixir-autogen, elixir-format
 msgid "Unknown"
 msgstr "Desconocido"
@@ -2296,7 +2122,7 @@ msgstr "Carga completada con errores"
 
 #: lib/web/live/family_live/new.ex:55
 #: lib/web/live/family_live/show.ex:623
-#: lib/web/live/gallery_live/show.ex:279
+#: lib/web/live/gallery_live/show.ex:296
 #: lib/web/live/shared/person_form_component.ex:35
 #, elixir-autogen, elixir-format
 msgid "Upload error: %{error}"
@@ -2478,7 +2304,7 @@ msgstr "ej. Los García"
 msgid "from"
 msgstr "de"
 
-#: lib/web/live/comments/photo_comments_component.ex:211
+#: lib/web/live/comments/photo_comments_component.ex:365
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr "justo ahora"
@@ -2510,8 +2336,67 @@ msgstr "tenía %{age} años"
 msgid "~%{percentage}% shared DNA"
 msgstr "~%{percentage}% de ADN compartido"
 
-# Kinship labels with gender context
+#: lib/web/live/comments/photo_comments_component.ex:355
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{count}d"
+msgstr "hace %{count}d"
 
+#: lib/web/live/comments/photo_comments_component.ex:354
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{count}h"
+msgstr "hace %{count}h"
+
+#: lib/web/live/comments/photo_comments_component.ex:353
+#, elixir-autogen, elixir-format, fuzzy
+msgid "%{count}m"
+msgstr "hace %{count}m"
+
+#: lib/web/live/kinship_live.html.heex:170
+#, elixir-autogen, elixir-format
+msgid "%{person_a} is %{person_b}'s %{relationship}"
+msgstr "%{person_a} es %{relationship} de %{person_b}"
+
+#: lib/web/components/photo_gallery.ex:255
+#, elixir-autogen, elixir-format
+msgid "Click on the photo to tag people"
+msgstr "Hacé clic en la foto para etiquetar personas"
+
+#: lib/web/components/photo_gallery.ex:223
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Close info"
+msgstr "Cerrar"
+
+#: lib/web/components/photo_gallery.ex:323
+#, elixir-autogen, elixir-format
+msgid "Download"
+msgstr "Descargar"
+
+#: lib/web/live/comments/photo_comments_component.ex:165
+#, elixir-autogen, elixir-format
+msgid "No comments yet. Be the first to add one."
+msgstr "Todavía no hay comentarios. Sé el primero en agregar uno."
+
+#: lib/web/components/photo_gallery.ex:253
+#, elixir-autogen, elixir-format
+msgid "No people tagged yet."
+msgstr "Todavía no hay personas etiquetadas."
+
+#: lib/web/components/photo_gallery.ex:217
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Photo info"
+msgstr "Foto"
+
+#: lib/web/components/photo_gallery.ex:291
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Remove tag"
+msgstr "Eliminar"
+
+#: lib/web/live/comments/photo_comments_component.ex:352
+#, elixir-autogen, elixir-format
+msgid "now"
+msgstr "ahora"
+
+# Kinship labels with gender context (dynamically dispatched via Ancestry.Kinship.Label)
 msgctxt "male"
 msgid "Parent"
 msgstr "Padre"
@@ -2739,3 +2624,195 @@ msgstr "Media "
 msgctxt "other"
 msgid "Half-"
 msgstr "Medio/a "
+
+msgctxt "male"
+msgid "%{degree} Cousin%{removed}"
+msgstr "Primo %{degree}%{removed}"
+
+msgctxt "female"
+msgid "%{degree} Cousin%{removed}"
+msgstr "Prima %{degree}%{removed}"
+
+msgctxt "other"
+msgid "%{degree} Cousin%{removed}"
+msgstr "Primo/a %{degree}%{removed}"
+
+msgctxt "male"
+msgid ", Once Removed"
+msgstr ", una vez separado"
+
+msgctxt "female"
+msgid ", Once Removed"
+msgstr ", una vez separada"
+
+msgctxt "other"
+msgid ", Once Removed"
+msgstr ", una vez separado/a"
+
+msgctxt "male"
+msgid ", Twice Removed"
+msgstr ", dos veces separado"
+
+msgctxt "female"
+msgid ", Twice Removed"
+msgstr ", dos veces separada"
+
+msgctxt "other"
+msgid ", Twice Removed"
+msgstr ", dos veces separado/a"
+
+msgctxt "male"
+msgid ", %{count} Times Removed"
+msgstr ", %{count} veces separado"
+
+msgctxt "female"
+msgid ", %{count} Times Removed"
+msgstr ", %{count} veces separada"
+
+msgctxt "other"
+msgid ", %{count} Times Removed"
+msgstr ", %{count} veces separado/a"
+
+msgctxt "male"
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Retío abuelo"
+
+msgctxt "female"
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Retía abuela"
+
+msgctxt "other"
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Retío/a abuelo/a"
+
+msgctxt "male"
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Resobrino nieto"
+
+msgctxt "female"
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Resobrina nieta"
+
+msgctxt "other"
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Resobrino/a nieto/a"
+
+msgctxt "male"
+msgid "%{nth} Great Grandparent"
+msgstr "%{nth} Tatarabuelo"
+
+msgctxt "female"
+msgid "%{nth} Great Grandparent"
+msgstr "%{nth} Tatarabuela"
+
+msgctxt "other"
+msgid "%{nth} Great Grandparent"
+msgstr "%{nth} Tatarabuelo/a"
+
+msgctxt "male"
+msgid "%{nth} Great Grandchild"
+msgstr "%{nth} Tataranieto"
+
+msgctxt "female"
+msgid "%{nth} Great Grandchild"
+msgstr "%{nth} Tataranieta"
+
+msgctxt "other"
+msgid "%{nth} Great Grandchild"
+msgstr "%{nth} Tataranieto/a"
+
+msgctxt "male"
+msgid "First"
+msgstr "Primero"
+
+msgctxt "female"
+msgid "First"
+msgstr "Primera"
+
+msgctxt "other"
+msgid "First"
+msgstr "Primero/a"
+
+msgctxt "male"
+msgid "Second"
+msgstr "Segundo"
+
+msgctxt "female"
+msgid "Second"
+msgstr "Segunda"
+
+msgctxt "other"
+msgid "Second"
+msgstr "Segundo/a"
+
+msgctxt "male"
+msgid "Third"
+msgstr "Tercero"
+
+msgctxt "female"
+msgid "Third"
+msgstr "Tercera"
+
+msgctxt "other"
+msgid "Third"
+msgstr "Tercero/a"
+
+msgctxt "male"
+msgid "Fourth"
+msgstr "Cuarto"
+
+msgctxt "female"
+msgid "Fourth"
+msgstr "Cuarta"
+
+msgctxt "other"
+msgid "Fourth"
+msgstr "Cuarto/a"
+
+msgctxt "male"
+msgid "Fifth"
+msgstr "Quinto"
+
+msgctxt "female"
+msgid "Fifth"
+msgstr "Quinta"
+
+msgctxt "other"
+msgid "Fifth"
+msgstr "Quinto/a"
+
+msgctxt "male"
+msgid "Sixth"
+msgstr "Sexto"
+
+msgctxt "female"
+msgid "Sixth"
+msgstr "Sexta"
+
+msgctxt "other"
+msgid "Sixth"
+msgstr "Sexto/a"
+
+msgctxt "male"
+msgid "Seventh"
+msgstr "Séptimo"
+
+msgctxt "female"
+msgid "Seventh"
+msgstr "Séptima"
+
+msgctxt "other"
+msgid "Seventh"
+msgstr "Séptimo/a"
+
+msgctxt "male"
+msgid "Eighth"
+msgstr "Octavo"
+
+msgctxt "female"
+msgid "Eighth"
+msgstr "Octava"
+
+msgctxt "other"
+msgid "Eighth"
+msgstr "Octavo/a"

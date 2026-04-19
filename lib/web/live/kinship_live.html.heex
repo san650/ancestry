@@ -167,9 +167,11 @@
                 class="text-base text-ds-on-surface-variant"
                 {test_id("kinship-directional-label")}
               >
-                {Ancestry.People.Person.display_name(@person_a)} is {Ancestry.People.Person.display_name(
-                  @person_b
-                )}'s {String.downcase(kinship.relationship)}
+                {gettext("%{person_a} is %{person_b}'s %{relationship}",
+                  person_a: Ancestry.People.Person.display_name(@person_a),
+                  person_b: Ancestry.People.Person.display_name(@person_b),
+                  relationship: String.downcase(kinship.relationship)
+                )}
               </span>
             </div>
 
