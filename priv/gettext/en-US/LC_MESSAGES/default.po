@@ -2819,3 +2819,52 @@ msgstr ""
 msgctxt "other"
 msgid "Eighth"
 msgstr ""
+
+# In-law core terms (Ancestry.Kinship.InLawLabel)
+msgctxt "male"
+msgid "Spouse"
+msgstr "Husband"
+
+msgctxt "female"
+msgid "Spouse"
+msgstr "Wife"
+
+msgctxt "other"
+msgid "Spouse"
+msgstr "Spouse"
+
+msgctxt "male"
+msgid "Parent-in-law"
+msgstr "Father-in-law"
+
+msgctxt "female"
+msgid "Parent-in-law"
+msgstr "Mother-in-law"
+
+msgctxt "other"
+msgid "Parent-in-law"
+msgstr "Parent-in-law"
+
+msgctxt "male"
+msgid "Child-in-law"
+msgstr "Son-in-law"
+
+msgctxt "female"
+msgid "Child-in-law"
+msgstr "Daughter-in-law"
+
+msgctxt "other"
+msgid "Child-in-law"
+msgstr "Child-in-law"
+
+msgctxt "male"
+msgid "Sibling-in-law"
+msgstr "Brother-in-law"
+
+msgctxt "female"
+msgid "Sibling-in-law"
+msgstr "Sister-in-law"
+
+msgctxt "other"
+msgid "Sibling-in-law"
+msgstr "Sibling-in-law"

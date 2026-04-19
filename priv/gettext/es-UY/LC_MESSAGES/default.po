@@ -2816,3 +2816,52 @@ msgstr "Octava"
 msgctxt "other"
 msgid "Eighth"
 msgstr "Octavo/a"
+
+# In-law core terms (Ancestry.Kinship.InLawLabel)
+msgctxt "male"
+msgid "Spouse"
+msgstr "Esposo"
+
+msgctxt "female"
+msgid "Spouse"
+msgstr "Esposa"
+
+msgctxt "other"
+msgid "Spouse"
+msgstr "Cónyuge"
+
+msgctxt "male"
+msgid "Parent-in-law"
+msgstr "Suegro"
+
+msgctxt "female"
+msgid "Parent-in-law"
+msgstr "Suegra"
+
+msgctxt "other"
+msgid "Parent-in-law"
+msgstr "Suegro/a"
+
+msgctxt "male"
+msgid "Child-in-law"
+msgstr "Yerno"
+
+msgctxt "female"
+msgid "Child-in-law"
+msgstr "Nuera"
+
+msgctxt "other"
+msgid "Child-in-law"
+msgstr "Yerno/Nuera"
+
+msgctxt "male"
+msgid "Sibling-in-law"
+msgstr "Cuñado"
+
+msgctxt "female"
+msgid "Sibling-in-law"
+msgstr "Cuñada"
+
+msgctxt "other"
+msgid "Sibling-in-law"
+msgstr "Cuñado/a"
