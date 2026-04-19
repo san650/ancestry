@@ -191,43 +191,64 @@
                     />
                   <% end %>
                 <% true -> %>
-                  <%!-- Two-branch inverted-V tree --%>
-                  <% mrca_node = List.first(@path_a) %>
-                  <.kinship_person_node
-                    person={mrca_node.person}
-                    label={mrca_node.label}
-                    extra_label={gettext("(Common Ancestor)")}
-                    org_id={@current_scope.organization.id}
-                  />
+                  <%!-- Desktop: Two-branch inverted-V tree --%>
+                  <div class="hidden md:flex flex-col items-center w-full">
+                    <% mrca_node = List.first(@path_a) %>
+                    <.kinship_person_node
+                      person={mrca_node.person}
+                      label={mrca_node.label}
+                      extra_label={gettext("(Common Ancestor)")}
+                      org_id={@current_scope.organization.id}
+                    />
 
-                  <.fork_connector />
+                    <.fork_connector />
 
-                  <div class="flex flex-col md:flex-row w-full max-w-2xl gap-4">
-                    <%!-- Left branch: Person A's lineage (skip MRCA) --%>
-                    <div class="flex-1 flex flex-col items-center">
-                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
-                        <.arrow_connector direction={:up} />
-                        <.kinship_person_node
-                          person={node.person}
-                          label={node.label}
-                          highlight={index == length(@path_a) - 2}
-                          org_id={@current_scope.organization.id}
-                        />
-                      <% end %>
+                    <div class="flex flex-row w-full max-w-2xl gap-4">
+                      <%!-- Left branch: Person A's lineage (skip MRCA) --%>
+                      <div class="flex-1 flex flex-col items-center">
+                        <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
+                          <.arrow_connector direction={:up} />
+                          <.kinship_person_node
+                            person={node.person}
+                            label={node.label}
+                            highlight={index == length(@path_a) - 2}
+                            org_id={@current_scope.organization.id}
+                          />
+                        <% end %>
+                      </div>
+
+                      <%!-- Right branch: Person B's lineage (skip MRCA) --%>
+                      <div class="flex-1 flex flex-col items-center">
+                        <%= for {node, index} <- Enum.with_index(Enum.drop(@path_b, 1)) do %>
+                          <.arrow_connector direction={:down} />
+                          <.kinship_person_node
+                            person={node.person}
+                            label={node.label}
+                            highlight={index == length(@path_b) - 2}
+                            org_id={@current_scope.organization.id}
+                          />
+                        <% end %>
+                      </div>
                     </div>
+                  </div>
 
-                    <%!-- Right branch: Person B's lineage (skip MRCA) --%>
-                    <div class="flex-1 flex flex-col items-center">
-                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_b, 1)) do %>
+                  <%!-- Mobile: Linear top-to-bottom path --%>
+                  <% mobile_path = Enum.reverse(@path_a) ++ Enum.drop(@path_b, 1) %>
+                  <% last_index = length(mobile_path) - 1 %>
+                  <% mrca_index = length(@path_a) - 1 %>
+                  <div class="flex flex-col items-center w-full md:hidden">
+                    <%= for {node, index} <- Enum.with_index(mobile_path) do %>
+                      <%= if index > 0 do %>
                         <.arrow_connector direction={:down} />
-                        <.kinship_person_node
-                          person={node.person}
-                          label={node.label}
-                          highlight={index == length(@path_b) - 2}
-                          org_id={@current_scope.organization.id}
-                        />
                       <% end %>
-                    </div>
+                      <.kinship_person_node
+                        person={node.person}
+                        label={node.label}
+                        highlight={index == 0 or index == last_index or index == mrca_index}
+                        extra_label={if index == mrca_index, do: gettext("(Common Ancestor)")}
+                        org_id={@current_scope.organization.id}
+                      />
+                    <% end %>
                   </div>
               <% end %>
             </div>
@@ -293,67 +314,119 @@
             <div class="flex flex-col items-center" {test_id("kinship-path")}>
               <%= cond do %>
                 <% length(@path_a) <= 1 and length(@path_b) <= 1 -> %>
-                  <%!-- Direct spouse — side by side with heart --%>
-                  <.partner_pair_node
-                    person_left={@person_a}
-                    person_right={@person_b}
-                    highlight_left={true}
-                    highlight_right={true}
-                    org_id={@current_scope.organization.id}
-                  />
+                  <%!-- Direct spouse — horizontal on desktop, vertical on mobile --%>
+                  <div class="hidden md:block w-full">
+                    <.partner_pair_node
+                      person_left={@person_a}
+                      person_right={@person_b}
+                      highlight_left={true}
+                      highlight_right={true}
+                      org_id={@current_scope.organization.id}
+                    />
+                  </div>
+                  <div class="md:hidden w-full">
+                    <.partner_pair_node
+                      person_left={@person_a}
+                      person_right={@person_b}
+                      highlight_left={true}
+                      highlight_right={true}
+                      direction={:vertical}
+                      org_id={@current_scope.organization.id}
+                    />
+                  </div>
                 <% true -> %>
-                  <%!-- Forked tree with MRCA at top --%>
-                  <% mrca_node = List.first(@path_a) %>
-                  <.kinship_person_node
-                    person={mrca_node.person}
-                    label={mrca_node.label}
-                    extra_label={gettext("(Common Ancestor)")}
-                    org_id={@current_scope.organization.id}
-                  />
+                  <%!-- Desktop: Forked tree with MRCA at top --%>
+                  <div class="hidden md:flex flex-col items-center w-full">
+                    <% mrca_node = List.first(@path_a) %>
+                    <.kinship_person_node
+                      person={mrca_node.person}
+                      label={mrca_node.label}
+                      extra_label={gettext("(Common Ancestor)")}
+                      org_id={@current_scope.organization.id}
+                    />
 
-                  <.fork_connector />
+                    <.fork_connector />
 
-                  <div class="flex flex-col md:flex-row w-full max-w-2xl gap-4">
-                    <%!-- Left branch: Person A's lineage (skip MRCA) --%>
-                    <div class="flex-1 flex flex-col items-center">
-                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
-                        <.arrow_connector direction={:up} />
-                        <.kinship_person_node
-                          person={node.person}
-                          label={node.label}
-                          highlight={index == length(@path_a) - 2}
-                          org_id={@current_scope.organization.id}
-                        />
-                      <% end %>
+                    <div class="flex flex-row w-full max-w-2xl gap-4">
+                      <%!-- Left branch: Person A's lineage (skip MRCA) --%>
+                      <div class="flex-1 flex flex-col items-center">
+                        <%= for {node, index} <- Enum.with_index(Enum.drop(@path_a, 1)) do %>
+                          <.arrow_connector direction={:up} />
+                          <.kinship_person_node
+                            person={node.person}
+                            label={node.label}
+                            highlight={index == length(@path_a) - 2}
+                            org_id={@current_scope.organization.id}
+                          />
+                        <% end %>
+                      </div>
+
+                      <%!-- Right branch: split into regular nodes + partner pair --%>
+                      <% b_nodes = Enum.drop(@path_b, 1) %>
+                      <% {regular_nodes, partner_nodes} =
+                        Enum.split_while(b_nodes, fn n -> !n[:partner_link?] end) %>
+                      <div class="flex-1 flex flex-col items-center">
+                        <%= for {node, _index} <- Enum.with_index(regular_nodes) do %>
+                          <.arrow_connector direction={:down} />
+                          <.kinship_person_node
+                            person={node.person}
+                            label={node.label}
+                            org_id={@current_scope.organization.id}
+                          />
+                        <% end %>
+                        <%!-- Partner pair side by side --%>
+                        <%= if length(partner_nodes) == 2 do %>
+                          <% [left, right] = partner_nodes %>
+                          <.arrow_connector direction={:down} />
+                          <.partner_pair_node
+                            person_left={left.person}
+                            person_right={right.person}
+                            label_left={left.label}
+                            label_right={right.label}
+                            highlight_right={true}
+                            org_id={@current_scope.organization.id}
+                          />
+                        <% end %>
+                      </div>
                     </div>
+                  </div>
 
-                    <%!-- Right branch: split into regular nodes + partner pair --%>
-                    <% b_nodes = Enum.drop(@path_b, 1) %>
-                    <% {regular_nodes, partner_nodes} =
-                      Enum.split_while(b_nodes, fn n -> !n[:partner_link?] end) %>
-                    <div class="flex-1 flex flex-col items-center">
-                      <%= for {node, _index} <- Enum.with_index(regular_nodes) do %>
+                  <%!-- Mobile: Linear top-to-bottom path with vertical partner pairs --%>
+                  <% mobile_a = Enum.reverse(@path_a)
+                  b_after_mrca = Enum.drop(@path_b, 1)
+
+                  {b_regular, b_partner} =
+                    Enum.split_while(b_after_mrca, fn n -> !n[:partner_link?] end)
+
+                  mobile_path = mobile_a ++ b_regular
+                  mrca_index = length(mobile_a) - 1 %>
+                  <div class="flex flex-col items-center w-full md:hidden">
+                    <%= for {node, index} <- Enum.with_index(mobile_path) do %>
+                      <%= if index > 0 do %>
                         <.arrow_connector direction={:down} />
-                        <.kinship_person_node
-                          person={node.person}
-                          label={node.label}
-                          org_id={@current_scope.organization.id}
-                        />
                       <% end %>
-                      <%!-- Partner pair side by side --%>
-                      <%= if length(partner_nodes) == 2 do %>
-                        <% [left, right] = partner_nodes %>
-                        <.arrow_connector direction={:down} />
-                        <.partner_pair_node
-                          person_left={left.person}
-                          person_right={right.person}
-                          label_left={left.label}
-                          label_right={right.label}
-                          highlight_right={true}
-                          org_id={@current_scope.organization.id}
-                        />
-                      <% end %>
-                    </div>
+                      <.kinship_person_node
+                        person={node.person}
+                        label={node.label}
+                        highlight={index == 0 or index == mrca_index}
+                        extra_label={if index == mrca_index, do: gettext("(Common Ancestor)")}
+                        org_id={@current_scope.organization.id}
+                      />
+                    <% end %>
+                    <%!-- Partner pair stacked vertically --%>
+                    <%= if length(b_partner) == 2 do %>
+                      <% [left, right] = b_partner %>
+                      <.arrow_connector direction={:down} />
+                      <.partner_pair_node
+                        person_left={left.person}
+                        person_right={right.person}
+                        label_left={left.label}
+                        label_right={right.label}
+                        highlight_right={true}
+                        direction={:vertical}
+                        org_id={@current_scope.organization.id}
+                      />
+                    <% end %>
                   </div>
               <% end %>
             </div>

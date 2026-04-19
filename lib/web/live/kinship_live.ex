@@ -425,14 +425,22 @@ defmodule Web.KinshipLive do
   attr :highlight_left, :boolean, default: false
   attr :highlight_right, :boolean, default: false
   attr :org_id, :any, default: nil
+  attr :direction, :atom, default: :horizontal
 
   defp partner_pair_node(assigns) do
     ~H"""
-    <div class="flex items-center gap-2 w-full">
+    <div class={[
+      "w-full",
+      if(@direction == :vertical,
+        do: "flex flex-col items-center gap-1",
+        else: "flex items-center gap-2"
+      )
+    ]}>
       <.link
         navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_left.id}", else: "#"}
         class={[
-          "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          "flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@direction == :vertical, do: "w-full", else: "flex-1"),
           if(@highlight_left,
             do: "bg-ds-primary/10 border-ds-primary/30",
             else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
@@ -450,12 +458,16 @@ defmodule Web.KinshipLive do
         </div>
       </.link>
       <div class="shrink-0 text-ds-on-surface-variant/50">
-        <.icon name="hero-arrows-right-left" class="w-4 h-4" />
+        <.icon
+          name="hero-arrows-right-left"
+          class={["w-4 h-4", if(@direction == :vertical, do: "rotate-90")]}
+        />
       </div>
       <.link
         navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_right.id}", else: "#"}
         class={[
-          "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          "flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@direction == :vertical, do: "w-full", else: "flex-1"),
           if(@highlight_right,
             do: "bg-ds-primary/10 border-ds-primary/30",
             else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
