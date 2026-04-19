@@ -1,7 +1,7 @@
-defmodule Ancestry.Kinship.LabelTest do
+defmodule Ancestry.Kinship.BloodRelationshipLabelTest do
   use Ancestry.DataCase, async: true
 
-  alias Ancestry.Kinship.Label
+  alias Ancestry.Kinship.BloodRelationshipLabel, as: Label
 
   # In English locale, Gettext.pgettext returns the msgid as-is (no .po translations for English).
 

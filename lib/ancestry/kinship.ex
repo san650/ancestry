@@ -5,7 +5,7 @@ defmodule Ancestry.Kinship do
   based on generational distance from each person to the MRCA.
   """
 
-  alias Ancestry.Kinship.Label
+  alias Ancestry.Kinship.BloodRelationshipLabel, as: Label
   alias Ancestry.People
   alias Ancestry.Relationships
 
@@ -45,6 +45,10 @@ defmodule Ancestry.Kinship do
   or `{:error, :same_person}` if the IDs match,
   or `{:error, :no_common_ancestor}` if BFS exhausts max depth.
   """
+  def calculate(person_a_id, person_b_id, _graph) do
+    calculate(person_a_id, person_b_id)
+  end
+
   def calculate(person_a_id, person_b_id) when person_a_id == person_b_id do
     {:error, :same_person}
   end

@@ -1,4 +1,4 @@
-defmodule Ancestry.Kinship.InLawLabel do
+defmodule Ancestry.Kinship.InLawRelationshipLabel do
   @moduledoc """
   Produces human-readable in-law kinship labels.
 

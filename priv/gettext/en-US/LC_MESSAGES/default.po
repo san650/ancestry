@@ -2543,7 +2543,7 @@ msgctxt "other"
 msgid "Half-Sibling"
 msgstr ""
 
-# Kinship labels — English gendered forms (dynamically dispatched via Ancestry.Kinship.Label)
+# Kinship labels — English gendered forms (dynamically dispatched via Ancestry.Kinship.BloodRelationshipLabel)
 msgctxt "male"
 msgid "Uncle & Aunt"
 msgstr "Uncle"
@@ -2820,7 +2820,7 @@ msgctxt "other"
 msgid "Eighth"
 msgstr ""
 
-# In-law core terms (Ancestry.Kinship.InLawLabel)
+# In-law core terms (Ancestry.Kinship.InLawRelationshipLabel)
 msgctxt "male"
 msgid "Spouse"
 msgstr "Husband"

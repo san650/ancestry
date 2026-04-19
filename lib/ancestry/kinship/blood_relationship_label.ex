@@ -1,4 +1,4 @@
-defmodule Ancestry.Kinship.Label do
+defmodule Ancestry.Kinship.BloodRelationshipLabel do
   @moduledoc """
   Produces human-readable kinship labels based on a coordinate system
   (steps_a, steps_b), a half-relationship flag, and person gender.

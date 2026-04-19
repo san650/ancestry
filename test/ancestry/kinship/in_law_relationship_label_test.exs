@@ -1,7 +1,7 @@
-defmodule Ancestry.Kinship.InLawLabelTest do
+defmodule Ancestry.Kinship.InLawRelationshipLabelTest do
   use Ancestry.DataCase, async: true
 
-  alias Ancestry.Kinship.InLawLabel
+  alias Ancestry.Kinship.InLawRelationshipLabel, as: InLawLabel
 
   describe "format/3 - spouse" do
     test "spouse label — gendered" do

@@ -11,7 +11,7 @@ defmodule Ancestry.Kinship.InLaw do
   """
 
   alias Ancestry.Kinship
-  alias Ancestry.Kinship.InLawLabel
+  alias Ancestry.Kinship.InLawRelationshipLabel, as: InLawLabel
   alias Ancestry.People
   alias Ancestry.Relationships
   alias Ancestry.Relationships.Relationship
@@ -232,15 +232,15 @@ defmodule Ancestry.Kinship.InLaw do
   defp blood_path_label(0, _steps_a, _steps_b, _gender), do: "-"
 
   defp blood_path_label(index, steps_a, _steps_b, gender) when index <= steps_a do
-    Ancestry.Kinship.Label.format(0, index, false, gender)
+    Ancestry.Kinship.BloodRelationshipLabel.format(0, index, false, gender)
   end
 
   defp blood_path_label(index, steps_a, _steps_b, gender) do
     down_steps = index - steps_a
 
     cond do
-      steps_a == 0 -> Ancestry.Kinship.Label.format(down_steps, 0, false, gender)
-      true -> Ancestry.Kinship.Label.format(down_steps, steps_a, false, gender)
+      steps_a == 0 -> Ancestry.Kinship.BloodRelationshipLabel.format(down_steps, 0, false, gender)
+      true -> Ancestry.Kinship.BloodRelationshipLabel.format(down_steps, steps_a, false, gender)
     end
   end
 
