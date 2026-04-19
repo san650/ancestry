@@ -123,7 +123,7 @@
             <p class="text-lg font-medium">{gettext("Same person selected")}</p>
             <p class="text-sm mt-1">{gettext("Please select two different people")}</p>
           </div>
-        <% match?({:error, :no_relationship}, @result) -> %>
+        <% match?({:error, :no_common_ancestor}, @result) or match?({:error, :no_relationship}, @result) -> %>
           <div
             class="text-center py-12 text-ds-on-surface-variant"
             {test_id("kinship-no-result")}
@@ -292,9 +292,9 @@
             </div>
           </div>
         <% match?({:ok, %Ancestry.Kinship.InLaw{}}, @result) -> %>
-          <%!-- In-law result: placeholder rendered by Task 6 --%>
           <% {:ok, in_law} = @result %>
-          <div {test_id("kinship-result")}>
+          <div {test_id("kinship-in-law-result")}>
+            <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
                 class="text-3xl font-ds-heading font-extrabold text-ds-primary"
@@ -302,6 +302,62 @@
               >
                 {in_law.relationship}
               </span>
+            </div>
+
+            <%!-- "Related by marriage" note --%>
+            <div class="text-center mb-2">
+              <span
+                class="text-sm text-ds-on-surface-variant"
+                {test_id("kinship-in-law-note")}
+              >
+                {gettext("Related by marriage")}
+              </span>
+            </div>
+
+            <%!-- Directional label --%>
+            <div class="text-center mb-8">
+              <span
+                class="text-base text-ds-on-surface-variant"
+                {test_id("kinship-directional-label")}
+              >
+                {gettext("%{person_a} is %{person_b}'s %{relationship}",
+                  person_a: Person.display_name(@person_a),
+                  person_b: Person.display_name(@person_b),
+                  relationship: String.downcase(in_law.relationship)
+                )}
+              </span>
+            </div>
+
+            <%!-- Linear path visualization --%>
+            <div class="flex flex-col items-center" {test_id("kinship-path")}>
+              <%= for {node, index} <- Enum.with_index(@path_a) do %>
+                <%= if index > 0 do %>
+                  <%= if Enum.at(@path_a, index - 1)[:partner_link?] and node[:partner_link?] do %>
+                    <%!-- Partner connector (heart icon) --%>
+                    <div class="py-1 text-ds-primary/60">
+                      <.icon name="hero-heart" class="w-5 h-5 mx-auto" />
+                    </div>
+                  <% else %>
+                    <.arrow_connector direction={:down} />
+                  <% end %>
+                <% end %>
+                <% is_endpoint = index == 0 or index == length(@path_a) - 1 %>
+                <div class={[
+                  "flex items-center gap-3 px-4 py-3 rounded-ds-sharp border w-full max-w-sm",
+                  if(is_endpoint,
+                    do: "bg-ds-primary/10 border-ds-primary/30",
+                    else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+                  )
+                ]}>
+                  <.kinship_person_avatar person={node.person} />
+                  <div class="min-w-0 flex-1">
+                    <p class="font-medium text-sm text-ds-on-surface truncate">
+                      {Person.display_name(node.person)}
+                    </p>
+                    <p class="text-xs text-ds-on-surface-variant">{node.label}</p>
+                  </div>
+                </div>
+              <% end %>
             </div>
           </div>
       <% end %>
