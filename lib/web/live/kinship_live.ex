@@ -203,7 +203,7 @@ defmodule Web.KinshipLive do
             |> assign(:path_b, path_b)
 
           {:error, :no_common_ancestor} ->
-            in_law_result = InLaw.calculate(a_id, b_id)
+            in_law_result = InLaw.calculate(a_id, b_id, socket.assigns.family_graph)
 
             case in_law_result do
               {:ok, in_law} ->

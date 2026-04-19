@@ -85,40 +85,4 @@ defmodule Ancestry.Kinship do
 
     bfs_expand(new_frontier_ids, new_ancestors, depth + 1, graph)
   end
-
-  # --- Temporary: keep old DB-based BFS for InLaw until Task 4 migrates it ---
-
-  alias Ancestry.Relationships
-
-  @doc false
-  def build_ancestor_map(person_id) do
-    initial = %{person_id => {0, [person_id]}}
-    legacy_bfs_expand([person_id], initial, 1)
-  end
-
-  defp legacy_bfs_expand(_frontier, ancestors, depth) when depth > @max_depth, do: ancestors
-  defp legacy_bfs_expand([], ancestors, _depth), do: ancestors
-
-  defp legacy_bfs_expand(frontier, ancestors, depth) do
-    next_frontier =
-      frontier
-      |> Enum.flat_map(fn person_id ->
-        Relationships.get_parents(person_id)
-        |> Enum.map(fn {parent, _rel} -> {parent.id, person_id} end)
-      end)
-      |> Enum.reject(fn {parent_id, _child_id} -> Map.has_key?(ancestors, parent_id) end)
-
-    new_ancestors =
-      Enum.reduce(next_frontier, ancestors, fn {parent_id, child_id}, acc ->
-        {_child_depth, child_path} = Map.fetch!(acc, child_id)
-        Map.put(acc, parent_id, {depth, child_path ++ [parent_id]})
-      end)
-
-    new_frontier_ids =
-      next_frontier
-      |> Enum.map(fn {parent_id, _} -> parent_id end)
-      |> Enum.uniq()
-
-    legacy_bfs_expand(new_frontier_ids, new_ancestors, depth + 1)
-  end
 end
