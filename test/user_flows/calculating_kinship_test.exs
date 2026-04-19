@@ -190,10 +190,10 @@ defmodule Web.UserFlows.CalculatingKinshipTest do
     conn = assert_has(conn, test_id("kinship-person-a-selected"), text: "Eve Stranger")
     conn = assert_has(conn, test_id("kinship-person-b-selected"), text: "Charlie Kinship")
 
-    # "No common ancestor found" should be shown
+    # "No relationship found" should be shown (unrelated people have no in-law path either)
     conn
     |> assert_has(test_id("kinship-no-result"), timeout: 5_000)
-    |> assert_has(test_id("kinship-no-result"), text: "No common ancestor found")
+    |> assert_has(test_id("kinship-no-result"), text: "No relationship found")
   end
 
   test "removed relationship shows footnote and DNA percentage", %{

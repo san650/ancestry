@@ -122,6 +122,10 @@ Auth is built on top of `phx.gen.auth`, with `Account` (not `User`) as the princ
 
 **Runtime:** Dockerfile uses a multi-stage build with ImageMagick installed in the runner stage for Waffle transforms. Release command runs migrations (`/app/bin/migrate`).
 
+## Genealogy & Kinship Terminology
+
+**MANDATORY:** Consult `./GENEALOGY.md` for the complete coordinate-based kinship terminology mapping (English ↔ Spanish) whenever working on kinship labels, translations, or relationship naming. This file is the single source of truth for how `(steps_a, steps_b)` coordinates map to gendered labels in both languages, including the "removed cousin" → Tío/Sobrino conversion.
+
 ## UI/UX Graphical Design
 
 MANDATORY: Use the design system and rules defined in ./DESIGN.md

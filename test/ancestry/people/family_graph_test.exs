@@ -197,6 +197,58 @@ defmodule Ancestry.People.FamilyGraphTest do
       graph = FamilyGraph.for_family(family.id)
       assert FamilyGraph.fetch_person!(graph, parent.id).id == parent.id
     end
+
+    test "all_partners returns active + former combined", %{
+      family: family,
+      parent: parent,
+      partner: partner,
+      ex: ex
+    } do
+      graph = FamilyGraph.for_family(family.id)
+
+      result = FamilyGraph.all_partners(graph, parent.id)
+      result_ids = Enum.map(result, fn {p, _} -> p.id end) |> MapSet.new()
+
+      assert MapSet.member?(result_ids, partner.id)
+      assert MapSet.member?(result_ids, ex.id)
+    end
+
+    test "all_partners returns empty for person with no partners", %{family: family, child: child} do
+      graph = FamilyGraph.for_family(family.id)
+      assert FamilyGraph.all_partners(graph, child.id) == []
+    end
+
+    test "partner_relationship returns relationship between partners", %{
+      family: family,
+      parent: parent,
+      partner: partner
+    } do
+      graph = FamilyGraph.for_family(family.id)
+
+      rel = FamilyGraph.partner_relationship(graph, parent.id, partner.id)
+      assert rel != nil
+      assert rel.type == "married"
+    end
+
+    test "partner_relationship returns nil for non-partners", %{
+      family: family,
+      parent: parent,
+      grandpa: grandpa
+    } do
+      graph = FamilyGraph.for_family(family.id)
+      assert FamilyGraph.partner_relationship(graph, parent.id, grandpa.id) == nil
+    end
+
+    test "partner_relationship is bidirectional", %{
+      family: family,
+      parent: parent,
+      partner: partner
+    } do
+      graph = FamilyGraph.for_family(family.id)
+
+      assert FamilyGraph.partner_relationship(graph, parent.id, partner.id) != nil
+      assert FamilyGraph.partner_relationship(graph, partner.id, parent.id) != nil
+    end
   end
 
   describe "family scoping" do

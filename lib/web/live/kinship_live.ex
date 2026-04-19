@@ -106,10 +106,9 @@ defmodule Web.KinshipLive do
 
     {:noreply,
      socket
-     |> assign(:person_a, person)
      |> assign(:dropdown_a, false)
      |> assign(:search_a, "")
-     |> maybe_calculate()}
+     |> push_kinship_patch(person, socket.assigns.person_b)}
   end
 
   def handle_event("select_person_b", %{"id" => id}, socket) do
@@ -117,39 +116,40 @@ defmodule Web.KinshipLive do
 
     {:noreply,
      socket
-     |> assign(:person_b, person)
      |> assign(:dropdown_b, false)
      |> assign(:search_b, "")
-     |> maybe_calculate()}
+     |> push_kinship_patch(socket.assigns.person_a, person)}
   end
 
   # --- Clear ---
 
   def handle_event("clear_a", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_a, nil)
-     |> assign(:result, nil)}
+    {:noreply, push_kinship_patch(socket, nil, socket.assigns.person_b)}
   end
 
   def handle_event("clear_b", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_b, nil)
-     |> assign(:result, nil)}
+    {:noreply, push_kinship_patch(socket, socket.assigns.person_a, nil)}
   end
 
   # --- Swap ---
 
   def handle_event("swap", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_a, socket.assigns.person_b)
-     |> assign(:person_b, socket.assigns.person_a)
-     |> maybe_calculate()}
+    {:noreply, push_kinship_patch(socket, socket.assigns.person_b, socket.assigns.person_a)}
   end
 
   # --- Private helpers ---
+
+  defp push_kinship_patch(socket, person_a, person_b) do
+    params =
+      %{}
+      |> then(fn p -> if person_a, do: Map.put(p, :person_a, person_a.id), else: p end)
+      |> then(fn p -> if person_b, do: Map.put(p, :person_b, person_b.id), else: p end)
+
+    push_patch(socket,
+      to:
+        ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}/kinship?#{params}"
+    )
+  end
 
   defp resolve_person(nil, _people), do: nil
   defp resolve_person("", _people), do: nil
@@ -187,34 +187,25 @@ defmodule Web.KinshipLive do
   defp maybe_calculate(socket) do
     case {socket.assigns.person_a, socket.assigns.person_b} do
       {%Person{id: a_id}, %Person{id: b_id}} ->
-        result = Kinship.calculate(a_id, b_id, socket.assigns.family_graph)
-
-        case result do
-          {:ok, kinship} ->
-            # path_a: from MRCA down to person A (top-down for tree display)
-            # path_b: from MRCA down to person B
-            path_a = Enum.slice(kinship.path, 0, kinship.steps_a + 1) |> Enum.reverse()
-
-            path_b =
-              Enum.slice(kinship.path, kinship.steps_a, length(kinship.path) - kinship.steps_a)
+        case Kinship.calculate(a_id, b_id, socket.assigns.family_graph) do
+          {:ok, result} ->
+            path_a = Enum.slice(result.path, 0, result.steps_a + 1) |> Enum.reverse()
+            path_b = Enum.slice(result.path, result.steps_a, length(result.path) - result.steps_a)
 
             socket
-            |> assign(:result, result)
+            |> assign(:result, {:ok, result})
             |> assign(:path_a, path_a)
             |> assign(:path_b, path_b)
 
-          _ ->
+          error ->
             socket
-            |> assign(:result, result)
+            |> assign(:result, error)
             |> assign(:path_a, [])
             |> assign(:path_b, [])
         end
 
       _ ->
-        socket
-        |> assign(:result, nil)
-        |> assign(:path_a, [])
-        |> assign(:path_b, [])
+        assign(socket, result: nil, path_a: [], path_b: [])
     end
   end
 
@@ -386,6 +377,110 @@ defmodule Web.KinshipLive do
         />
       </svg>
     </div>
+    """
+  end
+
+  attr :person_left, :any, required: true
+  attr :person_right, :any, required: true
+  attr :label_left, :string, default: nil
+  attr :label_right, :string, default: nil
+  attr :highlight_left, :boolean, default: false
+  attr :highlight_right, :boolean, default: false
+  attr :org_id, :any, default: nil
+  attr :direction, :atom, default: :horizontal
+
+  defp partner_pair_node(assigns) do
+    ~H"""
+    <div class={[
+      "w-full",
+      if(@direction == :vertical,
+        do: "flex flex-col items-center gap-1",
+        else: "flex items-center gap-2"
+      )
+    ]}>
+      <.link
+        navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_left.id}", else: "#"}
+        class={[
+          "flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@direction == :vertical, do: "w-full", else: "flex-1"),
+          if(@highlight_left,
+            do: "bg-ds-primary/10 border-ds-primary/30",
+            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+          )
+        ]}
+      >
+        <.kinship_person_avatar person={@person_left} />
+        <div class="min-w-0 flex-1">
+          <p class="font-medium text-sm text-ds-on-surface truncate">
+            {Person.display_name(@person_left)}
+          </p>
+          <%= if @label_left do %>
+            <p class="text-xs text-ds-on-surface-variant">{@label_left}</p>
+          <% end %>
+        </div>
+      </.link>
+      <div class="shrink-0 text-ds-on-surface-variant/50">
+        <.icon
+          name="hero-arrows-right-left"
+          class={["w-4 h-4", if(@direction == :vertical, do: "rotate-90")]}
+        />
+      </div>
+      <.link
+        navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_right.id}", else: "#"}
+        class={[
+          "flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0 hover:shadow-ds-ambient transition-shadow",
+          if(@direction == :vertical, do: "w-full", else: "flex-1"),
+          if(@highlight_right,
+            do: "bg-ds-primary/10 border-ds-primary/30",
+            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+          )
+        ]}
+      >
+        <.kinship_person_avatar person={@person_right} />
+        <div class="min-w-0 flex-1">
+          <p class="font-medium text-sm text-ds-on-surface truncate">
+            {Person.display_name(@person_right)}
+          </p>
+          <%= if @label_right do %>
+            <p class="text-xs text-ds-on-surface-variant">{@label_right}</p>
+          <% end %>
+        </div>
+      </.link>
+    </div>
+    """
+  end
+
+  attr :person, :any, required: true
+  attr :label, :string, default: nil
+  attr :highlight, :boolean, default: false
+  attr :extra_label, :string, default: nil
+  attr :org_id, :any, required: true
+
+  defp kinship_person_node(assigns) do
+    ~H"""
+    <.link
+      navigate={~p"/org/#{@org_id}/people/#{@person.id}"}
+      class={[
+        "flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full hover:shadow-ds-ambient transition-shadow",
+        if(@highlight,
+          do: "bg-ds-primary/10 border-ds-primary/30",
+          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+        )
+      ]}
+    >
+      <.kinship_person_avatar person={@person} />
+      <div class="min-w-0 flex-1">
+        <p class="font-medium text-sm text-ds-on-surface truncate">
+          {Person.display_name(@person)}
+        </p>
+        <%= if @label do %>
+          <p class="text-xs text-ds-on-surface-variant">{@label}</p>
+        <% end %>
+        <%= if @extra_label do %>
+          <p class="text-xs text-ds-on-surface-variant">{@extra_label}</p>
+        <% end %>
+      </div>
+    </.link>
     """
   end
 

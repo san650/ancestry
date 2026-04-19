@@ -102,6 +102,18 @@ defmodule Ancestry.People.FamilyGraph do
     Map.fetch!(graph.people_by_id, person_id)
   end
 
+  @doc "Returns [{%Person{}, %Relationship{}}] — all partners (active + former)."
+  def all_partners(%__MODULE__{} = graph, person_id) do
+    Map.get(graph.partners_by_person, person_id, [])
+  end
+
+  @doc "Returns %Relationship{} or nil — partner relationship between two people."
+  def partner_relationship(%__MODULE__{} = graph, person_a_id, person_b_id) do
+    graph.partners_by_person
+    |> Map.get(person_a_id, [])
+    |> Enum.find_value(fn {p, rel} -> if p.id == person_b_id, do: rel end)
+  end
+
   defp build_indexes(relationships, people_by_id) do
     acc = {%{}, %{}, %{}}
 

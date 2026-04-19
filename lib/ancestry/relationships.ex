@@ -170,6 +170,13 @@ defmodule Ancestry.Relationships do
   end
 
   @doc """
+  Returns list of `{person, relationship}` tuples for all partners (active + former).
+  """
+  def get_all_partners(person_id) do
+    get_relationship_partners(person_id, Relationship.partner_types(), [])
+  end
+
+  @doc """
   Returns the partner-type relationship between two people (any partner type), or nil.
   """
   def get_partner_relationship(person_a_id, person_b_id) do
