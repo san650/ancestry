@@ -207,10 +207,23 @@ defmodule Web.KinshipLive do
 
             case in_law_result do
               {:ok, in_law} ->
+                # Split into two branches like blood kinship
+                # path_a: MRCA down to person A (reversed for top-down display)
+                # path_b: MRCA down to person B (through partner hop)
+                in_law_path_a =
+                  Enum.slice(in_law.path, 0, in_law.steps_a + 1) |> Enum.reverse()
+
+                in_law_path_b =
+                  Enum.slice(
+                    in_law.path,
+                    in_law.steps_a,
+                    length(in_law.path) - in_law.steps_a
+                  )
+
                 socket
                 |> assign(:result, in_law_result)
-                |> assign(:path_a, in_law.path)
-                |> assign(:path_b, [])
+                |> assign(:path_a, in_law_path_a)
+                |> assign(:path_b, in_law_path_b)
 
               {:error, _} ->
                 socket

@@ -16,7 +16,7 @@ defmodule Ancestry.Kinship.InLaw do
   alias Ancestry.Relationships
   alias Ancestry.Relationships.Relationship
 
-  defstruct [:relationship, :partner_link, :path]
+  defstruct [:relationship, :partner_link, :path, :steps_a]
 
   @doc """
   Calculates an in-law relationship between two people.
@@ -51,7 +51,8 @@ defmodule Ancestry.Kinship.InLaw do
          %__MODULE__{
            relationship: relationship,
            partner_link: nil,
-           path: path
+           path: path,
+           steps_a: 0
          }}
     end
   end
@@ -86,7 +87,8 @@ defmodule Ancestry.Kinship.InLaw do
          %__MODULE__{
            relationship: relationship,
            partner_link: %{person: partner_person, side: side},
-           path: path
+           path: path,
+           steps_a: steps_a
          }}
     end
   end
