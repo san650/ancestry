@@ -418,6 +418,57 @@ defmodule Web.KinshipLive do
     """
   end
 
+  attr :person_left, :any, required: true
+  attr :person_right, :any, required: true
+  attr :label_left, :string, default: nil
+  attr :label_right, :string, default: nil
+  attr :highlight_left, :boolean, default: false
+  attr :highlight_right, :boolean, default: false
+
+  defp partner_pair_node(assigns) do
+    ~H"""
+    <div class="flex items-center gap-2 w-full">
+      <div class={[
+        "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0",
+        if(@highlight_left,
+          do: "bg-ds-primary/10 border-ds-primary/30",
+          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+        )
+      ]}>
+        <.kinship_person_avatar person={@person_left} />
+        <div class="min-w-0 flex-1">
+          <p class="font-medium text-sm text-ds-on-surface truncate">
+            {Person.display_name(@person_left)}
+          </p>
+          <%= if @label_left do %>
+            <p class="text-xs text-ds-on-surface-variant">{@label_left}</p>
+          <% end %>
+        </div>
+      </div>
+      <div class="shrink-0 text-ds-primary/60">
+        <.icon name="hero-heart" class="w-5 h-5" />
+      </div>
+      <div class={[
+        "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0",
+        if(@highlight_right,
+          do: "bg-ds-primary/10 border-ds-primary/30",
+          else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
+        )
+      ]}>
+        <.kinship_person_avatar person={@person_right} />
+        <div class="min-w-0 flex-1">
+          <p class="font-medium text-sm text-ds-on-surface truncate">
+            {Person.display_name(@person_right)}
+          </p>
+          <%= if @label_right do %>
+            <p class="text-xs text-ds-on-surface-variant">{@label_right}</p>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   attr :person, :any, required: true
 
   defp kinship_person_avatar(assigns) do

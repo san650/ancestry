@@ -55,7 +55,7 @@
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
         <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
-          {gettext("Person A")}
+          {gettext("From")}
         </label>
         <.person_selector
           side="a"
@@ -88,7 +88,7 @@
       <%!-- Person B --%>
       <div class="flex-1 min-w-0">
         <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
-          {gettext("Person B")}
+          {gettext("To")}
         </label>
         <.person_selector
           side="b"
@@ -332,26 +332,13 @@
             <div class="flex flex-col items-center" {test_id("kinship-path")}>
               <%= cond do %>
                 <% length(@path_a) <= 1 and length(@path_b) <= 1 -> %>
-                  <%!-- Direct spouse — no tree needed --%>
-                  <div class="flex items-center gap-3 px-4 py-3 rounded-ds-sharp border bg-ds-primary/10 border-ds-primary/30 w-full max-w-sm">
-                    <.kinship_person_avatar person={@person_a} />
-                    <div class="min-w-0 flex-1">
-                      <p class="font-medium text-sm text-ds-on-surface truncate">
-                        {Person.display_name(@person_a)}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="py-1 text-ds-primary/60">
-                    <.icon name="hero-heart" class="w-5 h-5 mx-auto" />
-                  </div>
-                  <div class="flex items-center gap-3 px-4 py-3 rounded-ds-sharp border bg-ds-primary/10 border-ds-primary/30 w-full max-w-sm">
-                    <.kinship_person_avatar person={@person_b} />
-                    <div class="min-w-0 flex-1">
-                      <p class="font-medium text-sm text-ds-on-surface truncate">
-                        {Person.display_name(@person_b)}
-                      </p>
-                    </div>
-                  </div>
+                  <%!-- Direct spouse — side by side with heart --%>
+                  <.partner_pair_node
+                    person_left={@person_a}
+                    person_right={@person_b}
+                    highlight_left={true}
+                    highlight_right={true}
+                  />
                 <% true -> %>
                   <%!-- Forked tree with MRCA at top --%>
                   <% mrca_node = List.first(@path_a) %>
@@ -395,25 +382,16 @@
                       <% end %>
                     </div>
 
-                    <%!-- Right branch: Person B's lineage (skip MRCA), with heart for partner hop --%>
+                    <%!-- Right branch: Person B's lineage (skip MRCA) --%>
+                    <%!-- Split into regular nodes and the partner pair at the end --%>
+                    <% b_nodes = Enum.drop(@path_b, 1) %>
+                    <% {regular_nodes, partner_nodes} =
+                      Enum.split_while(b_nodes, fn n -> !n[:partner_link?] end) %>
                     <div class="flex-1 flex flex-col items-center">
-                      <%= for {node, index} <- Enum.with_index(Enum.drop(@path_b, 1)) do %>
-                        <%= if node[:partner_link?] and index > 0 and Enum.at(Enum.drop(@path_b, 1), index - 1)[:partner_link?] do %>
-                          <%!-- Partner connector (heart) between partner pair --%>
-                          <div class="py-1 text-ds-primary/60">
-                            <.icon name="hero-heart" class="w-5 h-5 mx-auto" />
-                          </div>
-                        <% else %>
-                          <.arrow_connector direction={:down} />
-                        <% end %>
-                        <% is_endpoint = index == length(@path_b) - 2 %>
-                        <div class={[
-                          "flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full",
-                          if(is_endpoint,
-                            do: "bg-ds-primary/10 border-ds-primary/30",
-                            else: "bg-ds-surface-low/50 border-ds-outline-variant/20"
-                          )
-                        ]}>
+                      <%!-- Regular blood nodes --%>
+                      <%= for {node, index} <- Enum.with_index(regular_nodes) do %>
+                        <.arrow_connector direction={:down} />
+                        <div class="flex items-center gap-3 px-3 py-2 rounded-ds-sharp border w-full bg-ds-surface-low/50 border-ds-outline-variant/20">
                           <.kinship_person_avatar person={node.person} />
                           <div class="min-w-0 flex-1">
                             <p class="font-medium text-sm text-ds-on-surface truncate">
@@ -422,6 +400,18 @@
                             <p class="text-xs text-ds-on-surface-variant">{node.label}</p>
                           </div>
                         </div>
+                      <% end %>
+                      <%!-- Partner pair rendered side by side --%>
+                      <%= if length(partner_nodes) == 2 do %>
+                        <% [left, right] = partner_nodes %>
+                        <.arrow_connector direction={:down} />
+                        <.partner_pair_node
+                          person_left={left.person}
+                          person_right={right.person}
+                          label_left={left.label}
+                          label_right={right.label}
+                          highlight_right={true}
+                        />
                       <% end %>
                     </div>
                   </div>
