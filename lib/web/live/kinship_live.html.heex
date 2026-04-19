@@ -123,20 +123,18 @@
             <p class="text-lg font-medium">{gettext("Same person selected")}</p>
             <p class="text-sm mt-1">{gettext("Please select two different people")}</p>
           </div>
-        <% match?({:error, :no_common_ancestor}, @result) -> %>
+        <% match?({:error, :no_relationship}, @result) -> %>
           <div
             class="text-center py-12 text-ds-on-surface-variant"
             {test_id("kinship-no-result")}
           >
             <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("No common ancestor found")}</p>
+            <p class="text-lg font-medium">{gettext("No relationship found")}</p>
             <p class="text-sm mt-1">
-              These two people {gettext(
-                "don't appear to share a common ancestor within the family tree"
-              )}
+              {gettext("These two people don't appear to be related within the family tree")}
             </p>
           </div>
-        <% match?({:ok, _}, @result) -> %>
+        <% match?({:ok, _}, @result) and not match?({:ok, %Ancestry.Kinship.InLaw{}}, @result) -> %>
           <% {:ok, kinship} = @result %>
           <div {test_id("kinship-result")}>
             <%!-- Relationship label --%>
@@ -291,6 +289,19 @@
             <%!-- DNA disclaimer --%>
             <div class="mt-4 text-center text-xs text-ds-on-surface-variant/50">
               {gettext("Percentages are approximate and may vary.")}
+            </div>
+          </div>
+        <% match?({:ok, %Ancestry.Kinship.InLaw{}}, @result) -> %>
+          <%!-- In-law result: placeholder rendered by Task 6 --%>
+          <% {:ok, in_law} = @result %>
+          <div {test_id("kinship-result")}>
+            <div class="text-center mb-2">
+              <span
+                class="text-3xl font-ds-heading font-extrabold text-ds-primary"
+                {test_id("kinship-relationship-label")}
+              >
+                {in_law.relationship}
+              </span>
             </div>
           </div>
       <% end %>

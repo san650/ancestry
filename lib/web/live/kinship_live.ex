@@ -3,6 +3,7 @@ defmodule Web.KinshipLive do
 
   alias Ancestry.Families
   alias Ancestry.Kinship
+  alias Ancestry.Kinship.InLaw
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
@@ -106,10 +107,9 @@ defmodule Web.KinshipLive do
 
     {:noreply,
      socket
-     |> assign(:person_a, person)
      |> assign(:dropdown_a, false)
      |> assign(:search_a, "")
-     |> maybe_calculate()}
+     |> push_kinship_patch(person, socket.assigns.person_b)}
   end
 
   def handle_event("select_person_b", %{"id" => id}, socket) do
@@ -117,39 +117,40 @@ defmodule Web.KinshipLive do
 
     {:noreply,
      socket
-     |> assign(:person_b, person)
      |> assign(:dropdown_b, false)
      |> assign(:search_b, "")
-     |> maybe_calculate()}
+     |> push_kinship_patch(socket.assigns.person_a, person)}
   end
 
   # --- Clear ---
 
   def handle_event("clear_a", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_a, nil)
-     |> assign(:result, nil)}
+    {:noreply, push_kinship_patch(socket, nil, socket.assigns.person_b)}
   end
 
   def handle_event("clear_b", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_b, nil)
-     |> assign(:result, nil)}
+    {:noreply, push_kinship_patch(socket, socket.assigns.person_a, nil)}
   end
 
   # --- Swap ---
 
   def handle_event("swap", _, socket) do
-    {:noreply,
-     socket
-     |> assign(:person_a, socket.assigns.person_b)
-     |> assign(:person_b, socket.assigns.person_a)
-     |> maybe_calculate()}
+    {:noreply, push_kinship_patch(socket, socket.assigns.person_b, socket.assigns.person_a)}
   end
 
   # --- Private helpers ---
+
+  defp push_kinship_patch(socket, person_a, person_b) do
+    params =
+      %{}
+      |> then(fn p -> if person_a, do: Map.put(p, :person_a, person_a.id), else: p end)
+      |> then(fn p -> if person_b, do: Map.put(p, :person_b, person_b.id), else: p end)
+
+    push_patch(socket,
+      to:
+        ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}/kinship?#{params}"
+    )
+  end
 
   defp resolve_person(nil, _people), do: nil
   defp resolve_person("", _people), do: nil
@@ -191,8 +192,6 @@ defmodule Web.KinshipLive do
 
         case result do
           {:ok, kinship} ->
-            # path_a: from MRCA down to person A (top-down for tree display)
-            # path_b: from MRCA down to person B
             path_a = Enum.slice(kinship.path, 0, kinship.steps_a + 1) |> Enum.reverse()
 
             path_b =
@@ -203,9 +202,26 @@ defmodule Web.KinshipLive do
             |> assign(:path_a, path_a)
             |> assign(:path_b, path_b)
 
-          _ ->
+          {:error, :no_common_ancestor} ->
+            in_law_result = InLaw.calculate(a_id, b_id)
+
+            case in_law_result do
+              {:ok, in_law} ->
+                socket
+                |> assign(:result, in_law_result)
+                |> assign(:path_a, in_law.path)
+                |> assign(:path_b, [])
+
+              {:error, _} ->
+                socket
+                |> assign(:result, {:error, :no_relationship})
+                |> assign(:path_a, [])
+                |> assign(:path_b, [])
+            end
+
+          error ->
             socket
-            |> assign(:result, result)
+            |> assign(:result, error)
             |> assign(:path_a, [])
             |> assign(:path_b, [])
         end
