@@ -2509,3 +2509,233 @@ msgstr "tenía %{age} años"
 #, elixir-autogen, elixir-format
 msgid "~%{percentage}% shared DNA"
 msgstr "~%{percentage}% de ADN compartido"
+
+# Kinship labels with gender context
+
+msgctxt "male"
+msgid "Parent"
+msgstr "Padre"
+
+msgctxt "female"
+msgid "Parent"
+msgstr "Madre"
+
+msgctxt "other"
+msgid "Parent"
+msgstr "Padre/Madre"
+
+msgctxt "male"
+msgid "Grandparent"
+msgstr "Abuelo"
+
+msgctxt "female"
+msgid "Grandparent"
+msgstr "Abuela"
+
+msgctxt "other"
+msgid "Grandparent"
+msgstr "Abuelo/a"
+
+msgctxt "male"
+msgid "Great Grandparent"
+msgstr "Bisabuelo"
+
+msgctxt "female"
+msgid "Great Grandparent"
+msgstr "Bisabuela"
+
+msgctxt "other"
+msgid "Great Grandparent"
+msgstr "Bisabuelo/a"
+
+msgctxt "male"
+msgid "Great Great Grandparent"
+msgstr "Tatarabuelo"
+
+msgctxt "female"
+msgid "Great Great Grandparent"
+msgstr "Tatarabuela"
+
+msgctxt "other"
+msgid "Great Great Grandparent"
+msgstr "Tatarabuelo/a"
+
+msgctxt "male"
+msgid "3rd Great Grandparent"
+msgstr "Trastatarabuelo"
+
+msgctxt "female"
+msgid "3rd Great Grandparent"
+msgstr "Trastatarabuela"
+
+msgctxt "other"
+msgid "3rd Great Grandparent"
+msgstr "Trastatarabuelo/a"
+
+msgctxt "male"
+msgid "Child"
+msgstr "Hijo"
+
+msgctxt "female"
+msgid "Child"
+msgstr "Hija"
+
+msgctxt "other"
+msgid "Child"
+msgstr "Hijo/a"
+
+msgctxt "male"
+msgid "Grandchild"
+msgstr "Nieto"
+
+msgctxt "female"
+msgid "Grandchild"
+msgstr "Nieta"
+
+msgctxt "other"
+msgid "Grandchild"
+msgstr "Nieto/a"
+
+msgctxt "male"
+msgid "Great Grandchild"
+msgstr "Bisnieto"
+
+msgctxt "female"
+msgid "Great Grandchild"
+msgstr "Bisnieta"
+
+msgctxt "other"
+msgid "Great Grandchild"
+msgstr "Bisnieto/a"
+
+msgctxt "male"
+msgid "Great Great Grandchild"
+msgstr "Tataranieto"
+
+msgctxt "female"
+msgid "Great Great Grandchild"
+msgstr "Tataranieta"
+
+msgctxt "other"
+msgid "Great Great Grandchild"
+msgstr "Tataranieto/a"
+
+msgctxt "male"
+msgid "3rd Great Grandchild"
+msgstr "Trastataranieto"
+
+msgctxt "female"
+msgid "3rd Great Grandchild"
+msgstr "Trastataranieta"
+
+msgctxt "other"
+msgid "3rd Great Grandchild"
+msgstr "Trastataranieto/a"
+
+msgctxt "male"
+msgid "Sibling"
+msgstr "Hermano"
+
+msgctxt "female"
+msgid "Sibling"
+msgstr "Hermana"
+
+msgctxt "other"
+msgid "Sibling"
+msgstr "Hermano/a"
+
+msgctxt "male"
+msgid "Half-Sibling"
+msgstr "Medio hermano"
+
+msgctxt "female"
+msgid "Half-Sibling"
+msgstr "Media hermana"
+
+msgctxt "other"
+msgid "Half-Sibling"
+msgstr "Medio/a hermano/a"
+
+msgctxt "male"
+msgid "Uncle & Aunt"
+msgstr "Tío"
+
+msgctxt "female"
+msgid "Uncle & Aunt"
+msgstr "Tía"
+
+msgctxt "other"
+msgid "Uncle & Aunt"
+msgstr "Tío/a"
+
+msgctxt "male"
+msgid "Great Uncle & Aunt"
+msgstr "Tío abuelo"
+
+msgctxt "female"
+msgid "Great Uncle & Aunt"
+msgstr "Tía abuela"
+
+msgctxt "other"
+msgid "Great Uncle & Aunt"
+msgstr "Tío/a abuelo/a"
+
+msgctxt "male"
+msgid "Great Grand Uncle & Aunt"
+msgstr "Tío bisabuelo"
+
+msgctxt "female"
+msgid "Great Grand Uncle & Aunt"
+msgstr "Tía bisabuela"
+
+msgctxt "other"
+msgid "Great Grand Uncle & Aunt"
+msgstr "Tío/a bisabuelo/a"
+
+msgctxt "male"
+msgid "Nephew & Niece"
+msgstr "Sobrino"
+
+msgctxt "female"
+msgid "Nephew & Niece"
+msgstr "Sobrina"
+
+msgctxt "other"
+msgid "Nephew & Niece"
+msgstr "Sobrino/a"
+
+msgctxt "male"
+msgid "Grand Nephew & Niece"
+msgstr "Sobrino nieto"
+
+msgctxt "female"
+msgid "Grand Nephew & Niece"
+msgstr "Sobrina nieta"
+
+msgctxt "other"
+msgid "Grand Nephew & Niece"
+msgstr "Sobrino/a nieto/a"
+
+msgctxt "male"
+msgid "Great Grand Nephew & Niece"
+msgstr "Sobrino bisnieto"
+
+msgctxt "female"
+msgid "Great Grand Nephew & Niece"
+msgstr "Sobrina bisnieta"
+
+msgctxt "other"
+msgid "Great Grand Nephew & Niece"
+msgstr "Sobrino/a bisnieto/a"
+
+msgctxt "male"
+msgid "Half-"
+msgstr "Medio "
+
+msgctxt "female"
+msgid "Half-"
+msgstr "Media "
+
+msgctxt "other"
+msgid "Half-"
+msgstr "Medio/a "

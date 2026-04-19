@@ -2509,3 +2509,69 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "~%{percentage}% shared DNA"
 msgstr ""
+
+# Kinship labels — English gendered forms
+
+msgctxt "male"
+msgid "Uncle & Aunt"
+msgstr "Uncle"
+
+msgctxt "female"
+msgid "Uncle & Aunt"
+msgstr "Aunt"
+
+msgctxt "male"
+msgid "Nephew & Niece"
+msgstr "Nephew"
+
+msgctxt "female"
+msgid "Nephew & Niece"
+msgstr "Niece"
+
+msgctxt "male"
+msgid "Great Uncle & Aunt"
+msgstr "Great Uncle"
+
+msgctxt "female"
+msgid "Great Uncle & Aunt"
+msgstr "Great Aunt"
+
+msgctxt "male"
+msgid "Great Grand Uncle & Aunt"
+msgstr "Great Grand Uncle"
+
+msgctxt "female"
+msgid "Great Grand Uncle & Aunt"
+msgstr "Great Grand Aunt"
+
+msgctxt "male"
+msgid "Grand Nephew & Niece"
+msgstr "Grand Nephew"
+
+msgctxt "female"
+msgid "Grand Nephew & Niece"
+msgstr "Grand Niece"
+
+msgctxt "male"
+msgid "Great Grand Nephew & Niece"
+msgstr "Great Grand Nephew"
+
+msgctxt "female"
+msgid "Great Grand Nephew & Niece"
+msgstr "Great Grand Niece"
+
+msgctxt "male"
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Great Grand Uncle"
+
+msgctxt "female"
+msgid "%{nth} Great Grand Uncle & Aunt"
+msgstr "%{nth} Great Grand Aunt"
+
+msgctxt "male"
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Great Grand Nephew"
+
+msgctxt "female"
+msgid "%{nth} Great Grand Nephew & Niece"
+msgstr "%{nth} Great Grand Niece"

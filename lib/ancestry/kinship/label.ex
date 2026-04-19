@@ -81,14 +81,44 @@ defmodule Ancestry.Kinship.Label do
         removed_cousin_label(steps_a, steps_b, g)
       end
 
+    cousin_str =
+      if half? and String.ends_with?(half_prefix, " ") do
+        downcase_first(cousin_str)
+      else
+        cousin_str
+      end
+
     "#{half_prefix}#{cousin_str}"
   end
 
+  defp downcase_first(<<first::utf8, rest::binary>>), do: String.downcase(<<first::utf8>>) <> rest
+  defp downcase_first(""), do: ""
+
   # Same-generation cousins
   defp same_gen_cousin_label(steps, g) do
+    locale = Gettext.get_locale(Web.Gettext)
+
+    if String.starts_with?(locale, "es") do
+      spanish_cousin_label(steps, g)
+    else
+      english_cousin_label(steps, g)
+    end
+  end
+
+  defp english_cousin_label(steps, g) do
     degree = steps - 1
     degree_str = ordinal(degree, g)
     t(g, "%{degree} Cousin", degree: degree_str)
+  end
+
+  defp spanish_cousin_label(steps, g) do
+    degree = steps - 1
+    base = if g == "female", do: "Prima", else: "Primo"
+    ord = spanish_ordinal_suffix(degree, g)
+
+    [base, ord]
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.join(" ")
   end
 
   # Removed cousins — direction-aware for Spanish, English otherwise
@@ -123,7 +153,7 @@ defmodule Ancestry.Kinship.Label do
     direction = if steps_a < steps_b, do: :ascending, else: :descending
 
     base = spanish_base(direction, g)
-    gen_suffix = spanish_generation_suffix(direction, removed)
+    gen_suffix = spanish_generation_suffix(direction, removed, g)
     ord_suffix = spanish_ordinal_suffix(ordinal_n, g)
 
     [base, gen_suffix, ord_suffix]
@@ -138,22 +168,36 @@ defmodule Ancestry.Kinship.Label do
   defp spanish_base(:descending, "female"), do: "Sobrina"
   defp spanish_base(:descending, _), do: "Sobrino/a"
 
-  defp spanish_generation_suffix(_direction, 1), do: ""
-  defp spanish_generation_suffix(:ascending, 2), do: "abuelo/abuela"
-  defp spanish_generation_suffix(:ascending, 3), do: "bisabuelo/bisabuela"
-  defp spanish_generation_suffix(:ascending, 4), do: "tatarabuelo/tatarabuela"
-  defp spanish_generation_suffix(:ascending, 5), do: "trastatarabuelo/trastatarabuela"
+  defp spanish_generation_suffix(_direction, 1, _g), do: ""
+  defp spanish_generation_suffix(:ascending, 2, "female"), do: "abuela"
+  defp spanish_generation_suffix(:ascending, 2, _), do: "abuelo"
+  defp spanish_generation_suffix(:ascending, 3, "female"), do: "bisabuela"
+  defp spanish_generation_suffix(:ascending, 3, _), do: "bisabuelo"
+  defp spanish_generation_suffix(:ascending, 4, "female"), do: "tatarabuela"
+  defp spanish_generation_suffix(:ascending, 4, _), do: "tatarabuelo"
+  defp spanish_generation_suffix(:ascending, 5, "female"), do: "trastatarabuela"
+  defp spanish_generation_suffix(:ascending, 5, _), do: "trastatarabuelo"
 
-  defp spanish_generation_suffix(:ascending, n) when n >= 6,
-    do: "#{n}° abuelo/abuela"
+  defp spanish_generation_suffix(:ascending, n, "female") when n >= 6,
+    do: "#{n}° abuela"
 
-  defp spanish_generation_suffix(:descending, 2), do: "nieto/nieta"
-  defp spanish_generation_suffix(:descending, 3), do: "bisnieto/bisnieta"
-  defp spanish_generation_suffix(:descending, 4), do: "tataranieto/tataranieta"
-  defp spanish_generation_suffix(:descending, 5), do: "trastataranieto/trastataranieta"
+  defp spanish_generation_suffix(:ascending, n, _) when n >= 6,
+    do: "#{n}° abuelo"
 
-  defp spanish_generation_suffix(:descending, n) when n >= 6,
-    do: "#{n}° nieto/nieta"
+  defp spanish_generation_suffix(:descending, 2, "female"), do: "nieta"
+  defp spanish_generation_suffix(:descending, 2, _), do: "nieto"
+  defp spanish_generation_suffix(:descending, 3, "female"), do: "bisnieta"
+  defp spanish_generation_suffix(:descending, 3, _), do: "bisnieto"
+  defp spanish_generation_suffix(:descending, 4, "female"), do: "tataranieta"
+  defp spanish_generation_suffix(:descending, 4, _), do: "tataranieto"
+  defp spanish_generation_suffix(:descending, 5, "female"), do: "trastataranieta"
+  defp spanish_generation_suffix(:descending, 5, _), do: "trastataranieto"
+
+  defp spanish_generation_suffix(:descending, n, "female") when n >= 6,
+    do: "#{n}° nieta"
+
+  defp spanish_generation_suffix(:descending, n, _) when n >= 6,
+    do: "#{n}° nieto"
 
   defp spanish_ordinal_suffix(1, _g), do: ""
   defp spanish_ordinal_suffix(2, "female"), do: "segunda"
@@ -173,6 +217,16 @@ defmodule Ancestry.Kinship.Label do
   defp spanish_ordinal_suffix(n, _), do: "#{n}°"
 
   defp ancestor_label(steps, g) do
+    locale = Gettext.get_locale(Web.Gettext)
+
+    if String.starts_with?(locale, "es") do
+      spanish_ancestor_label(steps, g)
+    else
+      english_ancestor_label(steps, g)
+    end
+  end
+
+  defp english_ancestor_label(steps, g) do
     greats = steps - 2
 
     cond do
@@ -182,7 +236,31 @@ defmodule Ancestry.Kinship.Label do
     end
   end
 
+  defp spanish_ancestor_label(steps, g) do
+    greats = steps - 2
+
+    case greats do
+      1 -> t(g, "Great Grandparent")
+      2 -> t(g, "Great Great Grandparent")
+      3 -> t(g, "3rd Great Grandparent")
+      n -> "#{n + 1}° #{spanish_abuelo(g)}"
+    end
+  end
+
+  defp spanish_abuelo("female"), do: "Abuela"
+  defp spanish_abuelo(_), do: "Abuelo"
+
   defp descendant_label(steps, g) do
+    locale = Gettext.get_locale(Web.Gettext)
+
+    if String.starts_with?(locale, "es") do
+      spanish_descendant_label(steps, g)
+    else
+      english_descendant_label(steps, g)
+    end
+  end
+
+  defp english_descendant_label(steps, g) do
     greats = steps - 2
 
     cond do
@@ -191,6 +269,20 @@ defmodule Ancestry.Kinship.Label do
       greats >= 3 -> t(g, "%{nth} Great Grandchild", nth: numeric_ordinal(greats))
     end
   end
+
+  defp spanish_descendant_label(steps, g) do
+    greats = steps - 2
+
+    case greats do
+      1 -> t(g, "Great Grandchild")
+      2 -> t(g, "Great Great Grandchild")
+      3 -> t(g, "3rd Great Grandchild")
+      n -> "#{n + 1}° #{spanish_nieto(g)}"
+    end
+  end
+
+  defp spanish_nieto("female"), do: "Nieta"
+  defp spanish_nieto(_), do: "Nieto"
 
   defp ordinal(1, g), do: t(g, "First")
   defp ordinal(2, g), do: t(g, "Second")
