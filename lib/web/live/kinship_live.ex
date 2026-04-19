@@ -445,8 +445,8 @@ defmodule Web.KinshipLive do
           <% end %>
         </div>
       </div>
-      <div class="shrink-0 text-ds-primary/60">
-        <.icon name="hero-heart" class="w-5 h-5" />
+      <div class="shrink-0 text-ds-on-surface-variant/50">
+        <.icon name="hero-arrows-right-left" class="w-4 h-4" />
       </div>
       <div class={[
         "flex-1 flex items-center gap-2 px-3 py-2 rounded-ds-sharp border min-w-0",
