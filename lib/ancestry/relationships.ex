@@ -189,26 +189,18 @@ defmodule Ancestry.Relationships do
   defp get_relationship_partners(person_id, types, opts) do
     family_id = opts[:family_id]
 
-    as_a =
+    query =
       from(r in Relationship,
         join: p in Person,
-        on: p.id == r.person_b_id,
-        where: r.person_a_id == ^person_id and r.type in ^types,
+        on:
+          (r.person_a_id == ^person_id and p.id == r.person_b_id) or
+            (r.person_b_id == ^person_id and p.id == r.person_a_id),
+        where: r.type in ^types,
         select: {p, r}
       )
 
-    as_b =
-      from(r in Relationship,
-        join: p in Person,
-        on: p.id == r.person_a_id,
-        where: r.person_b_id == ^person_id and r.type in ^types,
-        select: {p, r}
-      )
-
-    as_a = maybe_filter_by_family(as_a, family_id)
-    as_b = maybe_filter_by_family(as_b, family_id)
-
-    Repo.all(as_a) ++ Repo.all(as_b)
+    query = maybe_filter_by_family(query, family_id)
+    Repo.all(query)
   end
 
   def get_children_of_pair(parent_a_id, parent_b_id, opts \\ []) do
