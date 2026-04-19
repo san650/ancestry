@@ -22,7 +22,12 @@ In `lib/web/components/photo_gallery.ex`, inside the `lightbox/1` component's pe
 
 - The link inherits existing text style (`text-sm text-white/85`).
 - Add `hover:text-white` for a subtle hover cue.
+- Add `focus-visible:text-white` for keyboard accessibility on the dark background.
 - `<a>` tags default to `cursor: pointer`, so no extra class needed.
+
+### Scope
+
+The `lightbox/1` component is shared by both `GalleryLive.Show` and `PersonLive.Show` (via `PhotoInteractions`). This change applies to both contexts — clicking a tagged person navigates to their page regardless of which LiveView the lightbox was opened from.
 
 ### No Server-Side Changes
 
@@ -32,11 +37,11 @@ In `lib/web/components/photo_gallery.ex`, inside the `lightbox/1` component's pe
 
 Add an E2E test in `test/user_flows/` that:
 
-1. Creates a gallery with a processed photo and a person
-2. Tags the person in the photo
-3. Opens the lightbox, opens the info panel
-4. Clicks the person name in the panel
-5. Asserts navigation to the person show page
+1. Creates a gallery with a processed photo and two tagged people
+2. Opens the lightbox, opens the info panel
+3. Asserts each person link has the correct `href` (`/org/:org_id/people/:person_id`)
+4. Clicks a person name in the panel
+5. Asserts navigation to the correct person show page
 
 ## Files Changed
 
