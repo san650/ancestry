@@ -241,9 +241,18 @@ Examples: "Medio primo segundo" (male half second cousin), "Media prima tercera"
 
 ## In-Laws — Familia Política
 
-In-law relationships are formed through marriage rather than blood. They do not use the MRCA coordinate system.
+In-law relationships are formed through marriage (or partnership) rather than blood. They do not use the MRCA coordinate system directly. Instead, the algorithm finds the blood relationship between one person and the other's partner, then labels it as the in-law version.
+
+### Rules
+
+1. `político/a` always goes at the **end** of compound terms (this rule applies to extended in-law terms; the three core special terms below use their own words instead)
+2. All gendered components inflect together (Tío abuelo político / Tía abuela política). For unknown gender, all components are slashed (Tío/a abuelo/a político/a)
+3. Three relationships have **special terms** — Suegro/a, Yerno/Nuera, Cuñado/a — they do NOT use the "político/a" suffix
+4. The in-law label describes "what person A is to person B" — gendered by **person A's gender**
 
 ### Core In-Law Terms
+
+These have special Spanish words — they do NOT use the "político/a" suffix:
 
 | Relationship | English (m) | English (f) | English (unknown) | Spanish (m) | Spanish (f) | Spanish (unknown) |
 |---|---|---|---|---|---|---|
@@ -251,19 +260,48 @@ In-law relationships are formed through marriage rather than blood. They do not 
 | Parent-in-law | Father-in-law | Mother-in-law | Parent-in-law | Suegro | Suegra | Suegro/a |
 | Child-in-law | Son-in-law | Daughter-in-law | Child-in-law | Yerno | Nuera | Yerno/Nuera |
 | Sibling-in-law | Brother-in-law | Sister-in-law | Sibling-in-law | Cuñado | Cuñada | Cuñado/a |
-| Grandparent-in-law | Grandfather-in-law | Grandmother-in-law | Grandparent-in-law | Abuelo político | Abuela política | Abuelo/a político/a |
 
-> Note: "Yerno" (son-in-law) and "Nuera" (daughter-in-law) are distinct words, not gendered forms of the same root. In English, both are formed with the "-in-law" suffix.
+> Note: "Yerno" (son-in-law) and "Nuera" (daughter-in-law) are distinct words, not gendered forms of the same root. The unknown form must list both: "Yerno/Nuera".
+
+> Note: The RAE also recognizes "padre político = suegro", "hijo político = yerno", "hermano político = cuñado" as formal synonyms (used in legal/obituary contexts), but the special terms are standard usage.
 
 ### Extended In-Law Terms
 
-| Relationship | English (m) | English (f) | Spanish (m) | Spanish (f) |
-|---|---|---|---|---|
-| Uncle/Aunt-in-law | Uncle-in-law | Aunt-in-law | Tío político | Tía política |
-| Cousin-in-law | Cousin-in-law | Cousin-in-law | Primo político | Prima política |
-| Nephew/Niece-in-law | Nephew-in-law | Niece-in-law | Sobrino político | Sobrina política |
+These use the blood kinship label + "político/a" suffix:
 
-### Additional In-Law Terms (common in Spanish)
+| Relationship | English (m) | English (f) | English (unknown) | Spanish (m) | Spanish (f) | Spanish (unknown) |
+|---|---|---|---|---|---|---|
+| Grandparent-in-law | Grandfather-in-law | Grandmother-in-law | Grandparent-in-law | Abuelo político | Abuela política | Abuelo/a político/a |
+| Grandchild-in-law | Grandson-in-law | Granddaughter-in-law | Grandchild-in-law | Nieto político | Nieta política | Nieto/a político/a |
+| Great Grandparent-in-law | Great grandfather-in-law | Great grandmother-in-law | Great grandparent-in-law | Bisabuelo político | Bisabuela política | Bisabuelo/a político/a |
+| Great Great Grandparent-in-law | Great great grandfather-in-law | Great great grandmother-in-law | Great great grandparent-in-law | Tatarabuelo político | Tatarabuela política | Tatarabuelo/a político/a |
+| Great Grandchild-in-law | Great grandson-in-law | Great granddaughter-in-law | Great grandchild-in-law | Bisnieto político | Bisnieta política | Bisnieto/a político/a |
+| Great Great Grandchild-in-law | Great great grandson-in-law | Great great granddaughter-in-law | Great great grandchild-in-law | Tataranieto político | Tataranieta política | Tataranieto/a político/a |
+| Uncle/Aunt-in-law | Uncle-in-law | Aunt-in-law | Uncle/Aunt-in-law | Tío político | Tía política | Tío/a político/a |
+| Nephew/Niece-in-law | Nephew-in-law | Niece-in-law | Nephew/Niece-in-law | Sobrino político | Sobrina política | Sobrino/a político/a |
+| Cousin-in-law | Cousin-in-law | Cousin-in-law | Cousin-in-law | Primo político | Prima política | Primo/a político/a |
+| Great Uncle/Aunt-in-law | Great uncle-in-law | Great aunt-in-law | Great uncle/aunt-in-law | Tío abuelo político | Tía abuela política | Tío/a abuelo/a político/a |
+| Great Grand Uncle/Aunt-in-law | Great grand uncle-in-law | Great grand aunt-in-law | Great grand uncle/aunt-in-law | Tío bisabuelo político | Tía bisabuela política | Tío/a bisabuelo/a político/a |
+| Grand Nephew/Niece-in-law | Grand nephew-in-law | Grand niece-in-law | Grand nephew/niece-in-law | Sobrino nieto político | Sobrina nieta política | Sobrino/a nieto/a político/a |
+| Great Grand Nephew/Niece-in-law | Great grand nephew-in-law | Great grand niece-in-law | Great grand nephew/niece-in-law | Sobrino bisnieto político | Sobrina bisnieta política | Sobrino/a bisnieto/a político/a |
+
+> **Formula:** For any extended in-law, construct the blood kinship label using person A's gender, then append `político` (m) / `política` (f) / `político/a` (unknown) at the end. For higher ordinals (≥6 generations), use the numeric form: e.g., "5° Abuelo político" / "5° Abuela política".
+
+### In-Law Label Construction
+
+The in-law label is constructed from the raw `(steps_a, steps_b)` coordinates of the underlying blood relationship, using **person A's gender** (not the partner's). The process:
+
+1. Find the blood relationship between person A (or their partner) and person B (or their partner)
+2. Extract the `(steps_a, steps_b)` coordinates from the blood BFS
+3. Map to in-law label:
+   - `(0,1)` → Suegro/a (not "Padre político")
+   - `(1,0)` → Yerno/Nuera (not "Hijo político")
+   - `(1,1)` → Cuñado/a (not "Hermano político")
+   - Everything else → blood label + "político/a" / "-in-law"
+
+### Additional In-Law Terms (common in Spanish, not currently implemented)
+
+These require **two** partner hops and are out of scope for single-hop in-law detection:
 
 | Spanish | English equivalent | Definition |
 |---|---|---|
