@@ -93,6 +93,6 @@ defmodule Web.UserFlows.PhotoToPersonNavigationTest do
 
     # Should be on Alice's person show page
     conn
-    |> assert_has("nav[aria-label='Breadcrumb']:visible", text: "Alice Nav")
+    |> assert_has("h1", text: "Alice Nav")
   end
 end

@@ -237,7 +237,7 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
       |> wait_liveview()
 
     # Should be on person show page (breadcrumb shows person name)
-    conn = assert_has(conn, "nav[aria-label='Breadcrumb']:visible", text: "Alice Smith")
+    conn = assert_has(conn, "h1", text: "Alice Smith")
 
     # Click "People" breadcrumb (navigates to org people page because from_org=true)
     conn =
