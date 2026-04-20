@@ -375,12 +375,12 @@ defmodule Web.CoreComponents do
           {@current}
         </h1>
         <nav :if={@items != []} class="min-w-0" aria-label={gettext("Breadcrumb")}>
-          <ol class="flex items-center gap-0.5 min-w-0">
+          <ol class="flex items-center gap-1 min-w-0 mt-0.5">
             <%= for {item, idx} <- Enum.with_index(@items) do %>
-              <li class="flex items-center gap-0.5 shrink min-w-0">
+              <li class="flex items-center gap-1 shrink min-w-0">
                 <.link
                   navigate={item.navigate}
-                  class="text-ds-on-surface-variant text-xs truncate max-w-[8rem]"
+                  class="inline-block px-2 py-0.5 rounded-full bg-ds-surface-high text-ds-on-surface-variant text-xs truncate max-w-[8rem]"
                 >
                   {item.label}
                 </.link>
