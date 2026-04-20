@@ -11,17 +11,19 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <%!-- Back arrow: desktop only --%>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label={gettext("Back to family")}
-        >
-          <.icon name="hero-arrow-left" class="size-5" />
-        </.link>
-        <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface truncate">
-          {@gallery.name}
-        </h1>
+        <.breadcrumb
+          items={[
+            %{
+              label: @current_scope.organization.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}"
+            },
+            %{
+              label: @family.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+            }
+          ]}
+          current={@gallery.name}
+        />
       </div>
 
       <div class="flex items-center gap-1">
@@ -103,17 +105,6 @@
       <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
     </.link>
   </.nav_drawer>
-
-  <%!-- Floating back FAB: mobile only, hidden while lightbox is open --%>
-  <.link
-    :if={is_nil(@selected_photo)}
-    id="gallery-back-fab"
-    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-    aria-label={gettext("Back to family")}
-  >
-    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-  </.link>
 
   <%!-- Hidden form required by LiveView for file uploads --%>
   <form id="upload-form" phx-change="validate" phx-submit="upload_photos" class="hidden">

@@ -11,16 +11,19 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <%!-- Back arrow: desktop only --%>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="hidden lg:flex p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
-        >
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
-        </.link>
-        <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
-          {gettext("New Member")}
-        </h1>
+        <.breadcrumb
+          items={[
+            %{
+              label: @current_scope.organization.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}"
+            },
+            %{
+              label: @family.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+            }
+          ]}
+          current={gettext("New Member")}
+        />
       </div>
     </div>
   </:toolbar>
@@ -35,15 +38,6 @@
       <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
-
-  <%!-- Back FAB (mobile only) --%>
-  <.link
-    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
-    aria-label={gettext("Back")}
-  >
-    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-  </.link>
 
   <div class="max-w-2xl mx-auto mt-8 px-4">
     <Web.Shared.PersonFormComponent.person_form_component

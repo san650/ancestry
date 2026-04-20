@@ -329,6 +329,77 @@ defmodule Web.CoreComponents do
   end
 
   @doc """
+  Renders a breadcrumb navigation trail.
+
+  On desktop, renders inline: `Org / Family / Current Page` with ancestors as links.
+  On mobile, renders stacked: bold title on top, small ancestor trail below.
+
+  ## Examples
+
+      <.breadcrumb items={[
+        %{label: "My Org", navigate: ~p"/org/1"},
+        %{label: "My Family", navigate: ~p"/org/1/families/2"}
+      ]} current="John Doe" />
+  """
+  attr :items, :list, required: true, doc: "list of %{label, navigate} maps for ancestor links"
+  attr :current, :string, required: true, doc: "current page title (last segment, not a link)"
+  attr :rest, :global
+
+  def breadcrumb(assigns) do
+    ~H"""
+    <div {@rest}>
+      <%!-- Desktop: inline breadcrumb --%>
+      <nav class="hidden lg:flex items-center gap-1 min-w-0" aria-label={gettext("Breadcrumb")}>
+        <ol class="flex items-center gap-1 min-w-0">
+          <%= for {item, _idx} <- Enum.with_index(@items) do %>
+            <li class="flex items-center gap-1 min-w-0 shrink">
+              <.link
+                navigate={item.navigate}
+                class="text-ds-on-surface-variant hover:text-ds-on-surface text-lg truncate max-w-[12rem]"
+              >
+                {item.label}
+              </.link>
+              <span class="text-ds-on-surface-variant shrink-0">/</span>
+            </li>
+          <% end %>
+          <li class="min-w-0">
+            <span class="font-ds-heading font-bold text-lg text-ds-on-surface truncate block">
+              {@current}
+            </span>
+          </li>
+        </ol>
+      </nav>
+      <%!-- Mobile: stacked title + trail --%>
+      <div class="lg:hidden min-w-0">
+        <h1 class="font-ds-heading font-semibold text-base text-ds-on-surface truncate">
+          {@current}
+        </h1>
+        <nav :if={@items != []} class="min-w-0" aria-label={gettext("Breadcrumb")}>
+          <ol class="flex items-center gap-0.5 min-w-0">
+            <%= for {item, idx} <- Enum.with_index(@items) do %>
+              <li class="flex items-center gap-0.5 shrink min-w-0">
+                <.link
+                  navigate={item.navigate}
+                  class="text-ds-on-surface-variant text-xs truncate max-w-[8rem]"
+                >
+                  {item.label}
+                </.link>
+                <span
+                  :if={idx < length(@items) - 1}
+                  class="text-ds-on-surface-variant text-xs shrink-0"
+                >
+                  /
+                </span>
+              </li>
+            <% end %>
+          </ol>
+        </nav>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a table with generic styling.
 
   ## Examples

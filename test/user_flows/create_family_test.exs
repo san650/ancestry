@@ -12,7 +12,7 @@ defmodule Web.UserFlows.CreateFamilyTest do
   # And the application navigates automatically to the family show page
   # And the empty state is shown
   #
-  # When the user clicks the navigate back arrow in the gallery
+  # When the user clicks the org name in the breadcrumb
   # Then the grid with the list of families is shown
   #
   # When the user clicks on the family shown in the grid
@@ -56,10 +56,10 @@ defmodule Web.UserFlows.CreateFamilyTest do
       |> assert_has(test_id("family-name"), text: "The Johnsons")
       |> assert_has(test_id("family-empty-state"))
 
-    # Click the back arrow — should see the family index
+    # Click the org breadcrumb — should see the family index
     conn =
       conn
-      |> click(test_id("family-back-btn"))
+      |> click_link("nav[aria-label='Breadcrumb']:visible a", "Test Org")
       |> wait_liveview()
       |> refute_has(test_id("families-empty"))
 

@@ -11,18 +11,19 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <%!-- Back arrow: desktop only --%>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="hidden lg:flex p-2 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
-          {test_id("people-back-btn")}
-        >
-          <.icon name="hero-arrow-left" class="w-5 h-5" />
-        </.link>
-        <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface truncate">
-          {@family.name}
-          <span class="text-ds-on-surface-variant font-normal">&mdash; {gettext("People")}</span>
-        </h1>
+        <.breadcrumb
+          items={[
+            %{
+              label: @current_scope.organization.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}"
+            },
+            %{
+              label: @family.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+            }
+          ]}
+          current={gettext("People")}
+        />
       </div>
       <div class="flex items-center gap-2">
         <%= if @editing && MapSet.size(@selected) > 0 do %>
@@ -66,15 +67,6 @@
       <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
-
-  <%!-- Back FAB (mobile only) --%>
-  <.link
-    navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-    class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center lg:hidden"
-    aria-label={gettext("Back")}
-  >
-    <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-  </.link>
 
   <%!-- Search box + unlinked chip --%>
   <div class="px-4 pt-4 pb-2 max-w-4xl mx-auto w-full">

@@ -2,21 +2,25 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
-        <.link
-          navigate={
-            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
-          }
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label={gettext("Back to vault")}
-        >
-          <.icon name="hero-arrow-left" class="size-5" />
-        </.link>
-        <h1
-          class="font-ds-heading font-bold text-lg text-ds-on-surface truncate"
+        <.breadcrumb
+          items={[
+            %{
+              label: @current_scope.organization.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}"
+            },
+            %{
+              label: @family.name,
+              navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+            },
+            %{
+              label: @vault.name,
+              navigate:
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+            }
+          ]}
+          current={@memory.name}
           {test_id("memory-show-name")}
-        >
-          {@memory.name}
-        </h1>
+        />
       </div>
       <.link
         navigate={
