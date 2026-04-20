@@ -11,42 +11,45 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <%!-- Back arrow: desktop only --%>
-        <%= cond do %>
-          <% @from_family -> %>
-            <.link
-              navigate={
-                ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
-              }
-              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label={gettext("Back")}
-              {test_id("person-back-btn")}
-            >
-              <.icon name="hero-arrow-left" class="size-5" />
-            </.link>
-          <% @from_org -> %>
-            <.link
-              navigate={~p"/org/#{@current_scope.organization.id}/people"}
-              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label={gettext("Back")}
-              {test_id("person-back-btn")}
-            >
-              <.icon name="hero-arrow-left" class="size-5" />
-            </.link>
-          <% true -> %>
-            <.link
-              navigate={~p"/org/#{@current_scope.organization.id}"}
-              class="hidden lg:flex p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-              aria-label={gettext("Back")}
-              {test_id("person-back-btn")}
-            >
-              <.icon name="hero-arrow-left" class="size-5" />
-            </.link>
-        <% end %>
-        <%!-- Name in toolbar: desktop only (mobile has it on the hero photo) --%>
-        <h1 class="hidden lg:block font-ds-heading font-bold text-lg text-ds-on-surface truncate">
-          {Ancestry.People.Person.display_name(@person)}
-        </h1>
+        <.breadcrumb
+          items={
+            cond do
+              @from_family ->
+                [
+                  %{
+                    label: @current_scope.organization.name,
+                    navigate: ~p"/org/#{@current_scope.organization.id}"
+                  },
+                  %{
+                    label: @from_family.name,
+                    navigate:
+                      ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
+                  }
+                ]
+
+              @from_org ->
+                [
+                  %{
+                    label: @current_scope.organization.name,
+                    navigate: ~p"/org/#{@current_scope.organization.id}"
+                  },
+                  %{
+                    label: gettext("People"),
+                    navigate: ~p"/org/#{@current_scope.organization.id}/people"
+                  }
+                ]
+
+              true ->
+                [
+                  %{
+                    label: @current_scope.organization.name,
+                    navigate: ~p"/org/#{@current_scope.organization.id}"
+                  }
+                ]
+            end
+          }
+          current={Ancestry.People.Person.display_name(@person)}
+        />
       </div>
 
       <div class="flex items-center gap-1">
@@ -116,39 +119,6 @@
       <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
     </.link>
   </.nav_drawer>
-
-  <%!-- Floating back FAB: mobile only --%>
-  <%= cond do %>
-    <% @from_family -> %>
-      <.link
-        navigate={
-          ~p"/org/#{@current_scope.organization.id}/families/#{@from_family.id}?person=#{@person.id}"
-        }
-        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label={gettext("Back")}
-        {test_id("person-back-fab")}
-      >
-        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-      </.link>
-    <% @from_org -> %>
-      <.link
-        navigate={~p"/org/#{@current_scope.organization.id}/people"}
-        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label={gettext("Back")}
-        {test_id("person-back-fab")}
-      >
-        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-      </.link>
-    <% true -> %>
-      <.link
-        navigate={~p"/org/#{@current_scope.organization.id}"}
-        class="fixed bottom-4 left-4 z-30 bg-ds-surface-card shadow-ds-ambient rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center pb-[env(safe-area-inset-bottom)] lg:hidden"
-        aria-label={gettext("Back")}
-        {test_id("person-back-fab")}
-      >
-        <.icon name="hero-arrow-left" class="size-5 text-ds-on-surface" />
-      </.link>
-  <% end %>
 
   <%= if @editing do %>
     <div class="max-w-2xl mx-auto">

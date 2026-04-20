@@ -236,13 +236,13 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
       |> click(test_id("org-people-edit-person-#{alice.id}"))
       |> wait_liveview()
 
-    # Should be on person show page
+    # Should be on person show page (breadcrumb shows person name)
     conn = assert_has(conn, "h1", text: "Alice Smith")
 
-    # Click back arrow in toolbar (desktop, navigates to org people page because from_org=true)
+    # Click "People" breadcrumb (navigates to org people page because from_org=true)
     conn =
       conn
-      |> click(test_id("person-back-btn"))
+      |> click_link("nav[aria-label='Breadcrumb']:visible a", "People")
       |> wait_liveview()
 
     # Should be back on org people page

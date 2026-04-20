@@ -329,6 +329,53 @@ defmodule Web.CoreComponents do
   end
 
   @doc """
+  Renders a breadcrumb navigation trail.
+
+  On desktop, renders inline: `Org / Family / Current Page` with ancestors as links.
+  On mobile, renders stacked: bold title on top, small ancestor trail below.
+
+  ## Examples
+
+      <.breadcrumb items={[
+        %{label: "My Org", navigate: ~p"/org/1"},
+        %{label: "My Family", navigate: ~p"/org/1/families/2"}
+      ]} current="John Doe" />
+  """
+  attr :items, :list, required: true, doc: "list of %{label, navigate} maps for ancestor links"
+  attr :current, :string, required: true, doc: "current page title (last segment, not a link)"
+  attr :rest, :global
+
+  def breadcrumb(assigns) do
+    ~H"""
+    <div {@rest} class="min-w-0">
+      <h1 class="font-ds-heading font-semibold text-base lg:text-lg text-ds-on-surface truncate">
+        {@current}
+      </h1>
+      <nav :if={@items != []} class="min-w-0" aria-label={gettext("Breadcrumb")}>
+        <ol class="flex items-center gap-1 min-w-0 mt-0.5">
+          <%= for {item, idx} <- Enum.with_index(@items) do %>
+            <li class="flex items-center gap-1 shrink min-w-0">
+              <.link
+                navigate={item.navigate}
+                class="inline-block px-2 py-0.5 rounded-full bg-ds-surface-high text-ds-on-surface-variant hover:text-ds-on-surface text-xs truncate max-w-[8rem] lg:max-w-[12rem]"
+              >
+                {item.label}
+              </.link>
+              <span
+                :if={idx < length(@items) - 1}
+                class="text-ds-on-surface-variant text-xs shrink-0"
+              >
+                /
+              </span>
+            </li>
+          <% end %>
+        </ol>
+      </nav>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a table with generic styling.
 
   ## Examples

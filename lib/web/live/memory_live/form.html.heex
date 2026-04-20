@@ -2,28 +2,38 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
-        <.link
-          navigate={
-            if(@live_action == :edit,
-              do:
-                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}",
-              else:
-                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
-            )
+        <.breadcrumb
+          items={
+            [
+              %{
+                label: @current_scope.organization.name,
+                navigate: ~p"/org/#{@current_scope.organization.id}"
+              },
+              %{
+                label: @family.name,
+                navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+              },
+              %{
+                label: @vault.name,
+                navigate:
+                  ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
+              }
+            ] ++
+              if(@live_action == :edit,
+                do: [
+                  %{
+                    label: @memory.name,
+                    navigate:
+                      ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}"
+                  }
+                ],
+                else: []
+              )
           }
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface"
-          aria-label={
-            if(@live_action == :edit,
-              do: gettext("Back to memory"),
-              else: gettext("Back to vault")
-            )
+          current={
+            if @live_action == :new, do: gettext("New Memory"), else: gettext("Edit Memory")
           }
-        >
-          <.icon name="hero-arrow-left" class="size-5" />
-        </.link>
-        <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface truncate">
-          {if @live_action == :new, do: gettext("New Memory"), else: gettext("Edit Memory")}
-        </h1>
+        />
       </div>
     </div>
   </:toolbar>
