@@ -414,4 +414,104 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       refute html =~ ~s(value="User")
     end
   end
+
+  describe "auto-set gender from parent role" do
+    test "sets gender to male when adding parent with role father and person has no gender", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, candidate} =
+        People.create_person(family, %{given_name: "NoGender", surname: "Parent"})
+
+      assert candidate.gender == nil
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "NoGender"})
+
+      view |> element("#search-result-#{candidate.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "father"})
+      |> render_submit()
+
+      updated = People.get_person!(candidate.id)
+      assert updated.gender == "male"
+    end
+
+    test "sets gender to female when adding parent with role mother and person has no gender", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, candidate} =
+        People.create_person(family, %{given_name: "NoGender2", surname: "Parent"})
+
+      assert candidate.gender == nil
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "NoGender2"})
+
+      view |> element("#search-result-#{candidate.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "mother"})
+      |> render_submit()
+
+      updated = People.get_person!(candidate.id)
+      assert updated.gender == "female"
+    end
+
+    test "does not overwrite existing gender when adding parent", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, candidate} =
+        People.create_person(family, %{
+          given_name: "HasGender",
+          surname: "Parent",
+          gender: "female"
+        })
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
+
+      render_async(view)
+      view |> element("button[phx-value-type='parent']") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "HasGender"})
+
+      view |> element("#search-result-#{candidate.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "father"})
+      |> render_submit()
+
+      updated = People.get_person!(candidate.id)
+      assert updated.gender == "female"
+    end
+  end
 end

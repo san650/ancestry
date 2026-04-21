@@ -330,4 +330,156 @@ defmodule Web.PersonLive.RelationshipsTest do
     assert has_element?(view, "#parents-section")
     assert render(view) =~ "Alice"
   end
+
+  describe "auto-link co-parents when adding second parent" do
+    test "creates partner relationship between the two parents", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, father} =
+        People.create_person(family, %{given_name: "Dad", surname: "Auto", gender: "male"})
+
+      {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
+
+      {:ok, mother} =
+        People.create_person(family, %{given_name: "Mom", surname: "Auto", gender: "female"})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
+      view |> element("#add-parent-btn") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "Mom"})
+
+      view |> element("#search-result-#{mother.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "mother"})
+      |> render_submit()
+
+      # Verify the auto-created partner relationship
+      partners = Relationships.get_active_partners(father.id)
+      assert length(partners) == 1
+      assert {partner, rel} = hd(partners)
+      assert partner.id == mother.id
+      assert rel.type == "relationship"
+    end
+
+    test "does not create partner relationship when adding first parent", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, father} =
+        People.create_person(family, %{given_name: "FirstDad", surname: "Solo", gender: "male"})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
+      view |> element("#add-parent-btn") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "FirstDad"})
+
+      view |> element("#search-result-#{father.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "father"})
+      |> render_submit()
+
+      assert Relationships.get_active_partners(father.id) == []
+      assert Relationships.get_all_partners(father.id) == []
+    end
+
+    test "does not create duplicate when parents are already married", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, father} =
+        People.create_person(family, %{given_name: "MarriedDad", surname: "X", gender: "male"})
+
+      {:ok, mother} =
+        People.create_person(family, %{given_name: "MarriedMom", surname: "X", gender: "female"})
+
+      {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(father, mother, "married", %{marriage_year: 2020})
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
+      view |> element("#add-parent-btn") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "MarriedMom"})
+
+      view |> element("#search-result-#{mother.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "mother"})
+      |> render_submit()
+
+      # Should still have exactly 1 partner relationship (the existing married one)
+      all_partners = Relationships.get_all_partners(father.id)
+      assert length(all_partners) == 1
+      assert {_, rel} = hd(all_partners)
+      assert rel.type == "married"
+    end
+
+    test "does not create duplicate when parents are already divorced", %{
+      conn: conn,
+      family: family,
+      person: person,
+      org: org
+    } do
+      {:ok, father} =
+        People.create_person(family, %{given_name: "ExDad", surname: "Y", gender: "male"})
+
+      {:ok, mother} =
+        People.create_person(family, %{given_name: "ExMom", surname: "Y", gender: "female"})
+
+      {:ok, _} = Relationships.create_relationship(father, person, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(father, mother, "divorced", %{
+          marriage_year: 2010,
+          divorce_year: 2020
+        })
+
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
+      view |> element("#add-parent-btn") |> render_click()
+      view |> element("#add-rel-link-existing-btn") |> render_click()
+
+      view
+      |> element("#relationship-search-input")
+      |> render_keyup(%{value: "ExMom"})
+
+      view |> element("#search-result-#{mother.id}") |> render_click()
+
+      view
+      |> form("#add-parent-form", metadata: %{role: "mother"})
+      |> render_submit()
+
+      # Should still have exactly 1 partner relationship (the existing divorced one)
+      all_partners = Relationships.get_all_partners(father.id)
+      assert length(all_partners) == 1
+      assert {_, rel} = hd(all_partners)
+      assert rel.type == "divorced"
+    end
+  end
 end

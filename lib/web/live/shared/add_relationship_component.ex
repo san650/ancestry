@@ -153,13 +153,25 @@ defmodule Web.Shared.AddRelationshipComponent do
       case type do
         "parent" ->
           metadata_params = Map.get(params, "metadata", %{})
+          role = Map.get(metadata_params, "role")
 
-          Relationships.create_relationship(
-            selected,
-            person,
-            "parent",
-            atomize_metadata(metadata_params)
-          )
+          # Default gender based on role (father → male, mother → female)
+          maybe_set_gender_from_role(selected, role)
+
+          case Relationships.create_relationship(
+                 selected,
+                 person,
+                 "parent",
+                 atomize_metadata(metadata_params)
+               ) do
+            {:ok, _} = ok ->
+              # Auto-create partner relationship with existing co-parent
+              maybe_link_coparents(selected, person)
+              ok
+
+            error ->
+              error
+          end
 
         "partner" ->
           metadata_params = Map.get(params, "metadata", %{})
@@ -603,6 +615,44 @@ defmodule Web.Shared.AddRelationshipComponent do
   defp relationship_title("child"), do: gettext("Add Child")
   defp relationship_title("child_solo"), do: gettext("Add Child (Unknown Other Parent)")
   defp relationship_title(_), do: gettext("Add Relationship")
+
+  # Set gender on a person based on parent role (father → male, mother → female).
+  # Only updates if the person has no gender set yet.
+  defp maybe_set_gender_from_role(%Person{gender: nil} = person, "father") do
+    People.update_person(person, %{gender: "male"})
+  end
+
+  defp maybe_set_gender_from_role(%Person{gender: nil} = person, "mother") do
+    People.update_person(person, %{gender: "female"})
+  end
+
+  defp maybe_set_gender_from_role(_person, _role), do: :ok
+
+  # After adding a parent, check if the child already has another parent.
+  # If so, create a "relationship" between the two parents (unless one already exists).
+  defp maybe_link_coparents(new_parent, child) do
+    case Ancestry.Relationships.get_parents(child.id) do
+      parents when length(parents) == 2 ->
+        [{p1, _}, {p2, _}] = parents
+        other = if p1.id == new_parent.id, do: p2, else: p1
+
+        # Only create if no partner relationship exists yet
+        existing = Ancestry.Relationships.list_relationships_for_person(new_parent.id)
+
+        has_partner_rel =
+          Enum.any?(existing, fn r ->
+            r.type in ~w(married relationship divorced separated) and
+              (r.person_a_id == other.id or r.person_b_id == other.id)
+          end)
+
+        unless has_partner_rel do
+          Relationships.create_relationship(new_parent, other, "relationship", %{})
+        end
+
+      _ ->
+        :ok
+    end
+  end
 
   defp relationship_error_message(:max_parents_reached),
     do: gettext("This person already has 2 parents")
