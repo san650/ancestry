@@ -31,14 +31,15 @@ Specific reasons it's harder than a typical org chart or file browser:
 ### A Simple Family
 
 ```mermaid
-graph TD
-    GP_A["Grandpa A = Grandma B"]
-    MGP["Grandpa C = Grandma D"]
-    Parents["Dad = Mom"]
+flowchart TD
+    GP_A["Grandpa A ♥ Grandma B"]
+    MGP["Grandpa C ♥ Grandma D"]
     GP_A --> Dad
     GP_A --> Uncle
     MGP --> Mom
     MGP --> Aunt
+    Dad --> Parents["Dad ♥ Mom"]
+    Mom --> Parents
     Parents --> Me
     Parents --> Sister
 ```
@@ -48,22 +49,24 @@ graph TD
 The same grandparents appear on **both** sides of the tree — this is correct:
 
 ```mermaid
-graph TD
-    Left["A = B (paternal side)"]
-    Right["A = B (maternal side)"]
+flowchart TD
+    Left["A ♥ B (paternal side)"]
+    Right["A ♥ B (maternal side)"]
     Left --> C
     Right --> D
-    Couple["C = D"]
-    Couple --> E["E = F"]
-    E --> G["G (focus)"]
+    C --> Couple["C ♥ D"]
+    D --> Couple
+    Couple --> EF["E ♥ F"]
+    EF --> G["G (focus)"]
 ```
 
 ### Blended Family
 
 ```mermaid
-graph TD
+flowchart TD
     ExCouple["ExWife ··· Dad"]
-    CurrentCouple["Dad = Mom"]
+    CurrentCouple["Dad ♥ Mom"]
+    ExCouple -.-> CurrentCouple
     ExCouple -.-> HalfSibling["Half-Sibling"]
     CurrentCouple --> Me
     CurrentCouple --> Sister
@@ -102,15 +105,16 @@ The most common cycle in real genealogy. Two first cousins share the same grandp
 **The family graph (cyclic):**
 
 ```mermaid
-graph TD
-    AB["Grandpa = Grandma"]
+flowchart TD
+    AB["Grandpa ♥ Grandma"]
     AB --> C["Son C"]
     AB --> D["Son D"]
-    CW["C = Wife-C"]
-    DH["D = Wife-D"]
+    C --> CW["C ♥ Wife-C"]
+    D --> DH["D ♥ Wife-D"]
     CW --> E["E (cousin)"]
     DH --> F["F (cousin)"]
-    EF["E = F"]
+    E --> EF["E ♥ F"]
+    F --> EF
     EF --> Focus["Focus person"]
 
     style AB fill:#f96,stroke:#333,color:#000
@@ -120,25 +124,26 @@ graph TD
     linkStyle 1 stroke:#f00
 ```
 
-The red edges show the two paths that both reach Grandpa = Grandma. That's the cycle: Focus → E → C → **Grandpa = Grandma** and Focus → F → D → **Grandpa = Grandma**.
+The red edges show the two paths that both reach Grandpa ♥ Grandma. That's the cycle: Focus → E → C → **Grandpa ♥ Grandma** and Focus → F → D → **Grandpa ♥ Grandma**.
 
 **The rendered DAG (cycle broken):**
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph left ["E's side"]
-        AB1["Grandpa = Grandma ①"]
-        AB1 --> C1["C = Wife-C"]
+        AB1["Grandpa ♥ Grandma ①"]
+        AB1 --> C1["C ♥ Wife-C"]
         C1 --> E_pt["⬇ pass-through to E"]
     end
 
     subgraph right ["F's side"]
-        AB2["Grandpa = Grandma ②"]
-        AB2 --> D1["D = Wife-D"]
+        AB2["Grandpa ♥ Grandma ②"]
+        AB2 --> D1["D ♥ Wife-D"]
         D1 --> F_pt["⬇ pass-through to F"]
     end
 
-    EF["E = F"]
+    E_pt --> EF["E ♥ F"]
+    F_pt --> EF
     EF --> Focus["Focus person"]
 
     style AB1 fill:#f96,stroke:#333,color:#000
@@ -159,13 +164,15 @@ A common historical scenario. Mom marries Brother-1. Brother-1 dies. Mom then ma
 **The family graph (cyclic):**
 
 ```mermaid
-graph TD
-    GP["Grandpa = Grandma"]
+flowchart TD
+    GP["Grandpa ♥ Grandma"]
     GP --> B1["Brother-1"]
     GP --> B2["Brother-2"]
-    RM["Brother-1 = Mom"]
+    B1 --> RM["Brother-1 ♥ Mom"]
+    Mom --> RM
+    B2 --> MA["Brother-2 ♥ Mom"]
+    Mom --> MA
     RM --> Half["Half-sibling"]
-    MA["Brother-2 = Mom"]
     MA --> Focus["Focus person"]
 
     style GP fill:#f96,stroke:#333,color:#000
@@ -178,18 +185,20 @@ The cycles: Mom appears in two partnerships. Brother-1 is both Brother-2's sibli
 **The rendered DAG (cycle broken):**
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph gp_level ["Grandparents level"]
-        GP["Grandpa = Grandma"]
+        GP["Grandpa ♥ Grandma"]
         GP --> B1_lat["Brother-1 (lateral sibling)"]
         GP --> B2_pt["⬇ pass-through to Brother-2"]
     end
 
     subgraph couple_level ["Couple level"]
-        ExCouple["Brother-1 ② ··· Brother-2 = Mom"]
+        ExCouple["Brother-1 ② ··· Brother-2 ♥ Mom"]
         ExCouple --> Half["Half-sibling (ex-partner's child)"]
         ExCouple --> Focus["Focus person"]
     end
+
+    B2_pt --> ExCouple
 
     style GP fill:#f96,stroke:#333,color:#000
     style B1_lat fill:#f96,stroke:#333,color:#000
@@ -209,18 +218,21 @@ Brother-X and Brother-Y (sons of Grandparents-A) marry Sister-X and Sister-Y (da
 **The family graph (cyclic):**
 
 ```mermaid
-graph TD
+flowchart TD
     GPA["Grandparents-A"]
     GPB["Grandparents-B"]
     GPA --> BX["Brother-X"]
     GPA --> BY["Brother-Y"]
     GPB --> SX["Sister-X"]
     GPB --> SY["Sister-Y"]
-    CE["Brother-X = Sister-X"]
-    DF["Brother-Y = Sister-Y"]
+    BX --> CE["Brother-X ♥ Sister-X"]
+    SX --> CE
+    BY --> DF["Brother-Y ♥ Sister-Y"]
+    SY --> DF
     CE --> P1["Parent-1"]
     DF --> P2["Parent-2"]
-    ML["Parent-1 = Parent-2"]
+    P1 --> ML["Parent-1 ♥ Parent-2"]
+    P2 --> ML
     ML --> Focus["Focus person"]
 
     style GPA fill:#f96,stroke:#333,color:#000
@@ -233,24 +245,27 @@ Focus person's ancestor walk: through Parent-1 → Brother-X → **Grandparents-
 **The rendered DAG (cycle broken):**
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph p1_side ["Parent-1's ancestry (left)"]
         GPA1["Grandparents-A ①"]
         GPB1["Grandparents-B ①"]
-        GPA1 --> BX1["Brother-X = Sister-X"]
+        GPA1 --> BX1["Brother-X ♥ Sister-X"]
         GPB1 --> SX1["Sister-X"]
+        SX1 --> BX1
         BX1 --> P1_pt["⬇ pass-through to Parent-1"]
     end
 
     subgraph p2_side ["Parent-2's ancestry (right)"]
         GPA2["Grandparents-A ②"]
         GPB2["Grandparents-B ②"]
-        GPA2 --> BY1["Brother-Y = Sister-Y"]
+        GPA2 --> BY1["Brother-Y ♥ Sister-Y"]
         GPB2 --> SY1["Sister-Y"]
+        SY1 --> BY1
         BY1 --> P2_pt["⬇ pass-through to Parent-2"]
     end
 
-    ML["Parent-1 = Parent-2"]
+    P1_pt --> ML["Parent-1 ♥ Parent-2"]
+    P2_pt --> ML
     ML --> Focus["Focus person"]
 
     style GPA1 fill:#f96,stroke:#333,color:#000
@@ -275,13 +290,14 @@ A historically documented pattern: a man marries his brother's daughter. This cr
 **The family graph (cyclic):**
 
 ```mermaid
-graph TD
-    GP["Grandpa = Grandma"]
+flowchart TD
+    GP["Grandpa ♥ Grandma"]
     GP --> Brother["Brother"]
     GP --> Uncle
-    PW["Brother = Wife"]
+    Brother --> PW["Brother ♥ Wife"]
     PW --> Niece
-    MN["Uncle = Niece"]
+    Uncle --> MN["Uncle ♥ Niece"]
+    Niece --> MN
     MN --> Focus["Focus person"]
 
     style GP fill:#f96,stroke:#333,color:#000
@@ -289,25 +305,26 @@ graph TD
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
 
-Focus → Uncle (father) → **Grandpa = Grandma**. Also: Focus → Niece (mother) → Brother = Wife → Brother → **Grandpa = Grandma**. The grandparents are reached at depth 2 on the left and depth 3 on the right.
+Focus → Uncle (father) → **Grandpa ♥ Grandma**. Also: Focus → Niece (mother) → Brother ♥ Wife → Brother → **Grandpa ♥ Grandma**. The grandparents are reached at depth 2 on the left and depth 3 on the right.
 
 **The rendered DAG (cycle broken):**
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph uncle_side ["Uncle's ancestry (left)"]
-        GP1["Grandpa = Grandma ①"]
+        GP1["Grandpa ♥ Grandma ①"]
         GP1 --> Uncle_pt["⬇ pass-through to Uncle"]
         GP1 --> Bro_lat["Brother (lateral sibling)"]
     end
 
     subgraph niece_side ["Niece's ancestry (right)"]
-        GP2["Grandpa = Grandma ②"]
-        GP2 --> Bro2["Brother ② = Wife"]
+        GP2["Grandpa ♥ Grandma ②"]
+        GP2 --> Bro2["Brother ② ♥ Wife"]
         Bro2 --> N_pt["⬇ pass-through to Niece"]
     end
 
-    MN["Uncle = Niece"]
+    Uncle_pt --> MN["Uncle ♥ Niece"]
+    N_pt --> MN
     MN --> Focus["Focus person"]
 
     style GP1 fill:#f96,stroke:#333,color:#000
@@ -317,9 +334,9 @@ graph TD
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
 
-**What gets duplicated:** Grandpa = Grandma appear twice (once on each side). Brother also appears twice — as a lateral sibling on the left (Uncle's brother) and as Niece's parent on the right. These are different roles: "Dad's brother" vs. "Mom's father."
+**What gets duplicated:** Grandpa ♥ Grandma appear twice (once on each side). Brother also appears twice — as a lateral sibling on the left (Uncle's brother) and as Niece's parent on the right. These are different roles: "Dad's brother" vs. "Mom's father."
 
-**Generational alignment note:** On the left, Grandpa = Grandma sit at generation 2. On the right, they sit at generation 3 (because the path through Niece is one step longer). Generational alignment ensures both copies still line up at the same vertical level — the right side's DAG is taller, and the left side has empty space above it.
+**Generational alignment note:** On the left, Grandpa ♥ Grandma sit at generation 2. On the right, they sit at generation 3 (because the path through Niece is one step longer). Generational alignment ensures both copies still line up at the same vertical level — the right side's DAG is taller, and the left side has empty space above it.
 
 ---
 
@@ -332,20 +349,19 @@ Two brothers (Brother-X and Brother-Y) marry two sisters (Sister-X and Sister-Y)
 **The family graph (with partner-edge connections):**
 
 ```mermaid
-graph TD
+flowchart TD
     GPA["Grandparents-A"]
     GPB["Grandparents-B"]
     GPA --> BX["Brother-X"]
     GPA --> BY["Brother-Y"]
     GPB --> SX["Sister-X"]
     GPB --> SY["Sister-Y"]
-    CE["Brother-X = Sister-X"]
-    DF["Brother-Y = Sister-Y"]
+    BX --> CE["Brother-X ♥ Sister-X"]
+    SX --> CE
+    BY --> DF["Brother-Y ♥ Sister-Y"]
+    SY --> DF
     CE --> Focus["Focus person"]
     DF --> Cousin["Cousin"]
-
-    BX ~~~ BY
-    SX ~~~ SY
 
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
@@ -353,7 +369,7 @@ graph TD
 **The rendered DAG (no duplication needed):**
 
 ```mermaid
-graph TD
+flowchart TD
     subgraph dad_side ["Brother-X's ancestry"]
         GPA["Grandparents-A"]
         GPA --> BX_pt["⬇ pass-through to Brother-X"]
@@ -366,7 +382,8 @@ graph TD
         GPB --> SY_lat["Sister-Y (lateral sibling)"]
     end
 
-    CE["Brother-X = Sister-X"]
+    BX_pt --> CE["Brother-X ♥ Sister-X"]
+    SX_pt --> CE
     CE --> Focus["Focus person"]
 
     style Focus fill:#9cf,stroke:#333,color:#000
