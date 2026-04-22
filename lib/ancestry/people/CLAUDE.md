@@ -22,7 +22,7 @@ Specific reasons it's harder than a typical org chart or file browser:
 
 2. **People play multiple roles.** The same person can be someone's uncle AND someone else's grandfather. In the tree, that person appears in every position they occupy — they are "cloned" into each role.
 
-3. **Pedigree collapse.** When cousins marry, their children reach the same ancestor through both parents. The shared ancestor appears twice in the tree (once on each side). This is correct — the tree shows roles, not unique individuals.
+3. **Pedigree collapse.** When cousins marry, their children reach the same ancestor through both parents. If both paths reach the ancestor at the same generation level, the ancestor appears once as a shared node. If a generational crossing occurs (paths reach the ancestor at different levels), the ancestor is duplicated.
 
 4. **Partner relationships are horizontal.** Couples sit side-by-side within a generation, not in a parent-child hierarchy. This creates non-hierarchical edges that a simple tree structure can't represent.
 
@@ -46,14 +46,13 @@ flowchart TD
 
 ### Pedigree Collapse (Cousins Who Married)
 
-The same grandparents appear on **both** sides of the tree — this is correct:
+The shared grandparents appear once as a shared node — C and D are shown as siblings below them:
 
 ```mermaid
 flowchart TD
-    Left["A ♥ B (paternal side)"]
-    Right["A ♥ B (maternal side)"]
-    Left --> C
-    Right --> D
+    AB["A ♥ B"]
+    AB --> C
+    AB --> D
     C --> Couple["C ♥ D"]
     D --> Couple
     Couple --> EF["E ♥ F"]
@@ -76,7 +75,7 @@ flowchart TD
 
 ## How Cycles Are Broken: From Cyclic Graph to Directed Acyclic Graph
 
-The family data is a cyclic graph — but the view must be a **directed acyclic graph (DAG)** with no cycles. It's not technically a tree either, since it has multiple root nodes (the oldest known ancestors) and multiple leaf nodes (the youngest descendants). This section explains the two rules that eliminate cycles, the duplication strategy that keeps the result genealogically correct, and every type of cycle that can occur in real family data.
+The family data is a cyclic graph — but the view must be a **directed acyclic graph (DAG)** with no cycles. It's not technically a tree either, since it has multiple root nodes (the oldest known ancestors) and multiple leaf nodes (the youngest descendants). This section explains the two rules that eliminate cycles, the sharing and duplication strategies that keep the result genealogically correct, and every type of cycle that can occur in real family data.
 
 ### The Two Rules
 
@@ -84,15 +83,21 @@ The family data is a cyclic graph — but the view must be a **directed acyclic 
 
 **Rule 2: Only follow child edges downward.** When building descendants, the traversal walks downward through child edges only. It never follows a partner edge back up.
 
-These two rules guarantee the output is acyclic. When a person is reachable through multiple paths, they are **duplicated** — they appear as an independent card in every position they occupy. All copies link to the same person (clicking any of them navigates to that person), but visually they are separate cards.
+These two rules guarantee the output is acyclic. When a person is reachable through multiple upward paths, three strategies keep the DAG valid (applied in this priority order):
 
-This is the correct genealogical behavior. The DAG shows **positions** (roles in the family structure), not unique individuals.
+1. **"(duplicated)" stub** — when the upward traversal encounters a person already visible elsewhere in the tree (as a lateral relative, shared node, or direct ancestor), it places a stub card labeled "(duplicated)" and **stops**. No ancestry is built above the stub. This prevents duplication from propagating up through ancestor chains. The user can click the stub to navigate to the person's full context.
+2. **Sharing** — when both paths reach the person at the **same generation level** and no stub was placed first, a single card serves both sides. The node's children branch left and right with no crossing connectors.
+3. **Full duplication** — when the person is at **different generation levels** on each path (a generational crossing) and no earlier person triggered a stub, the person appears as a separate card on each side at the correct level. All copies link to the same person.
+
+Strategy 1 (stubs) is checked first: if the traversal can stop early at an already-visible person, it avoids reaching the convergence ancestor entirely — saving all ancestors above. Strategy 2 (sharing) applies when no early stop was possible and the generations align. Strategy 3 (full duplication) is the fallback when generations don't align.
+
+The DAG shows **positions** (roles in the family structure), not unique individuals.
 
 ---
 
 ### Catalog of Cycle Types
 
-Every cycle in a family graph falls into one of five categories. Each is shown below as the problem (the real family graph, which has cycles) and the resolution (the rendered DAG, which duplicates people to break them).
+Every cycle in a family graph falls into one of five categories. Each is shown below as the problem (the real family graph, which has cycles) and the resolution (the rendered DAG, which uses shared nodes or duplication to break them).
 
 ---
 
@@ -130,28 +135,21 @@ The red edges show the two paths that both reach Grandpa ♥ Grandma. That's the
 
 ```mermaid
 flowchart TD
-    subgraph left ["E's side"]
-        AB1["Grandpa ♥ Grandma ①"]
-        AB1 --> C1["C ♥ Wife-C"]
-        C1 --> E_pt["⬇ pass-through to E"]
-    end
-
-    subgraph right ["F's side"]
-        AB2["Grandpa ♥ Grandma ②"]
-        AB2 --> D1["D ♥ Wife-D"]
-        D1 --> F_pt["⬇ pass-through to F"]
-    end
+    AB["Grandpa ♥ Grandma"]
+    AB --> C1["C ♥ Wife-C"]
+    AB --> D1["D ♥ Wife-D"]
+    C1 --> E_pt["⬇ pass-through to E"]
+    D1 --> F_pt["⬇ pass-through to F"]
 
     E_pt --> EF["E ♥ F"]
     F_pt --> EF
     EF --> Focus["Focus person"]
 
-    style AB1 fill:#f96,stroke:#333,color:#000
-    style AB2 fill:#f96,stroke:#333,color:#000
+    style AB fill:#f96,stroke:#333,color:#000
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
 
-**What gets duplicated:** Grandpa and Grandma each appear twice — once as E's grandparents (left) and once as F's grandparents (right). Both copies show the same person. The user sees "these are the same people on both sides" which is exactly the point: it makes the pedigree collapse visible.
+**What gets duplicated: Nothing.** Both paths reach Grandpa ♥ Grandma at the same generation level, so they appear as a single shared node. C and D are shown as siblings below, branching left and right to their respective couples — no crossing connectors. The pedigree collapse is visible because the user sees that E's grandparent and F's grandparent are the same couple at the top.
 
 ---
 
@@ -242,42 +240,39 @@ flowchart TD
 
 Focus person's ancestor walk: through Parent-1 → Brother-X → **Grandparents-A**, and through Parent-1 → Sister-X → **Grandparents-B**. But also: through Parent-2 → Brother-Y → **Grandparents-A** (again!), and through Parent-2 → Sister-Y → **Grandparents-B** (again!). Both sets of grandparents are reached twice.
 
-**The rendered DAG (cycle broken):**
+**The rendered DAG (cycle broken, with laterals — default):**
 
 ```mermaid
 flowchart TD
-    subgraph p1_side ["Parent-1's ancestry (left)"]
-        GPA1["Grandparents-A ①"]
-        GPB1["Grandparents-B ①"]
-        GPA1 --> BX1["Brother-X ♥ Sister-X"]
-        GPB1 --> SX1["Sister-X"]
+    subgraph left ["Parent-1's ancestry"]
+        GPA["Grandparents-A"]
+        GPB["Grandparents-B"]
+        GPA --> BX1["Brother-X ♥ Sister-X"]
+        GPA --> BY_lat["Brother-Y (lateral)"]
+        GPB --> SX1["Sister-X"]
+        GPB --> SY_lat["Sister-Y (lateral)"]
         SX1 --> BX1
         BX1 --> P1_pt["⬇ pass-through to Parent-1"]
     end
 
-    subgraph p2_side ["Parent-2's ancestry (right)"]
-        GPA2["Grandparents-A ②"]
-        GPB2["Grandparents-B ②"]
-        GPA2 --> BY1["Brother-Y ♥ Sister-Y"]
-        GPB2 --> SY1["Sister-Y"]
-        SY1 --> BY1
-        BY1 --> P2_pt["⬇ pass-through to Parent-2"]
-    end
+    BY_dup["Brother-Y (duplicated) ♥ Sister-Y (duplicated)"]
+    BY_dup --> P2_pt["⬇ pass-through to Parent-2"]
 
     P1_pt --> ML["Parent-1 ♥ Parent-2"]
     P2_pt --> ML
     ML --> Focus["Focus person"]
 
-    style GPA1 fill:#f96,stroke:#333,color:#000
-    style GPA2 fill:#f96,stroke:#333,color:#000
-    style GPB1 fill:#f96,stroke:#333,color:#000
-    style GPB2 fill:#f96,stroke:#333,color:#000
+    style GPA fill:#f96,stroke:#333,color:#000
+    style GPB fill:#f96,stroke:#333,color:#000
+    style BY_dup fill:#f96,stroke:#333,color:#000
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
 
-**What gets duplicated:** FOUR people (two couples) are each duplicated. Grandparents-A appear on both the left and right side. Grandparents-B also appear on both sides. This is the maximum duplication from a single-generation cousin marriage — every grandparent appears twice.
+**What gets duplicated:** Brother-Y and Sister-Y each appear twice (2 extra cards): once as laterals on the left (children of Grandparents-A and Grandparents-B) and once as "(duplicated)" stubs on the right in the couple card. The stubs have no ancestry above — the traversal stopped when it found Brother-Y and Sister-Y already visible as laterals. **Grandparents-A and Grandparents-B each appear only once** (on the left). No sharing or GP duplication needed.
 
-**Key difference from Type 1:** In Type 1 (simple cousin marriage), only one set of grandparents is shared. Here, both sets are shared, so the DAG is wider. The user sees the same four grandparents on both sides, which correctly communicates: "these two families are deeply intertwined."
+**When laterals are off** (Other depth = 0): Brother-Y and Sister-Y aren't visible on the left, so the traversal continues past them to the grandparents. Grandparents-A can be shared (same gen on both sides, no crossing). Grandparents-B are placed as a "(duplicated)" stub (sharing both would create crossing connectors). Total: still 2 extra cards, but as a GP-B stub instead of person stubs.
+
+**Key difference from Type 1:** In Type 1, only one set of grandparents is shared and the stubs rule doesn't come into play — zero duplication. Here, two families interleave, so either lateral stubs (with laterals) or GP sharing + stub (without laterals) is needed.
 
 ---
 
@@ -307,36 +302,33 @@ flowchart TD
 
 Focus → Uncle (father) → **Grandpa ♥ Grandma**. Also: Focus → Niece (mother) → Brother ♥ Wife → Brother → **Grandpa ♥ Grandma**. The grandparents are reached at depth 2 on the left and depth 3 on the right.
 
-**The rendered DAG (cycle broken):**
+**The rendered DAG (cycle broken, with laterals — default):**
 
 ```mermaid
 flowchart TD
-    subgraph uncle_side ["Uncle's ancestry (left)"]
-        GP1["Grandpa ♥ Grandma ①"]
-        GP1 --> Uncle_pt["⬇ pass-through to Uncle"]
-        GP1 --> Bro_lat["Brother (lateral sibling)"]
+    subgraph uncle_side ["Uncle's ancestry"]
+        GP["Grandpa ♥ Grandma"]
+        GP --> Uncle_pt["⬇ pass-through to Uncle"]
+        GP --> Bro_lat["Brother (lateral sibling)"]
     end
 
-    subgraph niece_side ["Niece's ancestry (right)"]
-        GP2["Grandpa ♥ Grandma ②"]
-        GP2 --> Bro2["Brother ② ♥ Wife"]
-        Bro2 --> N_pt["⬇ pass-through to Niece"]
-    end
+    Bro_dup["Brother (duplicated) ♥ Wife"] --> N_pt["⬇ pass-through to Niece"]
 
     Uncle_pt --> MN["Uncle ♥ Niece"]
     N_pt --> MN
     MN --> Focus["Focus person"]
 
-    style GP1 fill:#f96,stroke:#333,color:#000
-    style GP2 fill:#f96,stroke:#333,color:#000
+    style GP fill:#f96,stroke:#333,color:#000
     style Bro_lat fill:#f96,stroke:#333,color:#000
-    style Bro2 fill:#f96,stroke:#333,color:#000
+    style Bro_dup fill:#f96,stroke:#333,color:#000
     style Focus fill:#9cf,stroke:#333,color:#000
 ```
 
-**What gets duplicated:** Grandpa ♥ Grandma appear twice (once on each side). Brother also appears twice — as a lateral sibling on the left (Uncle's brother) and as Niece's parent on the right. These are different roles: "Dad's brother" vs. "Mom's father."
+**What gets duplicated:** Brother appears twice (1 extra card): as a lateral sibling at gen 1 on the left, and as a "(duplicated)" stub at gen 2 on the right (Niece's parent). The stub has no ancestry above — the right-side traversal found Brother already visible as a lateral and stopped. **Grandpa ♥ Grandma are NOT duplicated** — they appear once, on the left.
 
-**Generational alignment note:** On the left, Grandpa ♥ Grandma sit at generation 2. On the right, they sit at generation 3 (because the path through Niece is one step longer). Generational alignment ensures both copies still line up at the same vertical level — the right side's DAG is taller, and the left side has empty space above it.
+Without the stub rule, the traversal would continue past Brother up to Grandpa ♥ Grandma at gen 3 on the right. Since GP sits at gen 2 on the left (a generational crossing), GP would need full duplication — adding 2 extra cards. The stub avoids this entirely by stopping at Brother.
+
+**When laterals are off** (Other depth = 0): Brother isn't visible on the left, so the traversal passes through Brother (who appears once on the right, not duplicated) and reaches Grandpa ♥ Grandma — which IS already on the left at gen 2. GP is placed as a "(duplicated)" stub at gen 3 on the right, with no ancestry above. Total: 1 extra couple card (the GP stub).
 
 ---
 
@@ -399,26 +391,33 @@ The user can discover the Brother-Y / Sister-Y connection by clicking on Brother
 
 ### Summary: What Gets Duplicated and When
 
-| Cycle Type | Real-world scenario | What gets duplicated | How many extra cards |
-|------------|-------------------|---------------------|---------------------|
-| **Type 1** | Cousins marry | Shared grandparents | 2 (one couple) |
-| **Type 2** | Woman remarries husband's brother | The deceased/ex-partner | 1 (appears as lateral + ex-partner) |
-| **Type 3** | Two brothers marry two sisters, children marry | Both sets of grandparents | 4 (two couples) |
-| **Type 4** | Uncle marries niece | Grandparents + the intermediate parent | 3 (one couple + one person) |
-| **Type 5** | Siblings marry into same family (children don't intermarry) | Nothing | 0 (partner edges don't create cycles) |
+| Cycle Type | Real-world scenario | Resolution | Extra cards |
+|------------|-------------------|------------|-------------|
+| **Type 1** | Cousins marry | Grandparents shared (same gen on both paths) | 0 |
+| **Type 2** | Woman remarries husband's brother | The deceased/ex-partner duplicated (two structural roles) | 1 |
+| **Type 3** | Two brothers marry two sisters, children marry | Brother-Y + Sister-Y stubbed "(duplicated)" (laterals stop traversal before GPs) | 2 |
+| **Type 4** | Uncle marries niece | Brother stubbed "(duplicated)" (lateral stops traversal before GP) | 1 |
+| **Type 5** | Siblings marry into same family (children don't intermarry) | Nothing | 0 |
 
-The general rule: **duplication happens when and only when the same person is reachable by following parent edges upward through two different paths from the focus person.** Partner edges never create duplication — they connect people horizontally within a generation but are never followed during the upward or downward walk.
+The general rule: when the upward traversal encounters a person already visible in the tree, it resolves in priority order:
 
-### Why Duplication Is the Right Choice
+1. **Stub "(duplicated)" — stop early.** If the person is already visible (as a lateral, shared node, or direct ancestor), place a stub and stop. No ancestry above. This prevents duplication from propagating upward and is the most effective optimization.
+2. **Share — same gen, no crossing.** If no early stop was possible and the person is reached at the same generation level on both sides, use a single shared node.
+3. **Full duplication — different gen.** If the person is at different generation levels (generational crossing) and no earlier person triggered a stub, duplicate fully.
 
-An alternative would be to "merge" duplicate ancestors — draw a single card with connector lines from both sides meeting at it. We chose duplication because:
+Partner edges never create duplication — they connect people horizontally within a generation but are never followed during the upward or downward walk.
 
-1. **Simpler layout.** Merged nodes create complex connector routing that crosses over other branches, making the DAG harder to read.
-2. **Consistent mental model.** Each side is a self-contained lineage. Users can trace from any ancestor straight down to the focus person without their eye jumping across the view.
-3. **Professional precedent.** Most genealogy software (Ancestry, FamilySearch, MyHeritage) uses duplication, not merging. Users familiar with these tools expect this behavior.
-4. **Clicking resolves ambiguity.** If a user notices "these two cards look the same," clicking either one navigates to the same person — confirming they are the same individual appearing in two roles.
+### Stubs, Sharing, and Duplication
 
-The trade-off is that the view is wider than necessary when pedigree collapse occurs. For most families this is rare enough that it doesn't matter. For heavily collapsed families (e.g., European royal lineages), it gets noticeably wider, but the horizontal scroll handles it.
+Three strategies exist for handling ancestors reachable through multiple upward paths, applied in priority order:
+
+**"(duplicated)" stub** (highest priority — Types 3 and 4 with laterals): When the upward traversal encounters a person already visible in the tree — typically as a lateral relative — it places a stub card labeled "(duplicated)" and stops. No ancestry is built above the stub. This is the most effective optimization: by stopping early, it prevents the traversal from ever reaching the convergence ancestor, avoiding all duplication above that point. The stub is visually distinct (labeled, no ancestry above) and clickable — navigating to the person's full context.
+
+**Shared node** (used for Type 1; fallback for Types 3 and 4 without laterals): When no early stub was possible and both paths reach the ancestor at the **same generation level**, the ancestor appears as a single card. Its children branch left and right to each side of the tree. No crossing connectors, no generational alignment violations.
+
+**Full duplication** (fallback for Types 3 and 4 without laterals when sharing would cross connectors): When the ancestor is at **different generation levels** (a generational crossing) and no earlier person triggered a stub, the ancestor appears as a "(duplicated)" stub on the side where it's farther from the focus person. Even in this case, the stub stops the ancestry chain — the person's own ancestors are not duplicated above.
+
+Most genealogy software (Ancestry, FamilySearch, MyHeritage) uses full duplication everywhere. We minimize duplication by preferring stubs and sharing. For heavily collapsed families (e.g., European royal lineages), some duplication remains, but horizontal scroll handles the extra width.
 
 ---
 
@@ -513,7 +512,7 @@ Partners in a couple sit close together (small gap). When the ancestor trees abo
 
 ### Pedigree Collapse (Same Ancestor Through Both Parents)
 
-When a person's parents share a common ancestor (e.g., first cousins who married), the shared ancestor appears twice in the tree — once on each parent's side. Both instances link to the same person; clicking either navigates to that person. This duplication is correct: the tree shows *positions*, not unique people.
+When a person's parents share a common ancestor (e.g., first cousins who married), the shared ancestor appears as a single shared node if both paths reach it at the same generation level, or as two separate cards if a generational crossing puts it at different levels. In the duplicated case, both instances link to the same person; clicking either navigates to that person. See the [Catalog of Cycle Types](#catalog-of-cycle-types) for the full breakdown.
 
 ### Asymmetric Depth
 
