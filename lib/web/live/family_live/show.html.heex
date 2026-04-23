@@ -228,106 +228,93 @@
           <% end %>
         </div>
       <% end %>
+    </div>
 
-      <%!-- Desktop tree depth drawer --%>
-      <div
-        :if={@graph}
-        id="tree-drawer"
-        phx-hook="TreeDrawer"
-        class="hidden lg:block absolute bottom-0 left-0 right-0 bg-ds-surface-low border-t border-ds-outline-variant/30"
-        {test_id("tree-drawer")}
+    <%!-- Desktop tree depth drawer — fixed to bottom of screen, centered --%>
+    <div
+      :if={@graph}
+      id="tree-drawer"
+      phx-hook="TreeDrawer"
+      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-ds-surface-high/90 backdrop-blur-md rounded-sm shadow-sm"
+      {test_id("tree-drawer")}
+    >
+      <%!-- Collapsed bar --%>
+      <button
+        type="button"
+        data-drawer-toggle
+        class="flex items-center gap-3 px-4 py-1.5 hover:bg-ds-surface-highest/50 transition-colors rounded-sm"
+        aria-label={gettext("Toggle tree controls")}
       >
-        <%!-- Collapsed bar --%>
-        <button
-          type="button"
-          data-drawer-toggle
-          class="w-full flex items-center justify-between px-5 py-2 hover:bg-ds-surface-high transition-colors"
-          aria-label={gettext("Toggle tree controls")}
-        >
-          <div class="flex items-center gap-3 text-sm">
-            <span class="text-ds-primary font-ds-body font-medium">
-              {if @tree_display == "complete",
-                do: gettext("Complete Tree"),
-                else: gettext("Partial Tree")}
-            </span>
-            <span class="w-px h-4 bg-ds-outline-variant/30"></span>
-            <span class="text-ds-on-surface-variant font-ds-body text-xs">
-              {gettext("Parents")}
-              <span class="text-ds-primary font-semibold">{@tree_ancestors}</span>
-            </span>
-            <span class="text-ds-on-surface-variant font-ds-body text-xs">
-              {gettext("Children")}
-              <span class="text-ds-primary font-semibold">{@tree_descendants}</span>
-            </span>
-            <span class="text-ds-on-surface-variant font-ds-body text-xs">
-              {gettext("Other")} <span class="text-ds-primary font-semibold">{@tree_other}</span>
-            </span>
+        <span class="text-ds-on-surface font-ds-body font-medium text-xs">
+          {if @tree_display == "complete",
+            do: gettext("Complete Tree"),
+            else: gettext("Partial Tree")}
+        </span>
+        <span class="text-ds-on-surface-variant font-ds-body text-[11px]">
+          {@tree_ancestors}↑ {@tree_descendants}↓ {@tree_other}↔
+        </span>
+        <.icon name="hero-chevron-up" class="size-3.5 text-ds-on-surface-variant" />
+      </button>
+
+      <%!-- Expanded panel --%>
+      <div data-drawer-panel class="max-h-0 opacity-0">
+        <div class="px-4 py-3 bg-ds-surface-low/60 flex items-start gap-5">
+          <%!-- Display toggle --%>
+          <div class="flex-shrink-0">
+            <div class="text-[10px] text-ds-on-surface-variant uppercase tracking-wider mb-2 font-ds-body">
+              {gettext("Display")}
+            </div>
+            <div class="flex bg-ds-surface-highest rounded-sm p-0.5">
+              <button
+                type="button"
+                phx-click="toggle_display"
+                phx-value-display="partial"
+                class={"px-2.5 py-1 rounded-sm text-[11px] font-ds-body font-medium transition-colors " <>
+                  if(@tree_display == "partial", do: "bg-ds-on-surface text-ds-surface", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
+              >
+                {gettext("Partial Tree")}
+              </button>
+              <button
+                type="button"
+                phx-click="toggle_display"
+                phx-value-display="complete"
+                class={"px-2.5 py-1 rounded-sm text-[11px] font-ds-body font-medium transition-colors " <>
+                  if(@tree_display == "complete", do: "bg-ds-on-surface text-ds-surface", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
+              >
+                {gettext("Complete Tree")}
+              </button>
+            </div>
           </div>
-          <.icon name="hero-chevron-up" class="size-4 text-ds-on-surface-variant" />
-        </button>
 
-        <%!-- Expanded panel --%>
-        <div data-drawer-panel class="max-h-0 opacity-0">
-          <div class="px-5 py-4 border-t border-ds-outline-variant/20 flex items-start gap-6">
-            <%!-- Display toggle --%>
-            <div class="flex-shrink-0">
-              <div class="text-[10px] text-ds-on-surface-variant uppercase tracking-wider mb-2 font-ds-body">
-                {gettext("Display")}
-              </div>
-              <div class="flex bg-ds-surface-card rounded-md p-0.5">
-                <button
-                  type="button"
-                  phx-click="toggle_display"
-                  phx-value-display="partial"
-                  class={"px-3 py-1.5 rounded text-xs font-ds-body font-medium transition-colors " <>
-                    if(@tree_display == "partial", do: "bg-ds-primary text-ds-on-primary", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
-                >
-                  {gettext("Partial Tree")}
-                </button>
-                <button
-                  type="button"
-                  phx-click="toggle_display"
-                  phx-value-display="complete"
-                  class={"px-3 py-1.5 rounded text-xs font-ds-body font-medium transition-colors " <>
-                    if(@tree_display == "complete", do: "bg-ds-primary text-ds-on-primary", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
-                >
-                  {gettext("Complete Tree")}
-                </button>
-              </div>
-            </div>
-
-            <span class="w-px h-12 bg-ds-outline-variant/20 flex-shrink-0 mt-4"></span>
-
-            <%!-- Sliders wrapped in form for phx-change --%>
-            <form
-              :if={@tree_display == "partial"}
-              phx-change="update_tree_depth"
-              class="flex-1 flex gap-6"
-            >
-              <.tree_slider
-                label={gettext("Parents")}
-                name="ancestors"
-                value={@tree_ancestors}
-                max={20}
-              />
-              <.tree_slider
-                label={gettext("Children")}
-                name="descendants"
-                value={@tree_descendants}
-                max={20}
-              />
-              <.tree_slider
-                label={gettext("Other")}
-                name="other"
-                value={@tree_other}
-                max={@tree_ancestors}
-              />
-            </form>
-            <div :if={@tree_display == "complete"} class="flex-1 flex items-center mt-4">
-              <span class="text-sm text-ds-on-surface-variant font-ds-body">
-                {gettext("Showing all generations")}
-              </span>
-            </div>
+          <%!-- Sliders wrapped in form for phx-change --%>
+          <form
+            :if={@tree_display == "partial"}
+            phx-change="update_tree_depth"
+            class="flex-1 flex gap-5"
+          >
+            <.tree_slider
+              label={gettext("Parents")}
+              name="ancestors"
+              value={@tree_ancestors}
+              max={20}
+            />
+            <.tree_slider
+              label={gettext("Children")}
+              name="descendants"
+              value={@tree_descendants}
+              max={20}
+            />
+            <.tree_slider
+              label={gettext("Other")}
+              name="other"
+              value={@tree_other}
+              max={@tree_ancestors}
+            />
+          </form>
+          <div :if={@tree_display == "complete"} class="flex-1 flex items-center mt-3">
+            <span class="text-xs text-ds-on-surface-variant font-ds-body">
+              {gettext("Showing all generations")}
+            </span>
           </div>
         </div>
       </div>
@@ -1105,7 +1092,7 @@
         phx-click="close_mobile_tree_sheet"
       />
       <div
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full rounded-t-2xl"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-sm w-full rounded-t-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-tree-title"
@@ -1116,7 +1103,7 @@
           <div class="w-9 h-1 bg-ds-outline-variant/40 rounded-full"></div>
         </div>
         <%!-- Header --%>
-        <div class="flex items-center justify-between px-5 pb-3 border-b border-ds-outline-variant/20">
+        <div class="flex items-center justify-between px-5 pb-3">
           <h2
             id="mobile-tree-title"
             class="text-base font-ds-heading font-semibold text-ds-on-surface"
@@ -1126,7 +1113,7 @@
           <button
             type="button"
             phx-click="close_mobile_tree_sheet"
-            class="text-sm text-ds-primary font-ds-body font-medium"
+            class="text-sm text-ds-on-surface font-ds-body font-medium"
           >
             {gettext("Done")}
           </button>
@@ -1136,14 +1123,14 @@
           <div class="text-[10px] text-ds-on-surface-variant uppercase tracking-wider mb-2 font-ds-body">
             {gettext("Display")}
           </div>
-          <div class="flex bg-ds-surface-low rounded-lg p-0.5">
+          <div class="flex bg-ds-surface-low rounded-sm p-0.5">
             <button
               type="button"
               phx-click="toggle_display"
               phx-value-display="partial"
-              class={"flex-1 text-center py-2 rounded-md text-sm font-ds-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-sm text-sm font-ds-body font-medium transition-colors " <>
                 if(@tree_display == "partial",
-                  do: "bg-ds-primary text-ds-on-primary",
+                  do: "bg-ds-on-surface text-ds-surface",
                   else: "text-ds-on-surface-variant"
                 )}
             >
@@ -1153,9 +1140,9 @@
               type="button"
               phx-click="toggle_display"
               phx-value-display="complete"
-              class={"flex-1 text-center py-2 rounded-md text-sm font-ds-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-sm text-sm font-ds-body font-medium transition-colors " <>
                 if(@tree_display == "complete",
-                  do: "bg-ds-primary text-ds-on-primary",
+                  do: "bg-ds-on-surface text-ds-surface",
                   else: "text-ds-on-surface-variant"
                 )}
             >

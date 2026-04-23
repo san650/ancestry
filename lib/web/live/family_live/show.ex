@@ -725,7 +725,7 @@ defmodule Web.FamilyLive.Show do
     <div class="flex-1 min-w-[100px]">
       <div class="flex justify-between mb-1.5">
         <span class="text-xs text-ds-on-surface font-ds-body">{@label}</span>
-        <span class="text-xs text-ds-primary font-ds-body font-semibold bg-ds-surface-card rounded px-1.5">
+        <span class="text-xs text-ds-on-surface font-ds-body font-semibold bg-ds-surface-highest rounded-sm px-1.5">
           {@value}
         </span>
       </div>
@@ -737,7 +737,7 @@ defmodule Web.FamilyLive.Show do
         max={@max}
         step="1"
         phx-debounce="200"
-        class="w-full h-1 bg-ds-outline-variant/30 rounded-full appearance-none cursor-pointer accent-ds-primary"
+        class="w-full h-1 bg-ds-outline-variant/30 rounded-full appearance-none cursor-pointer accent-ds-on-surface"
       />
     </div>
     """
