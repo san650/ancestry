@@ -332,15 +332,15 @@ defmodule Ancestry.People.PersonGraphTest do
       gilbert_unit = Enum.find(children, &(&1.person.id == gilbert.id))
       humphrey_unit = Enum.find(children, &(&1.person.id == humphrey.id))
 
-      # Humphrey's main partner should be Greta (active married, his only partner)
-      assert humphrey_unit.partner.id == greta.id
-      assert humphrey_unit.previous_partners == []
-
-      # Gilbert's main partner should also be Greta (divorced, but his only partner)
-      # At the boundary, all partners (active + former) are treated uniformly —
-      # the first by marriage year desc becomes the main partner.
+      # Gilbert (earlier in birth_year order) shows Greta first — not duplicated
       assert gilbert_unit.partner.id == greta.id
+      assert gilbert_unit.partner_duplicated == false
       assert gilbert_unit.previous_partners == []
+
+      # Humphrey (later) also shows Greta — marked duplicated
+      assert humphrey_unit.partner.id == greta.id
+      assert humphrey_unit.partner_duplicated == true
+      assert humphrey_unit.previous_partners == []
     end
 
     test "at_limit children show multiple partners as main + previous_partners" do

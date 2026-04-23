@@ -130,57 +130,80 @@ defmodule Ancestry.People.PersonGraph do
     else
       at_limit = depth + 1 >= max_descendants
 
-      Enum.reduce(children, {[], visited}, fn child, {units, vis} ->
-        if Map.has_key?(vis, child.id) do
-          # Duplicated child — stub
-          {units ++ [%{person: child, duplicated: true, has_more: false, children: nil}], vis}
-        else
-          vis = Map.put(vis, child.id, -(depth + 1))
-
-          if at_limit do
-            has_more = FamilyGraph.has_children?(graph, child.id)
-            all_partners = FamilyGraph.all_partners(graph, child.id)
-
-            sorted_partners =
-              Enum.sort_by(
-                all_partners,
-                fn {p, rel} ->
-                  year = if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
-                  {year || 0, p.id}
-                end,
-                :desc
-              )
-
-            {partner, previous} =
-              case sorted_partners do
-                [{p, _rel} | rest] -> {p, rest}
-                [] -> {nil, []}
-              end
-
-            previous_partners =
-              Enum.map(previous, fn {p, _rel} -> %{person: p, children: nil} end)
-
-            {units ++
-               [
-                 %{
-                   person: child,
-                   partner: partner,
-                   previous_partners: previous_partners,
-                   has_more: has_more,
-                   children: nil
-                 }
-               ], vis}
+      {units, vis, _seen} =
+        Enum.reduce(children, {[], visited, MapSet.new()}, fn child,
+                                                              {units, vis, seen_partners} ->
+          if Map.has_key?(vis, child.id) do
+            # Duplicated child — stub
+            {units ++ [%{person: child, duplicated: true, has_more: false, children: nil}], vis,
+             seen_partners}
           else
-            {unit, vis} = build_family_unit_full(child, depth + 1, max_descendants, graph, vis)
+            vis = Map.put(vis, child.id, -(depth + 1))
 
-            has_children =
-              unit.partner_children != [] or unit.solo_children != [] or unit.ex_partners != []
+            if at_limit do
+              has_more = FamilyGraph.has_children?(graph, child.id)
+              all_partners = FamilyGraph.all_partners(graph, child.id)
 
-            unit = Map.put(unit, :has_more, false) |> Map.put(:has_children, has_children)
-            {units ++ [unit], vis}
+              sorted_partners =
+                Enum.sort_by(
+                  all_partners,
+                  fn {p, rel} ->
+                    year =
+                      if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
+
+                    {year || 0, p.id}
+                  end,
+                  :desc
+                )
+
+              {partner, previous} =
+                case sorted_partners do
+                  [{p, _rel} | rest] -> {p, rest}
+                  [] -> {nil, []}
+                end
+
+              # Mark partner as duplicated if already seen for a previous sibling
+              partner_id = partner && partner.id
+              partner_duplicated = partner_id != nil and MapSet.member?(seen_partners, partner_id)
+
+              # Mark each previous partner as duplicated if already seen
+              {previous_partners, seen_partners} =
+                Enum.reduce(previous, {[], seen_partners}, fn {p, _rel}, {pps, sp} ->
+                  dup = MapSet.member?(sp, p.id)
+
+                  {pps ++ [%{person: p, children: nil, duplicated: dup}], MapSet.put(sp, p.id)}
+                end)
+
+              # Add main partner to seen set
+              seen_partners =
+                if partner_id, do: MapSet.put(seen_partners, partner_id), else: seen_partners
+
+              {units ++
+                 [
+                   %{
+                     person: child,
+                     partner: partner,
+                     partner_duplicated: partner_duplicated,
+                     previous_partners: previous_partners,
+                     has_more: has_more,
+                     children: nil
+                   }
+                 ], vis, seen_partners}
+            else
+              {unit, vis} =
+                build_family_unit_full(child, depth + 1, max_descendants, graph, vis)
+
+              has_children =
+                unit.partner_children != [] or unit.solo_children != [] or
+                  unit.ex_partners != []
+
+              unit = Map.put(unit, :has_more, false) |> Map.put(:has_children, has_children)
+              {units ++ [unit], vis, seen_partners}
+            end
           end
-        end
-      end)
+        end)
+
+      {units, vis}
     end
   end
 

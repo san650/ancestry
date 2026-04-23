@@ -154,7 +154,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           family_id={@family_id}
           organization={@organization}
           focused={false}
-          duplicated={false}
+          duplicated={Map.get(prev_group, :duplicated, false)}
         />
         <div data-previous-separator={prev_group.person.id} class="w-[40px] self-stretch"></div>
       <% end %>
@@ -294,6 +294,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  person_b_duplicated={child[:partner_duplicated] || false}
                   previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
@@ -317,6 +318,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  person_b_duplicated={child[:partner_duplicated] || false}
                   previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
