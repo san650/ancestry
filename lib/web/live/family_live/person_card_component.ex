@@ -10,6 +10,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
   attr :organization, :map, required: true
   attr :focused, :boolean, default: false
   attr :has_more, :boolean, default: false
+  attr :duplicated, :boolean, default: false
 
   def person_card(assigns) do
     ~H"""
@@ -25,7 +26,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
         gender_border_class(@person.gender),
         if(@focused, do: "ring-2 ring-ds-primary scale-105 z-1", else: "hover:bg-ds-surface-high"),
         "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
-        "w-[72px] lg:w-28 lg:p-2"
+        "w-[72px] lg:w-28 lg:p-2",
+        @duplicated && "opacity-50"
       ]}
       aria-label={"#{Person.display_name(@person)}"}
     >
@@ -64,6 +66,11 @@ defmodule Web.FamilyLive.PersonCardComponent do
         <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
           {Person.display_name(@person)}
         </p>
+        <%= if @duplicated do %>
+          <p class="text-[9px] text-ds-on-surface-variant/60 italic">
+            {gettext("(duplicated)")}
+          </p>
+        <% end %>
         <p class="text-[10px] text-ds-on-surface-variant">
           <%= if @person.birth_year do %>
             {format_life_span(@person)}
@@ -111,6 +118,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   attr :person_a, :map, default: nil
   attr :person_b, :map, default: nil
+  attr :person_a_duplicated, :boolean, default: false
+  attr :person_b_duplicated, :boolean, default: false
   attr :ex_partners, :list, default: []
   attr :previous_partners, :list, default: []
   attr :family_id, :integer, required: true
@@ -134,6 +143,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           family_id={@family_id}
           organization={@organization}
           focused={false}
+          duplicated={false}
         />
         <div data-ex-separator={ex_group.person.id} class="w-[40px] self-stretch"></div>
       <% end %>
@@ -144,6 +154,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
           family_id={@family_id}
           organization={@organization}
           focused={false}
+          duplicated={Map.get(prev_group, :duplicated, false)}
         />
         <div data-previous-separator={prev_group.person.id} class="w-[40px] self-stretch"></div>
       <% end %>
@@ -154,12 +165,14 @@ defmodule Web.FamilyLive.PersonCardComponent do
             family_id={@family_id}
             organization={@organization}
             focused={@person_a.id == @focused_person_id}
+            duplicated={@person_a_duplicated}
           />
           <.person_card
             person={@person_b}
             family_id={@family_id}
             organization={@organization}
             focused={@person_b.id == @focused_person_id}
+            duplicated={@person_b_duplicated}
           />
         <% @person_a && @show_partner_placeholder -> %>
           <.person_card
@@ -167,6 +180,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
             family_id={@family_id}
             organization={@organization}
             focused={@person_a.id == @focused_person_id}
+            duplicated={@person_a_duplicated}
           />
           <.placeholder_card
             type={:partner}
@@ -178,6 +192,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
             family_id={@family_id}
             organization={@organization}
             focused={@person_a.id == @focused_person_id}
+            duplicated={@person_a_duplicated}
           />
         <% true -> %>
           <div class="w-28"></div>
@@ -279,6 +294,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  person_b_duplicated={child[:partner_duplicated] || false}
+                  previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
                   focused_person_id={@focused_person_id}
@@ -301,6 +318,8 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  person_b_duplicated={child[:partner_duplicated] || false}
+                  previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
                   focused_person_id={@focused_person_id}
@@ -341,8 +360,10 @@ defmodule Web.FamilyLive.PersonCardComponent do
         </div>
       <% end %>
       <.couple_card
-        person_a={@node.couple.person_a}
-        person_b={@node.couple.person_b}
+        person_a={unwrap_person(@node.couple.person_a)}
+        person_b={unwrap_person(@node.couple.person_b)}
+        person_a_duplicated={duplicated?(@node.couple.person_a)}
+        person_b_duplicated={duplicated?(@node.couple.person_b)}
         family_id={@family_id}
         organization={@organization}
         focused_person_id={@focused_person_id}
@@ -398,4 +419,12 @@ defmodule Web.FamilyLive.PersonCardComponent do
 
   defp child_person_id(%{person: person}), do: person.id
   defp child_person_id(%{focus: person}), do: person.id
+
+  defp unwrap_person(nil), do: nil
+  defp unwrap_person(%Person{} = p), do: p
+  defp unwrap_person(%{person: p}), do: p
+
+  defp duplicated?(nil), do: false
+  defp duplicated?(%{duplicated: d}), do: d
+  defp duplicated?(_), do: false
 end

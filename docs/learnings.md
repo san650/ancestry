@@ -55,3 +55,6 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | playwright-dual-responsive-layout | testing, playwright, e2e, css, responsive, silent-failure | Playwright assert_has fails on responsive dual-layout components |
 | stream-items-outer-assign | liveview, streams, phx-update, handle-event, silent-failure | Stream items don't re-render when only an outer assign changes |
 | phx-no-format-whitespace-pre | liveview, heex, formatter, css, whitespace, silent-failure | Use phx-no-format when an element has whitespace-pre-line or whitespace-pre-wrap |
+| phx-value-empty-string | liveview, phx-value, phx-click, type-coercion, bug | phx-value-* can send empty strings on disabled/re-rendered buttons |
+| morphdom-stable-ids-for-loops | liveview, morphdom, dom-patching, for-loops, silent-failure | for-loop items need stable IDs when content changes across renders |
+| at-limit-simplified-path-data-loss | elixir, tree-view, silent-failure, code-path-divergence | Simplified code paths at boundaries silently drop data |

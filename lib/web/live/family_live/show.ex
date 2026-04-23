@@ -10,7 +10,7 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
-  alias Ancestry.People.PersonTree
+  alias Ancestry.People.PersonGraph
   alias Ancestry.Relationships
 
   import Web.FamilyLive.PersonCardComponent
@@ -95,7 +95,7 @@ defmodule Web.FamilyLive.Show do
 
     tree =
       if focus_person do
-        PersonTree.build(focus_person, socket.assigns.family_graph)
+        PersonGraph.build(focus_person, socket.assigns.family_graph)
       else
         nil
       end
@@ -178,7 +178,7 @@ defmodule Web.FamilyLive.Show do
               person = Enum.find(socket.assigns.people, &(&1.id == person_id))
 
               tree =
-                if person, do: PersonTree.build(person, socket.assigns.family_graph), else: nil
+                if person, do: PersonGraph.build(person, socket.assigns.family_graph), else: nil
 
               {person, tree}
           end
@@ -610,7 +610,7 @@ defmodule Web.FamilyLive.Show do
 
     tree =
       if focus_person do
-        PersonTree.build(focus_person, graph)
+        PersonGraph.build(focus_person, graph)
       end
 
     socket
