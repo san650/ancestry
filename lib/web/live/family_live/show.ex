@@ -70,6 +70,7 @@ defmodule Web.FamilyLive.Show do
      |> assign(:subfamily_include_ancestors, true)
      |> assign(:subfamily_include_partner_ancestors, false)
      |> assign(:show_menu, false)
+     |> assign(:show_mobile_tree_sheet, false)
      |> assign(:show_import_modal, false)
      |> assign(:import_summary, nil)
      |> assign(:import_error, nil)
@@ -611,6 +612,16 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
+  # Mobile tree sheet
+
+  def handle_event("open_mobile_tree_sheet", _, socket) do
+    {:noreply, assign(socket, :show_mobile_tree_sheet, true)}
+  end
+
+  def handle_event("close_mobile_tree_sheet", _, socket) do
+    {:noreply, assign(socket, :show_mobile_tree_sheet, false)}
+  end
+
   # PubSub
 
   def handle_info({:subfamily_person_selected, person_id}, socket) do
@@ -702,6 +713,34 @@ defmodule Web.FamilyLive.Show do
     |> assign(:family_graph, family_graph)
     |> assign(:focus_person, focus_person)
     |> assign(:graph, graph)
+  end
+
+  attr :label, :string, required: true
+  attr :name, :string, required: true
+  attr :value, :integer, required: true
+  attr :max, :integer, required: true
+
+  defp tree_slider(assigns) do
+    ~H"""
+    <div class="flex-1 min-w-[100px]">
+      <div class="flex justify-between mb-1.5">
+        <span class="text-xs text-ds-on-surface font-ds-body">{@label}</span>
+        <span class="text-xs text-ds-primary font-ds-body font-semibold bg-ds-surface-card rounded px-1.5">
+          {@value}
+        </span>
+      </div>
+      <input
+        type="range"
+        name={@name}
+        value={@value}
+        min="0"
+        max={@max}
+        step="1"
+        phx-debounce="200"
+        class="w-full h-1 bg-ds-outline-variant/30 rounded-full appearance-none cursor-pointer accent-ds-primary"
+      />
+    </div>
+    """
   end
 
   defp filtered_people(people, filter) do
