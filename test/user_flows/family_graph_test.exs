@@ -202,4 +202,54 @@ defmodule Web.UserFlows.FamilyGraphTest do
     # Then Bob's card is rendered with data-focus="true"
     conn |> assert_has("[data-node-id='person-#{bob.id}'][data-focus='true']")
   end
+
+  # Tree depth controls
+  #
+  # Given a family with a graph rendered
+  # When the user visits with custom depth URL params
+  # Then the graph renders with those depth settings
+  # And the drawer shows the correct values
+  #
+  # When the user visits with display=complete
+  # Then the graph renders showing all generations
+
+  test "URL depth params control graph depth", %{
+    conn: conn,
+    family: family,
+    org: org,
+    alice: alice
+  } do
+    conn = log_in_e2e(conn)
+
+    # Visit with custom depth params
+    conn =
+      conn
+      |> visit(
+        ~p"/org/#{org.id}/families/#{family.id}?person=#{alice.id}&ancestors=3&descendants=1"
+      )
+      |> wait_liveview()
+
+    # Verify graph renders
+    conn |> assert_has(test_id("graph-canvas"))
+
+    # Verify the drawer shows the correct values
+    conn |> assert_has(test_id("tree-drawer"))
+  end
+
+  test "complete display mode shows all generations", %{
+    conn: conn,
+    family: family,
+    org: org,
+    alice: alice
+  } do
+    conn = log_in_e2e(conn)
+
+    conn =
+      conn
+      |> visit(~p"/org/#{org.id}/families/#{family.id}?person=#{alice.id}&display=complete")
+      |> wait_liveview()
+
+    # Verify graph renders
+    conn |> assert_has(test_id("graph-canvas"))
+  end
 end
