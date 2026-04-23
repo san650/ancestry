@@ -573,6 +573,169 @@ defmodule Ancestry.People.PersonGraphTest do
       assert length(focus_entries) >= 1
       assert Enum.any?(focus_entries, & &1.duplicated)
     end
+
+    test "Type 2: woman marries two brothers — no ancestor duplication in Phase 1" do
+      family = family_fixture()
+
+      # Grandparents
+      {:ok, grandpa} = People.create_person(family, %{given_name: "Grandpa", surname: "G"})
+      {:ok, grandma} = People.create_person(family, %{given_name: "Grandma", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, grandma, "married", %{})
+
+      # Two sons
+      {:ok, brother1} = People.create_person(family, %{given_name: "Brother1", surname: "G"})
+      {:ok, brother2} = People.create_person(family, %{given_name: "Brother2", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, brother1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, brother1, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(grandpa, brother2, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, brother2, "parent", %{role: "mother"})
+
+      # Mom marries Brother1 (divorced), then Brother2
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, _} = Relationships.create_relationship(brother1, mom, "divorced", %{})
+      {:ok, _} = Relationships.create_relationship(brother2, mom, "married", %{})
+
+      # Half-sibling is child of Brother1 + Mom
+      {:ok, half_sibling} =
+        People.create_person(family, %{given_name: "HalfSib", surname: "G"})
+
+      {:ok, _} =
+        Relationships.create_relationship(brother1, half_sibling, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(mom, half_sibling, "parent", %{role: "mother"})
+
+      # Focus is child of Brother2 + Mom
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(brother2, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
+
+      # Build with ancestors: 2 — brother1 is an ex-partner in the center row, NOT an ancestor
+      tree = PersonGraph.build(focus, family.id, ancestors: 2)
+
+      entries = collect_ancestor_persons(tree.ancestors)
+
+      # No ancestor should be marked duplicated — Brother1 only appears as an ex-partner
+      assert Enum.all?(entries, &(not &1.duplicated))
+    end
+
+    test "Type 3: double first cousins — both GP sets appear twice (one duplicated each)" do
+      family = family_fixture()
+
+      # Grandparents-A with two sons
+      {:ok, gpa_a} = People.create_person(family, %{given_name: "GPA_A", surname: "A"})
+      {:ok, gma_a} = People.create_person(family, %{given_name: "GMA_A", surname: "A"})
+      {:ok, _} = Relationships.create_relationship(gpa_a, gma_a, "married", %{})
+      {:ok, bro_x} = People.create_person(family, %{given_name: "BroX", surname: "A"})
+      {:ok, bro_y} = People.create_person(family, %{given_name: "BroY", surname: "A"})
+      {:ok, _} = Relationships.create_relationship(gpa_a, bro_x, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(gma_a, bro_x, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(gpa_a, bro_y, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(gma_a, bro_y, "parent", %{role: "mother"})
+
+      # Grandparents-B with two daughters
+      {:ok, gpa_b} = People.create_person(family, %{given_name: "GPA_B", surname: "B"})
+      {:ok, gma_b} = People.create_person(family, %{given_name: "GMA_B", surname: "B"})
+      {:ok, _} = Relationships.create_relationship(gpa_b, gma_b, "married", %{})
+      {:ok, sis_x} = People.create_person(family, %{given_name: "SisX", surname: "B"})
+      {:ok, sis_y} = People.create_person(family, %{given_name: "SisY", surname: "B"})
+      {:ok, _} = Relationships.create_relationship(gpa_b, sis_x, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(gma_b, sis_x, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(gpa_b, sis_y, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(gma_b, sis_y, "parent", %{role: "mother"})
+
+      # BroX marries SisX → Parent1; BroY marries SisY → Parent2
+      {:ok, _} = Relationships.create_relationship(bro_x, sis_x, "married", %{})
+      {:ok, parent1} = People.create_person(family, %{given_name: "Parent1", surname: "AB"})
+      {:ok, _} = Relationships.create_relationship(bro_x, parent1, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(sis_x, parent1, "parent", %{role: "mother"})
+
+      {:ok, _} = Relationships.create_relationship(bro_y, sis_y, "married", %{})
+      {:ok, parent2} = People.create_person(family, %{given_name: "Parent2", surname: "AB"})
+      {:ok, _} = Relationships.create_relationship(bro_y, parent2, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(sis_y, parent2, "parent", %{role: "mother"})
+
+      # Parent1 marries Parent2 → Focus
+      {:ok, _} = Relationships.create_relationship(parent1, parent2, "married", %{})
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "AB"})
+      {:ok, _} = Relationships.create_relationship(parent1, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(parent2, focus, "parent", %{role: "mother"})
+
+      tree = PersonGraph.build(focus, family.id, ancestors: 3)
+
+      entries = collect_ancestor_persons(tree.ancestors)
+
+      # Each grandparent from family A and family B appears twice:
+      # once not duplicated (first encounter) and once duplicated (second encounter)
+      for gp <- [gpa_a, gma_a, gpa_b, gma_b] do
+        gp_entries = Enum.filter(entries, &(&1.person.id == gp.id))
+
+        assert length(gp_entries) == 2,
+               "Expected #{gp.given_name} to appear exactly twice in ancestor tree"
+
+        assert Enum.count(gp_entries, & &1.duplicated) == 1,
+               "Expected #{gp.given_name} to have exactly one duplicated entry"
+
+        assert Enum.count(gp_entries, &(not &1.duplicated)) == 1,
+               "Expected #{gp.given_name} to have exactly one non-duplicated entry"
+      end
+    end
+
+    test "three parents (bad data) — only first two are used, third is silently ignored" do
+      family = family_fixture()
+
+      {:ok, parent_a} = People.create_person(family, %{given_name: "ParentA", surname: "P"})
+      {:ok, parent_b} = People.create_person(family, %{given_name: "ParentB", surname: "P"})
+      {:ok, parent_c} = People.create_person(family, %{given_name: "ParentC", surname: "P"})
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "P"})
+
+      # Build a FamilyGraph manually with 3 parents for the same child.
+      # The DB has a unique constraint on (person_a_id, person_b_id, type), so we
+      # construct the graph directly instead of via Relationships.create_relationship.
+      rel_a = %Ancestry.Relationships.Relationship{
+        person_a_id: parent_a.id,
+        person_b_id: focus.id,
+        type: "parent"
+      }
+
+      rel_b = %Ancestry.Relationships.Relationship{
+        person_a_id: parent_b.id,
+        person_b_id: focus.id,
+        type: "parent"
+      }
+
+      rel_c = %Ancestry.Relationships.Relationship{
+        person_a_id: parent_c.id,
+        person_b_id: focus.id,
+        type: "parent"
+      }
+
+      graph = %FamilyGraph{
+        family_id: family.id,
+        people_by_id: %{
+          parent_a.id => parent_a,
+          parent_b.id => parent_b,
+          parent_c.id => parent_c,
+          focus.id => focus
+        },
+        parents_by_child: %{
+          focus.id => [{parent_a, rel_a}, {parent_b, rel_b}, {parent_c, rel_c}]
+        },
+        children_by_parent: %{
+          parent_a.id => [focus],
+          parent_b.id => [focus],
+          parent_c.id => [focus]
+        },
+        partners_by_person: %{}
+      }
+
+      tree = PersonGraph.build(focus, graph, ancestors: 1)
+
+      assert tree.ancestors != nil
+      # Only the first two parents become the ancestor couple; the third is silently ignored
+      assert tree.ancestors.couple.person_a.person.id == parent_a.id
+      assert tree.ancestors.couple.person_b.person.id == parent_b.id
+    end
   end
 
   describe "generation renumbering" do
