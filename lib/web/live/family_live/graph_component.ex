@@ -21,7 +21,7 @@ defmodule Web.FamilyLive.GraphComponent do
     >
       <div
         data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, minmax(120px, auto)); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:48px 12px;"}
+        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, 120px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:48px 12px;"}
         class="max-w-fit mx-auto"
       >
         <%= for node <- @graph.nodes do %>

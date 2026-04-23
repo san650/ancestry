@@ -448,7 +448,11 @@ defmodule Ancestry.People.PersonGraph do
           rel = FamilyGraph.partner_relationship(graph, person.id, ex.id)
           acc = add_couple_edge(acc, person.id, ex.id, rel, false, false)
           children = FamilyGraph.children_of_pair(graph, person.id, ex.id)
-          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
+
+          acc =
+            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
+
+          add_partner_separator(acc, person.id, ex.id, person_gen)
         end)
 
       # 2. Process previous (non-current) active partners and their children
@@ -459,7 +463,11 @@ defmodule Ancestry.People.PersonGraph do
           rel = FamilyGraph.partner_relationship(graph, person.id, prev.id)
           acc = add_couple_edge(acc, person.id, prev.id, rel, false, false, :previous_partner)
           children = FamilyGraph.children_of_pair(graph, person.id, prev.id)
-          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
+
+          acc =
+            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
+
+          add_partner_separator(acc, person.id, prev.id, person_gen)
         end)
 
       # 3. Solo children
@@ -618,6 +626,22 @@ defmodule Ancestry.People.PersonGraph do
 
   # ── Entry and edge helpers ──────────────────────────────────────────
 
+  defp add_partner_separator(state, person_id, partner_id, gen) do
+    entry = %{
+      person: nil,
+      gen: gen,
+      duplicated: false,
+      has_more_up: false,
+      has_more_down: false,
+      focus: false,
+      separator: true,
+      separator_id: "sep-#{person_id}-#{partner_id}"
+    }
+
+    entries = Map.update(state.entries, gen, [entry], &(&1 ++ [entry]))
+    %{state | entries: entries}
+  end
+
   defp add_entry(state, person, gen, duplicated, has_more_up, has_more_down) do
     entry = %{
       person: person,
@@ -726,25 +750,35 @@ defmodule Ancestry.People.PersonGraph do
           # Calculate starting column to center this row
           start_col = div(max_width - count, 2)
 
-          # Create person nodes
+          # Create person and partner-separator nodes
           person_nodes =
             people
             |> Enum.with_index()
             |> Enum.map(fn {entry, idx} ->
               col = start_col + idx
-              node_id = make_node_id(entry.person.id, entry.duplicated, focus_id, entry)
 
-              %GraphNode{
-                id: node_id,
-                type: :person,
-                col: col,
-                row: row_idx,
-                person: entry.person,
-                focus: entry.focus,
-                duplicated: entry.duplicated,
-                has_more_up: entry.has_more_up,
-                has_more_down: entry.has_more_down
-              }
+              if Map.get(entry, :separator) do
+                %GraphNode{
+                  id: entry.separator_id,
+                  type: :separator,
+                  col: col,
+                  row: row_idx
+                }
+              else
+                node_id = make_node_id(entry.person.id, entry.duplicated, focus_id, entry)
+
+                %GraphNode{
+                  id: node_id,
+                  type: :person,
+                  col: col,
+                  row: row_idx,
+                  person: entry.person,
+                  focus: entry.focus,
+                  duplicated: entry.duplicated,
+                  has_more_up: entry.has_more_up,
+                  has_more_down: entry.has_more_down
+                }
+              end
             end)
 
           # Add separator nodes for remaining columns
@@ -784,16 +818,21 @@ defmodule Ancestry.People.PersonGraph do
     Map.new(entries, fn {gen, people} ->
       corrected =
         Enum.map(people, fn entry ->
-          if entry.has_more_down do
-            children = FamilyGraph.children(state.graph, entry.person.id)
+          cond do
+            Map.get(entry, :separator) ->
+              entry
 
-            all_shown =
-              children != [] and
-                Enum.all?(children, &Map.has_key?(state.visited, &1.id))
+            entry.has_more_down ->
+              children = FamilyGraph.children(state.graph, entry.person.id)
 
-            %{entry | has_more_down: not all_shown}
-          else
-            entry
+              all_shown =
+                children != [] and
+                  Enum.all?(children, &Map.has_key?(state.visited, &1.id))
+
+              %{entry | has_more_down: not all_shown}
+
+            true ->
+              entry
           end
         end)
 
@@ -841,30 +880,60 @@ defmodule Ancestry.People.PersonGraph do
   end
 
   defp reorder_generation(people, partner_map) do
+    # Extract separator entries and reorder only person entries
+    {separators, person_entries} = Enum.split_with(people, &Map.get(&1, :separator))
+
     person_id_to_indices =
-      people
+      person_entries
       |> Enum.with_index()
       |> Enum.reduce(%{}, fn {entry, idx}, acc ->
         Map.update(acc, entry.person.id, [idx], &[idx | &1])
       end)
 
     placed = MapSet.new()
-    {groups, placed} = build_partner_groups(people, partner_map, person_id_to_indices, placed)
+
+    {groups, placed} =
+      build_partner_groups(person_entries, partner_map, person_id_to_indices, placed)
 
     remaining =
-      people
+      person_entries
       |> Enum.with_index()
       |> Enum.reject(fn {_entry, idx} -> MapSet.member?(placed, idx) end)
       |> Enum.map(fn {entry, _idx} -> entry end)
 
-    rebuild_generation(people, groups, placed, remaining)
+    reordered = rebuild_generation(person_entries, groups, placed, remaining)
+
+    # Re-insert separators after their associated former partner
+    reinsert_separators(reordered, separators)
+  end
+
+  # Insert each separator right after the entry for its associated partner.
+  # The separator_id is "sep-{person_id}-{partner_id}" — the partner entry
+  # (identified by partner_id) should precede the separator in the final order.
+  defp reinsert_separators(entries, []), do: entries
+
+  defp reinsert_separators(entries, separators) do
+    # Build a map: partner_id -> list of separator entries to insert after that partner
+    sep_by_partner =
+      Enum.group_by(separators, fn sep ->
+        # separator_id is "sep-{person_id}-{partner_id}"
+        case String.split(sep.separator_id, "-") do
+          ["sep", _person_id, partner_id] -> String.to_integer(partner_id)
+          _ -> nil
+        end
+      end)
+
+    Enum.flat_map(entries, fn entry ->
+      seps = Map.get(sep_by_partner, entry.person.id, [])
+      [entry | seps]
+    end)
   end
 
   defp build_partner_groups(people, partner_map, person_id_to_indices, placed) do
     people
     |> Enum.with_index()
     |> Enum.reduce({[], placed}, fn {entry, idx}, {groups, placed} ->
-      if MapSet.member?(placed, idx) or entry.duplicated do
+      if MapSet.member?(placed, idx) or entry.duplicated or Map.get(entry, :separator) do
         {groups, placed}
       else
         case Map.get(partner_map, entry.person.id) do

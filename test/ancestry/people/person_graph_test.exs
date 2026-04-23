@@ -1261,4 +1261,45 @@ defmodule Ancestry.People.PersonGraphTest do
       assert second_idx > person_idx, "Current partner should appear after the person"
     end
   end
+
+  # ── Partner separators ─────────────────────────────────────────────
+
+  describe "partner separators" do
+    test "separator between person and ex-partner" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "P"})
+      {:ok, ex} = People.create_person(family, %{given_name: "Ex", surname: "E"})
+      {:ok, _} = Relationships.create_relationship(person, ex, "divorced", %{})
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
+      {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(ex, child, "parent", %{role: "mother"})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      # Find separator between ex and person
+      separators = Enum.filter(graph.nodes, &(&1.type == :separator))
+
+      partner_sep =
+        Enum.find(separators, fn n ->
+          String.contains?(n.id, "sep-#{person.id}-#{ex.id}") or
+            String.contains?(n.id, "sep-#{ex.id}-#{person.id}")
+        end)
+
+      assert partner_sep != nil, "Expected a separator between person and ex-partner"
+
+      # Separator should be at the same row as person and ex
+      person_node =
+        Enum.find(
+          graph.nodes,
+          &(&1.type == :person and &1.person.id == person.id and not &1.duplicated)
+        )
+
+      assert partner_sep.row == person_node.row
+
+      # Separator column should be between ex and person
+      ex_node = Enum.find(graph.nodes, &(&1.type == :person and &1.person.id == ex.id))
+      assert partner_sep.col > ex_node.col
+      assert partner_sep.col < person_node.col
+    end
+  end
 end
