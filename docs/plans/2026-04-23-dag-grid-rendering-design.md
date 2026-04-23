@@ -294,6 +294,18 @@ New relationship types automatically get the attribute — add CSS rules without
 
 On each redraw: clear SVG children, re-query all cell rects via `getBoundingClientRect`, redraw all connectors.
 
+### Learnings to Apply
+
+These are documented in `docs/learnings.jsonl` and directly affect this implementation:
+
+- **`morphdom-stable-ids-for-loops`**: Every node wrapper div in the for-loop MUST have a stable `id` attribute derived from `GraphNode.id`. For duplicated persons, the node ID must be unique across the graph (e.g., `"person-42"` for original, `"person-42-dup"` for the stub). Without stable IDs, morphdom mismatches elements on re-render and silently breaks phx-click bindings.
+
+- **`safe-dom-in-hooks`**: The `GraphConnector` hook MUST create SVG elements via `document.createElementNS("http://www.w3.org/2000/svg", tag)` and set attributes via `element.setAttribute()`. Never use `innerHTML` or string-based SVG construction. Use `element.replaceChildren()` to clear the SVG on redraw.
+
+- **`hook-destroyed-must-guard-state`**: The `GraphConnector.destroyed()` callback MUST guard against state that `mounted()` may not have set. Pattern: `if (!this._observer) return` at the top of `destroyed()`. This prevents TypeError if mounted() short-circuited (e.g., empty graph, viewport check).
+
+- **`at-limit-simplified-path-data-loss`**: At depth boundaries (where `has_more_up`/`has_more_down` are set), the algorithm must still query ALL partner types (active, previous, ex) — not just active partners. The boundary stub may omit recursive expansion but must not omit entire partner categories.
+
 ## UX Details
 
 ### Focus Person
