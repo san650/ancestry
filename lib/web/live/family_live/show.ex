@@ -46,6 +46,11 @@ defmodule Web.FamilyLive.Show do
        supervisor: Ancestry.TaskSupervisor
      )
      |> assign(:graph, nil)
+     |> assign(:tree_ancestors, 2)
+     |> assign(:tree_descendants, 2)
+     |> assign(:tree_other, 1)
+     |> assign(:tree_display, "partial")
+     |> assign(:partial_settings, %{ancestors: 2, descendants: 2, other: 1})
      |> assign(:focus_person, nil)
      |> assign(:editing, false)
      |> assign(:confirm_delete, false)
@@ -93,17 +98,48 @@ defmodule Web.FamilyLive.Show do
           end
       end
 
+    tree_ancestors = parse_depth_param(params, "ancestors", 2)
+    tree_descendants = parse_depth_param(params, "descendants", 2)
+    tree_other = parse_depth_param(params, "other", 1)
+    tree_display = if params["display"] == "complete", do: "complete", else: "partial"
+
+    {tree_ancestors, tree_descendants, tree_other} =
+      if tree_display == "complete" do
+        {20, 20, 20}
+      else
+        {tree_ancestors, tree_descendants, tree_other}
+      end
+
+    # Clamp other to ancestors
+    tree_other = min(tree_other, tree_ancestors)
+
     graph =
       if focus_person do
-        PersonGraph.build(focus_person, socket.assigns.family_graph)
+        PersonGraph.build(focus_person, socket.assigns.family_graph,
+          ancestors: tree_ancestors,
+          descendants: tree_descendants,
+          other: tree_other
+        )
       else
         nil
+      end
+
+    partial_settings =
+      if tree_display == "partial" do
+        %{ancestors: tree_ancestors, descendants: tree_descendants, other: tree_other}
+      else
+        socket.assigns.partial_settings
       end
 
     socket =
       socket
       |> assign(:focus_person, focus_person)
       |> assign(:graph, graph)
+      |> assign(:tree_ancestors, tree_ancestors)
+      |> assign(:tree_descendants, tree_descendants)
+      |> assign(:tree_other, tree_other)
+      |> assign(:tree_display, tree_display)
+      |> assign(:partial_settings, partial_settings)
 
     socket = if focus_person, do: push_event(socket, "scroll_to_focus", %{}), else: socket
 
@@ -125,11 +161,7 @@ defmodule Web.FamilyLive.Show do
        )}
     else
       # First tap — focus this person
-      {:noreply,
-       push_patch(socket,
-         to:
-           ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{id}"
-       )}
+      {:noreply, push_patch(socket, to: family_path(socket, id))}
     end
   end
 
@@ -178,7 +210,15 @@ defmodule Web.FamilyLive.Show do
               person = Enum.find(socket.assigns.people, &(&1.id == person_id))
 
               graph =
-                if person, do: PersonGraph.build(person, socket.assigns.family_graph), else: nil
+                if person do
+                  PersonGraph.build(person, socket.assigns.family_graph,
+                    ancestors: socket.assigns.tree_ancestors,
+                    descendants: socket.assigns.tree_descendants,
+                    other: socket.assigns.tree_other
+                  )
+                else
+                  nil
+                end
 
               {person, graph}
           end
@@ -520,6 +560,57 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
+  # Tree depth controls
+
+  def handle_event("update_tree_depth", params, socket) do
+    ancestors = parse_depth_param(params, "ancestors", socket.assigns.tree_ancestors)
+    descendants = parse_depth_param(params, "descendants", socket.assigns.tree_descendants)
+    other = parse_depth_param(params, "other", socket.assigns.tree_other)
+    person_id = socket.assigns.focus_person && socket.assigns.focus_person.id
+
+    {:noreply,
+     push_patch(socket,
+       to:
+         family_path(socket, person_id, %{
+           ancestors: ancestors,
+           descendants: descendants,
+           other: other
+         })
+     )}
+  end
+
+  def handle_event("toggle_display", %{"display" => display}, socket) do
+    person_id = socket.assigns.focus_person && socket.assigns.focus_person.id
+
+    case display do
+      "complete" ->
+        {:noreply,
+         push_patch(socket,
+           to:
+             family_path(socket, person_id, %{
+               ancestors: 20,
+               descendants: 20,
+               other: 20,
+               display: "complete"
+             })
+         )}
+
+      "partial" ->
+        ps = socket.assigns.partial_settings
+
+        {:noreply,
+         push_patch(socket,
+           to:
+             family_path(socket, person_id, %{
+               ancestors: ps.ancestors,
+               descendants: ps.descendants,
+               other: ps.other,
+               display: "partial"
+             })
+         )}
+    end
+  end
+
   # PubSub
 
   def handle_info({:subfamily_person_selected, person_id}, socket) do
@@ -545,11 +636,7 @@ defmodule Web.FamilyLive.Show do
   end
 
   def handle_info({:focus_person, person_id}, socket) do
-    {:noreply,
-     push_patch(socket,
-       to:
-         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}?person=#{person_id}"
-     )}
+    {:noreply, push_patch(socket, to: family_path(socket, person_id))}
   end
 
   def handle_info({:relationship_saved, _type, _person}, socket) do
@@ -603,7 +690,11 @@ defmodule Web.FamilyLive.Show do
 
     graph =
       if focus_person do
-        PersonGraph.build(focus_person, family_graph)
+        PersonGraph.build(focus_person, family_graph,
+          ancestors: socket.assigns.tree_ancestors,
+          descendants: socket.assigns.tree_descendants,
+          other: socket.assigns.tree_other
+        )
       end
 
     socket
@@ -624,5 +715,31 @@ defmodule Web.FamilyLive.Show do
         String.contains?(name, filter)
       end)
     end
+  end
+
+  defp parse_depth_param(params, key, default) do
+    case params[key] do
+      nil -> default
+      val -> val |> String.to_integer() |> max(0) |> min(20)
+    end
+  end
+
+  defp family_path(socket, person_id, overrides \\ %{}) do
+    base =
+      ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}"
+
+    ancestors = Map.get(overrides, :ancestors, socket.assigns.tree_ancestors)
+    descendants = Map.get(overrides, :descendants, socket.assigns.tree_descendants)
+    other = Map.get(overrides, :other, socket.assigns.tree_other)
+    display = Map.get(overrides, :display, socket.assigns.tree_display)
+
+    params = %{}
+    params = if person_id, do: Map.put(params, :person, person_id), else: params
+    params = if ancestors != 2, do: Map.put(params, :ancestors, ancestors), else: params
+    params = if descendants != 2, do: Map.put(params, :descendants, descendants), else: params
+    params = if other != 1, do: Map.put(params, :other, other), else: params
+    params = if display != "partial", do: Map.put(params, :display, display), else: params
+
+    if params == %{}, do: base, else: "#{base}?#{URI.encode_query(params)}"
   end
 end
