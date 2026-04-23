@@ -139,16 +139,37 @@ defmodule Ancestry.People.PersonGraph do
 
           if at_limit do
             has_more = FamilyGraph.has_children?(graph, child.id)
-            partners = FamilyGraph.active_partners(graph, child.id)
+            all_partners = FamilyGraph.all_partners(graph, child.id)
 
-            partner =
-              case partners do
-                [{p, _} | _] -> p
-                [] -> nil
+            sorted_partners =
+              Enum.sort_by(
+                all_partners,
+                fn {p, rel} ->
+                  year = if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
+                  {year || 0, p.id}
+                end,
+                :desc
+              )
+
+            {partner, previous} =
+              case sorted_partners do
+                [{p, _rel} | rest] -> {p, rest}
+                [] -> {nil, []}
               end
 
-            {units ++ [%{person: child, partner: partner, has_more: has_more, children: nil}],
-             vis}
+            previous_partners =
+              Enum.map(previous, fn {p, _rel} -> %{person: p, children: nil} end)
+
+            {units ++
+               [
+                 %{
+                   person: child,
+                   partner: partner,
+                   previous_partners: previous_partners,
+                   has_more: has_more,
+                   children: nil
+                 }
+               ], vis}
           else
             {unit, vis} = build_family_unit_full(child, depth + 1, max_descendants, graph, vis)
 

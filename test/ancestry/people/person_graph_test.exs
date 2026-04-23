@@ -294,6 +294,91 @@ defmodule Ancestry.People.PersonGraphTest do
       assert kid_unit.person.id == kid.id
       assert kid_unit.children == nil
     end
+
+    test "at_limit children include ex-partners in previous_partners", %{family: _family} do
+      # Override the lineage setup — we need our own family structure
+      family = family_fixture()
+
+      # Parents
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
+
+      # Two sons (siblings)
+      {:ok, gilbert} = People.create_person(family, %{given_name: "Gilbert", surname: "D"})
+      {:ok, humphrey} = People.create_person(family, %{given_name: "Humphrey", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, gilbert, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, gilbert, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(dad, humphrey, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, humphrey, "parent", %{role: "mother"})
+
+      # Greta: divorced from Gilbert (married 1966, divorced 1975), married to Humphrey (1976)
+      {:ok, greta} = People.create_person(family, %{given_name: "Greta", surname: "W"})
+
+      {:ok, _} =
+        Relationships.create_relationship(gilbert, greta, "divorced", %{
+          marriage_year: 1966,
+          divorce_year: 1975
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(humphrey, greta, "married", %{marriage_year: 1976})
+
+      # Build tree focused on Mom with descendants: 1 (children at boundary)
+      tree = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
+
+      # Find Gilbert and Humphrey in the partner_children
+      children = tree.center.partner_children
+      gilbert_unit = Enum.find(children, &(&1.person.id == gilbert.id))
+      humphrey_unit = Enum.find(children, &(&1.person.id == humphrey.id))
+
+      # Humphrey's main partner should be Greta (active married, his only partner)
+      assert humphrey_unit.partner.id == greta.id
+      assert humphrey_unit.previous_partners == []
+
+      # Gilbert's main partner should also be Greta (divorced, but his only partner)
+      # At the boundary, all partners (active + former) are treated uniformly —
+      # the first by marriage year desc becomes the main partner.
+      assert gilbert_unit.partner.id == greta.id
+      assert gilbert_unit.previous_partners == []
+    end
+
+    test "at_limit children show multiple partners as main + previous_partners" do
+      family = family_fixture()
+
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
+
+      {:ok, son} = People.create_person(family, %{given_name: "Son", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, son, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, son, "parent", %{role: "mother"})
+
+      # Son: divorced from Jane (1980), married to Mary (1990)
+      {:ok, jane} = People.create_person(family, %{given_name: "Jane", surname: "W"})
+      {:ok, mary} = People.create_person(family, %{given_name: "Mary", surname: "W"})
+
+      {:ok, _} =
+        Relationships.create_relationship(son, jane, "divorced", %{
+          marriage_year: 1980,
+          divorce_year: 1988
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(son, mary, "married", %{marriage_year: 1990})
+
+      tree = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
+
+      children = tree.center.partner_children
+      son_unit = Enum.find(children, &(&1.person.id == son.id))
+
+      # Main partner is Mary (latest marriage year)
+      assert son_unit.partner.id == mary.id
+      # Jane is in previous_partners
+      assert length(son_unit.previous_partners) == 1
+      [prev] = son_unit.previous_partners
+      assert prev.person.id == jane.id
+    end
   end
 
   describe "deeper-parent-first ordering" do
