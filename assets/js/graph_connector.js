@@ -12,8 +12,8 @@
 
 const STYLES = {
   parent_child: {
-    stroke: "rgba(128,128,128,0.4)",
-    strokeWidth: "1.5",
+    stroke: "rgba(11, 28, 48, 0.3)",   // ds-on-surface at 30%
+    strokeWidth: "2",                    // was 1.5
     strokeDasharray: null,
   },
   current_partner: {
@@ -22,7 +22,7 @@ const STYLES = {
     strokeDasharray: null,
   },
   previous_partner: {
-    stroke: "rgba(248,113,113,0.6)",
+    stroke: "rgba(186, 26, 26, 0.4)",   // ds-error at 40%
     strokeWidth: "2",
     strokeDasharray: "6",
   },
@@ -134,6 +134,14 @@ const GraphConnector = {
 
   _draw() {
     requestAnimationFrame(() => {
+      // Reset all cell transforms before drawing to avoid accumulating shifts
+      const grid = this._grid()
+      if (grid) {
+        grid.querySelectorAll('[data-node-id]').forEach(el => {
+          el.style.transform = ''
+        })
+      }
+
       const svg = this._ensureSvg()
       svg.replaceChildren()
       svg.setAttribute("width", this.el.scrollWidth)
@@ -155,16 +163,23 @@ const GraphConnector = {
 
       this._drawCoupleEdges(svg, coupleEdges)
       this._drawParentChildEdges(svg, parentChildEdges)
+
+      // Fix 7: Glue current partners together (no gap)
+      this._glueCouplePartners(coupleEdges)
     })
   },
 
   // --- Couple connectors ---
   //
   // Horizontal line between adjacent partner cells.
-  // Solid for current partners, dashed for previous partners.
+  // Only draws for previous_partner (dashed). Current partners are glued together
+  // visually via _glueCouplePartners and do not need a connecting line.
 
   _drawCoupleEdges(svg, edges) {
     for (const edge of edges) {
+      // Fix 7: Skip drawing line for current_partner — they'll be glued together
+      if (edge.type === "current_partner") continue
+
       const fromRect = this._cellRect(edge.from_id)
       const toRect = this._cellRect(edge.to_id)
       if (!fromRect || !toRect) continue
@@ -178,53 +193,135 @@ const GraphConnector = {
     }
   },
 
+  // --- Fix 7: Glue current partners together ---
+  //
+  // For each current_partner edge, find both cells and translate them toward
+  // each other by half the gap, eliminating the visual space between them.
+
+  _glueCouplePartners(coupleEdges) {
+    for (const edge of coupleEdges) {
+      if (edge.type !== "current_partner") continue
+
+      const grid = this._grid()
+      if (!grid) continue
+      const fromEl = grid.querySelector(`[data-node-id="${edge.from_id}"]`)
+      const toEl = grid.querySelector(`[data-node-id="${edge.to_id}"]`)
+      if (!fromEl || !toEl) continue
+
+      const fromRect = fromEl.getBoundingClientRect()
+      const toRect = toEl.getBoundingClientRect()
+
+      // Determine left and right elements
+      const [leftEl, rightEl] = fromRect.left < toRect.left
+        ? [fromEl, toEl] : [toEl, fromEl]
+      const leftRect = leftEl.getBoundingClientRect()
+      const rightRect = rightEl.getBoundingClientRect()
+
+      // Gap = right cell left edge - left cell right edge
+      const gap = rightRect.left - leftRect.right
+      if (gap <= 0) continue // already touching or overlapping
+
+      const shift = gap / 2
+      leftEl.style.transform = `translateX(${shift}px)`
+      rightEl.style.transform = `translateX(-${shift}px)`
+    }
+  },
+
   // --- Parent → child connectors ---
   //
-  // Groups edges by from_id (parent cell). Each group is drawn as:
-  //   - One orthogonal branch from parent bottom → horizontal bar → drops to each child top
+  // Fix 9: When both parents of a child are a current couple, merge their
+  // parent-child groups into a single branch originating from the couple midpoint.
   //
-  // When multiple groups share the same row gap (same parent row → same child row),
-  // each group is assigned a different vertical lane (mid-y) to prevent visual merging.
+  // For non-coupled parents (or solo parents), draw normally from the parent center.
+  //
+  // Groups with the same row gap are assigned different vertical lanes to prevent
+  // visual merging.
 
-  _drawParentChildEdges(svg, edges) {
-    if (edges.length === 0) return
+  _drawParentChildEdges(svg, parentChildEdges) {
+    if (parentChildEdges.length === 0) return
 
-    // Group by from_id
-    const groups = new Map()
-    for (const edge of edges) {
-      if (!groups.has(edge.from_id)) groups.set(edge.from_id, [])
-      groups.get(edge.from_id).push(edge)
+    // Parse all edges to find couple pairs (Fix 9)
+    const allEdges = JSON.parse(this.el.dataset.edges)
+    const couplePairs = new Map() // person_id -> partner_id
+    for (const e of allEdges) {
+      if (e.type === "current_partner") {
+        couplePairs.set(e.from_id, e.to_id)
+        couplePairs.set(e.to_id, e.from_id)
+      }
     }
 
-    // Resolve rects for all from/to cells upfront
-    const resolvedGroups = []
-    for (const [fromId, groupEdges] of groups) {
-      const fromRect = this._cellRect(fromId)
-      if (!fromRect) continue
+    // Group edges by child (to_id), then determine if both parents are a couple
+    const byChild = new Map()
+    for (const edge of parentChildEdges) {
+      if (!byChild.has(edge.to_id)) byChild.set(edge.to_id, [])
+      byChild.get(edge.to_id).push(edge)
+    }
 
-      const children = []
-      for (const edge of groupEdges) {
-        const toRect = this._cellRect(edge.to_id)
-        if (!toRect) continue
-        children.push({ edge, toRect })
+    // Build merged groups: if both parents of a child are a couple, merge into one
+    // group with origin at the couple midpoint
+    const mergedGroups = new Map() // groupKey -> { parentIds, children }
+
+    for (const [childId, edges] of byChild) {
+      if (edges.length === 2) {
+        const [e1, e2] = edges
+        // Check if these two parents are a current couple
+        if (couplePairs.get(e1.from_id) === e2.from_id) {
+          // Couple! Use midpoint as origin
+          const coupleKey = [e1.from_id, e2.from_id].sort().join(":")
+          if (!mergedGroups.has(coupleKey)) {
+            mergedGroups.set(coupleKey, { parentIds: [e1.from_id, e2.from_id], children: [] })
+          }
+          mergedGroups.get(coupleKey).children.push({ edge: e1, childId })
+          continue
+        }
       }
-      if (children.length === 0) continue
+      // Non-couple parents: each parent is its own group (existing behavior)
+      for (const edge of edges) {
+        const groupKey = `solo:${edge.from_id}`
+        if (!mergedGroups.has(groupKey)) {
+          mergedGroups.set(groupKey, { parentIds: [edge.from_id], children: [] })
+        }
+        mergedGroups.get(groupKey).children.push({ edge, childId })
+      }
+    }
 
-      resolvedGroups.push({ fromId, fromRect, children })
+    // Resolve rects for all groups
+    const resolvedGroups = []
+    for (const [_key, group] of mergedGroups) {
+      const { parentIds, children } = group
+
+      // Compute origin X: midpoint between all parent cells
+      const parentRects = parentIds.map(id => this._cellRect(id)).filter(Boolean)
+      if (parentRects.length === 0) continue
+
+      // Origin X = average center X of all parent rects
+      const originX = parentRects.reduce((sum, r) => sum + this._centerX(r), 0) / parentRects.length
+      // Origin Y = bottom of the highest (smallest top) parent rect
+      const originY = Math.max(...parentRects.map(r => this._bottom(r)))
+
+      // Resolve child rects
+      const resolvedChildren = []
+      for (const { edge, childId } of children) {
+        const toRect = this._cellRect(childId)
+        if (!toRect) continue
+        resolvedChildren.push({ edge, toRect })
+      }
+      if (resolvedChildren.length === 0) continue
+
+      resolvedGroups.push({ originX, originY, children: resolvedChildren })
     }
 
     // Determine lane assignments within row-gap regions.
     //
-    // Two groups share a row gap when their parent bottom y and first child top y
-    // are in the same vertical band. We bucket groups by (approx parentBottomY, approx childTopY)
+    // Two groups share a row gap when their origin bottom y and first child top y
+    // are in the same vertical band. We bucket groups by (approx originY, approx childTopY)
     // and assign sequential lane indices within each bucket.
     //
     // "Approximate" means snapped to the nearest 4px to tolerate sub-pixel differences.
     const snap = y => Math.round(y / 4) * 4
 
-    // Build a key from the group's vertical span
     const groupKey = (g) => {
-      const parentBottom = snap(this._bottom(g.fromRect))
+      const parentBottom = snap(g.originY)
       const childTop = snap(g.children[0].toRect.top)
       return `${parentBottom}:${childTop}`
     }
@@ -248,11 +345,11 @@ const GraphConnector = {
   },
 
   _drawParentChildGroup(svg, group, laneIdx, laneCount) {
-    const { fromRect, children } = group
+    const { originX, originY, children } = group
 
-    // Origin: bottom center of parent cell
-    const ox = this._centerX(fromRect)
-    const oy = this._bottom(fromRect)
+    // Origin: custom origin point (bottom center of parent cell, or couple midpoint)
+    const ox = originX
+    const oy = originY
 
     // All children should have the same top y (same row in the grid).
     // Use the first child's top as the target y.
