@@ -208,16 +208,22 @@ const GraphConnector = {
       const toEl = grid.querySelector(`[data-node-id="${edge.to_id}"]`)
       if (!fromEl || !toEl) continue
 
-      const fromRect = fromEl.getBoundingClientRect()
-      const toRect = toEl.getBoundingClientRect()
+      // Measure the actual card elements (button inside the cell wrapper),
+      // not the cell wrappers, to account for card width < cell width and borders
+      const fromCard = fromEl.querySelector("button") || fromEl
+      const toCard = toEl.querySelector("button") || toEl
+      const fromRect = fromCard.getBoundingClientRect()
+      const toRect = toCard.getBoundingClientRect()
 
       // Determine left and right elements
       const [leftEl, rightEl] = fromRect.left < toRect.left
         ? [fromEl, toEl] : [toEl, fromEl]
-      const leftRect = leftEl.getBoundingClientRect()
-      const rightRect = rightEl.getBoundingClientRect()
+      const leftCard = leftEl.querySelector("button") || leftEl
+      const rightCard = rightEl.querySelector("button") || rightEl
+      const leftRect = leftCard.getBoundingClientRect()
+      const rightRect = rightCard.getBoundingClientRect()
 
-      // Gap = right cell left edge - left cell right edge
+      // Gap = right card left edge - left card right edge (visual gap between cards)
       const gap = rightRect.left - leftRect.right
       if (gap <= 0) continue // already touching or overlapping
 
