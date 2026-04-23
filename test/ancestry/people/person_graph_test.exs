@@ -1302,4 +1302,144 @@ defmodule Ancestry.People.PersonGraphTest do
       assert partner_sep.col < person_node.col
     end
   end
+
+  # ── Lateral (other) traversal ──────────────────────────────────────
+
+  describe "lateral (other) traversal" do
+    # Family tree:
+    #   Grandpa + Grandma
+    #     ├── Dad + Mom → Focus + Sibling
+    #     └── Uncle → Cousin
+    setup do
+      family = family_fixture()
+
+      {:ok, grandpa} = People.create_person(family, %{given_name: "Grandpa", surname: "G"})
+      {:ok, grandma} = People.create_person(family, %{given_name: "Grandma", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, grandma, "married", %{})
+
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "G"})
+      {:ok, uncle} = People.create_person(family, %{given_name: "Uncle", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, dad, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, dad, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(grandpa, uncle, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, uncle, "parent", %{role: "mother"})
+
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
+
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "G"})
+      {:ok, sibling} = People.create_person(family, %{given_name: "Sibling", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(dad, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(dad, sibling, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, sibling, "parent", %{role: "mother"})
+
+      {:ok, cousin} = People.create_person(family, %{given_name: "Cousin", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(uncle, cousin, "parent", %{role: "father"})
+
+      %{
+        family: family,
+        grandpa: grandpa,
+        grandma: grandma,
+        dad: dad,
+        mom: mom,
+        uncle: uncle,
+        focus: focus,
+        sibling: sibling,
+        cousin: cousin
+      }
+    end
+
+    test "other=0 shows direct line only (no siblings, no uncle, no cousin)", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 0)
+
+      ids = person_ids(graph)
+
+      refute MapSet.member?(ids, sibling.id), "Sibling should NOT appear with other=0"
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear with other=0"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear with other=0"
+    end
+
+    test "other=1 shows siblings but not uncle/cousin", %{
+      family: family,
+      focus: focus,
+      dad: dad,
+      mom: mom,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 1)
+
+      ids = person_ids(graph)
+
+      # Sibling is a child of parents (gen 1 ancestor) — should appear
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear with other=1"
+      assert MapSet.member?(ids, dad.id), "Dad should appear"
+      assert MapSet.member?(ids, mom.id), "Mom should appear"
+
+      # Uncle is a child of grandparents (gen 2 ancestor) — beyond other=1
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear with other=1"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear with other=1"
+    end
+
+    test "other=2 shows siblings, uncle, and cousins", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear with other=2"
+      assert MapSet.member?(ids, uncle.id), "Uncle should appear with other=2"
+      assert MapSet.member?(ids, cousin.id), "Cousin should appear with other=2"
+    end
+
+    test "other is bounded by ancestors (ancestors=1, other=3 → only siblings, no cousins)", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      # ancestors=1 means only parents are shown (gen 1), not grandparents.
+      # other=3 wants 3 levels of lateral expansion, but max_other = min(3, 1) = 1.
+      # So only gen-1 ancestor's other children (siblings) appear.
+      graph = PersonGraph.build(focus, family.id, ancestors: 1, descendants: 0, other: 3)
+
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear (parents are at gen 1)"
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear (grandparents not shown)"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear"
+    end
+
+    test "lateral descendants are bounded by max_descendants relative to focus", %{
+      family: family,
+      focus: focus,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      # Uncle is at gen 1 (same as Dad). Cousin is Uncle's child at gen 0.
+      # With descendants=0, lateral descendants below focus gen should still appear
+      # if they are at or above focus gen (gen 0). Cousin is at gen 0 (same as focus).
+      # With descendants=2, Uncle's sub-tree can expand up to 2 levels below focus.
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, uncle.id), "Uncle should appear"
+      assert MapSet.member?(ids, cousin.id), "Cousin should appear"
+    end
+  end
 end
