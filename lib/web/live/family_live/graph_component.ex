@@ -102,12 +102,13 @@ defmodule Web.FamilyLive.GraphComponent do
         phx-value-id={@node.person.id}
         class={[
           "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
-          "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20",
-          gender_border_class(@node.person.gender),
           if(@node.focus,
-            do: "ring-2 ring-ds-secondary scale-105 z-1 shadow-[0_0_12px_rgba(0,109,53,0.3)]",
-            else: "hover:bg-ds-surface-high"
+            do:
+              "bg-ds-primary-container text-ds-on-primary border border-ds-primary-container shadow-ds-ambient z-1",
+            else:
+              "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20 hover:bg-ds-surface-high"
           ),
+          !@node.focus && gender_border_class(@node.person.gender),
           "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
           "w-[72px] lg:w-28 lg:p-2",
           @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
@@ -151,7 +152,13 @@ defmodule Web.FamilyLive.GraphComponent do
               />
             <% end %>
           </div>
-          <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
+          <p class={[
+            "text-xs font-medium w-full transition-colors line-clamp-2 leading-tight min-h-[2lh]",
+            if(@node.focus,
+              do: "text-ds-on-primary",
+              else: "text-ds-on-surface group-hover:text-ds-primary"
+            )
+          ]}>
             {Person.display_name(@node.person)}
           </p>
           <%= if @node.duplicated do %>
@@ -159,7 +166,10 @@ defmodule Web.FamilyLive.GraphComponent do
               {gettext("(duplicated)")}
             </p>
           <% end %>
-          <p class="text-[10px] text-ds-on-surface-variant">
+          <p class={[
+            "text-[10px]",
+            if(@node.focus, do: "text-ds-on-primary/70", else: "text-ds-on-surface-variant")
+          ]}>
             <%= if @node.person.birth_year do %>
               {format_life_span(@node.person)}
             <% else %>
