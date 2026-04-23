@@ -79,103 +79,105 @@ defmodule Web.FamilyLive.GraphComponent do
 
   defp person_card(assigns) do
     ~H"""
-    <button
-      type="button"
-      phx-click="focus_person"
-      phx-value-id={@node.person.id}
-      class={[
-        "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
-        "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20",
-        gender_border_class(@node.person.gender),
-        if(@node.focus,
-          do: "ring-2 ring-ds-secondary scale-105 z-1 shadow-[0_0_12px_rgba(0,109,53,0.3)]",
-          else: "hover:bg-ds-surface-high"
-        ),
-        "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
-        "w-[72px] lg:w-28 lg:p-2",
-        @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
-      ]}
-      aria-label={Person.display_name(@node.person)}
-    >
+    <div class="relative">
       <%!-- Has more ancestors — pill at top center, half outside card --%>
-      <button
+      <div
         :if={@node.has_more_up}
-        type="button"
         class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
         title={gettext("Has more ancestors")}
       >
         <.icon name="hero-chevron-up" class="w-3 h-3" />
-      </button>
+      </div>
       <%!-- Has more descendants — pill at bottom center, half outside card --%>
-      <button
+      <div
         :if={@node.has_more_down}
-        type="button"
         class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
         title={gettext("Has more descendants")}
       >
         <.icon name="hero-chevron-down" class="w-3 h-3" />
-      </button>
-      <%!-- Mobile: photo fills card with name overlay --%>
-      <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
-        <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
-          <img
-            src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
-            alt={Person.display_name(@node.person)}
-            class="w-full h-[72px] object-cover"
-          />
-        <% else %>
-          <div class={["w-full h-[72px] flex items-center justify-center", "bg-ds-surface-low"]}>
-            <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@node.person.gender)]} />
-          </div>
-        <% end %>
-        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1 py-0.5">
-          <p class="text-[9px] font-semibold text-white leading-tight line-clamp-2">
-            {Person.display_name(@node.person)}
-          </p>
-        </div>
       </div>
-      <%!-- Desktop: circular photo, name below, dates below name --%>
-      <div class="hidden lg:flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
-        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
+      <button
+        type="button"
+        phx-click="focus_person"
+        phx-value-id={@node.person.id}
+        class={[
+          "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
+          "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20",
+          gender_border_class(@node.person.gender),
+          if(@node.focus,
+            do: "ring-2 ring-ds-secondary scale-105 z-1 shadow-[0_0_12px_rgba(0,109,53,0.3)]",
+            else: "hover:bg-ds-surface-high"
+          ),
+          "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
+          "w-[72px] lg:w-28 lg:p-2",
+          @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
+        ]}
+        aria-label={Person.display_name(@node.person)}
+      >
+        <%!-- Mobile: photo fills card with name overlay --%>
+        <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
           <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
               alt={Person.display_name(@node.person)}
-              class="w-full h-full object-cover"
+              class="w-full h-[72px] object-cover"
             />
           <% else %>
-            <.icon
-              name="hero-user"
-              class={["w-7 h-7", gender_icon_class(@node.person.gender)]}
-            />
+            <div class={["w-full h-[72px] flex items-center justify-center", "bg-ds-surface-low"]}>
+              <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@node.person.gender)]} />
+            </div>
           <% end %>
+          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent px-1 py-0.5">
+            <p class="text-[9px] font-semibold text-white leading-tight line-clamp-2">
+              {Person.display_name(@node.person)}
+            </p>
+          </div>
         </div>
-        <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
-          {Person.display_name(@node.person)}
-        </p>
-        <%= if @node.duplicated do %>
-          <p class="text-[9px] text-ds-on-surface-variant/60 italic">
-            {gettext("(duplicated)")}
+        <%!-- Desktop: circular photo, name below, dates below name --%>
+        <div class="hidden lg:flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
+          <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
+            <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
+              <img
+                src={
+                  Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)
+                }
+                alt={Person.display_name(@node.person)}
+                class="w-full h-full object-cover"
+              />
+            <% else %>
+              <.icon
+                name="hero-user"
+                class={["w-7 h-7", gender_icon_class(@node.person.gender)]}
+              />
+            <% end %>
+          </div>
+          <p class="text-xs font-medium text-ds-on-surface w-full group-hover:text-ds-primary transition-colors line-clamp-2 leading-tight min-h-[2lh]">
+            {Person.display_name(@node.person)}
           </p>
-        <% end %>
-        <p class="text-[10px] text-ds-on-surface-variant">
-          <%= if @node.person.birth_year do %>
-            {format_life_span(@node.person)}
-          <% else %>
-            &nbsp;
+          <%= if @node.duplicated do %>
+            <p class="text-[9px] text-ds-on-surface-variant/60 italic">
+              {gettext("(duplicated)")}
+            </p>
           <% end %>
-        </p>
-      </div>
-      <%!-- Navigation link to person page (overlaid, bottom-right) --%>
-      <.link
-        navigate={~p"/org/#{@organization.id}/people/#{@node.person.id}"}
-        class="absolute bottom-1 right-1 hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
-        aria-label={gettext("Go to person page")}
-        title={gettext("View person")}
-      >
-        <.icon name="hero-arrow-top-right-on-square" class="w-3 h-3" />
-      </.link>
-    </button>
+          <p class="text-[10px] text-ds-on-surface-variant">
+            <%= if @node.person.birth_year do %>
+              {format_life_span(@node.person)}
+            <% else %>
+              &nbsp;
+            <% end %>
+          </p>
+        </div>
+        <%!-- Navigation link to person page (overlaid, bottom-right) --%>
+        <.link
+          navigate={~p"/org/#{@organization.id}/people/#{@node.person.id}"}
+          class="absolute bottom-1 right-1 hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+          aria-label={gettext("Go to person page")}
+          title={gettext("View person")}
+        >
+          <.icon name="hero-arrow-top-right-on-square" class="w-3 h-3" />
+        </.link>
+      </button>
+    </div>
     """
   end
 
