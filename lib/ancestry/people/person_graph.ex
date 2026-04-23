@@ -492,10 +492,7 @@ defmodule Ancestry.People.PersonGraph do
           acc = add_couple_edge(acc, person.id, ex.id, rel, false, false)
           children = FamilyGraph.children_of_pair(graph, person.id, ex.id)
 
-          acc =
-            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
-
-          add_partner_separator(acc, person.id, ex.id, person_gen)
+          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
         end)
 
       # 2. Process previous (non-current) active partners and their children
@@ -507,10 +504,7 @@ defmodule Ancestry.People.PersonGraph do
           acc = add_couple_edge(acc, person.id, prev.id, rel, false, false, :previous_partner)
           children = FamilyGraph.children_of_pair(graph, person.id, prev.id)
 
-          acc =
-            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
-
-          add_partner_separator(acc, person.id, prev.id, person_gen)
+          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
         end)
 
       # 3. Solo children
@@ -668,22 +662,6 @@ defmodule Ancestry.People.PersonGraph do
   end
 
   # ── Entry and edge helpers ──────────────────────────────────────────
-
-  defp add_partner_separator(state, person_id, partner_id, gen) do
-    entry = %{
-      person: nil,
-      gen: gen,
-      duplicated: false,
-      has_more_up: false,
-      has_more_down: false,
-      focus: false,
-      separator: true,
-      separator_id: "sep-#{person_id}-#{partner_id}"
-    }
-
-    entries = Map.update(state.entries, gen, [entry], &(&1 ++ [entry]))
-    %{state | entries: entries}
-  end
 
   defp add_entry(state, person, gen, duplicated, has_more_up, has_more_down) do
     entry = %{
