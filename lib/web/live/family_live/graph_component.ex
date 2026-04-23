@@ -21,7 +21,7 @@ defmodule Web.FamilyLive.GraphComponent do
     >
       <div
         data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, minmax(120px, auto)); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:24px 12px;"}
+        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, minmax(120px, auto)); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:48px 12px;"}
         class="max-w-fit mx-auto"
       >
         <%= for node <- @graph.nodes do %>
@@ -98,21 +98,23 @@ defmodule Web.FamilyLive.GraphComponent do
       aria-label={Person.display_name(@node.person)}
     >
       <%!-- Has more ancestors — pill at top center, half outside card --%>
-      <div
+      <button
         :if={@node.has_more_up}
-        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-ds-surface-high border border-ds-outline-variant/30 text-ds-on-surface-variant/60"
+        type="button"
+        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
         title={gettext("Has more ancestors")}
       >
         <.icon name="hero-chevron-up" class="w-3 h-3" />
-      </div>
+      </button>
       <%!-- Has more descendants — pill at bottom center, half outside card --%>
-      <div
+      <button
         :if={@node.has_more_down}
-        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-ds-surface-high border border-ds-outline-variant/30 text-ds-on-surface-variant/60"
+        type="button"
+        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
         title={gettext("Has more descendants")}
       >
         <.icon name="hero-chevron-down" class="w-3 h-3" />
-      </div>
+      </button>
       <%!-- Mobile: photo fills card with name overlay --%>
       <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
         <%= if @node.person.photo && @node.person.photo_status == "processed" do %>

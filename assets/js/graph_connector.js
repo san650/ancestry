@@ -244,7 +244,7 @@ const GraphConnector = {
     const allEdges = JSON.parse(this.el.dataset.edges)
     const couplePairs = new Map() // person_id -> partner_id
     for (const e of allEdges) {
-      if (e.type === "current_partner") {
+      if (e.type === "current_partner" || e.type === "previous_partner") {
         couplePairs.set(e.from_id, e.to_id)
         couplePairs.set(e.to_id, e.from_id)
       }
