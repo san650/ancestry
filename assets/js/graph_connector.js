@@ -298,15 +298,20 @@ const GraphConnector = {
       // Origin X = average center X of all parent rects
       const originX = parentRects.reduce((sum, r) => sum + this._centerX(r), 0) / parentRects.length
 
-      // Origin Y depends on couple type:
-      // - Current partner couple: start from bottom of cards (clean drop down)
-      // - Previous/ex partner couple: start from couple line center Y (touches dashed line)
-      // - Solo parent: start from bottom of parent cell
+      // Origin Y: always start from bottom of parent cards so the horizontal
+      // routing happens below the cards, never behind them.
+      const originY = Math.max(...parentRects.map(r => this._bottom(r)))
+
+      // For ex-partner couples, draw a vertical stub from the dashed couple
+      // line down to the origin point, connecting the child branch to the
+      // dashed partner line visually.
       const isMergedCouple = parentIds.length === 2 && !key.startsWith("solo:")
       const isExCouple = isMergedCouple && group.coupleType === "previous_partner"
-      const originY = isExCouple
-        ? Math.min(...parentRects.map(r => this._centerY(r)))
-        : Math.max(...parentRects.map(r => this._bottom(r)))
+      if (isExCouple) {
+        const coupleLineY = Math.min(...parentRects.map(r => this._centerY(r)))
+        const stubD = `M ${originX},${coupleLineY} V ${originY}`
+        this._makePath(svg, stubD, { type: "previous_partner", relationship_kind: "parent" })
+      }
 
       // Resolve child rects
       const resolvedChildren = []
