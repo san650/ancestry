@@ -19,38 +19,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
   end
 
   describe "add partner from tree" do
-    test "shows add partner placeholder when no partner", %{
-      conn: conn,
-      family: family,
-      person: person,
-      org: org
-    } do
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
-
-      render_async(view)
-      assert has_element?(view, "button[phx-value-type='partner']")
-    end
-
-    test "hides partner placeholder when partner exists", %{
-      conn: conn,
-      family: family,
-      person: person,
-      org: org
-    } do
-      {:ok, spouse} =
-        People.create_person(family, %{given_name: "Jane", surname: "Doe", gender: "female"})
-
-      {:ok, _} = Relationships.create_relationship(person, spouse, "married")
-
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
-
-      render_async(view)
-      refute has_element?(view, "button[phx-value-type='partner']")
-    end
-
-    test "opens modal when clicking add partner placeholder", %{
+    test "opens modal via add_relationship event for partner", %{
       conn: conn,
       family: family,
       person: person,
@@ -62,7 +31,8 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       render_async(view)
       refute has_element?(view, "#add-relationship-modal")
 
-      view |> element("button[phx-value-type='partner']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       assert has_element?(view, "#add-relationship-modal")
       assert has_element?(view, "#add-rel-link-existing-btn")
       assert has_element?(view, "#add-rel-create-new-btn")
@@ -84,7 +54,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='partner']") |> render_click()
+
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
@@ -113,7 +85,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='partner']") |> render_click()
+
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       assert has_element?(view, "#quick-create-person-form")
@@ -133,19 +107,6 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
   end
 
   describe "add child from tree" do
-    test "shows add child placeholder when no children", %{
-      conn: conn,
-      family: family,
-      person: person,
-      org: org
-    } do
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
-
-      render_async(view)
-      assert has_element?(view, "button[phx-value-type='child']")
-    end
-
     test "opens modal and creates child", %{
       conn: conn,
       family: family,
@@ -156,7 +117,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='child']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "child", "person-id" => "#{person.id}"})
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
@@ -173,20 +134,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
   end
 
   describe "add parent from tree" do
-    test "shows add parent placeholder when no parents", %{
-      conn: conn,
-      family: family,
-      person: person,
-      org: org
-    } do
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
-
-      render_async(view)
-      assert has_element?(view, "button[phx-value-type='parent']")
-    end
-
-    test "hides parent placeholder when 2 parents exist", %{
+    test "shows both parents in the graph when 2 parents exist", %{
       conn: conn,
       family: family,
       person: person,
@@ -205,7 +153,8 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      refute has_element?(view, "button[phx-value-type='parent']")
+      assert has_element?(view, "[data-node-id='person-#{father.id}']")
+      assert has_element?(view, "[data-node-id='person-#{mother.id}']")
     end
 
     test "opens modal and adds parent", %{
@@ -218,7 +167,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
@@ -245,7 +194,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='partner']") |> render_click()
+
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       assert has_element?(view, "#add-relationship-modal")
 
       render_click(view, "cancel_add_relationship")
@@ -265,7 +216,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='partner']") |> render_click()
+
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
@@ -275,8 +228,8 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       view |> element("#search-result-#{candidate.id}") |> render_click()
       view |> form("#add-partner-form") |> render_submit()
 
-      # Focus person should still be John
-      assert has_element?(view, "#focus-person-card")
+      # Focus person should still be John — identified by data-focus='true'
+      assert has_element?(view, "[data-node-id='person-#{person.id}'][data-focus='true']")
       html = render(view)
       assert html =~ "John"
     end
@@ -296,7 +249,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
 
       assert has_element?(view, "#add-relationship-modal")
       assert has_element?(view, "#add-rel-link-existing-btn")
@@ -318,7 +271,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='partner']") |> render_click()
+
+      render_click(view, "add_relationship", %{"type" => "partner", "person-id" => "#{person.id}"})
+
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       assert has_element?(view, "#relationship-search-input")
@@ -341,7 +296,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view |> element("#relationship-search-input") |> render_keyup(%{value: "Ali"})
@@ -372,7 +327,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       assert has_element?(view, "#quick-create-person-form")
@@ -392,7 +347,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       # Fill in some data
@@ -431,7 +386,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
@@ -463,7 +418,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view
@@ -497,7 +452,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      view |> element("button[phx-value-type='parent']") |> render_click()
+      render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-link-existing-btn") |> render_click()
 
       view

@@ -90,7 +90,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
     # Verify the tree loaded for grandpa
     conn =
       conn
-      |> assert_has("[data-person-id='#{grandpa.id}']")
+      |> assert_has("[data-node-id='person-#{grandpa.id}']")
 
     # Navigate back to family show (no person focused)
     conn =
@@ -106,7 +106,7 @@ defmodule Web.UserFlows.FamilyMetricsTest do
 
     conn =
       conn
-      |> assert_has("[data-person-id='#{grandpa.id}']")
+      |> assert_has("[data-node-id='person-#{grandpa.id}']")
 
     # Navigate back and click leaf descendant — the last button in the generations metric
     conn =
@@ -117,6 +117,6 @@ defmodule Web.UserFlows.FamilyMetricsTest do
       |> wait_liveview()
 
     conn
-    |> assert_has("[data-person-id='#{child.id}']")
+    |> assert_has("[data-node-id='person-#{child.id}']")
   end
 end
