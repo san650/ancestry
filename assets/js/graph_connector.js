@@ -12,8 +12,8 @@
 
 const STYLES = {
   parent_child: {
-    stroke: "rgba(11, 28, 48, 0.3)",   // ds-on-surface at 30%
-    strokeWidth: "2",                    // was 1.5
+    stroke: "rgba(11, 28, 48, 0.3)",
+    strokeWidth: "2",
     strokeDasharray: null,
   },
   current_partner: {
@@ -22,9 +22,9 @@ const STYLES = {
     strokeDasharray: null,
   },
   previous_partner: {
-    stroke: "rgba(186, 26, 26, 0.4)",   // ds-error at 40%
+    stroke: "rgba(11, 28, 48, 0.3)",
     strokeWidth: "2",
-    strokeDasharray: "6",
+    strokeDasharray: null,
   },
 }
 

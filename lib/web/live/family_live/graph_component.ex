@@ -16,7 +16,7 @@ defmodule Web.FamilyLive.GraphComponent do
       id="graph-canvas"
       phx-hook="GraphConnector"
       data-edges={Jason.encode!(@graph.edges)}
-      class="relative overflow-auto hide-scrollbar p-6 bg-ds-surface-low"
+      class="relative overflow-auto hide-scrollbar p-6"
       {test_id("graph-canvas")}
     >
       <div
@@ -107,7 +107,7 @@ defmodule Web.FamilyLive.GraphComponent do
           else:
             "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20 hover:bg-ds-surface-high"
         ),
-        !@node.focus && gender_border_class(@node.person.gender),
+        gender_border_class(@node.person.gender),
         "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
         "w-[72px] lg:w-28 lg:p-2",
         @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
