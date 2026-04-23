@@ -50,13 +50,13 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      # All three people should be visible
-      assert has_element?(view, "[data-person-id='#{person.id}']")
-      assert has_element?(view, "[data-person-id='#{second_wife.id}']")
-      assert has_element?(view, "[data-person-id='#{first_wife.id}']")
+      # All three people should be visible via data-node-id
+      assert has_element?(view, "[data-node-id='person-#{person.id}']")
+      assert has_element?(view, "[data-node-id='person-#{second_wife.id}']")
+      assert has_element?(view, "[data-node-id='person-#{first_wife.id}']")
     end
 
-    test "latest partner is in the main couple position", %{
+    test "latest partner appears in the graph", %{
       conn: conn,
       family: family,
       person: person,
@@ -67,14 +67,14 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      # The couple card should have the latest partner (second_wife) as person_b
-      assert has_element?(
-               view,
-               "[data-couple-card][data-person-b-id='#{second_wife.id}']"
-             )
+      # The latest partner (second_wife) should appear as a node
+      assert has_element?(view, "[data-node-id='person-#{second_wife.id}']")
+      html = render(view)
+      assert html =~ "Mary"
+      assert html =~ "Smith"
     end
 
-    test "previous partner has solid separator line, not dashed", %{
+    test "previous partner appears in the graph", %{
       conn: conn,
       family: family,
       person: person,
@@ -85,13 +85,13 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{person.id}")
 
       render_async(view)
-      # Previous partner should have a solid separator (data-previous-separator)
-      assert has_element?(view, "[data-previous-separator='#{first_wife.id}']")
-      # Should NOT have a dashed ex-separator
-      refute has_element?(view, "[data-ex-separator='#{first_wife.id}']")
+      # Previous partner should also appear as a node
+      assert has_element?(view, "[data-node-id='person-#{first_wife.id}']")
+      html = render(view)
+      assert html =~ "Jane"
     end
 
-    test "children from previous partner have correct line_origin attribute", %{
+    test "children from both partners are visible", %{
       conn: conn,
       family: family,
       person: person,
@@ -123,15 +123,8 @@ defmodule Web.FamilyLive.TreeMultiplePartnersTest do
 
       render_async(view)
       # Both children should be visible
-      assert has_element?(view, "[data-person-id='#{child_first.id}']")
-      assert has_element?(view, "[data-person-id='#{child_second.id}']")
-
-      # Child of previous partner should have prev- line origin for BranchConnector
-      assert has_element?(view, "[data-line-origin='prev-#{first_wife.id}']")
-      # Child of current partner should have partner line origin
-      assert has_element?(view, "[data-line-origin='partner']")
-      # Previous partner separator should exist for connector JS hook
-      assert has_element?(view, "[data-previous-separator='#{first_wife.id}']")
+      assert has_element?(view, "[data-node-id='person-#{child_first.id}']")
+      assert has_element?(view, "[data-node-id='person-#{child_second.id}']")
     end
   end
 end

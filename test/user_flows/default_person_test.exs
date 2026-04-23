@@ -33,7 +33,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> wait_liveview()
 
     # No tree should be rendered (no focus-person-card present)
-    conn = conn |> refute_has("#focus-person-card")
+    conn = conn |> refute_has("[data-focus='true']")
 
     # Open Edit modal
     conn =
@@ -60,8 +60,8 @@ defmodule Web.UserFlows.DefaultPersonTest do
     conn =
       conn
       |> refute_has(test_id("family-edit-form"))
-      |> assert_has("#focus-person-card", timeout: 3_000)
-      |> assert_has("[data-person-id='#{person_a.id}']")
+      |> assert_has("[data-focus='true']", timeout: 3_000)
+      |> assert_has("[data-node-id='person-#{person_a.id}']")
 
     # Navigate away and back — tree should still be rendered
     conn =
@@ -71,8 +71,8 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
-    conn = conn |> assert_has("#focus-person-card", timeout: 3_000)
-    conn = conn |> assert_has("[data-person-id='#{person_a.id}']")
+    conn = conn |> assert_has("[data-focus='true']", timeout: 3_000)
+    conn = conn |> assert_has("[data-node-id='person-#{person_a.id}']")
 
     # Open Edit modal again and clear default
     conn =
@@ -87,7 +87,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
     conn =
       conn
       |> refute_has(test_id("family-edit-form"))
-      |> refute_has("#focus-person-card")
+      |> refute_has("[data-focus='true']")
 
     # Navigate away and back — should still show no tree
     conn =
@@ -97,6 +97,6 @@ defmodule Web.UserFlows.DefaultPersonTest do
       |> click(test_id("family-card-#{family.id}"))
       |> wait_liveview()
 
-    conn |> refute_has("#focus-person-card")
+    conn |> refute_has("[data-focus='true']")
   end
 end

@@ -182,38 +182,13 @@
     <div
       id="tree-canvas"
       class="relative overflow-auto hide-scrollbar p-6 order-last lg:order-first min-h-[60vh]"
-      phx-hook="TreeConnector"
     >
-      <%= if @tree do %>
-        <div class="relative inline-flex flex-col items-center gap-6 min-w-full">
-          <%!-- Ancestor Tree (recursive: great-grandparents -> parents) --%>
-          <%= if @tree.ancestors do %>
-            <.ancestor_subtree
-              node={@tree.ancestors}
-              family_id={@family.id}
-              organization={@current_scope.organization}
-              focused_person_id={@focus_person && @focus_person.id}
-            />
-          <% end %>
-
-          <%!-- Add Parent placeholder (when fewer than 2 parents) --%>
-          <% parent_count = count_parents(@tree.ancestors) %>
-          <%= if parent_count < 2 do %>
-            <%= if parent_count == 0 do %>
-              <.placeholder_card type={:parent} person_id={@focus_person.id} />
-              <.vline height={16} />
-            <% end %>
-          <% end %>
-
-          <%!-- Center Row + Descendants (recursive) --%>
-          <.family_subtree
-            unit={@tree.center}
-            family_id={@family.id}
-            organization={@current_scope.organization}
-            focused_person_id={@focus_person.id}
-            is_root={true}
-          />
-        </div>
+      <%= if @graph do %>
+        <.graph_canvas
+          graph={@graph}
+          family_id={@family.id}
+          organization={@current_scope.organization}
+        />
       <% else %>
         <div class="flex items-center justify-center h-full">
           <%= if @people != [] do %>

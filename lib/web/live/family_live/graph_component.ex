@@ -81,7 +81,7 @@ defmodule Web.FamilyLive.GraphComponent do
     <button
       type="button"
       phx-click="focus_person"
-      phx-value-person-id={@node.person.id}
+      phx-value-id={@node.person.id}
       class={[
         "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
         "bg-ds-surface-card",

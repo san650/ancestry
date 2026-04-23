@@ -1,4 +1,4 @@
-defmodule Web.FamilyLive.TreeConnectorDomTest do
+defmodule Web.FamilyLive.GraphConnectorDomTest do
   use Web.ConnCase, async: true
   import Phoenix.LiveViewTest
 
@@ -28,8 +28,8 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
     %{family: family, parent_a: parent_a, parent_b: parent_b, child: child, org: org}
   end
 
-  describe "tree canvas hook" do
-    test "tree canvas has TreeConnector hook", %{
+  describe "graph canvas hook" do
+    test "graph canvas has GraphConnector hook", %{
       conn: conn,
       family: family,
       parent_a: parent_a,
@@ -39,46 +39,31 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
       render_async(view)
-      assert has_element?(view, "#tree-canvas[phx-hook='TreeConnector']")
+      assert has_element?(view, "#graph-canvas[phx-hook='GraphConnector']")
     end
 
-    test "tree canvas has relative positioning class", %{
+    test "graph canvas has data-edges attribute with JSON", %{
       conn: conn,
       family: family,
       parent_a: parent_a,
       org: org
     } do
-      {:ok, view, html} =
+      {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
       render_async(view)
-      assert html =~ ~s(id="tree-canvas")
-      assert html =~ "relative"
+      html = render(view)
+      assert html =~ ~s(id="graph-canvas")
+      assert html =~ "data-edges"
     end
   end
 
-  describe "couple card data attributes" do
-    test "couple card retains data attributes", %{
+  describe "graph node data attributes" do
+    test "person nodes have data-node-id attributes", %{
       conn: conn,
       family: family,
       parent_a: parent_a,
       parent_b: parent_b,
-      org: org
-    } do
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
-
-      render_async(view)
-      assert has_element?(view, "[data-couple-card][data-person-a-id='#{parent_a.id}']")
-      assert has_element?(view, "[data-couple-card][data-person-b-id='#{parent_b.id}']")
-    end
-  end
-
-  describe "children row data attributes" do
-    test "child columns retain line origin and person id", %{
-      conn: conn,
-      family: family,
-      parent_a: parent_a,
       child: child,
       org: org
     } do
@@ -86,18 +71,64 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
       render_async(view)
-      assert has_element?(view, "[data-child-column][data-child-person-id='#{child.id}']")
-      assert has_element?(view, "[data-line-origin='partner']")
+      assert has_element?(view, "[data-node-id='person-#{parent_a.id}']")
+      assert has_element?(view, "[data-node-id='person-#{parent_b.id}']")
+      assert has_element?(view, "[data-node-id='person-#{child.id}']")
     end
-  end
 
-  describe "no old hook references" do
-    test "no BranchConnector, AncestorConnector, or ScrollToFocus in rendered HTML", %{
+    test "focus person has data-focus='true'", %{
       conn: conn,
       family: family,
       parent_a: parent_a,
       org: org
     } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
+
+      render_async(view)
+      assert has_element?(view, "[data-node-id='person-#{parent_a.id}'][data-focus='true']")
+    end
+  end
+
+  describe "grid structure" do
+    test "graph grid container exists", %{
+      conn: conn,
+      family: family,
+      parent_a: parent_a,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
+
+      render_async(view)
+      assert has_element?(view, "[data-graph-grid]")
+    end
+
+    test "graph renders person cards for all family members", %{
+      conn: conn,
+      family: family,
+      parent_a: parent_a,
+      org: org
+    } do
+      {:ok, view, _html} =
+        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
+
+      render_async(view)
+      html = render(view)
+      assert html =~ "Parent A"
+      assert html =~ "Parent B"
+      assert html =~ "Child A"
+    end
+  end
+
+  describe "no old hook references" do
+    test "no BranchConnector, AncestorConnector, TreeConnector, or ScrollToFocus in rendered HTML",
+         %{
+           conn: conn,
+           family: family,
+           parent_a: parent_a,
+           org: org
+         } do
       {:ok, view, html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
 
@@ -105,11 +136,12 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       refute html =~ "BranchConnector"
       refute html =~ "AncestorConnector"
       refute html =~ "ScrollToFocus"
+      refute html =~ "TreeConnector"
     end
   end
 
-  describe "no inline SVGs in couple cards" do
-    test "couple card has no separator SVG elements", %{
+  describe "no inline SVGs in graph" do
+    test "graph has no old separator SVG elements", %{
       conn: conn,
       family: family,
       parent_a: parent_a,
@@ -121,32 +153,6 @@ defmodule Web.FamilyLive.TreeConnectorDomTest do
       render_async(view)
       # The old inline SVGs had viewBox="0 0 40 123" - these should be gone
       refute html =~ "viewBox=\"0 0 40 123\""
-    end
-  end
-
-  describe "ex-partner separator spacers" do
-    setup %{family: family, parent_a: parent_a} do
-      {:ok, ex} =
-        People.create_person(family, %{given_name: "Ex", surname: "Partner", gender: "female"})
-
-      {:ok, _} = Relationships.create_relationship(parent_a, ex, "divorced", %{})
-
-      %{ex: ex}
-    end
-
-    test "ex-partner separator is a div, not an svg", %{
-      conn: conn,
-      family: family,
-      parent_a: parent_a,
-      ex: ex,
-      org: org
-    } do
-      {:ok, view, _html} =
-        live(conn, ~p"/org/#{org.id}/families/#{family.id}?person=#{parent_a.id}")
-
-      render_async(view)
-      assert has_element?(view, "div[data-ex-separator='#{ex.id}']")
-      refute has_element?(view, "svg[data-ex-separator='#{ex.id}']")
     end
   end
 end
