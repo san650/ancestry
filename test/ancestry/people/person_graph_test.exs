@@ -1,9 +1,9 @@
-defmodule Ancestry.People.PersonTreeTest do
+defmodule Ancestry.People.PersonGraphTest do
   use Ancestry.DataCase, async: true
 
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
-  alias Ancestry.People.PersonTree
+  alias Ancestry.People.PersonGraph
   alias Ancestry.Relationships
 
   describe "build/2 with family_id" do
@@ -30,7 +30,7 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, _} = Relationships.create_relationship(person, f2_child, "parent", %{role: "father"})
 
       # Build tree scoped to family 1
-      tree = PersonTree.build(person, family1.id)
+      tree = PersonGraph.build(person, family1.id)
 
       # Ancestors should only have f1_parent
       assert tree.ancestors != nil
@@ -49,7 +49,7 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, _} = Relationships.create_relationship(parent, person, "parent", %{role: "father"})
 
       graph = FamilyGraph.for_family(family.id)
-      tree = PersonTree.build(person, graph)
+      tree = PersonGraph.build(person, graph)
       assert tree.ancestors != nil
       assert tree.ancestors.couple.person_a.id == parent.id
     end
@@ -88,7 +88,7 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, _} =
         Relationships.create_relationship(second_wife, child2, "parent", %{role: "mother"})
 
-      tree = PersonTree.build(person, family.id)
+      tree = PersonGraph.build(person, family.id)
 
       # Latest partner (second wife, married 1995) should be the main partner
       assert tree.center.partner.id == second_wife.id
@@ -116,7 +116,7 @@ defmodule Ancestry.People.PersonTreeTest do
       {:ok, _} = Relationships.create_relationship(person, first_wife, "married", %{})
       {:ok, _} = Relationships.create_relationship(person, second_wife, "married", %{})
 
-      tree = PersonTree.build(person, family.id)
+      tree = PersonGraph.build(person, family.id)
 
       # Higher person.id should be the main partner (latest added)
       latest = Enum.max_by([first_wife, second_wife], & &1.id)
@@ -134,7 +134,7 @@ defmodule Ancestry.People.PersonTreeTest do
 
       {:ok, _} = Relationships.create_relationship(person, wife, "married", %{})
 
-      tree = PersonTree.build(person, family.id)
+      tree = PersonGraph.build(person, family.id)
 
       assert tree.center.partner.id == wife.id
       assert tree.center.previous_partners == []
@@ -144,7 +144,7 @@ defmodule Ancestry.People.PersonTreeTest do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
 
-      tree = PersonTree.build(person, family.id)
+      tree = PersonGraph.build(person, family.id)
 
       assert tree.center.partner == nil
       assert tree.center.previous_partners == []

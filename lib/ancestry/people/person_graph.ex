@@ -1,4 +1,4 @@
-defmodule Ancestry.People.PersonTree do
+defmodule Ancestry.People.PersonGraph do
   @moduledoc """
   Builds a person-centered family tree with N generations of ancestors
   above and N generations of descendants below a focus person.
