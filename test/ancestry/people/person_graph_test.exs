@@ -39,7 +39,7 @@ defmodule Ancestry.People.PersonGraphTest do
 
       # Descendants (solo_children) should only have f1_child
       assert length(tree.center.solo_children) == 1
-      assert hd(tree.center.solo_children).focus.id == f1_child.id
+      assert hd(tree.center.solo_children).person.id == f1_child.id
     end
 
     test "build/2 accepts a pre-built FamilyGraph" do
@@ -100,10 +100,10 @@ defmodule Ancestry.People.PersonGraphTest do
 
       # Children grouped correctly
       assert length(tree.center.partner_children) == 1
-      assert hd(tree.center.partner_children).focus.id == child2.id
+      assert hd(tree.center.partner_children).person.id == child2.id
 
       assert length(prev.children) == 1
-      assert hd(prev.children).focus.id == child1.id
+      assert hd(prev.children).person.id == child1.id
     end
 
     test "falls back to person id when no marriage dates" do
@@ -148,6 +148,151 @@ defmodule Ancestry.People.PersonGraphTest do
 
       assert tree.center.partner == nil
       assert tree.center.previous_partners == []
+    end
+  end
+
+  describe "depth controls" do
+    # 5-generation lineage:
+    # great_grandparent -> grandparent -> parent -> child (focus) -> kid -> grandkid
+    # All solo children (no partners), only parent relationships.
+    setup do
+      family = family_fixture()
+
+      {:ok, great_grandparent} =
+        People.create_person(family, %{given_name: "GreatGrandparent", surname: "L"})
+
+      {:ok, grandparent} =
+        People.create_person(family, %{given_name: "Grandparent", surname: "L"})
+
+      {:ok, parent} =
+        People.create_person(family, %{given_name: "Parent", surname: "L"})
+
+      {:ok, child} =
+        People.create_person(family, %{given_name: "Child", surname: "L"})
+
+      {:ok, kid} =
+        People.create_person(family, %{given_name: "Kid", surname: "L"})
+
+      {:ok, grandkid} =
+        People.create_person(family, %{given_name: "Grandkid", surname: "L"})
+
+      {:ok, _} =
+        Relationships.create_relationship(great_grandparent, grandparent, "parent", %{
+          role: "father"
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(grandparent, parent, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(child, kid, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(kid, grandkid, "parent", %{role: "father"})
+
+      %{
+        family: family,
+        great_grandparent: great_grandparent,
+        grandparent: grandparent,
+        parent: parent,
+        child: child,
+        kid: kid,
+        grandkid: grandkid
+      }
+    end
+
+    test "ancestors: 0 → tree.ancestors == nil", %{family: family, child: child} do
+      tree = PersonGraph.build(child, family.id, ancestors: 0)
+      assert tree.ancestors == nil
+    end
+
+    test "ancestors: 1 → parents shown, parent_trees == []", %{
+      family: family,
+      child: child,
+      parent: parent
+    } do
+      tree = PersonGraph.build(child, family.id, ancestors: 1)
+      assert tree.ancestors != nil
+      assert tree.ancestors.couple.person_a.id == parent.id
+      assert tree.ancestors.parent_trees == []
+    end
+
+    test "ancestors: 2 → parents + grandparents shown", %{
+      family: family,
+      child: child,
+      parent: parent,
+      grandparent: grandparent
+    } do
+      tree = PersonGraph.build(child, family.id, ancestors: 2)
+      assert tree.ancestors != nil
+      assert tree.ancestors.couple.person_a.id == parent.id
+      assert length(tree.ancestors.parent_trees) == 1
+      [%{tree: gp_tree}] = tree.ancestors.parent_trees
+      assert gp_tree.couple.person_a.id == grandparent.id
+      assert gp_tree.parent_trees == []
+    end
+
+    test "ancestors: 3 → three generations up", %{
+      family: family,
+      child: child,
+      parent: parent,
+      grandparent: grandparent,
+      great_grandparent: great_grandparent
+    } do
+      tree = PersonGraph.build(child, family.id, ancestors: 3)
+      assert tree.ancestors.couple.person_a.id == parent.id
+      [%{tree: gp_tree}] = tree.ancestors.parent_trees
+      assert gp_tree.couple.person_a.id == grandparent.id
+      [%{tree: ggp_tree}] = gp_tree.parent_trees
+      assert ggp_tree.couple.person_a.id == great_grandparent.id
+      assert ggp_tree.parent_trees == []
+    end
+
+    test "descendants: 0 → no children", %{family: family, child: child} do
+      tree = PersonGraph.build(child, family.id, descendants: 0)
+      assert tree.center.solo_children == []
+      assert tree.center.partner_children == []
+    end
+
+    test "descendants: 2 → grandchildren visible", %{
+      family: family,
+      child: child,
+      kid: kid,
+      grandkid: grandkid
+    } do
+      tree = PersonGraph.build(child, family.id, descendants: 2)
+      assert length(tree.center.solo_children) == 1
+      [kid_unit] = tree.center.solo_children
+      # kid should be fully expanded (not at limit), so it has a focus field
+      assert kid_unit.focus.id == kid.id
+      # grandkid should appear as kid's child (at the limit)
+      assert length(kid_unit.solo_children) == 1
+      [grandkid_unit] = kid_unit.solo_children
+      assert grandkid_unit.person.id == grandkid.id
+    end
+
+    test "default opts (no opts) → ancestors: 2, descendants: 1", %{
+      family: family,
+      child: child,
+      parent: parent,
+      grandparent: grandparent,
+      kid: kid
+    } do
+      tree = PersonGraph.build(child, family.id)
+      # Ancestors: 2 levels → parent and grandparent visible
+      assert tree.ancestors.couple.person_a.id == parent.id
+      assert length(tree.ancestors.parent_trees) == 1
+      [%{tree: gp_tree}] = tree.ancestors.parent_trees
+      assert gp_tree.couple.person_a.id == grandparent.id
+      assert gp_tree.parent_trees == []
+      # Descendants: 1 level → kid visible but no grandkid
+      assert length(tree.center.solo_children) == 1
+      [kid_unit] = tree.center.solo_children
+      assert kid_unit.person.id == kid.id
+      assert kid_unit.children == nil
     end
   end
 
