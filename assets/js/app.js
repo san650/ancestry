@@ -29,6 +29,7 @@ import { TreeConnector } from "./tree_connector"
 import Swipe from "./swipe"
 import { TrixEditor } from "./trix_editor"
 import TextareaAutogrow from "./textarea_autogrow"
+import { ScrollToToday } from "./scroll_to_today"
 
 function stripDiacritics(str) {
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -57,7 +58,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, FuzzyFilter, TreeConnector, PhotoTagger, PersonHighlight, Swipe, TrixEditor, TextareaAutogrow },
+  hooks: { ...colocatedHooks, FuzzyFilter, TreeConnector, PhotoTagger, PersonHighlight, Swipe, TrixEditor, TextareaAutogrow, ScrollToToday },
 })
 
 // Show progress bar on live navigation and form submits

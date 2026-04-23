@@ -87,6 +87,17 @@
               <span>{gettext("Manage people")}</span>
             </.link>
 
+            <.link
+              navigate={
+                ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/birthdays"
+              }
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              {test_id("family-birthdays-btn")}
+            >
+              <.icon name="hero-cake" class="size-4 text-ds-on-surface-variant" />
+              <span>{gettext("Birthdays")}</span>
+            </.link>
+
             <%= if @people != [] do %>
               <button
                 type="button"

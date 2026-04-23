@@ -603,6 +603,183 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "list_birthdays_for_family/1" do
+    setup do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      %{org: org, family: family}
+    end
+
+    test "returns people ordered by birth_month then birth_day", %{org: org, family: family} do
+      march_10 =
+        insert(:person,
+          given_name: "March",
+          surname: "Ten",
+          birth_month: 3,
+          birth_day: 10,
+          organization: org
+        )
+
+      jan_5 =
+        insert(:person,
+          given_name: "Jan",
+          surname: "Five",
+          birth_month: 1,
+          birth_day: 5,
+          organization: org
+        )
+
+      march_1 =
+        insert(:person,
+          given_name: "March",
+          surname: "One",
+          birth_month: 3,
+          birth_day: 1,
+          organization: org
+        )
+
+      for p <- [march_10, jan_5, march_1], do: People.add_to_family(p, family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert ids == [jan_5.id, march_1.id, march_10.id]
+    end
+
+    test "excludes people with nil birth_month", %{org: org, family: family} do
+      with_birthday =
+        insert(:person,
+          given_name: "Has",
+          surname: "Birthday",
+          birth_month: 6,
+          birth_day: 15,
+          organization: org
+        )
+
+      no_month =
+        insert(:person,
+          given_name: "No",
+          surname: "Month",
+          birth_month: nil,
+          birth_day: 15,
+          organization: org
+        )
+
+      for p <- [with_birthday, no_month], do: People.add_to_family(p, family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert with_birthday.id in ids
+      refute no_month.id in ids
+    end
+
+    test "excludes people with nil birth_day", %{org: org, family: family} do
+      with_birthday =
+        insert(:person,
+          given_name: "Has",
+          surname: "Birthday",
+          birth_month: 6,
+          birth_day: 15,
+          organization: org
+        )
+
+      no_day =
+        insert(:person,
+          given_name: "No",
+          surname: "Day",
+          birth_month: 6,
+          birth_day: nil,
+          organization: org
+        )
+
+      for p <- [with_birthday, no_day], do: People.add_to_family(p, family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert with_birthday.id in ids
+      refute no_day.id in ids
+    end
+
+    test "excludes people not in the family", %{org: org, family: family} do
+      other_family = insert(:family, organization: org)
+
+      in_family =
+        insert(:person,
+          given_name: "In",
+          surname: "Family",
+          birth_month: 4,
+          birth_day: 10,
+          organization: org
+        )
+
+      not_in_family =
+        insert(:person,
+          given_name: "Not",
+          surname: "Family",
+          birth_month: 5,
+          birth_day: 20,
+          organization: org
+        )
+
+      People.add_to_family(in_family, family)
+      People.add_to_family(not_in_family, other_family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert in_family.id in ids
+      refute not_in_family.id in ids
+    end
+
+    test "filters out invalid date combinations like Feb 30", %{org: org, family: family} do
+      valid =
+        insert(:person,
+          given_name: "Valid",
+          surname: "Feb",
+          birth_month: 2,
+          birth_day: 28,
+          organization: org
+        )
+
+      invalid =
+        insert(:person,
+          given_name: "Invalid",
+          surname: "Feb30",
+          birth_month: 2,
+          birth_day: 30,
+          organization: org
+        )
+
+      for p <- [valid, invalid], do: People.add_to_family(p, family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert valid.id in ids
+      refute invalid.id in ids
+    end
+
+    test "includes Feb 29 (leap day) birthdays", %{org: org, family: family} do
+      leap_day =
+        insert(:person,
+          given_name: "Leap",
+          surname: "Day",
+          birth_month: 2,
+          birth_day: 29,
+          organization: org
+        )
+
+      People.add_to_family(leap_day, family)
+
+      results = People.list_birthdays_for_family(family.id)
+      ids = Enum.map(results, & &1.id)
+
+      assert leap_day.id in ids
+    end
+  end
+
   defp org_fixture do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {org, org}
