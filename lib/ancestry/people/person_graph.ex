@@ -24,7 +24,7 @@ defmodule Ancestry.People.PersonGraph do
   alias Ancestry.People.GraphNode
   alias Ancestry.People.Person
 
-  @default_opts [ancestors: 2, descendants: 1, other: 0]
+  @default_opts [ancestors: 2, descendants: 2, other: 0]
 
   defstruct [
     :focus_person,
@@ -59,7 +59,8 @@ defmodule Ancestry.People.PersonGraph do
       visited: %{focus_person.id => 0},
       entries: %{0 => []},
       edges: [],
-      focus_id: focus_person.id
+      focus_id: focus_person.id,
+      graph: graph
     }
 
     state = add_entry(state, focus_person, 0, false, false, false)
@@ -628,6 +629,14 @@ defmodule Ancestry.People.PersonGraph do
   defp layout_grid(state, focus_id) do
     entries = state.entries
 
+    # Fix has_more_down indicators: if all children are already in the DAG,
+    # the person shouldn't show a "has more descendants" indicator
+    entries = fix_has_more_indicators(entries, state)
+
+    # Reorder partners within each generation so that ex/previous partners
+    # come before the person and the current partner comes after
+    entries = reorder_partners(entries, state)
+
     if map_size(entries) == 0 do
       {[], 0, 0}
     else
@@ -713,6 +722,169 @@ defmodule Ancestry.People.PersonGraph do
     else
       "person-#{person_id}"
     end
+  end
+
+  # ── Post-traversal corrections ───────────────────────────────────────
+
+  # Fix has_more_down: if ALL of a person's children are already visited
+  # (present in the DAG), they shouldn't show a "has more descendants" indicator.
+  defp fix_has_more_indicators(entries, state) do
+    Map.new(entries, fn {gen, people} ->
+      corrected =
+        Enum.map(people, fn entry ->
+          if entry.has_more_down do
+            children = FamilyGraph.children(state.graph, entry.person.id)
+
+            all_shown =
+              children != [] and
+                Enum.all?(children, &Map.has_key?(state.visited, &1.id))
+
+            %{entry | has_more_down: not all_shown}
+          else
+            entry
+          end
+        end)
+
+      {gen, corrected}
+    end)
+  end
+
+  # Reorder partners within each generation so that:
+  # [ex-partners...] [previous-partners...] [PERSON] [current-partner]
+  defp reorder_partners(entries, state) do
+    couple_edges = Enum.filter(state.edges, &(&1.type in [:current_partner, :previous_partner]))
+    partner_map = build_partner_map(couple_edges)
+
+    Map.new(entries, fn {gen, people} ->
+      {gen, reorder_generation(people, partner_map)}
+    end)
+  end
+
+  defp build_partner_map(couple_edges) do
+    Enum.reduce(couple_edges, %{}, fn edge, acc ->
+      from_id = extract_person_id(edge.from_id)
+      to_id = extract_person_id(edge.to_id)
+      from_dup = String.ends_with?(edge.from_id, "-dup")
+      to_dup = String.ends_with?(edge.to_id, "-dup")
+
+      category = if edge.type == :current_partner, do: :current, else: :previous
+
+      acc =
+        if from_id && !from_dup do
+          update_in(acc, [Access.key(from_id, %{current: [], previous: []})], fn map ->
+            Map.update!(map, category, &[{to_id, to_dup} | &1])
+          end)
+        else
+          acc
+        end
+
+      if to_id && !to_dup do
+        update_in(acc, [Access.key(to_id, %{current: [], previous: []})], fn map ->
+          Map.update!(map, category, &[{from_id, from_dup} | &1])
+        end)
+      else
+        acc
+      end
+    end)
+  end
+
+  defp reorder_generation(people, partner_map) do
+    person_id_to_indices =
+      people
+      |> Enum.with_index()
+      |> Enum.reduce(%{}, fn {entry, idx}, acc ->
+        Map.update(acc, entry.person.id, [idx], &[idx | &1])
+      end)
+
+    placed = MapSet.new()
+    {groups, placed} = build_partner_groups(people, partner_map, person_id_to_indices, placed)
+
+    remaining =
+      people
+      |> Enum.with_index()
+      |> Enum.reject(fn {_entry, idx} -> MapSet.member?(placed, idx) end)
+      |> Enum.map(fn {entry, _idx} -> entry end)
+
+    rebuild_generation(people, groups, placed, remaining)
+  end
+
+  defp build_partner_groups(people, partner_map, person_id_to_indices, placed) do
+    people
+    |> Enum.with_index()
+    |> Enum.reduce({[], placed}, fn {entry, idx}, {groups, placed} ->
+      if MapSet.member?(placed, idx) or entry.duplicated do
+        {groups, placed}
+      else
+        case Map.get(partner_map, entry.person.id) do
+          nil ->
+            {groups, placed}
+
+          %{current: current_partners, previous: previous_partners} ->
+            prev_entries =
+              find_partner_entries(previous_partners, people, person_id_to_indices, placed)
+
+            curr_entries =
+              find_partner_entries(current_partners, people, person_id_to_indices, placed)
+
+            if prev_entries == [] and curr_entries == [] do
+              {groups, placed}
+            else
+              prev_indices = Enum.map(prev_entries, fn {_e, i} -> i end)
+              curr_indices = Enum.map(curr_entries, fn {_e, i} -> i end)
+
+              placed =
+                [idx | prev_indices ++ curr_indices]
+                |> Enum.reduce(placed, &MapSet.put(&2, &1))
+
+              group =
+                Enum.map(prev_entries, fn {e, _i} -> e end) ++
+                  [entry] ++
+                  Enum.map(curr_entries, fn {e, _i} -> e end)
+
+              {groups ++ [{idx, group}], placed}
+            end
+        end
+      end
+    end)
+  end
+
+  defp find_partner_entries(partner_ids, people, person_id_to_indices, placed) do
+    Enum.flat_map(partner_ids, fn {partner_id, partner_dup} ->
+      indices = Map.get(person_id_to_indices, partner_id, [])
+
+      Enum.filter(indices, fn idx ->
+        entry = Enum.at(people, idx)
+        not MapSet.member?(placed, idx) and entry.duplicated == partner_dup
+      end)
+      |> Enum.map(fn idx -> {Enum.at(people, idx), idx} end)
+    end)
+    |> Enum.uniq_by(fn {_entry, idx} -> idx end)
+  end
+
+  defp rebuild_generation(people, groups, placed, remaining) do
+    group_map = Map.new(groups)
+    remaining_queue = :queue.from_list(remaining)
+
+    {result, remaining_queue} =
+      people
+      |> Enum.with_index()
+      |> Enum.reduce({[], remaining_queue}, fn {_entry, idx}, {acc, rq} ->
+        cond do
+          Map.has_key?(group_map, idx) ->
+            {acc ++ Map.get(group_map, idx), rq}
+
+          MapSet.member?(placed, idx) ->
+            {acc, rq}
+
+          true ->
+            case :queue.out(rq) do
+              {{:value, e}, rq2} -> {acc ++ [e], rq2}
+              {:empty, rq2} -> {acc, rq2}
+            end
+        end
+      end)
+
+    result ++ :queue.to_list(remaining_queue)
   end
 
   # ── Depth sorting helpers ───────────────────────────────────────────

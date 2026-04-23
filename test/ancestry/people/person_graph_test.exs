@@ -313,7 +313,7 @@ defmodule Ancestry.People.PersonGraphTest do
       assert find_person_node(graph, grandkid.id) != nil
     end
 
-    test "default opts (no opts) — ancestors: 2, descendants: 1", %{
+    test "default opts (no opts) — ancestors: 2, descendants: 2", %{
       family: family,
       child: child,
       parent: parent,
@@ -327,9 +327,9 @@ defmodule Ancestry.People.PersonGraphTest do
       assert find_person_node(graph, parent.id) != nil
       assert find_person_node(graph, grandparent.id) != nil
 
-      # Descendants: 1 level — kid visible but not grandkid
+      # Descendants: 2 levels — both kid and grandkid visible
       assert find_person_node(graph, kid.id) != nil
-      assert find_person_node(graph, grandkid.id) == nil
+      assert find_person_node(graph, grandkid.id) != nil
     end
 
     test "at_limit children include ex-partners" do
@@ -517,7 +517,7 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(cousin_e, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(cousin_f, focus, "parent", %{role: "mother"})
 
-      graph = PersonGraph.build(focus, family.id, ancestors: 3)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0)
 
       # Rule 1: Same gen + compatible → REUSE. GP+GM appear ONCE each (no dups).
       # SonD is encountered a second time (as CousinF's parent) at gen 2 —
@@ -793,7 +793,7 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(parent1, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(parent2, focus, "parent", %{role: "mother"})
 
-      graph = PersonGraph.build(focus, family.id, ancestors: 3)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0)
 
       # With other: 0 (default), BroY and SisY are NOT pre-visited as
       # laterals. They're discovered as Parent2's parents at gen 2. Their
@@ -950,6 +950,28 @@ defmodule Ancestry.People.PersonGraphTest do
   # ── has_more indicators ─────────────────────────────────────────────
 
   describe "has_more indicators" do
+    test "has_more_down is false when all children are visible via other parent path" do
+      family = family_fixture()
+
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "F"})
+      {:ok, spouse} = People.create_person(family, %{given_name: "Spouse", surname: "S"})
+      {:ok, _} = Relationships.create_relationship(focus, spouse, "married", %{})
+
+      {:ok, kid} = People.create_person(family, %{given_name: "Kid", surname: "F"})
+      {:ok, _} = Relationships.create_relationship(focus, kid, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(spouse, kid, "parent", %{role: "mother"})
+
+      graph = PersonGraph.build(focus, family.id, ancestors: 0, descendants: 1)
+
+      assert find_person_node(graph, kid.id) != nil
+
+      spouse_node = find_person_node(graph, spouse.id)
+      assert spouse_node != nil
+
+      refute spouse_node.has_more_down,
+             "Spouse should not have has_more_down when all children are visible"
+    end
+
     test "ancestor at depth boundary shows has_more_up when more ancestors exist" do
       family = family_fixture()
 
@@ -993,6 +1015,79 @@ defmodule Ancestry.People.PersonGraphTest do
       parent_node = find_person_node(graph, parent.id)
       assert parent_node != nil
       assert parent_node.has_more_up == false
+    end
+  end
+
+  # ── Partner ordering ───────────────────────────────────────────────
+
+  describe "partner ordering" do
+    test "current partner appears after person, ex-partner appears before" do
+      family = family_fixture()
+
+      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "P"})
+      {:ok, ex_wife} = People.create_person(family, %{given_name: "ExWife", surname: "E"})
+
+      {:ok, current_wife} =
+        People.create_person(family, %{given_name: "CurrentWife", surname: "C"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, ex_wife, "divorced", %{
+          marriage_year: 1980,
+          divorce_year: 1990
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(person, current_wife, "married", %{
+          marriage_year: 1995
+        })
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      focus = focus_node(graph)
+      row_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == focus.row))
+      sorted = Enum.sort_by(row_nodes, & &1.col)
+      ids_in_order = Enum.map(sorted, & &1.person.id)
+
+      person_idx = Enum.find_index(ids_in_order, &(&1 == person.id))
+      ex_idx = Enum.find_index(ids_in_order, &(&1 == ex_wife.id))
+      current_idx = Enum.find_index(ids_in_order, &(&1 == current_wife.id))
+
+      assert ex_idx < person_idx, "Ex-partner should appear before the person"
+      assert current_idx > person_idx, "Current partner should appear after the person"
+    end
+
+    test "separated partner appears before person, current after" do
+      family = family_fixture()
+
+      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "P"})
+
+      {:ok, first_wife} =
+        People.create_person(family, %{given_name: "FirstWife", surname: "F"})
+
+      {:ok, second_wife} =
+        People.create_person(family, %{given_name: "SecondWife", surname: "S"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, first_wife, "separated", %{
+          marriage_year: 1980
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(person, second_wife, "married", %{marriage_year: 1995})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      focus = focus_node(graph)
+      row_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == focus.row))
+      sorted = Enum.sort_by(row_nodes, & &1.col)
+      ids_in_order = Enum.map(sorted, & &1.person.id)
+
+      person_idx = Enum.find_index(ids_in_order, &(&1 == person.id))
+      first_idx = Enum.find_index(ids_in_order, &(&1 == first_wife.id))
+      second_idx = Enum.find_index(ids_in_order, &(&1 == second_wife.id))
+
+      assert first_idx < person_idx, "Separated partner should appear before the person"
+      assert second_idx > person_idx, "Current partner should appear after the person"
     end
   end
 end
