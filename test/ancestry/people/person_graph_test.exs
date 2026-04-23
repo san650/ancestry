@@ -296,6 +296,67 @@ defmodule Ancestry.People.PersonGraphTest do
     end
   end
 
+  describe "deeper-parent-first ordering" do
+    test "deeper parent becomes person_a in the ancestor couple" do
+      family = family_fixture()
+
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "C"})
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "C"})
+
+      # Mom has 3 generations of ancestry: mom → maternal_gm → maternal_ggm
+      {:ok, maternal_gm} =
+        People.create_person(family, %{given_name: "MaternalGM", surname: "C"})
+
+      {:ok, maternal_ggm} =
+        People.create_person(family, %{given_name: "MaternalGGM", surname: "C"})
+
+      # Dad has no ancestry above
+      {:ok, _} = Relationships.create_relationship(mom, child, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(dad, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(maternal_gm, mom, "parent", %{role: "mother"})
+
+      {:ok, _} =
+        Relationships.create_relationship(maternal_ggm, maternal_gm, "parent", %{role: "mother"})
+
+      tree = PersonGraph.build(child, family.id, ancestors: 3)
+
+      # Mom (3 generations deep) should be person_a — deeper lineage first
+      assert tree.ancestors.couple.person_a.id == mom.id
+    end
+
+    test "single parent needs no sorting" do
+      family = family_fixture()
+
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "C"})
+
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      tree = PersonGraph.build(child, family.id, ancestors: 1)
+
+      assert tree.ancestors.couple.person_a.id == parent.id
+      assert tree.ancestors.couple.person_b == nil
+    end
+
+    test "depth probe terminates on cyclic data" do
+      family = family_fixture()
+
+      {:ok, person_a} = People.create_person(family, %{given_name: "PersonA", surname: "C"})
+      {:ok, person_b} = People.create_person(family, %{given_name: "PersonB", surname: "C"})
+
+      # A is parent of B AND B is parent of A — a cycle
+      {:ok, _} =
+        Relationships.create_relationship(person_a, person_b, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person_b, person_a, "parent", %{role: "father"})
+
+      # Should not stack overflow
+      assert %PersonGraph{} = PersonGraph.build(person_a, family.id, ancestors: 3)
+    end
+  end
+
   defp family_fixture(attrs \\ %{}) do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
 

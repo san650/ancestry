@@ -150,6 +150,13 @@ defmodule Ancestry.People.PersonGraph do
   defp build_ancestor_tree(person_id, generation, max_ancestors, graph) do
     parents = FamilyGraph.parents(graph, person_id)
 
+    parents =
+      if generation == 1 do
+        Enum.sort_by(parents, fn {p, _rel} -> max_ancestor_depth(p.id, graph) end, :desc)
+      else
+        parents
+      end
+
     {person_a, person_b} =
       case parents do
         [] -> {nil, nil}
@@ -175,6 +182,24 @@ defmodule Ancestry.People.PersonGraph do
         couple: %{person_a: person_a, person_b: person_b},
         parent_trees: parent_trees
       }
+    end
+  end
+
+  defp max_ancestor_depth(person_id, graph, seen \\ MapSet.new()) do
+    if MapSet.member?(seen, person_id) do
+      0
+    else
+      seen = MapSet.put(seen, person_id)
+
+      case FamilyGraph.parents(graph, person_id) do
+        [] ->
+          0
+
+        parents ->
+          parents
+          |> Enum.map(fn {p, _rel} -> 1 + max_ancestor_depth(p.id, graph, seen) end)
+          |> Enum.max()
+      end
     end
   end
 end
