@@ -28,6 +28,17 @@ const STYLES = {
   },
 }
 
+// Color palette for multi-lane connectors (from colorhunt.co).
+// When multiple parent→child groups share the same row gap, each lane
+// gets a distinct color ordered left-to-right by origin position.
+const LANE_COLORS = [
+  "#264653", // dark teal
+  "#2A9D8F", // persian green
+  "#E9C46A", // saffron
+  "#F4A261", // sandy brown
+  "#E76F51", // burnt sienna
+]
+
 // Map relationship_kind → connector type for style lookup
 function styleForEdge(edge) {
   switch (edge.type) {
@@ -354,17 +365,21 @@ const GraphConnector = {
       buckets.get(key).push(g)
     }
 
-    // Draw each group with its lane offset
+    // Draw each group with its lane offset.
+    // Sort each bucket left-to-right by origin X so lane colors are spatially ordered.
     for (const [_key, bucket] of buckets) {
+      bucket.sort((a, b) => a.originX - b.originX)
       const laneCount = bucket.length
       for (let laneIdx = 0; laneIdx < laneCount; laneIdx++) {
         const g = bucket[laneIdx]
-        this._drawParentChildGroup(svg, g, laneIdx, laneCount)
+        // Assign a lane color only when multiple groups share the same row gap
+        const laneColor = laneCount > 1 ? LANE_COLORS[laneIdx % LANE_COLORS.length] : null
+        this._drawParentChildGroup(svg, g, laneIdx, laneCount, laneColor)
       }
     }
   },
 
-  _drawParentChildGroup(svg, group, laneIdx, laneCount) {
+  _drawParentChildGroup(svg, group, laneIdx, laneCount, laneColor) {
     const { originX, originY, children } = group
 
     // Origin: custom origin point (bottom center of parent cell, or couple midpoint)
@@ -389,7 +404,7 @@ const GraphConnector = {
       const cy = child.toRect.top
 
       const d = `M ${ox},${oy} V ${midY} H ${cx} V ${cy}`
-      this._makePath(svg, d, child.edge)
+      this._makePath(svg, d, child.edge, laneColor)
     } else {
       // Multiple children: branch bar spanning all children
       //
@@ -407,21 +422,21 @@ const GraphConnector = {
       // Extend bar to the right
       d += ` M ${ox},${midY} H ${rightX}`
 
-      this._makePath(svg, d, repEdge)
+      this._makePath(svg, d, repEdge, laneColor)
 
       // Vertical drops from bar to each child
       for (const child of sorted) {
         const cx = this._centerX(child.toRect)
         const cy = child.toRect.top
         const dropD = `M ${cx},${midY} V ${cy}`
-        this._makePath(svg, dropD, child.edge)
+        this._makePath(svg, dropD, child.edge, laneColor)
       }
     }
   },
 
   // --- SVG element creation ---
 
-  _makePath(svg, d, edge) {
+  _makePath(svg, d, edge, colorOverride) {
     const p = document.createElementNS("http://www.w3.org/2000/svg", "path")
     p.setAttribute("d", d)
     p.setAttribute("fill", "none")
@@ -429,7 +444,7 @@ const GraphConnector = {
     p.setAttribute("stroke-linecap", "round")
 
     const style = styleForEdge(edge)
-    p.setAttribute("stroke", style.stroke)
+    p.setAttribute("stroke", colorOverride || style.stroke)
     p.setAttribute("stroke-width", style.strokeWidth)
     if (style.strokeDasharray) {
       p.setAttribute("stroke-dasharray", style.strokeDasharray)
