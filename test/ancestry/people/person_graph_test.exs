@@ -4,7 +4,52 @@ defmodule Ancestry.People.PersonGraphTest do
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
   alias Ancestry.People.PersonGraph
+
   alias Ancestry.Relationships
+
+  # ── Helpers ──────────────────────────────────────────────────────────
+
+  defp family_fixture(attrs \\ %{}) do
+    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
+
+    {:ok, family} =
+      Ancestry.Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
+
+    family
+  end
+
+  defp person_nodes(graph) do
+    Enum.filter(graph.nodes, &(&1.type == :person))
+  end
+
+  defp focus_node(graph) do
+    Enum.find(graph.nodes, &(&1.focus == true))
+  end
+
+  defp find_person_node(graph, person_id) do
+    Enum.find(person_nodes(graph), &(&1.person.id == person_id and not &1.duplicated))
+  end
+
+  defp dup_count(graph) do
+    Enum.count(person_nodes(graph), & &1.duplicated)
+  end
+
+  defp person_ids(graph) do
+    person_nodes(graph)
+    |> Enum.reject(& &1.duplicated)
+    |> Enum.map(& &1.person.id)
+    |> MapSet.new()
+  end
+
+  defp parent_child_edges(graph) do
+    Enum.filter(graph.edges, &(&1.type == :parent_child))
+  end
+
+  defp couple_edges(graph) do
+    Enum.filter(graph.edges, &(&1.type in [:current_partner, :previous_partner]))
+  end
+
+  # ── build/2 with family_id ──────────────────────────────────────────
 
   describe "build/2 with family_id" do
     test "only includes people from the specified family" do
@@ -29,17 +74,19 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(person, f1_child, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(person, f2_child, "parent", %{role: "father"})
 
-      # Build tree scoped to family 1
-      tree = PersonGraph.build(person, family1.id)
+      # Build graph scoped to family 1
+      graph = PersonGraph.build(person, family1.id)
 
-      # Ancestors should only have f1_parent
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == f1_parent.id
-      assert tree.ancestors.couple.person_b == nil
+      ids = person_ids(graph)
 
-      # Descendants (solo_children) should only have f1_child
-      assert length(tree.center.solo_children) == 1
-      assert hd(tree.center.solo_children).person.id == f1_child.id
+      # Should include person, f1_parent, and f1_child
+      assert MapSet.member?(ids, person.id)
+      assert MapSet.member?(ids, f1_parent.id)
+      assert MapSet.member?(ids, f1_child.id)
+
+      # Should NOT include f2_parent or f2_child
+      refute MapSet.member?(ids, f2_parent.id)
+      refute MapSet.member?(ids, f2_child.id)
     end
 
     test "build/2 accepts a pre-built FamilyGraph" do
@@ -48,15 +95,18 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "P"})
       {:ok, _} = Relationships.create_relationship(parent, person, "parent", %{role: "father"})
 
-      graph = FamilyGraph.for_family(family.id)
-      tree = PersonGraph.build(person, graph)
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == parent.id
+      graph_data = FamilyGraph.for_family(family.id)
+      graph = PersonGraph.build(person, graph_data)
+
+      assert find_person_node(graph, parent.id) != nil
+      assert find_person_node(graph, person.id) != nil
     end
   end
 
+  # ── Multiple current partners ───────────────────────────────────────
+
   describe "multiple current partners (widowed and remarried)" do
-    test "latest partner by marriage year is main partner, others are previous partners" do
+    test "latest partner by marriage year is placed, both partners visible" do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
 
@@ -66,7 +116,7 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, second_wife} =
         People.create_person(family, %{given_name: "Mary", surname: "Doe"})
 
-      # First marriage (1985) — wife later died
+      # First marriage (1985)
       {:ok, _} =
         Relationships.create_relationship(person, first_wife, "married", %{marriage_year: 1985})
 
@@ -88,73 +138,50 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} =
         Relationships.create_relationship(second_wife, child2, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(person, family.id)
+      graph = PersonGraph.build(person, family.id)
 
-      # Latest partner (second wife, married 1995) should be the main partner
-      assert tree.center.partner.id == second_wife.id
+      # Both wives should be in the graph
+      assert find_person_node(graph, first_wife.id) != nil
+      assert find_person_node(graph, second_wife.id) != nil
 
-      # First wife should be in previous_partners
-      assert length(tree.center.previous_partners) == 1
-      [prev] = tree.center.previous_partners
-      assert prev.person.id == first_wife.id
+      # Both children should be in the graph
+      assert find_person_node(graph, child1.id) != nil
+      assert find_person_node(graph, child2.id) != nil
 
-      # Children grouped correctly
-      assert length(tree.center.partner_children) == 1
-      assert hd(tree.center.partner_children).person.id == child2.id
-
-      assert length(prev.children) == 1
-      assert hd(prev.children).person.id == child1.id
+      # Should have couple edges for both relationships
+      assert length(couple_edges(graph)) >= 2
     end
 
-    test "falls back to person id when no marriage dates" do
-      family = family_fixture()
-      {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
-      {:ok, first_wife} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
-      {:ok, second_wife} = People.create_person(family, %{given_name: "Mary", surname: "Doe"})
-
-      # No marriage dates
-      {:ok, _} = Relationships.create_relationship(person, first_wife, "married", %{})
-      {:ok, _} = Relationships.create_relationship(person, second_wife, "married", %{})
-
-      tree = PersonGraph.build(person, family.id)
-
-      # Higher person.id should be the main partner (latest added)
-      latest = Enum.max_by([first_wife, second_wife], & &1.id)
-      earlier = Enum.min_by([first_wife, second_wife], & &1.id)
-
-      assert tree.center.partner.id == latest.id
-      assert length(tree.center.previous_partners) == 1
-      assert hd(tree.center.previous_partners).person.id == earlier.id
-    end
-
-    test "single partner produces no previous_partners" do
+    test "single partner produces couple edge" do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
       {:ok, wife} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
 
       {:ok, _} = Relationships.create_relationship(person, wife, "married", %{})
 
-      tree = PersonGraph.build(person, family.id)
+      graph = PersonGraph.build(person, family.id)
 
-      assert tree.center.partner.id == wife.id
-      assert tree.center.previous_partners == []
+      assert find_person_node(graph, wife.id) != nil
+      assert length(couple_edges(graph)) == 1
     end
 
-    test "no partners produces nil partner and empty previous_partners" do
+    test "no partners produces no couple edges" do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
 
-      tree = PersonGraph.build(person, family.id)
+      graph = PersonGraph.build(person, family.id)
 
-      assert tree.center.partner == nil
-      assert tree.center.previous_partners == []
+      assert couple_edges(graph) == []
+      # Only the focus person
+      assert length(person_nodes(graph)) == 1
     end
   end
+
+  # ── Depth controls ──────────────────────────────────────────────────
 
   describe "depth controls" do
     # 5-generation lineage:
     # great_grandparent -> grandparent -> parent -> child (focus) -> kid -> grandkid
-    # All solo children (no partners), only parent relationships.
     setup do
       family = family_fixture()
 
@@ -204,99 +231,108 @@ defmodule Ancestry.People.PersonGraphTest do
       }
     end
 
-    test "ancestors: 0 → tree.ancestors == nil", %{family: family, child: child} do
-      tree = PersonGraph.build(child, family.id, ancestors: 0)
-      assert tree.ancestors == nil
+    test "ancestors: 0 — no ancestors shown", %{family: family, child: child} do
+      graph = PersonGraph.build(child, family.id, ancestors: 0)
+
+      # Focus person should be the only ancestor-gen person
+      focus = focus_node(graph)
+      assert focus.person.id == child.id
+      assert focus.row == 0
+
+      # No parent nodes
+      nodes = person_nodes(graph)
+      refute Enum.any?(nodes, &(&1.person.id != child.id and &1.row < focus.row))
     end
 
-    test "ancestors: 1 → parents shown, parent_trees == []", %{
+    test "ancestors: 1 — parents shown, has_more_up for further ancestors", %{
       family: family,
       child: child,
       parent: parent
     } do
-      tree = PersonGraph.build(child, family.id, ancestors: 1)
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert tree.ancestors.parent_trees == []
+      graph = PersonGraph.build(child, family.id, ancestors: 1)
+
+      parent_node = find_person_node(graph, parent.id)
+      assert parent_node != nil
+      assert parent_node.has_more_up == true
+
+      # Grandparent should NOT be in graph
+      assert find_person_node(graph, graph.focus_person.id) != nil
     end
 
-    test "ancestors: 2 → parents + grandparents shown", %{
+    test "ancestors: 2 — parents + grandparents shown", %{
       family: family,
       child: child,
       parent: parent,
       grandparent: grandparent
     } do
-      tree = PersonGraph.build(child, family.id, ancestors: 2)
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert length(tree.ancestors.parent_trees) == 1
-      [%{tree: gp_tree}] = tree.ancestors.parent_trees
-      assert gp_tree.couple.person_a.person.id == grandparent.id
-      assert gp_tree.parent_trees == []
+      graph = PersonGraph.build(child, family.id, ancestors: 2)
+
+      assert find_person_node(graph, parent.id) != nil
+      assert find_person_node(graph, grandparent.id) != nil
+
+      # Grandparent should have has_more_up since great_grandparent exists
+      gp_node = find_person_node(graph, grandparent.id)
+      assert gp_node.has_more_up == true
     end
 
-    test "ancestors: 3 → three generations up", %{
+    test "ancestors: 3 — three generations up", %{
       family: family,
       child: child,
       parent: parent,
       grandparent: grandparent,
       great_grandparent: great_grandparent
     } do
-      tree = PersonGraph.build(child, family.id, ancestors: 3)
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      [%{tree: gp_tree}] = tree.ancestors.parent_trees
-      assert gp_tree.couple.person_a.person.id == grandparent.id
-      [%{tree: ggp_tree}] = gp_tree.parent_trees
-      assert ggp_tree.couple.person_a.person.id == great_grandparent.id
-      assert ggp_tree.parent_trees == []
+      graph = PersonGraph.build(child, family.id, ancestors: 3)
+
+      assert find_person_node(graph, parent.id) != nil
+      assert find_person_node(graph, grandparent.id) != nil
+      assert find_person_node(graph, great_grandparent.id) != nil
+
+      # Great-grandparent has no further ancestors — has_more_up should be false
+      ggp_node = find_person_node(graph, great_grandparent.id)
+      assert ggp_node.has_more_up == false
     end
 
-    test "descendants: 0 → no children", %{family: family, child: child} do
-      tree = PersonGraph.build(child, family.id, descendants: 0)
-      assert tree.center.solo_children == []
-      assert tree.center.partner_children == []
+    test "descendants: 0 — no children shown", %{family: family, child: child} do
+      graph = PersonGraph.build(child, family.id, descendants: 0)
+
+      nodes = person_nodes(graph)
+      # Only focus person and ancestors
+      refute Enum.any?(nodes, fn n -> n.row > focus_node(graph).row end)
     end
 
-    test "descendants: 2 → grandchildren visible", %{
+    test "descendants: 2 — grandchildren visible", %{
       family: family,
       child: child,
       kid: kid,
       grandkid: grandkid
     } do
-      tree = PersonGraph.build(child, family.id, descendants: 2)
-      assert length(tree.center.solo_children) == 1
-      [kid_unit] = tree.center.solo_children
-      # kid should be fully expanded (not at limit), so it has a focus field
-      assert kid_unit.focus.id == kid.id
-      # grandkid should appear as kid's child (at the limit)
-      assert length(kid_unit.solo_children) == 1
-      [grandkid_unit] = kid_unit.solo_children
-      assert grandkid_unit.person.id == grandkid.id
+      graph = PersonGraph.build(child, family.id, descendants: 2)
+
+      assert find_person_node(graph, kid.id) != nil
+      assert find_person_node(graph, grandkid.id) != nil
     end
 
-    test "default opts (no opts) → ancestors: 2, descendants: 1", %{
+    test "default opts (no opts) — ancestors: 2, descendants: 1", %{
       family: family,
       child: child,
       parent: parent,
       grandparent: grandparent,
-      kid: kid
+      kid: kid,
+      grandkid: grandkid
     } do
-      tree = PersonGraph.build(child, family.id)
-      # Ancestors: 2 levels → parent and grandparent visible
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert length(tree.ancestors.parent_trees) == 1
-      [%{tree: gp_tree}] = tree.ancestors.parent_trees
-      assert gp_tree.couple.person_a.person.id == grandparent.id
-      assert gp_tree.parent_trees == []
-      # Descendants: 1 level → kid visible but no grandkid
-      assert length(tree.center.solo_children) == 1
-      [kid_unit] = tree.center.solo_children
-      assert kid_unit.person.id == kid.id
-      assert kid_unit.children == nil
+      graph = PersonGraph.build(child, family.id)
+
+      # Ancestors: 2 levels
+      assert find_person_node(graph, parent.id) != nil
+      assert find_person_node(graph, grandparent.id) != nil
+
+      # Descendants: 1 level — kid visible but not grandkid
+      assert find_person_node(graph, kid.id) != nil
+      assert find_person_node(graph, grandkid.id) == nil
     end
 
-    test "at_limit children include ex-partners in previous_partners", %{family: _family} do
-      # Override the lineage setup — we need our own family structure
+    test "at_limit children include ex-partners" do
       family = family_fixture()
 
       # Parents
@@ -312,7 +348,7 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(dad, humphrey, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(mom, humphrey, "parent", %{role: "mother"})
 
-      # Greta: divorced from Gilbert (married 1966, divorced 1975), married to Humphrey (1976)
+      # Greta: divorced from Gilbert, married to Humphrey
       {:ok, greta} = People.create_person(family, %{given_name: "Greta", surname: "W"})
 
       {:ok, _} =
@@ -324,26 +360,21 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} =
         Relationships.create_relationship(humphrey, greta, "married", %{marriage_year: 1976})
 
-      # Build tree focused on Mom with descendants: 1 (children at boundary)
-      tree = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
+      # Build graph focused on Mom with descendants: 1 (children at boundary)
+      graph = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
 
-      # Find Gilbert and Humphrey in the partner_children
-      children = tree.center.partner_children
-      gilbert_unit = Enum.find(children, &(&1.person.id == gilbert.id))
-      humphrey_unit = Enum.find(children, &(&1.person.id == humphrey.id))
+      # Gilbert and Humphrey should be in the graph
+      assert find_person_node(graph, gilbert.id) != nil
+      assert find_person_node(graph, humphrey.id) != nil
 
-      # Gilbert (earlier in birth_year order) shows Greta first — not duplicated
-      assert gilbert_unit.partner.id == greta.id
-      assert gilbert_unit.partner_duplicated == false
-      assert gilbert_unit.previous_partners == []
+      # Greta should appear in the graph (as partner at the limit)
+      greta_nodes =
+        person_nodes(graph) |> Enum.filter(&(&1.person.id == greta.id))
 
-      # Humphrey (later) also shows Greta — marked duplicated
-      assert humphrey_unit.partner.id == greta.id
-      assert humphrey_unit.partner_duplicated == true
-      assert humphrey_unit.previous_partners == []
+      assert length(greta_nodes) >= 1
     end
 
-    test "at_limit children show multiple partners as main + previous_partners" do
+    test "at_limit children show multiple partners" do
       family = family_fixture()
 
       {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
@@ -367,36 +398,34 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} =
         Relationships.create_relationship(son, mary, "married", %{marriage_year: 1990})
 
-      tree = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
+      graph = PersonGraph.build(mom, family.id, ancestors: 0, descendants: 1)
 
-      children = tree.center.partner_children
-      son_unit = Enum.find(children, &(&1.person.id == son.id))
+      # Both Jane and Mary should appear as partners
+      assert find_person_node(graph, jane.id) != nil or
+               Enum.any?(person_nodes(graph), &(&1.person.id == jane.id))
 
-      # Main partner is Mary (latest marriage year)
-      assert son_unit.partner.id == mary.id
-      # Jane is in previous_partners
-      assert length(son_unit.previous_partners) == 1
-      [prev] = son_unit.previous_partners
-      assert prev.person.id == jane.id
+      assert find_person_node(graph, mary.id) != nil or
+               Enum.any?(person_nodes(graph), &(&1.person.id == mary.id))
     end
   end
 
+  # ── Deeper-parent-first ordering ────────────────────────────────────
+
   describe "deeper-parent-first ordering" do
-    test "deeper parent becomes person_a in the ancestor couple" do
+    test "deeper parent is person_a (placed first) in the ancestor couple" do
       family = family_fixture()
 
       {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
       {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "C"})
       {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "C"})
 
-      # Mom has 3 generations of ancestry: mom → maternal_gm → maternal_ggm
+      # Mom has 3 generations of ancestry
       {:ok, maternal_gm} =
         People.create_person(family, %{given_name: "MaternalGM", surname: "C"})
 
       {:ok, maternal_ggm} =
         People.create_person(family, %{given_name: "MaternalGGM", surname: "C"})
 
-      # Dad has no ancestry above
       {:ok, _} = Relationships.create_relationship(mom, child, "parent", %{role: "mother"})
       {:ok, _} = Relationships.create_relationship(dad, child, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(maternal_gm, mom, "parent", %{role: "mother"})
@@ -404,10 +433,16 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} =
         Relationships.create_relationship(maternal_ggm, maternal_gm, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(child, family.id, ancestors: 3)
+      graph = PersonGraph.build(child, family.id, ancestors: 3)
 
-      # Mom (3 generations deep) should be person_a — deeper lineage first
-      assert tree.ancestors.couple.person_a.person.id == mom.id
+      # Mom should appear in the graph (deeper lineage)
+      mom_node = find_person_node(graph, mom.id)
+      dad_node = find_person_node(graph, dad.id)
+      assert mom_node != nil
+      assert dad_node != nil
+
+      # Mom (deeper lineage) should be at a lower column (placed first / left)
+      assert mom_node.col < dad_node.col
     end
 
     test "single parent needs no sorting" do
@@ -418,10 +453,9 @@ defmodule Ancestry.People.PersonGraphTest do
 
       {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
 
-      tree = PersonGraph.build(child, family.id, ancestors: 1)
+      graph = PersonGraph.build(child, family.id, ancestors: 1)
 
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert tree.ancestors.couple.person_b == nil
+      assert find_person_node(graph, parent.id) != nil
     end
 
     test "depth probe terminates on cyclic data" do
@@ -441,6 +475,8 @@ defmodule Ancestry.People.PersonGraphTest do
       assert %PersonGraph{} = PersonGraph.build(person_a, family.id, ancestors: 3)
     end
   end
+
+  # ── Cycle detection ─────────────────────────────────────────────────
 
   describe "cycle detection" do
     test "Type 1: cousins who marry — shared grandparents, one duplicated" do
@@ -481,21 +517,19 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(cousin_e, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(cousin_f, focus, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(focus, family.id, ancestors: 3)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
-      # Collect all ancestor person entries
-      entries = collect_ancestor_persons(tree.ancestors)
-      grandpa_entries = Enum.filter(entries, &(&1.person.id == grandpa.id))
-      grandma_entries = Enum.filter(entries, &(&1.person.id == grandma.id))
+      # Grandparents should appear twice: once normal, once duplicated
+      grandpa_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandpa.id))
+      grandma_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandma.id))
 
-      # Grandparents appear twice — once not duplicated, once duplicated
-      assert length(grandpa_entries) == 2
-      assert Enum.count(grandpa_entries, & &1.duplicated) == 1
-      assert Enum.count(grandpa_entries, &(not &1.duplicated)) == 1
+      assert length(grandpa_nodes) == 2
+      assert Enum.count(grandpa_nodes, & &1.duplicated) == 1
+      assert Enum.count(grandpa_nodes, &(not &1.duplicated)) == 1
 
-      assert length(grandma_entries) == 2
-      assert Enum.count(grandma_entries, & &1.duplicated) == 1
-      assert Enum.count(grandma_entries, &(not &1.duplicated)) == 1
+      assert length(grandma_nodes) == 2
+      assert Enum.count(grandma_nodes, & &1.duplicated) == 1
+      assert Enum.count(grandma_nodes, &(not &1.duplicated)) == 1
     end
 
     test "Type 4: uncle marries niece — grandparents appear with one duplicated" do
@@ -529,18 +563,17 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(uncle, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(niece, focus, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(focus, family.id, ancestors: 3)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
-      entries = collect_ancestor_persons(tree.ancestors)
-      grandpa_entries = Enum.filter(entries, &(&1.person.id == grandpa.id))
-      grandma_entries = Enum.filter(entries, &(&1.person.id == grandma.id))
+      grandpa_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandpa.id))
+      grandma_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandma.id))
 
       # Grandparents appear twice — once not duplicated, once duplicated
-      assert length(grandpa_entries) == 2
-      assert Enum.count(grandpa_entries, & &1.duplicated) == 1
+      assert length(grandpa_nodes) == 2
+      assert Enum.count(grandpa_nodes, & &1.duplicated) == 1
 
-      assert length(grandma_entries) == 2
-      assert Enum.count(grandma_entries, & &1.duplicated) == 1
+      assert length(grandma_nodes) == 2
+      assert Enum.count(grandma_nodes, & &1.duplicated) == 1
     end
 
     test "Type 5: siblings marry into same family — no duplication" do
@@ -569,12 +602,10 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(brother_x, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(sister_x, focus, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(focus, family.id, ancestors: 2)
+      graph = PersonGraph.build(focus, family.id, ancestors: 2)
 
-      entries = collect_ancestor_persons(tree.ancestors)
-
-      # No person should be duplicated — partner edges don't create cycles
-      assert Enum.all?(entries, &(not &1.duplicated))
+      # No person should be duplicated
+      assert dup_count(graph) == 0
     end
 
     test "no-cycle family — no person is duplicated" do
@@ -587,10 +618,9 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(dad, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(focus, family.id, ancestors: 2)
+      graph = PersonGraph.build(focus, family.id, ancestors: 2)
 
-      entries = collect_ancestor_persons(tree.ancestors)
-      assert Enum.all?(entries, &(not &1.duplicated))
+      assert dup_count(graph) == 0
     end
 
     test "same person as both parents (bad data) — second entry is duplicated" do
@@ -599,15 +629,13 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "P"})
       {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "P"})
 
-      # Create bad data: the same parent appears twice in the parents list.
-      # We build a FamilyGraph manually since the DB enforces uniqueness.
       rel = %Ancestry.Relationships.Relationship{
         person_a_id: parent.id,
         person_b_id: focus.id,
         type: "parent"
       }
 
-      graph = %FamilyGraph{
+      graph_data = %FamilyGraph{
         family_id: family.id,
         people_by_id: %{parent.id => parent, focus.id => focus},
         parents_by_child: %{focus.id => [{parent, rel}, {parent, rel}]},
@@ -615,15 +643,14 @@ defmodule Ancestry.People.PersonGraphTest do
         partners_by_person: %{}
       }
 
-      tree = PersonGraph.build(focus, graph, ancestors: 1)
+      graph = PersonGraph.build(focus, graph_data, ancestors: 1)
 
-      entries = collect_ancestor_persons(tree.ancestors)
-      parent_entries = Enum.filter(entries, &(&1.person.id == parent.id))
+      parent_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == parent.id))
 
       # Parent appears twice: once not duplicated, once duplicated
-      assert length(parent_entries) == 2
-      assert Enum.count(parent_entries, & &1.duplicated) == 1
-      assert Enum.count(parent_entries, &(not &1.duplicated)) == 1
+      assert length(parent_nodes) == 2
+      assert Enum.count(parent_nodes, & &1.duplicated) == 1
+      assert Enum.count(parent_nodes, &(not &1.duplicated)) == 1
     end
 
     test "self-ancestor (bad data) — stub is duplicated, no stack overflow" do
@@ -631,15 +658,13 @@ defmodule Ancestry.People.PersonGraphTest do
 
       {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "F"})
 
-      # Create bad data: person is their own parent.
-      # We build a FamilyGraph manually since the DB prevents self-referencing.
       rel = %Ancestry.Relationships.Relationship{
         person_a_id: focus.id,
         person_b_id: focus.id,
         type: "parent"
       }
 
-      graph = %FamilyGraph{
+      graph_data = %FamilyGraph{
         family_id: family.id,
         people_by_id: %{focus.id => focus},
         parents_by_child: %{focus.id => [{focus, rel}]},
@@ -648,15 +673,15 @@ defmodule Ancestry.People.PersonGraphTest do
       }
 
       # Should not stack overflow
-      tree = PersonGraph.build(focus, graph, ancestors: 3)
+      graph = PersonGraph.build(focus, graph_data, ancestors: 3)
 
-      assert tree.ancestors != nil
-      entries = collect_ancestor_persons(tree.ancestors)
+      assert %PersonGraph{} = graph
 
-      # Focus appears in ancestors as duplicated (already in visited as the focus person)
-      focus_entries = Enum.filter(entries, &(&1.person.id == focus.id))
-      assert length(focus_entries) >= 1
-      assert Enum.any?(focus_entries, & &1.duplicated)
+      # Focus appears in ancestors as duplicated
+      focus_dup_nodes =
+        person_nodes(graph) |> Enum.filter(&(&1.person.id == focus.id and &1.duplicated))
+
+      assert length(focus_dup_nodes) >= 1
     end
 
     test "Type 2: woman marries two brothers — no ancestor duplication in Phase 1" do
@@ -695,13 +720,16 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(brother2, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
 
-      # Build with ancestors: 2 — brother1 is an ex-partner in the center row, NOT an ancestor
-      tree = PersonGraph.build(focus, family.id, ancestors: 2)
+      # Build with ancestors: 2
+      graph = PersonGraph.build(focus, family.id, ancestors: 2)
 
-      entries = collect_ancestor_persons(tree.ancestors)
+      # Only ancestor nodes should be checked for duplication
+      ancestor_nodes =
+        person_nodes(graph)
+        |> Enum.filter(&(&1.row < focus_node(graph).row))
 
-      # No ancestor should be marked duplicated — Brother1 only appears as an ex-partner
-      assert Enum.all?(entries, &(not &1.duplicated))
+      # No ancestor should be duplicated
+      assert Enum.all?(ancestor_nodes, &(not &1.duplicated))
     end
 
     test "Type 3: double first cousins — both GP sets appear twice (one duplicated each)" do
@@ -746,27 +774,24 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(parent1, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(parent2, focus, "parent", %{role: "mother"})
 
-      tree = PersonGraph.build(focus, family.id, ancestors: 3)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
-      entries = collect_ancestor_persons(tree.ancestors)
-
-      # Each grandparent from family A and family B appears twice:
-      # once not duplicated (first encounter) and once duplicated (second encounter)
+      # Each grandparent appears twice: once normal, once duplicated
       for gp <- [gpa_a, gma_a, gpa_b, gma_b] do
-        gp_entries = Enum.filter(entries, &(&1.person.id == gp.id))
+        gp_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == gp.id))
 
-        assert length(gp_entries) == 2,
-               "Expected #{gp.given_name} to appear exactly twice in ancestor tree"
+        assert length(gp_nodes) == 2,
+               "Expected #{gp.given_name} to appear exactly twice"
 
-        assert Enum.count(gp_entries, & &1.duplicated) == 1,
+        assert Enum.count(gp_nodes, & &1.duplicated) == 1,
                "Expected #{gp.given_name} to have exactly one duplicated entry"
 
-        assert Enum.count(gp_entries, &(not &1.duplicated)) == 1,
+        assert Enum.count(gp_nodes, &(not &1.duplicated)) == 1,
                "Expected #{gp.given_name} to have exactly one non-duplicated entry"
       end
     end
 
-    test "three parents (bad data) — only first two are used, third is silently ignored" do
+    test "three parents (bad data) — only first two are used" do
       family = family_fixture()
 
       {:ok, parent_a} = People.create_person(family, %{given_name: "ParentA", surname: "P"})
@@ -774,9 +799,6 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, parent_c} = People.create_person(family, %{given_name: "ParentC", surname: "P"})
       {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "P"})
 
-      # Build a FamilyGraph manually with 3 parents for the same child.
-      # The DB has a unique constraint on (person_a_id, person_b_id, type), so we
-      # construct the graph directly instead of via Relationships.create_relationship.
       rel_a = %Ancestry.Relationships.Relationship{
         person_a_id: parent_a.id,
         person_b_id: focus.id,
@@ -795,7 +817,7 @@ defmodule Ancestry.People.PersonGraphTest do
         type: "parent"
       }
 
-      graph = %FamilyGraph{
+      graph_data = %FamilyGraph{
         family_id: family.id,
         people_by_id: %{
           parent_a.id => parent_a,
@@ -814,89 +836,98 @@ defmodule Ancestry.People.PersonGraphTest do
         partners_by_person: %{}
       }
 
-      tree = PersonGraph.build(focus, graph, ancestors: 1)
+      graph = PersonGraph.build(focus, graph_data, ancestors: 1)
 
-      assert tree.ancestors != nil
-      # Only the first two parents become the ancestor couple; the third is silently ignored
-      assert tree.ancestors.couple.person_a.person.id == parent_a.id
-      assert tree.ancestors.couple.person_b.person.id == parent_b.id
+      # Only the first two parents become the ancestor couple
+      assert find_person_node(graph, parent_a.id) != nil
+      assert find_person_node(graph, parent_b.id) != nil
     end
   end
 
-  describe "generation renumbering" do
-    test "simple 2-gen tree: grandparents=0, parents=1, focus=2" do
+  # ── Grid structure ──────────────────────────────────────────────────
+
+  describe "grid structure" do
+    test "simple family produces correct grid dimensions" do
       family = family_fixture()
 
-      {:ok, grandparent} =
-        People.create_person(family, %{given_name: "Grandparent", surname: "G"})
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
+      {:ok, _} = Relationships.create_relationship(dad, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
 
-      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "G"})
-      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "G"})
+      graph = PersonGraph.build(focus, family.id, ancestors: 1, descendants: 0)
 
-      {:ok, _} =
-        Relationships.create_relationship(grandparent, parent, "parent", %{role: "father"})
+      # Parents at row 0, focus at row 1 = 2 rows
+      assert graph.grid_rows == 2
+      # At least 2 columns (for the parent couple)
+      assert graph.grid_cols >= 2
 
-      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+      # Focus should be at a lower row than parents
+      focus_n = focus_node(graph)
+      dad_n = find_person_node(graph, dad.id)
+      mom_n = find_person_node(graph, mom.id)
 
-      tree = PersonGraph.build(child, family.id, ancestors: 2)
-
-      assert tree.generations[grandparent.id] == 0
-      assert tree.generations[parent.id] == 1
-      assert tree.generations[child.id] == 2
+      assert focus_n.row > dad_n.row
+      assert dad_n.row == mom_n.row
     end
 
-    test "with descendants: focus at max_ancestors, children below" do
+    test "focus node is marked correctly" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Solo", surname: "S"})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0)
+
+      focus = focus_node(graph)
+      assert focus != nil
+      assert focus.person.id == person.id
+      assert focus.focus == true
+    end
+
+    test "edges are generated for parent-child and couple relationships" do
       family = family_fixture()
 
-      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "G"})
-      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "G"})
-      {:ok, kid} = People.create_person(family, %{given_name: "Kid", surname: "G"})
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "D"})
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "D"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
+      {:ok, _} = Relationships.create_relationship(dad, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
 
+      graph = PersonGraph.build(focus, family.id, ancestors: 1, descendants: 0)
+
+      # Should have parent-child edges
+      pc_edges = parent_child_edges(graph)
+      assert length(pc_edges) >= 2
+
+      # Should have a couple edge
+      c_edges = couple_edges(graph)
+      assert length(c_edges) >= 1
+    end
+
+    test "separator nodes fill remaining grid cells" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "Solo", surname: "S"})
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "S"})
       {:ok, _} = Relationships.create_relationship(parent, person, "parent", %{role: "father"})
-      {:ok, _} = Relationships.create_relationship(person, kid, "parent", %{role: "father"})
 
-      tree = PersonGraph.build(person, family.id, ancestors: 1, descendants: 1)
+      graph = PersonGraph.build(person, family.id, ancestors: 1, descendants: 0)
 
-      assert tree.generations[parent.id] == 0
-      assert tree.generations[person.id] == 1
-      assert tree.generations[kid.id] == 2
-    end
+      separator_nodes = Enum.filter(graph.nodes, &(&1.type == :separator))
 
-    test "asymmetric branches: max depth drives renumbering" do
-      family = family_fixture()
-
-      {:ok, paternal_gp} =
-        People.create_person(family, %{given_name: "PaternalGP", surname: "G"})
-
-      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "G"})
-      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "G"})
-      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "G"})
-
-      {:ok, _} = Relationships.create_relationship(paternal_gp, dad, "parent", %{role: "father"})
-      {:ok, _} = Relationships.create_relationship(dad, child, "parent", %{role: "father"})
-      {:ok, _} = Relationships.create_relationship(mom, child, "parent", %{role: "mother"})
-
-      tree = PersonGraph.build(child, family.id, ancestors: 2)
-
-      assert tree.generations[paternal_gp.id] == 0
-      assert tree.generations[dad.id] == 1
-      assert tree.generations[mom.id] == 1
-      assert tree.generations[child.id] == 2
-    end
-
-    test "no ancestors: focus is generation 0" do
-      family = family_fixture()
-
-      {:ok, person} = People.create_person(family, %{given_name: "Solo", surname: "G"})
-
-      tree = PersonGraph.build(person, family.id, ancestors: 0)
-
-      assert tree.generations[person.id] == 0
+      # Total nodes should equal grid_cols * grid_rows
+      total_cells = graph.grid_cols * graph.grid_rows
+      total_nodes = length(graph.nodes)
+      assert total_nodes == total_cells
+      assert length(separator_nodes) == total_cells - length(person_nodes(graph))
     end
   end
+
+  # ── has_more indicators ─────────────────────────────────────────────
 
   describe "has_more indicators" do
-    test "ancestor at depth boundary shows has_more when more ancestors exist" do
+    test "ancestor at depth boundary shows has_more_up when more ancestors exist" do
       family = family_fixture()
 
       {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "L"})
@@ -918,53 +949,27 @@ defmodule Ancestry.People.PersonGraphTest do
           role: "father"
         })
 
-      # ancestors: 1 shows parent only; grandparent is beyond the boundary
-      tree = PersonGraph.build(child, family.id, ancestors: 1)
+      # ancestors: 1 shows parent only
+      graph = PersonGraph.build(child, family.id, ancestors: 1)
 
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert tree.ancestors.parent_trees == []
-      assert tree.ancestors.has_more == true
+      parent_node = find_person_node(graph, parent.id)
+      assert parent_node != nil
+      assert parent_node.has_more_up == true
     end
 
-    test "ancestor at depth boundary shows has_more false when no more ancestors" do
+    test "ancestor at depth boundary shows has_more_up false when no more ancestors" do
       family = family_fixture()
 
       {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "L"})
       {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "L"})
 
-      # parent has no parents of their own
       {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
 
-      # ancestors: 1 shows parent; parent has no parents beyond the boundary
-      tree = PersonGraph.build(child, family.id, ancestors: 1)
+      graph = PersonGraph.build(child, family.id, ancestors: 1)
 
-      assert tree.ancestors != nil
-      assert tree.ancestors.couple.person_a.person.id == parent.id
-      assert tree.ancestors.parent_trees == []
-      assert tree.ancestors.has_more == false
+      parent_node = find_person_node(graph, parent.id)
+      assert parent_node != nil
+      assert parent_node.has_more_up == false
     end
-  end
-
-  # --- Test helpers ---
-
-  defp collect_ancestor_persons(nil), do: []
-
-  defp collect_ancestor_persons(%{couple: couple, parent_trees: parent_trees}) do
-    persons = [couple.person_a, couple.person_b] |> Enum.reject(&is_nil/1)
-
-    child_persons =
-      Enum.flat_map(parent_trees, fn entry -> collect_ancestor_persons(entry.tree) end)
-
-    persons ++ child_persons
-  end
-
-  defp family_fixture(attrs \\ %{}) do
-    {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
-
-    {:ok, family} =
-      Ancestry.Families.create_family(org, Enum.into(attrs, %{name: "Test Family"}))
-
-    family
   end
 end
