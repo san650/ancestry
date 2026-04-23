@@ -26,16 +26,9 @@ defmodule Ancestry.People.PersonGraph do
 
   @default_opts [ancestors: 2, descendants: 1, other: 0]
 
-  # NOTE: :ancestors, :center, :descendants, :generations are legacy fields
-  # kept temporarily for backward compatibility with existing templates.
-  # They will be removed when the rendering components are rewritten.
   defstruct [
     :focus_person,
     :family_id,
-    :ancestors,
-    :center,
-    :descendants,
-    :generations,
     nodes: [],
     edges: [],
     grid_cols: 0,
@@ -83,19 +76,13 @@ defmodule Ancestry.People.PersonGraph do
     # Phase 2-5: Layout
     {nodes, grid_cols, grid_rows} = layout_grid(state, focus_person.id)
 
-    # Legacy tree data (for backward compatibility with existing templates)
-    legacy = build_legacy(focus_person, graph, max_ancestors, max_descendants)
-
     %__MODULE__{
       focus_person: focus_person,
       family_id: graph.family_id,
       nodes: nodes,
       edges: state.edges,
       grid_cols: grid_cols,
-      grid_rows: grid_rows,
-      ancestors: legacy.ancestors,
-      center: legacy.center,
-      generations: legacy.generations
+      grid_rows: grid_rows
     }
   end
 
@@ -749,240 +736,6 @@ defmodule Ancestry.People.PersonGraph do
           |> Enum.map(fn {p, _rel} -> 1 + max_ancestor_depth(p.id, graph, seen) end)
           |> Enum.max()
       end
-    end
-  end
-
-  # ── Legacy tree builder (backward compat with existing templates) ───
-  # TODO: Remove when rendering components are rewritten (Tasks 5-8).
-
-  defp build_legacy(focus_person, graph, max_ancestors, max_descendants) do
-    visited = %{focus_person.id => 0}
-
-    {ancestor_tree, visited} =
-      legacy_ancestor_tree(focus_person.id, 1, max_ancestors, graph, visited)
-
-    {center, visited} =
-      legacy_family_unit(focus_person, 0, max_descendants, graph, visited)
-
-    max_gen = visited |> Map.values() |> Enum.max()
-    generations = Map.new(visited, fn {person_id, gen} -> {person_id, max_gen - gen} end)
-
-    %{ancestors: ancestor_tree, center: center, generations: generations}
-  end
-
-  defp legacy_family_unit(person, depth, max_descendants, graph, visited) do
-    partners = FamilyGraph.active_partners(graph, person.id)
-    ex_partners = FamilyGraph.former_partners(graph, person.id)
-
-    sorted_partners =
-      Enum.sort_by(
-        partners,
-        fn {p, rel} ->
-          year = if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
-          {year || 0, p.id}
-        end,
-        :desc
-      )
-
-    {partner, previous} =
-      case sorted_partners do
-        [{p, _rel} | rest] -> {p, rest}
-        [] -> {nil, []}
-      end
-
-    {partner_children, visited} =
-      if partner do
-        FamilyGraph.children_of_pair(graph, person.id, partner.id)
-        |> legacy_child_units(depth, max_descendants, graph, visited)
-      else
-        {[], visited}
-      end
-
-    {previous_partner_groups, visited} =
-      Enum.reduce(previous, {[], visited}, fn {prev, _rel}, {groups, vis} ->
-        {children, vis} =
-          FamilyGraph.children_of_pair(graph, person.id, prev.id)
-          |> legacy_child_units(depth, max_descendants, graph, vis)
-
-        {groups ++ [%{person: prev, children: children}], vis}
-      end)
-
-    {ex_partner_groups, visited} =
-      Enum.reduce(ex_partners, {[], visited}, fn {ex, _rel}, {groups, vis} ->
-        {children, vis} =
-          FamilyGraph.children_of_pair(graph, person.id, ex.id)
-          |> legacy_child_units(depth, max_descendants, graph, vis)
-
-        {groups ++ [%{person: ex, children: children}], vis}
-      end)
-
-    {solo_children, visited} =
-      FamilyGraph.solo_children(graph, person.id)
-      |> legacy_child_units(depth, max_descendants, graph, visited)
-
-    result = %{
-      focus: person,
-      partner: partner,
-      previous_partners: previous_partner_groups,
-      ex_partners: ex_partner_groups,
-      partner_children: partner_children,
-      solo_children: solo_children
-    }
-
-    {result, visited}
-  end
-
-  defp legacy_child_units(children, depth, max_descendants, graph, visited) do
-    if depth >= max_descendants do
-      {[], visited}
-    else
-      at_limit = depth + 1 >= max_descendants
-
-      {units, vis, _seen} =
-        Enum.reduce(children, {[], visited, MapSet.new()}, fn child,
-                                                              {units, vis, seen_partners} ->
-          if Map.has_key?(vis, child.id) do
-            {units ++ [%{person: child, duplicated: true, has_more: false, children: nil}], vis,
-             seen_partners}
-          else
-            vis = Map.put(vis, child.id, -(depth + 1))
-
-            if at_limit do
-              has_more = FamilyGraph.has_children?(graph, child.id)
-              all_partners = FamilyGraph.all_partners(graph, child.id)
-
-              sorted_p =
-                Enum.sort_by(
-                  all_partners,
-                  fn {p, rel} ->
-                    year =
-                      if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
-
-                    {year || 0, p.id}
-                  end,
-                  :desc
-                )
-
-              {lp, lprev} =
-                case sorted_p do
-                  [{p, _rel} | rest] -> {p, rest}
-                  [] -> {nil, []}
-                end
-
-              partner_id = lp && lp.id
-              partner_duplicated = partner_id != nil and MapSet.member?(seen_partners, partner_id)
-
-              {previous_partners, seen_partners} =
-                Enum.reduce(lprev, {[], seen_partners}, fn {p, _rel}, {pps, sp} ->
-                  dup = MapSet.member?(sp, p.id)
-
-                  {pps ++ [%{person: p, children: nil, duplicated: dup}], MapSet.put(sp, p.id)}
-                end)
-
-              seen_partners =
-                if partner_id, do: MapSet.put(seen_partners, partner_id), else: seen_partners
-
-              {units ++
-                 [
-                   %{
-                     person: child,
-                     partner: lp,
-                     partner_duplicated: partner_duplicated,
-                     previous_partners: previous_partners,
-                     has_more: has_more,
-                     children: nil
-                   }
-                 ], vis, seen_partners}
-            else
-              {unit, vis} =
-                legacy_family_unit(child, depth + 1, max_descendants, graph, vis)
-
-              has_children =
-                unit.partner_children != [] or unit.solo_children != [] or
-                  unit.ex_partners != []
-
-              unit = Map.put(unit, :has_more, false) |> Map.put(:has_children, has_children)
-              {units ++ [unit], vis, seen_partners}
-            end
-          end
-        end)
-
-      {units, vis}
-    end
-  end
-
-  defp legacy_ancestor_tree(_person_id, generation, max_ancestors, _graph, visited)
-       when generation > max_ancestors do
-    {nil, visited}
-  end
-
-  defp legacy_ancestor_tree(person_id, generation, max_ancestors, graph, visited) do
-    parents = FamilyGraph.parents(graph, person_id)
-
-    parents =
-      if generation == 1 do
-        sort_by_depth(parents, graph)
-      else
-        parents
-      end
-
-    case parents do
-      [] ->
-        {nil, visited}
-
-      _ ->
-        {person_a_raw, person_b_raw} =
-          case parents do
-            [{p, _}] -> {p, nil}
-            [{p1, _}, {p2, _} | _] -> {p1, p2}
-          end
-
-        {person_a_entry, visited} = legacy_check_mark(person_a_raw, generation, visited)
-
-        {person_b_entry, visited} =
-          if person_b_raw,
-            do: legacy_check_mark(person_b_raw, generation, visited),
-            else: {nil, visited}
-
-        {parent_trees, visited} =
-          [person_a_entry, person_b_entry]
-          |> Enum.reject(&is_nil/1)
-          |> Enum.reject(& &1.duplicated)
-          |> Enum.reduce({[], visited}, fn entry, {trees, vis} ->
-            case legacy_ancestor_tree(
-                   entry.person.id,
-                   generation + 1,
-                   max_ancestors,
-                   graph,
-                   vis
-                 ) do
-              {nil, vis} -> {trees, vis}
-              {tree, vis} -> {trees ++ [%{tree: tree, for_person_id: entry.person.id}], vis}
-            end
-          end)
-
-        has_more =
-          parent_trees == [] and
-            [person_a_entry, person_b_entry]
-            |> Enum.reject(&is_nil/1)
-            |> Enum.reject(& &1.duplicated)
-            |> Enum.any?(fn entry -> FamilyGraph.parents(graph, entry.person.id) != [] end)
-
-        node = %{
-          couple: %{person_a: person_a_entry, person_b: person_b_entry},
-          parent_trees: parent_trees,
-          has_more: has_more
-        }
-
-        {node, visited}
-    end
-  end
-
-  defp legacy_check_mark(person, generation, visited) do
-    if Map.has_key?(visited, person.id) do
-      {%{person: person, duplicated: true}, visited}
-    else
-      {%{person: person, duplicated: false}, Map.put(visited, person.id, generation)}
     end
   end
 end
