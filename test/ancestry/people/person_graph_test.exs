@@ -964,10 +964,10 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(parent1, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(parent2, focus, "parent", %{role: "mother"})
 
-      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0, other: 0)
 
-      # With other: 0 (default), BroY and SisY are NOT pre-visited as
-      # laterals. They're discovered as Parent2's parents at gen 2. Their
+      # With other: 0, BroY and SisY are NOT pre-visited as laterals.
+      # They're discovered as Parent2's parents at gen 2. Their
       # own parents (GPA/GMA) are already at gen 3 → same gen → reused.
       # Rule 1: same gen + compatible → no dups.
       assert dup_count(graph) == 0
@@ -1337,6 +1337,12 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, cousin} = People.create_person(family, %{given_name: "Cousin", surname: "G"})
       {:ok, _} = Relationships.create_relationship(uncle, cousin, "parent", %{role: "father"})
 
+      {:ok, cousin_child} =
+        People.create_person(family, %{given_name: "CousinChild", surname: "G"})
+
+      {:ok, _} =
+        Relationships.create_relationship(cousin, cousin_child, "parent", %{role: "father"})
+
       %{
         family: family,
         grandpa: grandpa,
@@ -1346,7 +1352,8 @@ defmodule Ancestry.People.PersonGraphTest do
         uncle: uncle,
         focus: focus,
         sibling: sibling,
-        cousin: cousin
+        cousin: cousin,
+        cousin_child: cousin_child
       }
     end
 
@@ -1428,18 +1435,29 @@ defmodule Ancestry.People.PersonGraphTest do
       family: family,
       focus: focus,
       uncle: uncle,
-      cousin: cousin
+      cousin: cousin,
+      cousin_child: cousin_child
     } do
       # Uncle is at gen 1 (same as Dad). Cousin is Uncle's child at gen 0.
-      # With descendants=0, lateral descendants below focus gen should still appear
-      # if they are at or above focus gen (gen 0). Cousin is at gen 0 (same as focus).
-      # With descendants=2, Uncle's sub-tree can expand up to 2 levels below focus.
-      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
-
+      # CousinChild is Cousin's child at gen -1 (one below focus).
+      #
+      # With descendants=1, cousin appears (Uncle expanded one level)
+      # but cousin_child should NOT (would be depth 2 from Uncle's perspective).
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 1, other: 2)
       ids = person_ids(graph)
 
       assert MapSet.member?(ids, uncle.id), "Uncle should appear"
-      assert MapSet.member?(ids, cousin.id), "Cousin should appear"
+      assert MapSet.member?(ids, cousin.id), "Cousin should appear (1 level below uncle)"
+
+      refute MapSet.member?(ids, cousin_child.id),
+             "CousinChild should NOT appear (descendants=1 stops at cousin)"
+
+      # With descendants=2, cousin_child should now appear
+      graph2 = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+      ids2 = person_ids(graph2)
+
+      assert MapSet.member?(ids2, cousin_child.id),
+             "CousinChild should appear with descendants=2"
     end
   end
 end
