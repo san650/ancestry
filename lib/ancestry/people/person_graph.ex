@@ -217,9 +217,17 @@ defmodule Ancestry.People.PersonGraph do
             end
           end)
 
+        has_more =
+          parent_trees == [] and
+            [person_a_entry, person_b_entry]
+            |> Enum.reject(&is_nil/1)
+            |> Enum.reject(& &1.duplicated)
+            |> Enum.any?(fn entry -> FamilyGraph.parents(graph, entry.person.id) != [] end)
+
         node = %{
           couple: %{person_a: person_a_entry, person_b: person_b_entry},
-          parent_trees: parent_trees
+          parent_trees: parent_trees,
+          has_more: has_more
         }
 
         {node, visited}

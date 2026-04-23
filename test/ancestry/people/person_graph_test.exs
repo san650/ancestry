@@ -647,6 +647,57 @@ defmodule Ancestry.People.PersonGraphTest do
     end
   end
 
+  describe "has_more indicators" do
+    test "ancestor at depth boundary shows has_more when more ancestors exist" do
+      family = family_fixture()
+
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "L"})
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "L"})
+
+      {:ok, grandparent} =
+        People.create_person(family, %{given_name: "Grandparent", surname: "L"})
+
+      {:ok, great_grandparent} =
+        People.create_person(family, %{given_name: "GreatGrandparent", surname: "L"})
+
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(grandparent, parent, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(great_grandparent, grandparent, "parent", %{
+          role: "father"
+        })
+
+      # ancestors: 1 shows parent only; grandparent is beyond the boundary
+      tree = PersonGraph.build(child, family.id, ancestors: 1)
+
+      assert tree.ancestors != nil
+      assert tree.ancestors.couple.person_a.person.id == parent.id
+      assert tree.ancestors.parent_trees == []
+      assert tree.ancestors.has_more == true
+    end
+
+    test "ancestor at depth boundary shows has_more false when no more ancestors" do
+      family = family_fixture()
+
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "L"})
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "L"})
+
+      # parent has no parents of their own
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      # ancestors: 1 shows parent; parent has no parents beyond the boundary
+      tree = PersonGraph.build(child, family.id, ancestors: 1)
+
+      assert tree.ancestors != nil
+      assert tree.ancestors.couple.person_a.person.id == parent.id
+      assert tree.ancestors.parent_trees == []
+      assert tree.ancestors.has_more == false
+    end
+  end
+
   # --- Test helpers ---
 
   defp collect_ancestor_persons(nil), do: []
