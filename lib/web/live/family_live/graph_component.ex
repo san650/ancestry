@@ -16,12 +16,13 @@ defmodule Web.FamilyLive.GraphComponent do
       id="graph-canvas"
       phx-hook="GraphConnector"
       data-edges={Jason.encode!(@graph.edges)}
-      class="relative overflow-auto hide-scrollbar p-6"
+      class="relative overflow-auto hide-scrollbar p-6 bg-ds-surface-low"
       {test_id("graph-canvas")}
     >
       <div
         data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, minmax(120px, auto)); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:16px 12px;"}
+        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, minmax(120px, auto)); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:24px 12px;"}
+        class="max-w-fit mx-auto"
       >
         <%= for node <- @graph.nodes do %>
           <.graph_cell
@@ -46,7 +47,7 @@ defmodule Web.FamilyLive.GraphComponent do
     <div
       id={@node.id}
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="border border-dashed border-transparent"
+      class="border border-dashed border-ds-outline-variant/10"
       aria-hidden="true"
     />
     """
@@ -59,7 +60,7 @@ defmodule Web.FamilyLive.GraphComponent do
       data-node-id={@node.id}
       data-focus={to_string(@node.focus)}
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="flex items-center justify-center"
+      class="flex items-center justify-center border border-dashed border-ds-outline-variant/10"
     >
       <.person_card
         node={@node}
@@ -84,18 +85,34 @@ defmodule Web.FamilyLive.GraphComponent do
       phx-value-id={@node.person.id}
       class={[
         "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
-        "bg-ds-surface-card",
+        "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20",
         gender_border_class(@node.person.gender),
         if(@node.focus,
-          do: "ring-2 ring-ds-primary scale-105 z-1",
+          do: "ring-2 ring-ds-secondary scale-105 z-1 shadow-[0_0_12px_rgba(0,109,53,0.3)]",
           else: "hover:bg-ds-surface-high"
         ),
         "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
-        "w-[72px] lg:w-28 lg:p-2",
+        "w-[72px] lg:w-28 lg:h-[150px] lg:p-2",
         @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
       ]}
       aria-label={Person.display_name(@node.person)}
     >
+      <%!-- Has more ancestors — pill at top center, half outside card --%>
+      <div
+        :if={@node.has_more_up}
+        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-ds-surface-high border border-ds-outline-variant/30 text-ds-on-surface-variant/60"
+        title={gettext("Has more ancestors")}
+      >
+        <.icon name="hero-chevron-up" class="w-3 h-3" />
+      </div>
+      <%!-- Has more descendants — pill at bottom center, half outside card --%>
+      <div
+        :if={@node.has_more_down}
+        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-ds-surface-high border border-ds-outline-variant/30 text-ds-on-surface-variant/60"
+        title={gettext("Has more descendants")}
+      >
+        <.icon name="hero-chevron-down" class="w-3 h-3" />
+      </div>
       <%!-- Mobile: photo fills card with name overlay --%>
       <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
         <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
@@ -116,7 +133,7 @@ defmodule Web.FamilyLive.GraphComponent do
         </div>
       </div>
       <%!-- Desktop: circular photo, name below, dates below name --%>
-      <div class="hidden lg:flex lg:flex-col lg:items-center">
+      <div class="hidden lg:flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
         <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
           <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
             <img
@@ -146,16 +163,6 @@ defmodule Web.FamilyLive.GraphComponent do
             &nbsp;
           <% end %>
         </p>
-        <%= if @node.has_more_up do %>
-          <div class="mt-1 text-ds-on-surface-variant/50" title={gettext("Has more ancestors")}>
-            <.icon name="hero-chevron-up" class="w-3 h-3" />
-          </div>
-        <% end %>
-        <%= if @node.has_more_down do %>
-          <div class="mt-1 text-ds-on-surface-variant/50" title={gettext("Has more descendants")}>
-            <.icon name="hero-chevron-down" class="w-3 h-3" />
-          </div>
-        <% end %>
       </div>
       <%!-- Navigation link to person page (overlaid, bottom-right) --%>
       <.link
