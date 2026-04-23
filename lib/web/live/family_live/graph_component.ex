@@ -92,7 +92,7 @@ defmodule Web.FamilyLive.GraphComponent do
           else: "hover:bg-ds-surface-high"
         ),
         "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
-        "w-[72px] lg:w-28 lg:h-[150px] lg:p-2",
+        "w-[72px] lg:w-28 lg:p-2",
         @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
       ]}
       aria-label={Person.display_name(@node.person)}

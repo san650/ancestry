@@ -161,11 +161,11 @@ const GraphConnector = {
       const parentChildEdges = edges.filter(e => e.type === "parent_child")
       const coupleEdges = edges.filter(e => e.type === "current_partner" || e.type === "previous_partner")
 
+      // Glue current partners first so rects are correct for connector drawing
+      this._glueCouplePartners(coupleEdges)
+
       this._drawCoupleEdges(svg, coupleEdges)
       this._drawParentChildEdges(svg, parentChildEdges)
-
-      // Fix 7: Glue current partners together (no gap)
-      this._glueCouplePartners(coupleEdges)
     })
   },
 
@@ -287,7 +287,7 @@ const GraphConnector = {
 
     // Resolve rects for all groups
     const resolvedGroups = []
-    for (const [_key, group] of mergedGroups) {
+    for (const [key, group] of mergedGroups) {
       const { parentIds, children } = group
 
       // Compute origin X: midpoint between all parent cells
@@ -296,8 +296,14 @@ const GraphConnector = {
 
       // Origin X = average center X of all parent rects
       const originX = parentRects.reduce((sum, r) => sum + this._centerX(r), 0) / parentRects.length
-      // Origin Y = bottom of the highest (smallest top) parent rect
-      const originY = Math.max(...parentRects.map(r => this._bottom(r)))
+
+      // Origin Y: for merged couples (ex-partner or current), the child connector
+      // starts from the couple line (center Y of parents) so it visually touches
+      // the horizontal partner line. For solo parents, start from parent bottom.
+      const isMergedCouple = parentIds.length === 2 && !key.startsWith("solo:")
+      const originY = isMergedCouple
+        ? Math.min(...parentRects.map(r => this._centerY(r)))
+        : Math.max(...parentRects.map(r => this._bottom(r)))
 
       // Resolve child rects
       const resolvedChildren = []
