@@ -240,13 +240,13 @@ const GraphConnector = {
   _drawParentChildEdges(svg, parentChildEdges) {
     if (parentChildEdges.length === 0) return
 
-    // Parse all edges to find couple pairs (Fix 9)
+    // Parse all edges to find couple pairs and their type
     const allEdges = JSON.parse(this.el.dataset.edges)
-    const couplePairs = new Map() // person_id -> partner_id
+    const couplePairs = new Map() // person_id -> { partnerId, type }
     for (const e of allEdges) {
       if (e.type === "current_partner" || e.type === "previous_partner") {
-        couplePairs.set(e.from_id, e.to_id)
-        couplePairs.set(e.to_id, e.from_id)
+        couplePairs.set(e.from_id, { partnerId: e.to_id, coupleType: e.type })
+        couplePairs.set(e.to_id, { partnerId: e.from_id, coupleType: e.type })
       }
     }
 
@@ -264,12 +264,13 @@ const GraphConnector = {
     for (const [childId, edges] of byChild) {
       if (edges.length === 2) {
         const [e1, e2] = edges
-        // Check if these two parents are a current couple
-        if (couplePairs.get(e1.from_id) === e2.from_id) {
+        // Check if these two parents are a couple
+        const pair = couplePairs.get(e1.from_id)
+        if (pair && pair.partnerId === e2.from_id) {
           // Couple! Use midpoint as origin
           const coupleKey = [e1.from_id, e2.from_id].sort().join(":")
           if (!mergedGroups.has(coupleKey)) {
-            mergedGroups.set(coupleKey, { parentIds: [e1.from_id, e2.from_id], children: [] })
+            mergedGroups.set(coupleKey, { parentIds: [e1.from_id, e2.from_id], coupleType: pair.coupleType, children: [] })
           }
           mergedGroups.get(coupleKey).children.push({ edge: e1, childId })
           continue
@@ -297,11 +298,13 @@ const GraphConnector = {
       // Origin X = average center X of all parent rects
       const originX = parentRects.reduce((sum, r) => sum + this._centerX(r), 0) / parentRects.length
 
-      // Origin Y: for merged couples (ex-partner or current), the child connector
-      // starts from the couple line (center Y of parents) so it visually touches
-      // the horizontal partner line. For solo parents, start from parent bottom.
+      // Origin Y depends on couple type:
+      // - Current partner couple: start from bottom of cards (clean drop down)
+      // - Previous/ex partner couple: start from couple line center Y (touches dashed line)
+      // - Solo parent: start from bottom of parent cell
       const isMergedCouple = parentIds.length === 2 && !key.startsWith("solo:")
-      const originY = isMergedCouple
+      const isExCouple = isMergedCouple && group.coupleType === "previous_partner"
+      const originY = isExCouple
         ? Math.min(...parentRects.map(r => this._centerY(r)))
         : Math.max(...parentRects.map(r => this._bottom(r)))
 
