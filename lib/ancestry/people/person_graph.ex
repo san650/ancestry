@@ -432,54 +432,16 @@ defmodule Ancestry.People.PersonGraph do
       active_partners = FamilyGraph.active_partners(graph, person.id)
       ex_partners = FamilyGraph.former_partners(graph, person.id)
 
-      # Sort active partners: latest marriage year first
-      sorted_active =
-        Enum.sort_by(
-          active_partners,
-          fn {p, rel} ->
-            year = if rel.metadata, do: Map.get(rel.metadata, :marriage_year), else: nil
-            {year || 0, p.id}
-          end,
-          :desc
-        )
+      # Select current partner using priority cascade
+      {current_tuple, other_active} = select_current_partner(active_partners)
+      main_partner = if current_tuple, do: elem(current_tuple, 0), else: nil
+      previous_partners = other_active
 
-      # Main partner is latest active; rest are previous
-      {main_partner, previous_partners} =
-        case sorted_active do
-          [{p, _rel} | rest] -> {p, rest}
-          [] -> {nil, []}
-        end
+      # === Processing order: ex → previous → solo → current partner + children ===
+      # Grid lays out entries left-to-right by insertion order, so processing
+      # ex-partner children first puts them on the left (leftmost in grid).
 
-      # Process main partner (at same gen as the person)
-      state =
-        if main_partner do
-          state = ensure_partner_entry(state, main_partner, person_gen, at_limit, graph)
-          rel = FamilyGraph.partner_relationship(graph, person.id, main_partner.id)
-          add_couple_edge(state, person.id, main_partner.id, rel, false, false)
-        else
-          state
-        end
-
-      # Process children with main partner
-      state =
-        if main_partner do
-          children = FamilyGraph.children_of_pair(graph, person.id, main_partner.id)
-          process_children(state, children, child_gen, at_limit, depth, max_descendants, graph)
-        else
-          state
-        end
-
-      # Process previous partners and their children
-      state =
-        Enum.reduce(previous_partners, state, fn {prev, _rel}, acc ->
-          acc = ensure_partner_entry(acc, prev, person_gen, at_limit, graph)
-          rel = FamilyGraph.partner_relationship(graph, person.id, prev.id)
-          acc = add_couple_edge(acc, person.id, prev.id, rel, false, false)
-          children = FamilyGraph.children_of_pair(graph, person.id, prev.id)
-          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
-        end)
-
-      # Process ex-partners and their children
+      # 1. Process ex-partners and their children (leftmost)
       state =
         Enum.reduce(ex_partners, state, fn {ex, _rel}, acc ->
           acc = ensure_partner_entry(acc, ex, person_gen, at_limit, graph)
@@ -489,9 +451,90 @@ defmodule Ancestry.People.PersonGraph do
           process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
         end)
 
-      # Solo children
+      # 2. Process previous (non-current) active partners and their children
+      # Force :previous_partner edge type so reorder_partners places them before the person
+      state =
+        Enum.reduce(previous_partners, state, fn {prev, _rel}, acc ->
+          acc = ensure_partner_entry(acc, prev, person_gen, at_limit, graph)
+          rel = FamilyGraph.partner_relationship(graph, person.id, prev.id)
+          acc = add_couple_edge(acc, person.id, prev.id, rel, false, false, :previous_partner)
+          children = FamilyGraph.children_of_pair(graph, person.id, prev.id)
+          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
+        end)
+
+      # 3. Solo children
       solo_children = FamilyGraph.solo_children(graph, person.id)
-      process_children(state, solo_children, child_gen, at_limit, depth, max_descendants, graph)
+
+      state =
+        process_children(state, solo_children, child_gen, at_limit, depth, max_descendants, graph)
+
+      # 4. Process main (current) partner entry + couple edge (rightmost)
+      state =
+        if main_partner do
+          state = ensure_partner_entry(state, main_partner, person_gen, at_limit, graph)
+          rel = FamilyGraph.partner_relationship(graph, person.id, main_partner.id)
+          add_couple_edge(state, person.id, main_partner.id, rel, false, false)
+        else
+          state
+        end
+
+      # 5. Process children with main partner (rightmost in grid)
+      if main_partner do
+        children = FamilyGraph.children_of_pair(graph, person.id, main_partner.id)
+        process_children(state, children, child_gen, at_limit, depth, max_descendants, graph)
+      else
+        state
+      end
+    end
+  end
+
+  # Selects the current partner from a list of active partners using a priority cascade:
+  # 1. "relationship" type takes priority (currently dating)
+  # 2. Among "married" partners: latest marriage_year, or non-deceased if no dates
+  # 3. Returns {current_partner_tuple | nil, other_partners_list}
+  defp select_current_partner([]), do: {nil, []}
+
+  defp select_current_partner(active_partners) do
+    # Rule 1: "relationship" type takes priority
+    relationship = Enum.find(active_partners, fn {_p, rel} -> rel.type == "relationship" end)
+
+    if relationship do
+      others = Enum.reject(active_partners, fn {p, _} -> p.id == elem(relationship, 0).id end)
+      {relationship, others}
+    else
+      married = Enum.filter(active_partners, fn {_p, rel} -> rel.type == "married" end)
+
+      case married do
+        [] ->
+          {nil, active_partners}
+
+        [single] ->
+          rest = Enum.reject(active_partners, fn {p, _} -> p.id == elem(single, 0).id end)
+          {single, rest}
+
+        multiple ->
+          # Rule 2a: Pick latest marriage_year
+          with_dates =
+            Enum.filter(multiple, fn {_p, rel} ->
+              rel.metadata && Map.get(rel.metadata, :marriage_year)
+            end)
+
+          current =
+            if with_dates != [] do
+              Enum.max_by(with_dates, fn {_p, rel} -> Map.get(rel.metadata, :marriage_year) end)
+            else
+              # Rule 2b: No dates → pick non-deceased
+              non_deceased = Enum.reject(multiple, fn {p, _} -> p.deceased end)
+
+              case non_deceased do
+                [first | _] -> first
+                [] -> hd(multiple)
+              end
+            end
+
+          rest = Enum.reject(active_partners, fn {p, _} -> p.id == elem(current, 0).id end)
+          {current, rest}
+      end
     end
   end
 
@@ -602,14 +645,23 @@ defmodule Ancestry.People.PersonGraph do
     %{state | edges: state.edges ++ [edge]}
   end
 
-  defp add_couple_edge(state, person_a_id, person_b_id, rel, a_dup, b_dup) do
+  defp add_couple_edge(
+         state,
+         person_a_id,
+         person_b_id,
+         rel,
+         a_dup,
+         b_dup,
+         edge_type_override \\ nil
+       ) do
     rel_kind = if rel, do: rel.type, else: "married"
 
     edge_type =
-      case rel_kind do
-        t when t in ~w(divorced separated) -> :previous_partner
-        _ -> :current_partner
-      end
+      edge_type_override ||
+        case rel_kind do
+          t when t in ~w(divorced separated) -> :previous_partner
+          _ -> :current_partner
+        end
 
     from_id = if a_dup, do: "person-#{person_a_id}-dup", else: "person-#{person_a_id}"
     to_id = if b_dup, do: "person-#{person_b_id}-dup", else: "person-#{person_b_id}"

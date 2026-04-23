@@ -177,6 +177,177 @@ defmodule Ancestry.People.PersonGraphTest do
     end
   end
 
+  # ── Current partner selection ────────────────────────────────────────
+
+  describe "current partner selection" do
+    test "relationship type partner is selected as current over married partners" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
+
+      {:ok, wife} =
+        People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+
+      {:ok, girlfriend} =
+        People.create_person(family, %{given_name: "Sarah", surname: "Smith"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, wife, "married", %{marriage_year: 2000})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, girlfriend, "relationship", %{})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      # Both should be in the graph
+      assert find_person_node(graph, wife.id) != nil
+      assert find_person_node(graph, girlfriend.id) != nil
+
+      # The girlfriend (relationship type) should be the current partner
+      # and appear AFTER the person in the row
+      focus = focus_node(graph)
+      row_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == focus.row))
+      sorted = Enum.sort_by(row_nodes, & &1.col)
+      ids_in_order = Enum.map(sorted, & &1.person.id)
+
+      person_idx = Enum.find_index(ids_in_order, &(&1 == person.id))
+      girlfriend_idx = Enum.find_index(ids_in_order, &(&1 == girlfriend.id))
+
+      assert girlfriend_idx > person_idx,
+             "Relationship-type partner should be the current partner (after the person)"
+    end
+
+    test "latest marriage_year married partner is selected as current when multiple married" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
+
+      {:ok, first_wife} =
+        People.create_person(family, %{given_name: "Jane", surname: "Doe"})
+
+      {:ok, second_wife} =
+        People.create_person(family, %{given_name: "Mary", surname: "Doe"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, first_wife, "married", %{marriage_year: 1985})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, second_wife, "married", %{marriage_year: 1995})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      # Both should be in the graph
+      assert find_person_node(graph, first_wife.id) != nil
+      assert find_person_node(graph, second_wife.id) != nil
+
+      # Second wife (latest marriage_year) should be after person (current),
+      # first wife should be before person (previous)
+      focus = focus_node(graph)
+      row_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == focus.row))
+      sorted = Enum.sort_by(row_nodes, & &1.col)
+      ids_in_order = Enum.map(sorted, & &1.person.id)
+
+      person_idx = Enum.find_index(ids_in_order, &(&1 == person.id))
+      first_idx = Enum.find_index(ids_in_order, &(&1 == first_wife.id))
+      second_idx = Enum.find_index(ids_in_order, &(&1 == second_wife.id))
+
+      assert second_idx > person_idx,
+             "Latest married partner should appear after the person (current)"
+
+      assert first_idx < person_idx,
+             "Earlier married partner should appear before the person (previous)"
+    end
+
+    test "non-deceased married partner selected when no marriage dates and multiple" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
+
+      {:ok, deceased_wife} =
+        People.create_person(family, %{given_name: "Jane", surname: "Doe", deceased: true})
+
+      {:ok, living_wife} =
+        People.create_person(family, %{given_name: "Mary", surname: "Doe"})
+
+      # Both married, no marriage_year
+      {:ok, _} =
+        Relationships.create_relationship(person, deceased_wife, "married", %{})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, living_wife, "married", %{})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      # Both should be in the graph
+      assert find_person_node(graph, deceased_wife.id) != nil
+      assert find_person_node(graph, living_wife.id) != nil
+
+      # Living wife should be current (after person), deceased should be previous (before)
+      focus = focus_node(graph)
+      row_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == focus.row))
+      sorted = Enum.sort_by(row_nodes, & &1.col)
+      ids_in_order = Enum.map(sorted, & &1.person.id)
+
+      person_idx = Enum.find_index(ids_in_order, &(&1 == person.id))
+      living_idx = Enum.find_index(ids_in_order, &(&1 == living_wife.id))
+
+      assert living_idx > person_idx,
+             "Non-deceased partner should be selected as current (after the person)"
+    end
+  end
+
+  # ── Ex-partner children ordering ───────────────────────────────────
+
+  describe "ex-partner children ordering" do
+    test "ex-partner children appear LEFT of current-partner children" do
+      family = family_fixture()
+      {:ok, person} = People.create_person(family, %{given_name: "John", surname: "Doe"})
+
+      {:ok, ex_wife} =
+        People.create_person(family, %{given_name: "ExWife", surname: "E"})
+
+      {:ok, current_wife} =
+        People.create_person(family, %{given_name: "CurrentWife", surname: "C"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, ex_wife, "divorced", %{
+          marriage_year: 1980,
+          divorce_year: 1990
+        })
+
+      {:ok, _} =
+        Relationships.create_relationship(person, current_wife, "married", %{
+          marriage_year: 1995
+        })
+
+      # Child with ex
+      {:ok, ex_child} = People.create_person(family, %{given_name: "ExKid", surname: "Doe"})
+      {:ok, _} = Relationships.create_relationship(person, ex_child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(ex_wife, ex_child, "parent", %{role: "mother"})
+
+      # Child with current wife
+      {:ok, cur_child} = People.create_person(family, %{given_name: "CurKid", surname: "Doe"})
+
+      {:ok, _} =
+        Relationships.create_relationship(person, cur_child, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(current_wife, cur_child, "parent", %{role: "mother"})
+
+      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+
+      # Find children in the descendant row
+      focus = focus_node(graph)
+      child_row = focus.row + 1
+      child_nodes = person_nodes(graph) |> Enum.filter(&(&1.row == child_row))
+      sorted_children = Enum.sort_by(child_nodes, & &1.col)
+      child_ids = Enum.map(sorted_children, & &1.person.id)
+
+      ex_child_idx = Enum.find_index(child_ids, &(&1 == ex_child.id))
+      cur_child_idx = Enum.find_index(child_ids, &(&1 == cur_child.id))
+
+      assert ex_child_idx < cur_child_idx,
+             "Ex-partner children should appear LEFT (lower col) of current-partner children"
+    end
+  end
+
   # ── Depth controls ──────────────────────────────────────────────────
 
   describe "depth controls" do
