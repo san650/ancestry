@@ -490,7 +490,7 @@ Users can adjust three settings:
 | Setting | Controls | Default |
 |---------|----------|---------|
 | **Ancestors** | How many generations upward to show | 2 |
-| **Descendants** | How many generations downward to show | 1 |
+| **Descendants** | How many generations downward to show | 2 |
 | **Other** | How many ancestor levels up to walk, then expand all descendants from those ancestors. Descendants bounded by the `descendants` setting relative to focus. 0 = direct line only, 1 = siblings, 2 = cousins | 1 |
 
 At the boundary of any depth limit, truncated branches show a "has more" indicator (icon within the person card) rather than cutting off silently.

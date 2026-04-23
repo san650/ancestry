@@ -1,0 +1,11 @@
+1. Make all cards the same height.
+2. Reduce the padding-y to make the grid more compact. The width of the grid should adapt to the number of people and not occupy all available horizontal space. Center the grid horizontally.
+3. Don't use dark background for the grid, it doesn't look good. How can you make the cards to not melt with the background?
+4. Current partner should be next to the person when there are multiple partners. Could this be fixed by putting partners on the right and other partners on the left?
+5. Highlight the focus person.
+6. The "has more ancestors" and "has descendants" arrows should be a rounded tag on top for ancestors and bottom for descendants. Make the circles to be half on top of the card and half
+outside.
+7. When a person has a current partner, instead of a green arrow to connect them, move the cards (position: relative) to push both persons to the center (put one toghether with the other) so there's no space between them.
+8. The background of the layout is white and the cards are white. Follow the @DESIGN.md patterns and make the background dark and the cards light.
+9. When childrens are from a couple, only show one connector instead of one per parent.
+10. The grid and cell borders are not visible so it's hard to debug.
