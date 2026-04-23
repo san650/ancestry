@@ -13,7 +13,7 @@ defmodule Ancestry.People.PersonGraph do
 
   @default_opts [ancestors: 2, descendants: 1, other: 0]
 
-  defstruct [:focus_person, :ancestors, :center, :descendants, :family_id]
+  defstruct [:focus_person, :ancestors, :center, :descendants, :family_id, :generations]
 
   @doc """
   Builds a person-centered tree. Accepts a family_id (builds graph internally)
@@ -39,14 +39,18 @@ defmodule Ancestry.People.PersonGraph do
     {ancestor_tree, visited} =
       build_ancestor_tree(focus_person.id, 1, max_ancestors, graph, visited)
 
-    {center, _visited} =
+    {center, visited} =
       build_family_unit_full(focus_person, 0, max_descendants, graph, visited)
+
+    max_gen = visited |> Map.values() |> Enum.max()
+    generations = Map.new(visited, fn {person_id, gen} -> {person_id, max_gen - gen} end)
 
     %__MODULE__{
       focus_person: focus_person,
       ancestors: ancestor_tree,
       center: center,
-      family_id: graph.family_id
+      family_id: graph.family_id,
+      generations: generations
     }
   end
 

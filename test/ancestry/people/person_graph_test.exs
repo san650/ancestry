@@ -575,6 +575,78 @@ defmodule Ancestry.People.PersonGraphTest do
     end
   end
 
+  describe "generation renumbering" do
+    test "simple 2-gen tree: grandparents=0, parents=1, focus=2" do
+      family = family_fixture()
+
+      {:ok, grandparent} =
+        People.create_person(family, %{given_name: "Grandparent", surname: "G"})
+
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "G"})
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "G"})
+
+      {:ok, _} =
+        Relationships.create_relationship(grandparent, parent, "parent", %{role: "father"})
+
+      {:ok, _} = Relationships.create_relationship(parent, child, "parent", %{role: "father"})
+
+      tree = PersonGraph.build(child, family.id, ancestors: 2)
+
+      assert tree.generations[grandparent.id] == 0
+      assert tree.generations[parent.id] == 1
+      assert tree.generations[child.id] == 2
+    end
+
+    test "with descendants: focus at max_ancestors, children below" do
+      family = family_fixture()
+
+      {:ok, parent} = People.create_person(family, %{given_name: "Parent", surname: "G"})
+      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "G"})
+      {:ok, kid} = People.create_person(family, %{given_name: "Kid", surname: "G"})
+
+      {:ok, _} = Relationships.create_relationship(parent, person, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(person, kid, "parent", %{role: "father"})
+
+      tree = PersonGraph.build(person, family.id, ancestors: 1, descendants: 1)
+
+      assert tree.generations[parent.id] == 0
+      assert tree.generations[person.id] == 1
+      assert tree.generations[kid.id] == 2
+    end
+
+    test "asymmetric branches: max depth drives renumbering" do
+      family = family_fixture()
+
+      {:ok, paternal_gp} =
+        People.create_person(family, %{given_name: "PaternalGP", surname: "G"})
+
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "G"})
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "G"})
+      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "G"})
+
+      {:ok, _} = Relationships.create_relationship(paternal_gp, dad, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(dad, child, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, child, "parent", %{role: "mother"})
+
+      tree = PersonGraph.build(child, family.id, ancestors: 2)
+
+      assert tree.generations[paternal_gp.id] == 0
+      assert tree.generations[dad.id] == 1
+      assert tree.generations[mom.id] == 1
+      assert tree.generations[child.id] == 2
+    end
+
+    test "no ancestors: focus is generation 0" do
+      family = family_fixture()
+
+      {:ok, person} = People.create_person(family, %{given_name: "Solo", surname: "G"})
+
+      tree = PersonGraph.build(person, family.id, ancestors: 0)
+
+      assert tree.generations[person.id] == 0
+    end
+  end
+
   # --- Test helpers ---
 
   defp collect_ancestor_persons(nil), do: []
