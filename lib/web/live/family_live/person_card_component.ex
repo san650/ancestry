@@ -294,6 +294,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
                   focused_person_id={@focused_person_id}
@@ -316,6 +317,7 @@ defmodule Web.FamilyLive.PersonCardComponent do
                 <.couple_card
                   person_a={child.person}
                   person_b={child[:partner]}
+                  previous_partners={child[:previous_partners] || []}
                   family_id={@family_id}
                   organization={@organization}
                   focused_person_id={@focused_person_id}
