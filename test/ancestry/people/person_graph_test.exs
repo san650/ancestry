@@ -479,7 +479,7 @@ defmodule Ancestry.People.PersonGraphTest do
   # ── Cycle detection ─────────────────────────────────────────────────
 
   describe "cycle detection" do
-    test "Type 1: cousins who marry — shared grandparents, one duplicated" do
+    test "Type 1: cousins who marry — grandparents REUSED, zero dups" do
       family = family_fixture()
 
       # Grandparents
@@ -519,20 +519,23 @@ defmodule Ancestry.People.PersonGraphTest do
 
       graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
-      # Grandparents should appear twice: once normal, once duplicated
+      # Rule 1: Same gen + compatible → REUSE. GP+GM appear ONCE each (no dups).
+      # SonD is encountered a second time (as CousinF's parent) at gen 2 —
+      # same gen where he already appears as GP's child → reused.
+      assert dup_count(graph) == 0
+
+      # Grandparents appear exactly once (not duplicated)
       grandpa_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandpa.id))
       grandma_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandma.id))
+      assert length(grandpa_nodes) == 1
+      assert length(grandma_nodes) == 1
 
-      assert length(grandpa_nodes) == 2
-      assert Enum.count(grandpa_nodes, & &1.duplicated) == 1
-      assert Enum.count(grandpa_nodes, &(not &1.duplicated)) == 1
-
-      assert length(grandma_nodes) == 2
-      assert Enum.count(grandma_nodes, & &1.duplicated) == 1
-      assert Enum.count(grandma_nodes, &(not &1.duplicated)) == 1
+      # Grid: 4 cols (gen 2 is widest: SonD, WifeD, WifeC, SonC) × 4 rows
+      assert graph.grid_rows == 4
+      assert graph.grid_cols == 4
     end
 
-    test "Type 4: uncle marries niece — grandparents appear with one duplicated" do
+    test "Type 4: uncle marries niece — Uncle dup'd at gen 1, grandparents once" do
       family = family_fixture()
 
       # Grandparents
@@ -565,15 +568,25 @@ defmodule Ancestry.People.PersonGraphTest do
 
       graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
+      # Rule 3: Uncle dup'd at gen 1 (different gen from natural gen 2).
+      # Brother reused (same gen, dual role: GP's child + Niece's parent).
+      assert dup_count(graph) == 1
+
+      # Uncle appears twice: original at gen 2 (with Brother), dup at gen 1 (with Niece)
+      uncle_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == uncle.id))
+      assert length(uncle_nodes) == 2
+      assert Enum.count(uncle_nodes, & &1.duplicated) == 1
+      assert Enum.count(uncle_nodes, &(not &1.duplicated)) == 1
+
+      # Grandparents appear once (not duplicated)
       grandpa_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandpa.id))
       grandma_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == grandma.id))
+      assert length(grandpa_nodes) == 1
+      assert length(grandma_nodes) == 1
 
-      # Grandparents appear twice — once not duplicated, once duplicated
-      assert length(grandpa_nodes) == 2
-      assert Enum.count(grandpa_nodes, & &1.duplicated) == 1
-
-      assert length(grandma_nodes) == 2
-      assert Enum.count(grandma_nodes, & &1.duplicated) == 1
+      # Grid: 3 cols × 4 rows
+      assert graph.grid_cols == 3
+      assert graph.grid_rows == 4
     end
 
     test "Type 5: siblings marry into same family — no duplication" do
@@ -606,6 +619,9 @@ defmodule Ancestry.People.PersonGraphTest do
 
       # No person should be duplicated
       assert dup_count(graph) == 0
+
+      # Grid: 3 rows (gen 0, 1, 2)
+      assert graph.grid_rows == 3
     end
 
     test "no-cycle family — no person is duplicated" do
@@ -730,9 +746,12 @@ defmodule Ancestry.People.PersonGraphTest do
 
       # No ancestor should be duplicated
       assert Enum.all?(ancestor_nodes, &(not &1.duplicated))
+
+      # Grid: 3 rows (gen 0, 1, 2)
+      assert graph.grid_rows == 3
     end
 
-    test "Type 3: double first cousins — both GP sets appear twice (one duplicated each)" do
+    test "Type 3: double first cousins — grandparents REUSED (other: 0), zero dups" do
       family = family_fixture()
 
       # Grandparents-A with two sons
@@ -776,19 +795,23 @@ defmodule Ancestry.People.PersonGraphTest do
 
       graph = PersonGraph.build(focus, family.id, ancestors: 3)
 
-      # Each grandparent appears twice: once normal, once duplicated
+      # With other: 0 (default), BroY and SisY are NOT pre-visited as
+      # laterals. They're discovered as Parent2's parents at gen 2. Their
+      # own parents (GPA/GMA) are already at gen 3 → same gen → reused.
+      # Rule 1: same gen + compatible → no dups.
+      assert dup_count(graph) == 0
+
+      # Each grandparent appears exactly once
       for gp <- [gpa_a, gma_a, gpa_b, gma_b] do
         gp_nodes = Enum.filter(person_nodes(graph), &(&1.person.id == gp.id))
 
-        assert length(gp_nodes) == 2,
-               "Expected #{gp.given_name} to appear exactly twice"
-
-        assert Enum.count(gp_nodes, & &1.duplicated) == 1,
-               "Expected #{gp.given_name} to have exactly one duplicated entry"
-
-        assert Enum.count(gp_nodes, &(not &1.duplicated)) == 1,
-               "Expected #{gp.given_name} to have exactly one non-duplicated entry"
+        assert length(gp_nodes) == 1,
+               "Expected #{gp.given_name} to appear exactly once (reused)"
       end
+
+      # Grid: 4 cols × 4 rows
+      assert graph.grid_rows == 4
+      assert graph.grid_cols == 4
     end
 
     test "three parents (bad data) — only first two are used" do

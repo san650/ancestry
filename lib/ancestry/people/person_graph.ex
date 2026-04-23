@@ -74,6 +74,9 @@ defmodule Ancestry.People.PersonGraph do
     # Walk ancestors upward
     state = traverse_ancestors(focus_person.id, 1, max_ancestors, graph, state)
 
+    # Fix cross-generation inconsistencies (e.g., Type 4: uncle marries niece)
+    state = fix_cross_gen_ancestors(state, graph)
+
     # Walk descendants downward (from focus)
     state = traverse_descendants(focus_person, 0, max_descendants, graph, state)
 
@@ -130,10 +133,18 @@ defmodule Ancestry.People.PersonGraph do
           check_and_add_ancestor(person_a_raw, generation, graph, max_ancestors, state)
 
         {person_b_dup, state} =
-          if person_b_raw do
-            check_and_add_ancestor(person_b_raw, generation, graph, max_ancestors, state)
-          else
-            {nil, state}
+          cond do
+            is_nil(person_b_raw) ->
+              {nil, state}
+
+            person_b_raw.id == person_a_raw.id ->
+              # Same person as both parents (bad data) — always dup the second one
+              has_more_up = FamilyGraph.parents(graph, person_b_raw.id) != []
+              state = add_entry(state, person_b_raw, generation, true, has_more_up, false)
+              {true, state}
+
+            true ->
+              check_and_add_ancestor(person_b_raw, generation, graph, max_ancestors, state)
           end
 
         # Add parent->child edges
@@ -183,18 +194,241 @@ defmodule Ancestry.People.PersonGraph do
   end
 
   defp check_and_add_ancestor(person, generation, graph, max_ancestors, state) do
-    if Map.has_key?(state.visited, person.id) do
-      # Already visited — duplicated
-      has_more_up = FamilyGraph.parents(graph, person.id) != []
-      state = add_entry(state, person, generation, true, has_more_up, false)
-      {true, state}
-    else
-      has_more_up =
-        generation >= max_ancestors and FamilyGraph.parents(graph, person.id) != []
+    case Map.fetch(state.visited, person.id) do
+      {:ok, existing_gen} when existing_gen == generation ->
+        # Rule 1: Same generation + compatible position → REUSE.
+        # Don't create a dup entry. The existing node serves the new role.
+        # Edges will connect to the existing "person-{id}" node.
+        {false, state}
 
-      state = %{state | visited: Map.put(state.visited, person.id, generation)}
-      state = add_entry(state, person, generation, false, has_more_up, false)
-      {false, state}
+      {:ok, _existing_gen} ->
+        # Rule 3: Different generation → always DUP.
+        has_more_up = FamilyGraph.parents(graph, person.id) != []
+        state = add_entry(state, person, generation, true, has_more_up, false)
+        {true, state}
+
+      :error ->
+        # First encounter — place normally.
+        has_more_up =
+          generation >= max_ancestors and FamilyGraph.parents(graph, person.id) != []
+
+        state = %{state | visited: Map.put(state.visited, person.id, generation)}
+        state = add_entry(state, person, generation, false, has_more_up, false)
+        {false, state}
+    end
+  end
+
+  # ── Cross-generation fix (Type 4: uncle marries niece) ──────────────
+  #
+  # After ancestor traversal, detect persons whose parents are ALL at a
+  # generation higher than expected (parent_gen > person_gen + 1). This
+  # means the person was placed too low (e.g., Uncle at gen 1 when his
+  # sibling Brother is at gen 2). Fix by:
+  #   1. Moving the person from their current gen to parent_gen - 1
+  #   2. Creating a dup stub at the original gen (for the couple with their partner)
+  #   3. Updating edges to point to the correct node IDs
+  #   4. Removing dup entries for parents that were created due to the gen mismatch
+
+  defp fix_cross_gen_ancestors(state, graph) do
+    # Find persons who need gen correction: their parents are all at
+    # a gen that is >= 2 higher than the person's gen (not adjacent).
+    persons_to_fix =
+      state.visited
+      |> Enum.filter(fn {person_id, person_gen} ->
+        # Only check ancestor-side persons (gen > 0) that aren't the focus
+        person_gen > 0 and person_id != state.focus_id and
+          needs_gen_correction?(person_id, person_gen, state, graph)
+      end)
+
+    Enum.reduce(persons_to_fix, state, fn {person_id, old_gen}, acc ->
+      relocate_person_to_correct_gen(acc, person_id, old_gen, graph)
+    end)
+  end
+
+  defp needs_gen_correction?(person_id, person_gen, state, graph) do
+    parents = FamilyGraph.parents(graph, person_id)
+
+    case parents do
+      [] ->
+        false
+
+      parents ->
+        # Check if ALL parents are at a gen that's > person_gen + 1
+        # (meaning there's a gap — person should be at parent_gen - 1)
+        Enum.all?(parents, fn {parent, _rel} ->
+          case Map.fetch(state.visited, parent.id) do
+            {:ok, parent_gen} -> parent_gen > person_gen + 1
+            :error -> false
+          end
+        end)
+    end
+  end
+
+  defp relocate_person_to_correct_gen(state, person_id, old_gen, graph) do
+    parents = FamilyGraph.parents(graph, person_id)
+
+    # Determine correct gen from parents
+    parent_gens =
+      parents
+      |> Enum.map(fn {p, _} -> Map.get(state.visited, p.id) end)
+      |> Enum.reject(&is_nil/1)
+
+    new_gen =
+      case parent_gens do
+        [] -> old_gen
+        gens -> Enum.min(gens) - 1
+      end
+
+    if new_gen == old_gen do
+      state
+    else
+      person =
+        state.entries
+        |> Map.get(old_gen, [])
+        |> Enum.find(fn e -> e.person.id == person_id and not e.duplicated end)
+
+      if is_nil(person) do
+        state
+      else
+        # 1. Remove dup entries for parents that were created at old_gen + 1
+        #    due to the gen mismatch (they're no longer needed since the
+        #    person is moving to the correct gen where parents are adjacent)
+        parent_ids = MapSet.new(parents, fn {p, _} -> p.id end)
+
+        cleaned_entries =
+          state.entries
+          |> Enum.map(fn {gen, entries} ->
+            cleaned =
+              Enum.reject(entries, fn e ->
+                e.duplicated and MapSet.member?(parent_ids, e.person.id) and
+                  e.gen == old_gen + 1
+              end)
+
+            {gen, cleaned}
+          end)
+          |> Map.new()
+
+        # 2. Remove person from old gen entries
+        old_entries = Map.get(cleaned_entries, old_gen, [])
+
+        remaining_old =
+          Enum.reject(old_entries, fn e -> e.person.id == person_id and not e.duplicated end)
+
+        # 3. Add dup stub at old gen (for the couple with their partner)
+        dup_entry = %{person | gen: old_gen, duplicated: true}
+
+        # 4. Add person at new gen (non-dup)
+        new_entry = %{person | gen: new_gen}
+        new_gen_entries = Map.get(cleaned_entries, new_gen, []) ++ [new_entry]
+
+        entries =
+          cleaned_entries
+          |> Map.put(old_gen, remaining_old ++ [dup_entry])
+          |> Map.put(new_gen, new_gen_entries)
+
+        # 5. Update visited map
+        visited = Map.put(state.visited, person_id, new_gen)
+
+        # 6. Fix edges related to the removed parent dups:
+        #    - Parent→child edges from dup parents to this person:
+        #      change from_id from "person-X-dup" to "person-X"
+        #    - Remove couple edges between dup parents (they no longer exist)
+        #    - Remove parent→child edges FROM dup parents to this person
+        #      that reference the dup IDs AND came from the dup entries
+
+        # Set of dup parent node IDs that were removed
+        dup_parent_node_ids =
+          MapSet.new(parents, fn {p, _} -> "person-#{p.id}-dup" end)
+
+        edges =
+          state.edges
+          |> Enum.reject(fn edge ->
+            # Remove couple edges between the dup parents (both ends are dup IDs)
+            edge.type in [:current_partner, :previous_partner] and
+              MapSet.member?(dup_parent_node_ids, edge.from_id) and
+              MapSet.member?(dup_parent_node_ids, edge.to_id)
+          end)
+          |> Enum.map(fn edge ->
+            cond do
+              # Parent→child edges TO this person from parents that were dup'd:
+              # change from_id from "person-X-dup" to "person-X"
+              edge.type == :parent_child and
+                edge.to_id == "person-#{person_id}" and
+                  MapSet.member?(dup_parent_node_ids, edge.from_id) ->
+                from_id =
+                  edge.from_id
+                  |> String.replace_suffix("-dup", "")
+
+                %{edge | from_id: from_id}
+
+              true ->
+                edge
+            end
+          end)
+
+        # 7. Update couple edges: the couple edge between person and their partner
+        #    at old_gen should use the dup ID for this person
+        edges =
+          Enum.map(edges, fn edge ->
+            if edge.type in [:current_partner, :previous_partner] and
+                 (edge.from_id == "person-#{person_id}" or
+                    edge.to_id == "person-#{person_id}") do
+              # Check if the OTHER partner is at old_gen
+              other_id =
+                if edge.from_id == "person-#{person_id}",
+                  do: edge.to_id,
+                  else: edge.from_id
+
+              other_person_id = extract_person_id(other_id)
+              other_gen = Map.get(visited, other_person_id)
+
+              if other_gen == old_gen do
+                # The couple is at old_gen — use dup ID for the relocated person
+                if edge.from_id == "person-#{person_id}" do
+                  %{edge | from_id: "person-#{person_id}-dup"}
+                else
+                  %{edge | to_id: "person-#{person_id}-dup"}
+                end
+              else
+                edge
+              end
+            else
+              edge
+            end
+          end)
+
+        # 8. Update parent→child edges FROM this person: if the child is at
+        #    old_gen - 1, the edge should come from the dup
+        edges =
+          Enum.map(edges, fn edge ->
+            if edge.type == :parent_child and edge.from_id == "person-#{person_id}" do
+              child_person_id = extract_person_id(edge.to_id)
+              child_gen = Map.get(visited, child_person_id)
+
+              if child_gen != nil and child_gen < old_gen do
+                %{edge | from_id: "person-#{person_id}-dup"}
+              else
+                edge
+              end
+            else
+              edge
+            end
+          end)
+
+        %{state | entries: entries, visited: visited, edges: edges}
+      end
+    end
+  end
+
+  defp extract_person_id(node_id) do
+    id_str =
+      node_id
+      |> String.replace_prefix("person-", "")
+      |> String.replace_suffix("-dup", "")
+
+    case Integer.parse(id_str) do
+      {id, ""} -> id
+      _ -> nil
     end
   end
 
