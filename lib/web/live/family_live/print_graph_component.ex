@@ -7,6 +7,7 @@ defmodule Web.FamilyLive.PrintGraphComponent do
   # --- Print Graph Canvas ---
 
   attr :graph, PersonGraph, required: true
+  attr :col_width, :integer, default: 120
 
   def print_graph_canvas(assigns) do
     ~H"""
@@ -18,11 +19,11 @@ defmodule Web.FamilyLive.PrintGraphComponent do
     >
       <div
         data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, 120px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:48px 12px;"}
+        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, #{@col_width}px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:24px 8px;"}
         class="w-fit mx-auto"
       >
         <%= for node <- @graph.nodes do %>
-          <.print_cell node={node} />
+          <.print_cell node={node} col_width={@col_width} />
         <% end %>
       </div>
     </div>
@@ -49,7 +50,7 @@ defmodule Web.FamilyLive.PrintGraphComponent do
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
       class="relative z-10 flex items-center justify-center"
     >
-      <.print_person_card person={@node.person} />
+      <.print_person_card person={@node.person} col_width={@col_width} />
     </div>
     """
   end
@@ -58,12 +59,15 @@ defmodule Web.FamilyLive.PrintGraphComponent do
 
   defp print_person_card(assigns) do
     ~H"""
-    <div class={[
-      "flex items-center justify-center text-center w-[120px] h-[40px] px-1 py-2",
-      "bg-white border border-gray-300 rounded-sm",
-      gender_border_class(@person.gender)
-    ]}>
-      <p class="text-xs font-medium text-black leading-tight line-clamp-2">
+    <div
+      class={[
+        "flex items-center justify-center text-center h-[40px] px-1 py-2",
+        "bg-white border border-gray-300 rounded-sm",
+        gender_border_class(@person.gender)
+      ]}
+      style={"width: #{@col_width}px"}
+    >
+      <p class="text-[10px] font-medium text-black leading-tight line-clamp-2">
         {Person.display_name(@person)}
       </p>
     </div>

@@ -66,21 +66,26 @@ defmodule Web.FamilyLive.Print do
         )
       end
 
-    # Calculate zoom to fit the tree on a landscape page.
-    # Conservative usable width: ~950px (Letter/A4 landscape with 1cm margins).
-    print_zoom =
-      if graph do
+    # Calculate column width to fit the tree on a landscape page.
+    # Available width: ~900px (Letter/A4 landscape, 1cm margins, minus layout padding).
+    # No zoom — smaller columns avoid the coordinate mismatch between
+    # scrollWidth (unzoomed) and getBoundingClientRect (zoomed) that
+    # breaks SVG connector positioning.
+    col_width =
+      if graph && graph.grid_cols > 0 do
         cols = graph.grid_cols
-        grid_width = cols * 120 + max(cols - 1, 0) * 12
-        min(1.0, 950 / grid_width)
+        available = 900
+        gap = 8
+        max_width = div(available - max(cols - 1, 0) * gap, cols)
+        min(120, max(40, max_width))
       else
-        1.0
+        120
       end
 
     {:noreply,
      socket
      |> assign(:graph, graph)
-     |> assign(:print_zoom, print_zoom)}
+     |> assign(:col_width, col_width)}
   end
 
   defp parse_depth(params, key, default) do
