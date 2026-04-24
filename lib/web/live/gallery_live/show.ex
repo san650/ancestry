@@ -217,6 +217,9 @@ defmodule Web.GalleryLive.Show do
   # LiveView traps exits; upload writer tasks send :EXIT on completion
   def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
 
+  # Catch-all for unexpected messages (e.g. :query_fired from Tidewave MCP)
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
   defp process_uploads(socket) do
     gallery = socket.assigns.gallery
 

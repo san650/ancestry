@@ -964,10 +964,10 @@ defmodule Ancestry.People.PersonGraphTest do
       {:ok, _} = Relationships.create_relationship(parent1, focus, "parent", %{role: "father"})
       {:ok, _} = Relationships.create_relationship(parent2, focus, "parent", %{role: "mother"})
 
-      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0)
+      graph = PersonGraph.build(focus, family.id, ancestors: 3, descendants: 0, other: 0)
 
-      # With other: 0 (default), BroY and SisY are NOT pre-visited as
-      # laterals. They're discovered as Parent2's parents at gen 2. Their
+      # With other: 0, BroY and SisY are NOT pre-visited as laterals.
+      # They're discovered as Parent2's parents at gen 2. Their
       # own parents (GPA/GMA) are already at gen 3 → same gen → reused.
       # Rule 1: same gen + compatible → no dups.
       assert dup_count(graph) == 0
@@ -1262,44 +1262,205 @@ defmodule Ancestry.People.PersonGraphTest do
     end
   end
 
-  # ── Partner separators ─────────────────────────────────────────────
+  # ── Lateral (other) traversal ──────────────────────────────────────
 
-  describe "partner separators" do
-    test "separator between person and ex-partner" do
+  describe "lateral (other) traversal" do
+    # Family tree:
+    #   Grandpa + Grandma
+    #     ├── Dad + Mom → Focus + Sibling
+    #     └── Uncle → Cousin
+    setup do
       family = family_fixture()
-      {:ok, person} = People.create_person(family, %{given_name: "Person", surname: "P"})
-      {:ok, ex} = People.create_person(family, %{given_name: "Ex", surname: "E"})
-      {:ok, _} = Relationships.create_relationship(person, ex, "divorced", %{})
-      {:ok, child} = People.create_person(family, %{given_name: "Child", surname: "C"})
-      {:ok, _} = Relationships.create_relationship(person, child, "parent", %{role: "father"})
-      {:ok, _} = Relationships.create_relationship(ex, child, "parent", %{role: "mother"})
 
-      graph = PersonGraph.build(person, family.id, ancestors: 0, descendants: 1)
+      {:ok, grandpa} = People.create_person(family, %{given_name: "Grandpa", surname: "G"})
+      {:ok, grandma} = People.create_person(family, %{given_name: "Grandma", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, grandma, "married", %{})
 
-      # Find separator between ex and person
-      separators = Enum.filter(graph.nodes, &(&1.type == :separator))
+      {:ok, dad} = People.create_person(family, %{given_name: "Dad", surname: "G"})
+      {:ok, uncle} = People.create_person(family, %{given_name: "Uncle", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(grandpa, dad, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, dad, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(grandpa, uncle, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(grandma, uncle, "parent", %{role: "mother"})
 
-      partner_sep =
-        Enum.find(separators, fn n ->
-          String.contains?(n.id, "sep-#{person.id}-#{ex.id}") or
-            String.contains?(n.id, "sep-#{ex.id}-#{person.id}")
-        end)
+      {:ok, mom} = People.create_person(family, %{given_name: "Mom", surname: "M"})
+      {:ok, _} = Relationships.create_relationship(dad, mom, "married", %{})
 
-      assert partner_sep != nil, "Expected a separator between person and ex-partner"
+      {:ok, focus} = People.create_person(family, %{given_name: "Focus", surname: "G"})
+      {:ok, sibling} = People.create_person(family, %{given_name: "Sibling", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(dad, focus, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, focus, "parent", %{role: "mother"})
+      {:ok, _} = Relationships.create_relationship(dad, sibling, "parent", %{role: "father"})
+      {:ok, _} = Relationships.create_relationship(mom, sibling, "parent", %{role: "mother"})
 
-      # Separator should be at the same row as person and ex
-      person_node =
-        Enum.find(
-          graph.nodes,
-          &(&1.type == :person and &1.person.id == person.id and not &1.duplicated)
-        )
+      {:ok, cousin} = People.create_person(family, %{given_name: "Cousin", surname: "G"})
+      {:ok, _} = Relationships.create_relationship(uncle, cousin, "parent", %{role: "father"})
 
-      assert partner_sep.row == person_node.row
+      {:ok, cousin_child} =
+        People.create_person(family, %{given_name: "CousinChild", surname: "G"})
 
-      # Separator column should be between ex and person
-      ex_node = Enum.find(graph.nodes, &(&1.type == :person and &1.person.id == ex.id))
-      assert partner_sep.col > ex_node.col
-      assert partner_sep.col < person_node.col
+      {:ok, _} =
+        Relationships.create_relationship(cousin, cousin_child, "parent", %{role: "father"})
+
+      %{
+        family: family,
+        grandpa: grandpa,
+        grandma: grandma,
+        dad: dad,
+        mom: mom,
+        uncle: uncle,
+        focus: focus,
+        sibling: sibling,
+        cousin: cousin,
+        cousin_child: cousin_child
+      }
+    end
+
+    test "other=0 shows direct line only (no siblings, no uncle, no cousin)", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 0)
+
+      ids = person_ids(graph)
+
+      refute MapSet.member?(ids, sibling.id), "Sibling should NOT appear with other=0"
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear with other=0"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear with other=0"
+    end
+
+    test "other=1 shows siblings but not uncle/cousin", %{
+      family: family,
+      focus: focus,
+      dad: dad,
+      mom: mom,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 1)
+
+      ids = person_ids(graph)
+
+      # Sibling is a child of parents (gen 1 ancestor) — should appear
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear with other=1"
+      assert MapSet.member?(ids, dad.id), "Dad should appear"
+      assert MapSet.member?(ids, mom.id), "Mom should appear"
+
+      # Uncle is a child of grandparents (gen 2 ancestor) — beyond other=1
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear with other=1"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear with other=1"
+    end
+
+    test "other=2 shows siblings, uncle, and cousins", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear with other=2"
+      assert MapSet.member?(ids, uncle.id), "Uncle should appear with other=2"
+      assert MapSet.member?(ids, cousin.id), "Cousin should appear with other=2"
+    end
+
+    test "other is bounded by ancestors (ancestors=1, other=3 → only siblings, no cousins)", %{
+      family: family,
+      focus: focus,
+      sibling: sibling,
+      uncle: uncle,
+      cousin: cousin
+    } do
+      # ancestors=1 means only parents are shown (gen 1), not grandparents.
+      # other=3 wants 3 levels of lateral expansion, but max_other = min(3, 1) = 1.
+      # So only gen-1 ancestor's other children (siblings) appear.
+      graph = PersonGraph.build(focus, family.id, ancestors: 1, descendants: 0, other: 3)
+
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, sibling.id), "Sibling should appear (parents are at gen 1)"
+      refute MapSet.member?(ids, uncle.id), "Uncle should NOT appear (grandparents not shown)"
+      refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear"
+    end
+
+    test "lateral ex-partner is placed at same generation as the lateral, not below", %{
+      family: family,
+      focus: focus,
+      uncle: uncle
+    } do
+      # Add an ex-partner for Uncle
+      {:ok, uncle_ex} =
+        People.create_person(family, %{given_name: "UncleEx", surname: "X"})
+
+      {:ok, _} = Relationships.create_relationship(uncle, uncle_ex, "divorced", %{})
+
+      # Add a child between Uncle and UncleEx
+      {:ok, uncle_ex_child} =
+        People.create_person(family, %{given_name: "UncleExChild", surname: "X"})
+
+      {:ok, _} =
+        Relationships.create_relationship(uncle, uncle_ex_child, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(uncle_ex, uncle_ex_child, "parent", %{role: "mother"})
+
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+
+      uncle_node = find_person_node(graph, uncle.id)
+      uncle_ex_node = find_person_node(graph, uncle_ex.id)
+      uncle_ex_child_node = find_person_node(graph, uncle_ex_child.id)
+
+      assert uncle_node, "Uncle should appear in graph"
+      assert uncle_ex_node, "Uncle's ex-partner should appear in graph"
+      assert uncle_ex_child_node, "Uncle's child with ex should appear in graph"
+
+      # Ex-partner must be on the same row as Uncle (same generation)
+      assert uncle_node.row == uncle_ex_node.row,
+             "Uncle's ex-partner should be at the same generation (row #{uncle_node.row}), " <>
+               "but was at row #{uncle_ex_node.row}"
+
+      # Their child should be one row below
+      assert uncle_ex_child_node.row == uncle_node.row + 1,
+             "Uncle's child should be one row below Uncle (row #{uncle_node.row + 1}), " <>
+               "but was at row #{uncle_ex_child_node.row}"
+    end
+
+    test "lateral descendants are bounded by max_descendants relative to focus", %{
+      family: family,
+      focus: focus,
+      uncle: uncle,
+      cousin: cousin,
+      cousin_child: cousin_child
+    } do
+      # Uncle is at gen 1 (same as Dad). Cousin is Uncle's child at gen 0.
+      # CousinChild is Cousin's child at gen -1 (one below focus).
+      #
+      # descendants is bounded relative to focus, so with descendants=1,
+      # gen -1 is visible — CousinChild at gen -1 should appear.
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 1, other: 2)
+      ids = person_ids(graph)
+
+      assert MapSet.member?(ids, uncle.id), "Uncle should appear"
+      assert MapSet.member?(ids, cousin.id), "Cousin should appear (1 level below uncle)"
+
+      assert MapSet.member?(ids, cousin_child.id),
+             "CousinChild at gen -1 should appear (within descendants=1 of focus)"
+
+      # With descendants=0, cousin_child should NOT appear (gen -1 is beyond limit)
+      graph0 = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 2)
+      ids0 = person_ids(graph0)
+
+      assert MapSet.member?(ids0, cousin.id), "Cousin at gen 0 should appear with descendants=0"
+
+      refute MapSet.member?(ids0, cousin_child.id),
+             "CousinChild at gen -1 should NOT appear with descendants=0"
     end
   end
 end

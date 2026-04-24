@@ -24,7 +24,7 @@ defmodule Ancestry.People.PersonGraph do
   alias Ancestry.People.GraphNode
   alias Ancestry.People.Person
 
-  @default_opts [ancestors: 2, descendants: 2, other: 0]
+  @default_opts [ancestors: 2, descendants: 2, other: 1]
 
   defstruct [
     :focus_person,
@@ -41,7 +41,7 @@ defmodule Ancestry.People.PersonGraph do
 
     - `ancestors:` — how many generations upward to show (default 2)
     - `descendants:` — how many generations downward to show (default 1)
-    - `other:` — accepted but currently unused (default 0)
+    - `other:` — how many ancestor levels to expand laterally (siblings, cousins, etc.) (default 1)
   """
   def build(focus_person, graph_or_id), do: build(focus_person, graph_or_id, [])
 
@@ -73,6 +73,10 @@ defmodule Ancestry.People.PersonGraph do
 
     # Walk descendants downward (from focus)
     state = traverse_descendants(focus_person, 0, max_descendants, graph, state)
+
+    # Walk lateral relatives (siblings, cousins, etc.)
+    max_other = min(opts[:other], max_ancestors)
+    state = traverse_laterals(state, max_other, max_descendants, graph)
 
     # Phase 2-5: Layout
     {nodes, grid_cols, grid_rows} = layout_grid(state, focus_person.id)
@@ -420,6 +424,45 @@ defmodule Ancestry.People.PersonGraph do
     end
   end
 
+  defp traverse_laterals(state, 0, _max_descendants, _graph), do: state
+
+  defp traverse_laterals(state, max_other, max_descendants, graph) do
+    focus_id = state.focus_id
+
+    # Collect ancestors by generation
+    ancestors_by_gen =
+      state.visited
+      |> Enum.filter(fn {id, gen} -> gen > 0 and id != focus_id end)
+      |> Enum.group_by(fn {_id, gen} -> gen end, fn {id, _gen} -> id end)
+
+    # Process from closest ancestors outward (gen 1 first, then gen 2, etc.)
+    Enum.reduce(1..max_other, state, fn gen, acc ->
+      ancestor_ids = Map.get(ancestors_by_gen, gen, [])
+
+      Enum.reduce(ancestor_ids, acc, fn ancestor_id, acc2 ->
+        children = FamilyGraph.children(graph, ancestor_id)
+        new_children = Enum.reject(children, &Map.has_key?(acc2.visited, &1.id))
+        child_gen = gen - 1
+
+        Enum.reduce(new_children, acc2, fn child, acc3 ->
+          depth = -child_gen
+          at_limit = depth >= max_descendants
+
+          has_more_down = at_limit and FamilyGraph.has_children?(graph, child.id)
+          acc3 = %{acc3 | visited: Map.put(acc3.visited, child.id, child_gen)}
+          acc3 = add_entry(acc3, child, child_gen, false, false, has_more_down)
+          acc3 = add_child_parent_edges(acc3, child, graph)
+
+          if at_limit do
+            add_at_limit_partners(acc3, child, child_gen, graph)
+          else
+            traverse_descendants(child, depth, max_descendants, graph, acc3)
+          end
+        end)
+      end)
+    end)
+  end
+
   defp traverse_descendants(person, depth, max_descendants, graph, state) do
     if depth >= max_descendants do
       state
@@ -449,10 +492,7 @@ defmodule Ancestry.People.PersonGraph do
           acc = add_couple_edge(acc, person.id, ex.id, rel, false, false)
           children = FamilyGraph.children_of_pair(graph, person.id, ex.id)
 
-          acc =
-            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
-
-          add_partner_separator(acc, person.id, ex.id, person_gen)
+          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
         end)
 
       # 2. Process previous (non-current) active partners and their children
@@ -464,10 +504,7 @@ defmodule Ancestry.People.PersonGraph do
           acc = add_couple_edge(acc, person.id, prev.id, rel, false, false, :previous_partner)
           children = FamilyGraph.children_of_pair(graph, person.id, prev.id)
 
-          acc =
-            process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
-
-          add_partner_separator(acc, person.id, prev.id, person_gen)
+          process_children(acc, children, child_gen, at_limit, depth, max_descendants, graph)
         end)
 
       # 3. Solo children
@@ -625,22 +662,6 @@ defmodule Ancestry.People.PersonGraph do
   end
 
   # ── Entry and edge helpers ──────────────────────────────────────────
-
-  defp add_partner_separator(state, person_id, partner_id, gen) do
-    entry = %{
-      person: nil,
-      gen: gen,
-      duplicated: false,
-      has_more_up: false,
-      has_more_down: false,
-      focus: false,
-      separator: true,
-      separator_id: "sep-#{person_id}-#{partner_id}"
-    }
-
-    entries = Map.update(state.entries, gen, [entry], &(&1 ++ [entry]))
-    %{state | entries: entries}
-  end
 
   defp add_entry(state, person, gen, duplicated, has_more_up, has_more_down) do
     entry = %{

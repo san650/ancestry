@@ -134,3 +134,9 @@ trix-editor .attachment--content {
     display: block;
   }
 }
+
+/* Tree drawer transitions */
+[data-drawer-panel] {
+  transition: max-height 200ms ease-out, opacity 150ms ease-out;
+  overflow: hidden;
+}
