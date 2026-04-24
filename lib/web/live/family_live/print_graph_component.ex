@@ -47,7 +47,7 @@ defmodule Web.FamilyLive.PrintGraphComponent do
       id={@node.id}
       data-node-id={@node.id}
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="flex items-center justify-center"
+      class="relative z-10 flex items-center justify-center"
     >
       <.print_person_card person={@node.person} />
     </div>

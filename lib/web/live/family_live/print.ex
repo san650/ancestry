@@ -66,7 +66,21 @@ defmodule Web.FamilyLive.Print do
         )
       end
 
-    {:noreply, assign(socket, :graph, graph)}
+    # Calculate zoom to fit the tree on a landscape page.
+    # Conservative usable width: ~950px (Letter/A4 landscape with 1cm margins).
+    print_zoom =
+      if graph do
+        cols = graph.grid_cols
+        grid_width = cols * 120 + max(cols - 1, 0) * 12
+        min(1.0, 950 / grid_width)
+      else
+        1.0
+      end
+
+    {:noreply,
+     socket
+     |> assign(:graph, graph)
+     |> assign(:print_zoom, print_zoom)}
   end
 
   defp parse_depth(params, key, default) do
