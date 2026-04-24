@@ -445,13 +445,13 @@ defmodule Ancestry.People.PersonGraph do
         child_gen = gen - 1
 
         Enum.reduce(new_children, acc2, fn child, acc3 ->
-          depth = max(0, -child_gen)
+          depth = -child_gen
           at_limit = depth >= max_descendants
 
           has_more_down = at_limit and FamilyGraph.has_children?(graph, child.id)
           acc3 = %{acc3 | visited: Map.put(acc3.visited, child.id, child_gen)}
           acc3 = add_entry(acc3, child, child_gen, false, false, has_more_down)
-          acc3 = add_parent_child_edge(acc3, ancestor_id, child.id, false)
+          acc3 = add_child_parent_edges(acc3, child, graph)
 
           if at_limit do
             add_at_limit_partners(acc3, child, child_gen, graph)

@@ -234,14 +234,13 @@
     <div
       :if={@graph}
       id="tree-drawer"
-      phx-hook="TreeDrawer"
       class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-ds-surface-high/90 backdrop-blur-md rounded-sm shadow-sm"
       {test_id("tree-drawer")}
     >
       <%!-- Collapsed bar --%>
       <button
         type="button"
-        data-drawer-toggle
+        phx-click="toggle_drawer"
         class="flex items-center gap-3 px-4 py-1.5 hover:bg-ds-surface-highest/50 transition-colors rounded-sm"
         aria-label={gettext("Toggle tree controls")}
       >
@@ -257,7 +256,7 @@
       </button>
 
       <%!-- Expanded panel --%>
-      <div data-drawer-panel class="max-h-0 opacity-0">
+      <div class={if @drawer_open, do: "max-h-[200px] opacity-100", else: "max-h-0 opacity-0"}>
         <div class="px-4 py-3 bg-ds-surface-low/60 flex items-start gap-5">
           <%!-- Display toggle --%>
           <div class="flex-shrink-0">
@@ -287,30 +286,26 @@
           </div>
 
           <%!-- Sliders wrapped in form for phx-change --%>
-          <form
-            :if={@tree_display == "partial"}
-            phx-change="update_tree_depth"
-            class="flex-1 flex gap-5"
-          >
-            <.tree_slider
+          <div :if={@tree_display == "partial"} class="flex-1 flex flex-col gap-2 mt-1">
+            <.tree_stepper
               label={gettext("Parents")}
               name="ancestors"
               value={@tree_ancestors}
               max={20}
             />
-            <.tree_slider
+            <.tree_stepper
               label={gettext("Children")}
               name="descendants"
               value={@tree_descendants}
               max={20}
             />
-            <.tree_slider
+            <.tree_stepper
               label={gettext("Other")}
               name="other"
               value={@tree_other}
               max={@tree_ancestors}
             />
-          </form>
+          </div>
           <div :if={@tree_display == "complete"} class="flex-1 flex items-center mt-3">
             <span class="text-xs text-ds-on-surface-variant font-ds-body">
               {gettext("Showing all generations")}
@@ -1151,30 +1146,26 @@
           </div>
         </div>
         <%!-- Sliders --%>
-        <form
-          :if={@tree_display == "partial"}
-          phx-change="update_tree_depth"
-          class="px-5 pb-6 space-y-5"
-        >
-          <.tree_slider
+        <div :if={@tree_display == "partial"} class="px-5 pb-6 space-y-3">
+          <.tree_stepper
             label={gettext("Parents")}
             name="ancestors"
             value={@tree_ancestors}
             max={20}
           />
-          <.tree_slider
+          <.tree_stepper
             label={gettext("Children")}
             name="descendants"
             value={@tree_descendants}
             max={20}
           />
-          <.tree_slider
+          <.tree_stepper
             label={gettext("Other")}
             name="other"
             value={@tree_other}
             max={@tree_ancestors}
           />
-        </form>
+        </div>
         <div :if={@tree_display == "complete"} class="px-5 pb-6">
           <span class="text-sm text-ds-on-surface-variant font-ds-body">
             {gettext("Showing all generations")}

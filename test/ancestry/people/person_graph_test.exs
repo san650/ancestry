@@ -1390,6 +1390,48 @@ defmodule Ancestry.People.PersonGraphTest do
       refute MapSet.member?(ids, cousin.id), "Cousin should NOT appear"
     end
 
+    test "lateral ex-partner is placed at same generation as the lateral, not below", %{
+      family: family,
+      focus: focus,
+      uncle: uncle
+    } do
+      # Add an ex-partner for Uncle
+      {:ok, uncle_ex} =
+        People.create_person(family, %{given_name: "UncleEx", surname: "X"})
+
+      {:ok, _} = Relationships.create_relationship(uncle, uncle_ex, "divorced", %{})
+
+      # Add a child between Uncle and UncleEx
+      {:ok, uncle_ex_child} =
+        People.create_person(family, %{given_name: "UncleExChild", surname: "X"})
+
+      {:ok, _} =
+        Relationships.create_relationship(uncle, uncle_ex_child, "parent", %{role: "father"})
+
+      {:ok, _} =
+        Relationships.create_relationship(uncle_ex, uncle_ex_child, "parent", %{role: "mother"})
+
+      graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
+
+      uncle_node = find_person_node(graph, uncle.id)
+      uncle_ex_node = find_person_node(graph, uncle_ex.id)
+      uncle_ex_child_node = find_person_node(graph, uncle_ex_child.id)
+
+      assert uncle_node, "Uncle should appear in graph"
+      assert uncle_ex_node, "Uncle's ex-partner should appear in graph"
+      assert uncle_ex_child_node, "Uncle's child with ex should appear in graph"
+
+      # Ex-partner must be on the same row as Uncle (same generation)
+      assert uncle_node.row == uncle_ex_node.row,
+             "Uncle's ex-partner should be at the same generation (row #{uncle_node.row}), " <>
+               "but was at row #{uncle_ex_node.row}"
+
+      # Their child should be one row below
+      assert uncle_ex_child_node.row == uncle_node.row + 1,
+             "Uncle's child should be one row below Uncle (row #{uncle_node.row + 1}), " <>
+               "but was at row #{uncle_ex_child_node.row}"
+    end
+
     test "lateral descendants are bounded by max_descendants relative to focus", %{
       family: family,
       focus: focus,
@@ -1400,23 +1442,25 @@ defmodule Ancestry.People.PersonGraphTest do
       # Uncle is at gen 1 (same as Dad). Cousin is Uncle's child at gen 0.
       # CousinChild is Cousin's child at gen -1 (one below focus).
       #
-      # With descendants=1, cousin appears (Uncle expanded one level)
-      # but cousin_child should NOT (would be depth 2 from Uncle's perspective).
+      # descendants is bounded relative to focus, so with descendants=1,
+      # gen -1 is visible — CousinChild at gen -1 should appear.
       graph = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 1, other: 2)
       ids = person_ids(graph)
 
       assert MapSet.member?(ids, uncle.id), "Uncle should appear"
       assert MapSet.member?(ids, cousin.id), "Cousin should appear (1 level below uncle)"
 
-      refute MapSet.member?(ids, cousin_child.id),
-             "CousinChild should NOT appear (descendants=1 stops at cousin)"
+      assert MapSet.member?(ids, cousin_child.id),
+             "CousinChild at gen -1 should appear (within descendants=1 of focus)"
 
-      # With descendants=2, cousin_child should now appear
-      graph2 = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 2, other: 2)
-      ids2 = person_ids(graph2)
+      # With descendants=0, cousin_child should NOT appear (gen -1 is beyond limit)
+      graph0 = PersonGraph.build(focus, family.id, ancestors: 2, descendants: 0, other: 2)
+      ids0 = person_ids(graph0)
 
-      assert MapSet.member?(ids2, cousin_child.id),
-             "CousinChild should appear with descendants=2"
+      assert MapSet.member?(ids0, cousin.id), "Cousin at gen 0 should appear with descendants=0"
+
+      refute MapSet.member?(ids0, cousin_child.id),
+             "CousinChild at gen -1 should NOT appear with descendants=0"
     end
   end
 end

@@ -71,6 +71,7 @@ defmodule Web.FamilyLive.Show do
      |> assign(:subfamily_include_partner_ancestors, false)
      |> assign(:show_menu, false)
      |> assign(:show_mobile_tree_sheet, false)
+     |> assign(:drawer_open, false)
      |> assign(:show_import_modal, false)
      |> assign(:import_summary, nil)
      |> assign(:import_error, nil)
@@ -563,21 +564,16 @@ defmodule Web.FamilyLive.Show do
 
   # Tree depth controls
 
-  def handle_event("update_tree_depth", params, socket) do
-    ancestors = parse_depth_param(params, "ancestors", socket.assigns.tree_ancestors)
-    descendants = parse_depth_param(params, "descendants", socket.assigns.tree_descendants)
-    other = parse_depth_param(params, "other", socket.assigns.tree_other)
+  def handle_event("step_depth", %{"field" => field, "dir" => dir}, socket)
+      when field in ~w(ancestors descendants other) do
+    current = Map.get(socket.assigns, :"tree_#{field}")
+    max = if field == "other", do: socket.assigns.tree_ancestors, else: 20
+    new_value = if dir == "up", do: min(current + 1, max), else: max(current - 1, 0)
+
+    overrides = %{String.to_existing_atom(field) => new_value}
     person_id = socket.assigns.focus_person && socket.assigns.focus_person.id
 
-    {:noreply,
-     push_patch(socket,
-       to:
-         family_path(socket, person_id, %{
-           ancestors: ancestors,
-           descendants: descendants,
-           other: other
-         })
-     )}
+    {:noreply, push_patch(socket, to: family_path(socket, person_id, overrides))}
   end
 
   def handle_event("toggle_display", %{"display" => display}, socket) do
@@ -620,6 +616,10 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("close_mobile_tree_sheet", _, socket) do
     {:noreply, assign(socket, :show_mobile_tree_sheet, false)}
+  end
+
+  def handle_event("toggle_drawer", _, socket) do
+    {:noreply, assign(socket, :drawer_open, !socket.assigns.drawer_open)}
   end
 
   # PubSub
@@ -720,25 +720,33 @@ defmodule Web.FamilyLive.Show do
   attr :value, :integer, required: true
   attr :max, :integer, required: true
 
-  defp tree_slider(assigns) do
+  defp tree_stepper(assigns) do
     ~H"""
-    <div class="flex-1 min-w-[100px]">
-      <div class="flex justify-between mb-1.5">
-        <span class="text-xs text-ds-on-surface font-ds-body">{@label}</span>
-        <span class="text-xs text-ds-on-surface font-ds-body font-semibold bg-ds-surface-highest rounded-sm px-1.5">
-          {@value}
-        </span>
-      </div>
-      <input
-        type="range"
-        name={@name}
-        value={@value}
-        min="0"
-        max={@max}
-        step="1"
-        phx-debounce="200"
-        class="w-full h-1 bg-ds-outline-variant/30 rounded-full appearance-none cursor-pointer accent-ds-on-surface"
-      />
+    <div class="flex items-center gap-2">
+      <span class="text-xs text-ds-on-surface font-ds-body w-14">{@label}</span>
+      <button
+        type="button"
+        phx-click="step_depth"
+        phx-value-field={@name}
+        phx-value-dir="down"
+        disabled={@value <= 0}
+        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <.icon name="hero-minus" class="size-3" />
+      </button>
+      <span class="text-xs text-ds-on-surface font-ds-body font-semibold w-4 text-center">
+        {@value}
+      </span>
+      <button
+        type="button"
+        phx-click="step_depth"
+        phx-value-field={@name}
+        phx-value-dir="up"
+        disabled={@value >= @max}
+        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+      >
+        <.icon name="hero-plus" class="size-3" />
+      </button>
     </div>
     """
   end
