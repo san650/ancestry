@@ -49,7 +49,7 @@ defmodule Web.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen">
-      <header class="hidden lg:flex print:!hidden items-center px-4 sm:px-6 lg:px-8 py-2">
+      <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2">
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
@@ -109,7 +109,7 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 bg-ds-surface-low print:hidden"
+          class="sticky z-1 top-0 bg-ds-surface-low"
         >
           {render_slot(@toolbar)}
         </div>
@@ -135,7 +135,7 @@ defmodule Web.Layouts do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite" class="print:hidden">
+    <div id={@id} aria-live="polite">
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 

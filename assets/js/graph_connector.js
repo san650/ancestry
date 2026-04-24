@@ -60,7 +60,6 @@ const GraphConnector = {
     this._observer.observe(this.el)
     this._draw()
     this._scheduleScrollToFocus()
-    this._bindPrintHandlers()
   },
 
   updated() {
@@ -74,42 +73,6 @@ const GraphConnector = {
     this._observer.disconnect()
     const svg = this.el.querySelector("#graph-connector-svg")
     if (svg) svg.remove()
-    this._unbindPrintHandlers()
-  },
-
-  // --- Print scaling ---
-  //
-  // Scale the graph to fit the printed page width so wide trees don't clip.
-  // Uses beforeprint/afterprint to apply and remove a CSS transform.
-
-  _bindPrintHandlers() {
-    this._onBeforePrint = () => {
-      const grid = this._grid()
-      if (!grid) return
-      const gridWidth = grid.scrollWidth
-      // Use the parent container's width as available page width
-      const container = this.el.parentElement
-      if (!container) return
-      const pageWidth = container.clientWidth
-      if (gridWidth > pageWidth && pageWidth > 0) {
-        const scale = pageWidth / gridWidth
-        this.el.style.transformOrigin = "top left"
-        this.el.style.transform = `scale(${scale})`
-        this.el.style.width = `${gridWidth}px`
-      }
-    }
-    this._onAfterPrint = () => {
-      this.el.style.transform = ""
-      this.el.style.transformOrigin = ""
-      this.el.style.width = ""
-    }
-    window.addEventListener("beforeprint", this._onBeforePrint)
-    window.addEventListener("afterprint", this._onAfterPrint)
-  },
-
-  _unbindPrintHandlers() {
-    if (this._onBeforePrint) window.removeEventListener("beforeprint", this._onBeforePrint)
-    if (this._onAfterPrint) window.removeEventListener("afterprint", this._onAfterPrint)
   },
 
   // --- SVG lifecycle ---
