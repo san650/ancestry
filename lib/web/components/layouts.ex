@@ -124,6 +124,20 @@ defmodule Web.Layouts do
   end
 
   @doc """
+  Minimal layout for print pages. No header, toolbar, or navigation.
+  """
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  slot :inner_block, required: true
+
+  def print(assigns) do
+    ~H"""
+    <div class="bg-white min-h-screen p-6">
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples
