@@ -119,6 +119,17 @@
               <.icon name="hero-arrow-up-tray" class="size-4 text-ds-on-surface-variant" />
               <span>{gettext("Import from CSV")}</span>
             </button>
+
+            <.link
+              :if={@graph}
+              href={@print_url}
+              target="_blank"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              {test_id("family-print-btn")}
+            >
+              <.icon name="hero-printer" class="size-4 text-ds-on-surface-variant" />
+              <span>{gettext("Print tree")}</span>
+            </.link>
           </div>
         </div>
       </div>
@@ -159,6 +170,15 @@
         danger
         phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
       />
+      <.link
+        :if={@graph}
+        href={@print_url}
+        target="_blank"
+        class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] transition-colors hover:bg-ds-surface-high text-ds-on-surface"
+      >
+        <.icon name="hero-printer" class="size-5 shrink-0" />
+        <span class="font-ds-body text-sm">{gettext("Print tree")}</span>
+      </.link>
     </:page_actions>
     <:page_panel>
       <.live_component
