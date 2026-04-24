@@ -69,6 +69,7 @@ defmodule Web.Router do
         live "/", FamilyLive.Index, :index
         live "/families/new", FamilyLive.New, :new
         live "/families/:family_id", FamilyLive.Show, :show
+        live "/families/:family_id/print", FamilyLive.Print, :print
         live "/families/:family_id/galleries/:id", GalleryLive.Show, :show
         live "/families/:family_id/vaults/:vault_id", VaultLive.Show, :show
         live "/families/:family_id/vaults/:vault_id/memories/new", MemoryLive.Form, :new
