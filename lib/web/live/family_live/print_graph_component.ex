@@ -59,7 +59,7 @@ defmodule Web.FamilyLive.PrintGraphComponent do
   defp print_person_card(assigns) do
     ~H"""
     <div class={[
-      "flex items-center justify-center text-center w-[120px] px-1 py-2",
+      "flex items-center justify-center text-center w-[120px] h-[40px] px-1 py-2",
       "bg-white border border-gray-300 rounded-sm",
       gender_border_class(@person.gender)
     ]}>
