@@ -183,6 +183,11 @@
     </.link>
   </.nav_drawer>
 
+  <%!-- Print-only family name heading --%>
+  <h1 class="hidden print:block text-2xl font-ds-heading font-bold text-black text-center mb-4">
+    {@family.name}
+  </h1>
+
   <div class="grid grid-cols-1 lg:grid-cols-[1fr_18rem] gap-0 lg:gap-4 overflow-x-hidden">
     <%!-- Tree Canvas: always visible, full width on mobile --%>
     <div
