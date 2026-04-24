@@ -65,7 +65,7 @@ defmodule Web.FamilyLive.GraphComponent do
       <%!-- Has more ancestors — pill at top center, half outside card --%>
       <div
         :if={@node.has_more_up}
-        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
+        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer print:hidden"
         title={gettext("Has more ancestors")}
       >
         <.icon name="hero-chevron-up" class="w-3 h-3" />
@@ -73,7 +73,7 @@ defmodule Web.FamilyLive.GraphComponent do
       <%!-- Has more descendants — pill at bottom center, half outside card --%>
       <div
         :if={@node.has_more_down}
-        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
+        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer print:hidden"
         title={gettext("Has more descendants")}
       >
         <.icon name="hero-chevron-down" class="w-3 h-3" />
@@ -115,7 +115,7 @@ defmodule Web.FamilyLive.GraphComponent do
       aria-label={Person.display_name(@node.person)}
     >
       <%!-- Mobile: photo fills card with name overlay --%>
-      <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
+      <div class="relative w-full h-[72px] lg:hidden print:!hidden overflow-hidden rounded-b-ds-sharp">
         <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
@@ -134,8 +134,8 @@ defmodule Web.FamilyLive.GraphComponent do
         </div>
       </div>
       <%!-- Desktop: circular photo, name below, dates below name --%>
-      <div class="hidden lg:flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
-        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
+      <div class="hidden lg:flex print:!flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
+        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all print:hidden">
           <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
@@ -177,7 +177,7 @@ defmodule Web.FamilyLive.GraphComponent do
       <%!-- Navigation link to person page (overlaid, bottom-right) --%>
       <.link
         navigate={~p"/org/#{@organization.id}/people/#{@node.person.id}"}
-        class="absolute bottom-1 right-1 hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+        class="absolute bottom-1 right-1 hidden lg:flex print:!hidden items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
         aria-label={gettext("Go to person page")}
         title={gettext("View person")}
       >

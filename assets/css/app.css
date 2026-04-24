@@ -142,9 +142,9 @@ trix-editor .attachment--content {
 }
 
 /* === Print-friendly family tree ===
-   Hides all chrome; shows only the family name heading and
-   text-only person cards with SVG connectors.
-   Triggered by the browser's native Cmd+P / Ctrl+P.        */
+   Chrome hiding is done via Tailwind print:hidden / print:!hidden
+   classes on the template elements. This block covers only what
+   Tailwind utility classes cannot express.                      */
 @media print {
   @page {
     size: landscape;
@@ -154,60 +154,6 @@ trix-editor .attachment--content {
   /* Force clean white background */
   body {
     background: white !important;
-  }
-
-  /* ---- Hide application chrome ---- */
-  header,
-  #toolbar,
-  #nav-drawer,
-  #nav-drawer-backdrop,
-  #tree-drawer,
-  #flash-group {
-    display: none !important;
-  }
-
-  /* Side panel (desktop wrapper) */
-  #side-panel-desktop {
-    display: none !important;
-  }
-
-  /* All modals / overlays (fixed inset-0 z-50) */
-  .fixed.inset-0 {
-    display: none !important;
-  }
-
-  /* ---- Tree canvas: remove scroll constraint ---- */
-  #tree-canvas {
-    overflow: visible !important;
-    padding: 0 !important;
-  }
-
-  /* ---- Person cards: text-only, compact ---- */
-
-  /* Hide photos and placeholder icons */
-  #graph-canvas img,
-  #graph-canvas .hero-user {
-    display: none !important;
-  }
-
-  /* Hide mobile photo+overlay card */
-  #graph-canvas .lg\:hidden {
-    display: none !important;
-  }
-
-  /* Force desktop card layout to show (even on small paper) */
-  #graph-canvas .hidden.lg\:flex {
-    display: flex !important;
-  }
-
-  /* Hide "has more" chevron pills */
-  #graph-canvas [title*="Has more"] {
-    display: none !important;
-  }
-
-  /* Hide person navigation arrows */
-  #graph-canvas a[aria-label] {
-    display: none !important;
   }
 
   /* Strip interactive styling from person cards */

@@ -26,7 +26,7 @@ defmodule Web.Components.NavDrawer do
     <%!-- Backdrop --%>
     <div
       id={"#{@id}-backdrop"}
-      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-200 lg:hidden opacity-0 pointer-events-none"
+      class="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-200 lg:hidden opacity-0 pointer-events-none print:!hidden"
       phx-click={toggle_nav_drawer(@id)}
       aria-hidden="true"
     />
@@ -36,7 +36,7 @@ defmodule Web.Components.NavDrawer do
       class={[
         "fixed top-0 left-0 bottom-0 z-50 w-[85vw] max-w-sm bg-ds-surface-card overflow-y-auto",
         "transition-transform duration-200 ease-out",
-        "lg:hidden",
+        "lg:hidden print:!hidden",
         "-translate-x-full"
       ]}
       aria-label={gettext("Navigation")}

@@ -192,7 +192,7 @@
     <%!-- Tree Canvas: always visible, full width on mobile --%>
     <div
       id="tree-canvas"
-      class="relative overflow-auto hide-scrollbar p-6 order-last lg:order-first min-h-[60vh]"
+      class="relative overflow-auto hide-scrollbar p-6 order-last lg:order-first min-h-[60vh] print:overflow-visible print:p-0"
     >
       <%= if @graph do %>
         <.graph_canvas
@@ -239,7 +239,7 @@
     <div
       :if={@graph}
       id="tree-drawer"
-      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-ds-surface-high/90 backdrop-blur-md rounded-sm shadow-sm"
+      class="hidden lg:block print:!hidden fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-ds-surface-high/90 backdrop-blur-md rounded-sm shadow-sm"
       {test_id("tree-drawer")}
     >
       <%!-- Collapsed bar --%>
@@ -321,7 +321,7 @@
     </div>
 
     <%!-- Side panel: desktop only (mobile uses nav drawer) --%>
-    <div class="hidden lg:block">
+    <div class="hidden lg:block print:!hidden">
       <.live_component
         module={Web.FamilyLive.SidePanelComponent}
         id="side-panel-desktop"
@@ -339,7 +339,7 @@
   <%!-- Edit Family Modal --%>
   <%= if @editing do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="cancel_edit"
       phx-key="Escape"
     >
@@ -487,7 +487,7 @@
   <%!-- Delete Family Confirmation Modal --%>
   <%= if @confirm_delete do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="cancel_delete"
       phx-key="Escape"
     >
@@ -534,7 +534,7 @@
   <%!-- New Gallery Modal --%>
   <%= if @show_new_gallery_modal do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="close_new_gallery_modal"
       phx-key="Escape"
     >
@@ -592,7 +592,7 @@
   <%!-- New Vault Modal --%>
   <%= if @show_new_vault_modal do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="close_new_vault_modal"
       phx-key="Escape"
     >
@@ -650,7 +650,7 @@
   <%!-- Delete Gallery Confirmation Modal --%>
   <%= if @confirm_delete_gallery do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="cancel_delete_gallery"
       phx-key="Escape"
     >
@@ -696,7 +696,7 @@
   <%!-- Search/Link Existing Person Modal --%>
   <%= if @search_mode do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="close_search"
       phx-key="Escape"
     >
@@ -780,7 +780,7 @@
   <%!-- Add Relationship Modal (from tree placeholders) --%>
   <%= if @adding_relationship do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="cancel_add_relationship"
       phx-key="Escape"
     >
@@ -811,7 +811,7 @@
   <%!-- Create Subfamily Modal --%>
   <%= if @show_create_subfamily_modal do %>
     <div
-      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
       phx-window-keydown="close_create_subfamily"
       phx-key="Escape"
     >
@@ -935,7 +935,7 @@
   <%!-- Import CSV modal --%>
   <div
     :if={@show_import_modal}
-    class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+    class="fixed inset-0 z-50 flex items-end lg:items-center justify-center print:hidden"
     {test_id("import-modal")}
   >
     <%!-- Backdrop --%>
@@ -1083,7 +1083,7 @@
   <%!-- Mobile Tree Depth Sheet --%>
   <%= if @show_mobile_tree_sheet do %>
     <div
-      class="fixed inset-0 z-50 flex items-end justify-center lg:hidden"
+      class="fixed inset-0 z-50 flex items-end justify-center lg:hidden print:!hidden"
       phx-window-keydown="close_mobile_tree_sheet"
       phx-key="Escape"
     >
