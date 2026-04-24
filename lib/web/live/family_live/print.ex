@@ -66,18 +66,16 @@ defmodule Web.FamilyLive.Print do
         )
       end
 
-    # Calculate column width to fit the tree on a landscape page.
-    # Available width: ~900px (Letter/A4 landscape, 1cm margins, minus layout padding).
-    # No zoom — smaller columns avoid the coordinate mismatch between
-    # scrollWidth (unzoomed) and getBoundingClientRect (zoomed) that
-    # breaks SVG connector positioning.
+    # Calculate column width to fit the tree on A4 landscape.
+    # A4 landscape = 297mm, minus 0.5cm margins each side = 287mm ≈ 1085px at 96dpi.
+    # Layout padding: p-2 = 16px total. Available ≈ 1060px.
     col_width =
       if graph && graph.grid_cols > 0 do
         cols = graph.grid_cols
-        available = 900
+        available = 1060
         gap = 8
         max_width = div(available - max(cols - 1, 0) * gap, cols)
-        min(120, max(40, max_width))
+        min(120, max(50, max_width))
       else
         120
       end

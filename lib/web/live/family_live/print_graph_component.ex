@@ -11,20 +11,22 @@ defmodule Web.FamilyLive.PrintGraphComponent do
 
   def print_graph_canvas(assigns) do
     ~H"""
-    <div
-      id="graph-canvas"
-      phx-hook="GraphConnector"
-      data-edges={Jason.encode!(@graph.edges)}
-      class="relative overflow-visible"
-    >
+    <div class="flex justify-center">
       <div
-        data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, #{@col_width}px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:24px 8px;"}
-        class="w-fit mx-auto"
+        id="graph-canvas"
+        phx-hook="GraphConnector"
+        data-edges={Jason.encode!(@graph.edges)}
+        class="relative overflow-visible w-fit"
       >
-        <%= for node <- @graph.nodes do %>
-          <.print_cell node={node} col_width={@col_width} />
-        <% end %>
+        <div
+          data-graph-grid
+          style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, #{@col_width}px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:24px 8px;"}
+          class="w-fit"
+        >
+          <%= for node <- @graph.nodes do %>
+            <.print_cell node={node} col_width={@col_width} />
+          <% end %>
+        </div>
       </div>
     </div>
     """

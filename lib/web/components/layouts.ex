@@ -131,7 +131,7 @@ defmodule Web.Layouts do
 
   def print(assigns) do
     ~H"""
-    <div class="bg-white min-h-screen p-6">
+    <div class="bg-white min-h-screen p-2">
       {render_slot(@inner_block)}
     </div>
     """

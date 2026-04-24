@@ -137,8 +137,8 @@ trix-editor .attachment--content {
 
 /* Print page — landscape orientation for wider trees */
 @page {
-  size: landscape;
-  margin: 1cm;
+  size: A4 landscape;
+  margin: 0.5cm;
 }
 
 /* Tree drawer transitions */
