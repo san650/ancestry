@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <.breadcrumb
           items={
@@ -56,7 +56,7 @@
 
       <%!-- Cover photo section --%>
       <div>
-        <label class="block text-sm font-ds-body font-semibold text-ds-on-surface mb-2">
+        <label class="block text-sm font-cm-body font-semibold text-cm-black mb-2">
           {gettext("Cover Photo")}
         </label>
         <%= if @cover_photo do %>
@@ -64,12 +64,12 @@
             <img
               src={Ancestry.Uploaders.Photo.url({@cover_photo.image, @cover_photo}, :thumbnail)}
               alt={gettext("Cover photo")}
-              class="w-32 h-24 object-cover rounded-ds-sharp shadow-ds-ambient"
+              class="w-32 h-24 object-cover rounded-cm"
             />
             <button
               type="button"
               phx-click="remove_cover_photo"
-              class="absolute -top-2 -right-2 bg-ds-error text-ds-on-primary rounded-full p-1 shadow-ds-ambient hover:opacity-90 transition-opacity"
+              class="absolute -top-2 -right-2 bg-cm-error text-cm-white rounded-full p-1 hover:opacity-90 transition-opacity"
               aria-label={gettext("Remove cover photo")}
             >
               <.icon name="hero-x-mark" class="size-4" />
@@ -79,7 +79,7 @@
           <button
             type="button"
             phx-click="open_cover_picker"
-            class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
           >
             <.icon name="hero-photo" class="size-4" /> {gettext("Choose Cover Photo")}
           </button>
@@ -88,7 +88,7 @@
 
       <%!-- Trix editor --%>
       <div>
-        <label class="block text-sm font-ds-body font-semibold text-ds-on-surface mb-2">
+        <label class="block text-sm font-cm-body font-semibold text-cm-black mb-2">
           {gettext("Content")}
         </label>
         <div id="trix-wrapper" phx-hook="TrixEditor" phx-update="ignore">
@@ -100,7 +100,7 @@
           />
           <trix-editor
             input="memory-content-input"
-            class="trix-content min-h-[200px] bg-ds-surface-card rounded-ds-sharp border border-ds-surface-high p-4 text-ds-on-surface font-ds-body focus:outline-none focus:ring-2 focus:ring-ds-primary/20"
+            class="trix-content min-h-[200px] bg-cm-white rounded-cm border border-cm-border p-4 text-cm-black font-cm-body focus:outline-none focus:ring-2 focus:ring-cm-indigo/20"
           >
           </trix-editor>
         </div>
@@ -110,7 +110,7 @@
       <div class="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-6 py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
           {test_id("memory-save-btn")}
         >
           {if @live_action == :new, do: gettext("Create Memory"), else: gettext("Save Changes")}
@@ -124,7 +124,7 @@
                 ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
             )
           }
-          class="inline-flex items-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-6 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+          class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm px-6 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
         >
           {gettext("Cancel")}
         </.link>
@@ -132,7 +132,7 @@
           <button
             type="button"
             phx-click="request_delete"
-            class="ml-auto inline-flex items-center gap-2 text-ds-error hover:text-ds-error/80 text-sm font-ds-body font-semibold transition-colors"
+            class="ml-auto inline-flex items-center gap-2 text-cm-error hover:text-cm-error/80 text-sm font-cm-body font-semibold transition-colors"
             {test_id("memory-delete-btn")}
           >
             <.icon name="hero-trash" class="size-4" /> {gettext("Delete")}
@@ -156,32 +156,32 @@
       </div>
       <div
         id="photo-picker-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full h-full lg:h-auto max-w-none lg:max-w-2xl mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp overflow-y-auto lg:max-h-[80vh]"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full h-full lg:h-auto max-w-none lg:max-w-2xl mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm overflow-y-auto lg:max-h-[80vh]"
         role="dialog"
         aria-modal="true"
         aria-labelledby="photo-picker-title"
         phx-mounted={JS.focus_first()}
       >
         <%!-- Header --%>
-        <div class="sticky top-0 bg-ds-surface-card/90 backdrop-blur-sm border-b border-ds-surface-high px-4 py-3 flex items-center justify-between z-10">
+        <div class="sticky top-0 bg-cm-white/90 backdrop-blur-sm border-b border-cm-border px-4 py-3 flex items-center justify-between z-10">
           <div class="flex items-center gap-2">
             <%= if @picker_gallery do %>
               <button
                 type="button"
                 phx-click="picker_back_to_galleries"
-                class="p-1 text-ds-on-surface-variant hover:text-ds-on-surface"
+                class="p-1 text-cm-text-muted hover:text-cm-black"
                 aria-label={gettext("Back to albums")}
               >
                 <.icon name="hero-arrow-left" class="size-5" />
               </button>
               <h2
                 id="photo-picker-title"
-                class="font-ds-heading font-bold text-ds-on-surface truncate"
+                class="font-cm-display font-bold text-cm-black truncate"
               >
                 {@picker_gallery.name}
               </h2>
             <% else %>
-              <h2 id="photo-picker-title" class="font-ds-heading font-bold text-ds-on-surface">
+              <h2 id="photo-picker-title" class="font-cm-display font-bold text-cm-black">
                 {if @picker_mode == :cover,
                   do: gettext("Choose Cover Photo"),
                   else: gettext("Insert Photo")}
@@ -191,7 +191,7 @@
           <button
             type="button"
             phx-click="close_photo_picker"
-            class="p-1 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-1 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Close")}
           >
             <.icon name="hero-x-mark" class="size-5" />
@@ -203,8 +203,8 @@
             <%!-- Album grid --%>
             <%= if @galleries == [] do %>
               <div class="flex flex-col items-center justify-center py-12 text-center">
-                <.icon name="hero-photo" class="w-12 h-12 text-ds-on-surface-variant/50 mb-3" />
-                <p class="text-ds-on-surface-variant font-ds-body">
+                <.icon name="hero-photo" class="w-12 h-12 text-cm-text-muted/50 mb-3" />
+                <p class="text-cm-text-muted font-cm-body">
                   {gettext("No albums in this family yet. Upload photos to a gallery first.")}
                 </p>
               </div>
@@ -215,13 +215,13 @@
                   type="button"
                   phx-click="select_picker_gallery"
                   phx-value-id={gallery.id}
-                  class="group text-left bg-ds-surface-low rounded-ds-sharp overflow-hidden hover:shadow-lg transition-shadow"
+                  class="group text-left bg-cm-surface rounded-cm overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <div class="aspect-square bg-ds-surface-high flex items-center justify-center">
-                    <.icon name="hero-photo" class="w-8 h-8 text-ds-on-surface-variant/40" />
+                  <div class="aspect-square bg-cm-surface flex items-center justify-center">
+                    <.icon name="hero-photo" class="w-8 h-8 text-cm-text-muted/40" />
                   </div>
                   <div class="p-2">
-                    <p class="text-sm font-ds-body font-semibold text-ds-on-surface truncate">
+                    <p class="text-sm font-cm-body font-semibold text-cm-black truncate">
                       {gallery.name}
                     </p>
                   </div>
@@ -232,8 +232,8 @@
             <%!-- Photo grid --%>
             <%= if @picker_photos == [] do %>
               <div class="flex flex-col items-center justify-center py-12 text-center">
-                <.icon name="hero-photo" class="w-12 h-12 text-ds-on-surface-variant/50 mb-3" />
-                <p class="text-ds-on-surface-variant font-ds-body">
+                <.icon name="hero-photo" class="w-12 h-12 text-cm-text-muted/50 mb-3" />
+                <p class="text-cm-text-muted font-cm-body">
                   {gettext("No processed photos in this album.")}
                 </p>
               </div>
@@ -244,7 +244,7 @@
                   type="button"
                   phx-click="select_photo"
                   phx-value-id={photo.id}
-                  class="group aspect-square overflow-hidden rounded-ds-sharp bg-ds-surface-low hover:ring-2 hover:ring-ds-primary transition-all"
+                  class="group aspect-square overflow-hidden rounded-cm bg-cm-surface hover:ring-2 hover:ring-cm-indigo transition-all"
                 >
                   <img
                     src={Ancestry.Uploaders.Photo.url({photo.image, photo}, :thumbnail)}
@@ -270,7 +270,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-memory-title"
@@ -278,11 +278,11 @@
       >
         <h2
           id="delete-memory-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-bold text-cm-black mb-2"
         >
           Delete Memory
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+        <p class="text-cm-text-muted mb-6 font-cm-body">
           Delete <span class="font-semibold">"{@memory && @memory.name}"</span>? {gettext(
             "This cannot be undone."
           )}
@@ -290,14 +290,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-memory-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>

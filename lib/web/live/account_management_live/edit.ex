@@ -207,7 +207,7 @@ defmodule Web.AccountManagementLive.Edit do
           <button
             type="button"
             phx-click={toggle_nav_drawer()}
-            class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+            class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label={gettext("Open menu")}
             {test_id("hamburger-menu")}
           >
@@ -215,11 +215,11 @@ defmodule Web.AccountManagementLive.Edit do
           </button>
           <.link
             navigate={~p"/admin/accounts/#{@account.id}"}
-            class="hidden lg:flex text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+            class="hidden lg:flex text-cm-text-muted hover:text-cm-black transition-colors"
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+          <h1 class="text-lg font-cm-display font-bold text-cm-black">
             {gettext("Edit Account")}
           </h1>
         </div>
@@ -229,18 +229,18 @@ defmodule Web.AccountManagementLive.Edit do
         <.link
           href={~p"/org"}
           {test_id("nav-organizations")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
         >
-          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+          <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
         </.link>
         <.link
           href={~p"/admin/accounts"}
           {test_id("nav-accounts")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
         >
-          <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
+          <.icon name="hero-users" class="size-5 shrink-0 text-cm-text-muted" />
+          <span class="font-cm-body text-sm">{gettext("Accounts")}</span>
         </.link>
       </.nav_drawer>
 
@@ -287,7 +287,7 @@ defmodule Web.AccountManagementLive.Edit do
 
           <%!-- Avatar upload --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+            <label class="block text-sm font-medium text-cm-black mb-2">
               {gettext("Avatar")}
             </label>
             <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
@@ -297,13 +297,13 @@ defmodule Web.AccountManagementLive.Edit do
                 type="button"
                 phx-click="cancel_upload"
                 phx-value-ref={entry.ref}
-                class="text-ds-error text-xs mt-1 hover:underline"
+                class="text-cm-error text-xs mt-1 hover:underline"
               >
                 {gettext("Remove")}
               </button>
               <p
                 :for={err <- upload_errors(@uploads.avatar, entry)}
-                class="text-ds-error text-xs mt-1"
+                class="text-cm-error text-xs mt-1"
               >
                 {error_to_string(err)}
               </p>
@@ -312,7 +312,7 @@ defmodule Web.AccountManagementLive.Edit do
 
           <%!-- Organization selection --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+            <label class="block text-sm font-medium text-cm-black mb-2">
               {gettext("Organizations")}
             </label>
             <div class="space-y-2" {test_id("org-selection")}>
@@ -322,10 +322,10 @@ defmodule Web.AccountManagementLive.Edit do
                   name="organization_ids[]"
                   value={org.id}
                   checked={org.id in @selected_org_ids}
-                  class="rounded border-ds-outline"
+                  class="rounded border-cm-border"
                   {test_id("org-checkbox-#{org.id}")}
                 />
-                <span class="text-sm text-ds-on-surface">{org.name}</span>
+                <span class="text-sm text-cm-black">{org.name}</span>
               </label>
             </div>
           </div>
@@ -333,14 +333,14 @@ defmodule Web.AccountManagementLive.Edit do
           <div class="flex gap-4">
             <button
               type="submit"
-              class="rounded-ds-sharp bg-ds-primary px-6 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+              class="rounded-cm bg-cm-indigo px-6 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
               {test_id("account-submit-btn")}
             >
               {gettext("Save Changes")}
             </button>
             <.link
               navigate={~p"/admin/accounts/#{@account.id}"}
-              class="rounded-ds-sharp px-6 py-2 text-sm font-ds-body text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+              class="rounded-cm px-6 py-2 text-sm font-cm-body text-cm-text-muted hover:text-cm-black transition-colors"
             >
               {gettext("Cancel")}
             </.link>
@@ -349,11 +349,11 @@ defmodule Web.AccountManagementLive.Edit do
 
         <%!-- Deactivate/Reactivate section (hidden for own account) --%>
         <%= if @account.id != @current_scope.account.id do %>
-          <div class="mt-8 pt-6 border-t border-ds-outline-variant/20">
+          <div class="mt-8 pt-6 border-t border-cm-border/20">
             <%= if is_nil(@account.deactivated_at) do %>
               <button
                 phx-click="request_deactivate"
-                class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("account-deactivate-btn")}
               >
                 {gettext("Deactivate Account")}
@@ -361,7 +361,7 @@ defmodule Web.AccountManagementLive.Edit do
             <% else %>
               <button
                 phx-click="request_reactivate"
-                class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("account-reactivate-btn")}
               >
                 {gettext("Reactivate Account")}
@@ -376,11 +376,11 @@ defmodule Web.AccountManagementLive.Edit do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("deactivate-modal")}
         >
-          <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
+            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
               {gettext("Deactivate Account")}
             </h3>
-            <p class="text-sm text-ds-on-surface-variant mb-6">
+            <p class="text-sm text-cm-text-muted mb-6">
               {gettext(
                 "Are you sure you want to deactivate %{email}? They will be immediately logged out and unable to log in.",
                 email: @account.email
@@ -389,14 +389,14 @@ defmodule Web.AccountManagementLive.Edit do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_deactivate"
-                class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
                 {test_id("deactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_deactivate"
-                class="rounded-ds-sharp bg-ds-error px-4 py-2 text-sm font-ds-body font-medium text-ds-on-error hover:bg-ds-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("deactivate-confirm-btn")}
               >
                 {gettext("Deactivate")}
@@ -411,11 +411,11 @@ defmodule Web.AccountManagementLive.Edit do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("reactivate-modal")}
         >
-          <div class="bg-ds-surface-card rounded-ds-sharp p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-ds-heading font-bold text-ds-on-surface mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
+            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
               {gettext("Reactivate Account")}
             </h3>
-            <p class="text-sm text-ds-on-surface-variant mb-6">
+            <p class="text-sm text-cm-text-muted mb-6">
               {gettext(
                 "Are you sure you want to reactivate %{email}? They will be able to log in again.",
                 email: @account.email
@@ -424,14 +424,14 @@ defmodule Web.AccountManagementLive.Edit do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_reactivate"
-                class="rounded-ds-sharp px-4 py-2 text-sm font-ds-body font-medium text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
                 {test_id("reactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_reactivate"
-                class="rounded-ds-sharp bg-ds-primary px-4 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("reactivate-confirm-btn")}
               >
                 {gettext("Reactivate")}

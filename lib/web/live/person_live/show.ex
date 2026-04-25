@@ -844,10 +844,10 @@ defmodule Web.PersonLive.Show do
   defp person_card(assigns) do
     ~H"""
     <div class={[
-      "flex items-center gap-3 p-2 rounded-ds-sharp",
-      @highlighted && "bg-ds-primary/10 border border-ds-primary/20"
+      "flex items-center gap-3 p-2 rounded-cm",
+      @highlighted && "bg-cm-indigo/10 border border-cm-indigo/20"
     ]}>
-      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-ds-surface-low">
+      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-cm-surface">
         <%= if @person.photo && @person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
@@ -855,14 +855,14 @@ defmodule Web.PersonLive.Show do
             class="w-full h-full object-cover"
           />
         <% else %>
-          <.icon name="hero-user" class="w-5 h-5 text-ds-on-surface-variant/50" />
+          <.icon name="hero-user" class="w-5 h-5 text-cm-text-muted/50" />
         <% end %>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="font-ds-body font-medium text-sm text-ds-on-surface truncate">
+        <p class="font-cm-body font-medium text-sm text-cm-black truncate">
           {Ancestry.People.Person.display_name(@person)}
         </p>
-        <p class="text-xs text-ds-on-surface-variant">
+        <p class="text-xs text-cm-text-muted">
           <%= if @person.birth_year do %>
             {@person.birth_year}
           <% end %>

@@ -1,12 +1,12 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <%!-- Hamburger: mobile only --%>
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -33,10 +33,10 @@
           type="button"
           phx-click="toggle_select_mode"
           class={[
-            "p-2 rounded-ds-sharp transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
+            "p-2 rounded-cm transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
             if(@selection_mode,
-              do: "bg-ds-primary text-ds-on-primary",
-              else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+              do: "bg-cm-indigo text-cm-white",
+              else: "text-cm-text-muted hover:text-cm-black"
             )
           ]}
           aria-label={
@@ -52,7 +52,7 @@
             id="upload-btn"
             type="button"
             onclick="document.querySelector('#upload-form [type=file]').click()"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-2 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Upload photos")}
           >
             <.icon name="hero-arrow-up-tray" class="size-5" />
@@ -61,7 +61,7 @@
             id="layout-toggle"
             type="button"
             phx-click="toggle_layout"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-2 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Toggle layout")}
           >
             <.icon
@@ -99,10 +99,10 @@
     </:page_actions>
     <.link
       navigate={~p"/org/#{@current_scope.organization.id}"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{@current_scope.organization.name}</span>
     </.link>
   </.nav_drawer>
 
@@ -116,11 +116,11 @@
     id="drag-overlay"
     class="hidden fixed inset-0 z-40 pointer-events-none flex items-center justify-center"
   >
-    <div class="absolute inset-4 rounded-ds-sharp border-4 border-dashed border-ds-primary/60 bg-ds-primary/10 backdrop-blur-sm">
+    <div class="absolute inset-4 rounded-cm border-4 border-dashed border-cm-indigo/60 bg-cm-indigo/10 backdrop-blur-sm">
     </div>
     <div class="relative z-10 text-center">
-      <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-ds-primary mx-auto mb-3" />
-      <p class="text-2xl font-ds-heading font-bold text-ds-primary" data-drag-count>
+      <.icon name="hero-cloud-arrow-up" class="w-16 h-16 text-cm-indigo mx-auto mb-3" />
+      <p class="text-2xl font-cm-display font-bold text-cm-indigo" data-drag-count>
         {gettext("Drop to upload photos")}
       </p>
     </div>
@@ -135,15 +135,15 @@
     <%= if @selection_mode do %>
       <div
         id="selection-bar"
-        class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-ds-on-surface lg:text-ds-on-primary lg:rounded-ds-sharp lg:px-5 lg:py-3"
+        class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-cm-black lg:text-cm-white lg:rounded-cm lg:px-5 lg:py-3"
       >
-        <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
+        <span class="text-sm font-cm-body font-medium text-cm-black lg:text-cm-white">
           {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
         </span>
         <button
           phx-click="request_delete_photos"
           disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="px-3 py-2 text-sm font-cm-body text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {gettext("Delete")}
         </button>
@@ -230,11 +230,11 @@
       class="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4"
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-lg rounded-t-lg lg:rounded-ds-sharp flex flex-col max-h-[100dvh] lg:max-h-[80vh]">
+      <div class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-lg rounded-t-lg lg:rounded-cm flex flex-col max-h-[100dvh] lg:max-h-[80vh]">
         <%!-- Modal header --%>
-        <div class="flex items-center justify-between px-6 py-4 border-b border-ds-outline-variant/20 shrink-0">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-cm-border/20 shrink-0">
           <%= if @upload_results != [] do %>
-            <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
+            <h2 class="text-lg font-cm-display font-semibold text-cm-black">
               <%= if Enum.any?(@upload_results, &(&1.status == :error)) do %>
                 {gettext("Upload complete with errors")}
               <% else %>
@@ -244,7 +244,7 @@
           <% else %>
             <% done_count = Enum.count(@uploads.photos.entries, & &1.done?) %>
             <% total_count = length(@uploads.photos.entries) %>
-            <h2 class="text-lg font-ds-heading font-semibold text-ds-on-surface">
+            <h2 class="text-lg font-cm-display font-semibold text-cm-black">
               {gettext("Uploading photos (%{done} of %{total})",
                 done: done_count,
                 total: total_count
@@ -255,7 +255,7 @@
             <button
               id="upload-modal-close"
               phx-click="close_upload_modal"
-              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+              class="p-1.5 rounded-cm text-cm-text-muted hover:text-cm-black hover:bg-cm-surface transition-colors"
             >
               <.icon name="hero-x-mark" class="w-5 h-5" />
             </button>
@@ -267,22 +267,22 @@
           <%= if @upload_results != [] do %>
             <%!-- Done state: show results --%>
             <%= for file <- Enum.filter(@upload_results, &(&1.status == :error)) do %>
-              <div class="flex items-center gap-3 bg-ds-error/5 border border-ds-error/20 rounded-ds-sharp px-4 py-3">
-                <.icon name="hero-x-circle" class="w-5 h-5 text-ds-error shrink-0" />
+              <div class="flex items-center gap-3 bg-cm-error/5 border border-cm-error/20 rounded-cm px-4 py-3">
+                <.icon name="hero-x-circle" class="w-5 h-5 text-cm-error shrink-0" />
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+                  <p class="text-sm font-cm-body font-medium text-cm-black truncate">
                     {file.name}
                   </p>
-                  <p class="text-xs text-ds-error mt-0.5">
+                  <p class="text-xs text-cm-error mt-0.5">
                     {file[:error] || gettext("Upload failed")}
                   </p>
                 </div>
               </div>
             <% end %>
             <%= for file <- Enum.filter(@upload_results, &(&1.status == :ok)) do %>
-              <div class="flex items-center gap-3 bg-ds-secondary/5 border border-ds-secondary/20 rounded-ds-sharp px-4 py-3">
-                <.icon name="hero-check-circle" class="w-5 h-5 text-ds-secondary shrink-0" />
-                <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate flex-1">
+              <div class="flex items-center gap-3 bg-cm-success/5 border border-cm-success/20 rounded-cm px-4 py-3">
+                <.icon name="hero-check-circle" class="w-5 h-5 text-cm-success shrink-0" />
+                <p class="text-sm font-cm-body font-medium text-cm-black truncate flex-1">
                   {file.name}
                 </p>
               </div>
@@ -290,32 +290,32 @@
           <% else %>
             <%!-- Uploading state: show progress --%>
             <%= for entry <- @uploads.photos.entries do %>
-              <div class="flex items-center gap-3 bg-ds-surface-card rounded-ds-sharp border border-ds-outline-variant/20 px-4 py-3">
+              <div class="flex items-center gap-3 bg-cm-white rounded-cm border border-cm-border/20 px-4 py-3">
                 <%= cond do %>
                   <% entry.done? -> %>
-                    <.icon name="hero-check-circle" class="w-5 h-5 text-ds-secondary shrink-0" />
-                    <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate flex-1">
+                    <.icon name="hero-check-circle" class="w-5 h-5 text-cm-success shrink-0" />
+                    <p class="text-sm font-cm-body font-medium text-cm-black truncate flex-1">
                       {entry.client_name}
                     </p>
                   <% upload_errors(@uploads.photos, entry) != [] -> %>
-                    <.icon name="hero-x-circle" class="w-5 h-5 text-ds-error shrink-0" />
+                    <.icon name="hero-x-circle" class="w-5 h-5 text-cm-error shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+                      <p class="text-sm font-cm-body font-medium text-cm-black truncate">
                         {entry.client_name}
                       </p>
                       <%= for err <- upload_errors(@uploads.photos, entry) do %>
-                        <p class="text-xs text-ds-error mt-1">{upload_error_to_string(err)}</p>
+                        <p class="text-xs text-cm-error mt-1">{upload_error_to_string(err)}</p>
                       <% end %>
                     </div>
                   <% true -> %>
-                    <.icon name="hero-arrow-up-tray" class="w-5 h-5 text-ds-primary shrink-0" />
+                    <.icon name="hero-arrow-up-tray" class="w-5 h-5 text-cm-indigo shrink-0" />
                     <div class="flex-1 min-w-0">
-                      <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+                      <p class="text-sm font-cm-body font-medium text-cm-black truncate">
                         {entry.client_name}
                       </p>
-                      <div class="mt-1.5 h-1.5 bg-ds-surface-low rounded-full overflow-hidden">
+                      <div class="mt-1.5 h-1.5 bg-cm-surface rounded-full overflow-hidden">
                         <div
-                          class="h-full bg-ds-primary rounded-full transition-all duration-300"
+                          class="h-full bg-cm-indigo rounded-full transition-all duration-300"
                           style={"width: #{entry.progress}%"}
                         >
                         </div>
@@ -328,16 +328,16 @@
         </div>
 
         <%!-- Modal footer --%>
-        <div class="px-6 py-4 border-t border-ds-outline-variant/20 shrink-0">
+        <div class="px-6 py-4 border-t border-cm-border/20 shrink-0">
           <%= if @upload_results != [] do %>
             <button
               phx-click="close_upload_modal"
-              class="w-full px-4 py-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp font-ds-body font-semibold hover:opacity-90 transition-opacity"
+              class="w-full px-4 py-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm font-cm-body font-semibold hover:opacity-90 transition-opacity"
             >
               {gettext("Done")}
             </button>
           <% else %>
-            <div class="text-center text-sm text-ds-on-surface-variant/50">
+            <div class="text-center text-sm text-cm-text-muted/50">
               {gettext("Uploading...")}
             </div>
           <% end %>
@@ -375,12 +375,12 @@
       </div>
       <div
         id="confirm-delete-photos-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+        <h2 class="text-xl font-cm-display font-bold text-cm-black mb-2">
           {gettext("Delete Photos")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6">
+        <p class="text-cm-text-muted mb-6">
           {ngettext(
             "Delete 1 photo? This cannot be undone.",
             "Delete %{count} photos? This cannot be undone.",
@@ -390,13 +390,13 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_photos"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_photos"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>

@@ -24,22 +24,22 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
         type="button"
         phx-click="toggle_selector"
         phx-target={@myself}
-        class="flex items-center gap-2 px-3 py-1.5 rounded-ds-sharp bg-ds-surface-low hover:bg-ds-surface-highest transition-colors text-sm w-full max-w-xs"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-cm bg-cm-surface hover:bg-cm-surface transition-colors text-sm w-full max-w-xs"
       >
-        <.icon name="hero-user" class="w-4 h-4 text-ds-on-surface-variant" />
-        <span class="truncate font-medium text-ds-on-surface">
+        <.icon name="hero-user" class="w-4 h-4 text-cm-text-muted" />
+        <span class="truncate font-medium text-cm-black">
           <%= if @focus_person do %>
             {Person.display_name(@focus_person)}
           <% else %>
             {gettext("Select a person...")}
           <% end %>
         </span>
-        <.icon name="hero-chevron-down" class="w-4 h-4 text-ds-on-surface-variant ml-auto" />
+        <.icon name="hero-chevron-down" class="w-4 h-4 text-cm-text-muted ml-auto" />
       </button>
 
       <%= if @open do %>
-        <div class="absolute top-full left-0 mt-1 w-full max-w-xs bg-ds-surface-card/80 backdrop-blur-[20px] rounded-ds-sharp shadow-ds-ambient z-50 max-h-80 flex flex-col">
-          <div class="p-2 border-b border-ds-outline-variant/20">
+        <div class="absolute top-full left-0 mt-1 w-full max-w-xs bg-cm-white/80 backdrop-blur-[20px] rounded-cm z-50 max-h-80 flex flex-col">
+          <div class="p-2 border-b border-cm-border/20">
             <input
               id={"#{@id}-input"}
               type="text"
@@ -49,12 +49,12 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
               phx-target={@myself}
               phx-debounce="150"
               autofocus
-              class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm"
+              class="w-full px-3 py-2 bg-cm-white text-cm-black border-b-2 border-cm-border/20 focus:border-cm-indigo focus:outline-none font-cm-body text-sm"
             />
           </div>
           <div class="overflow-y-auto max-h-64">
             <%= if @filtered_people == [] do %>
-              <p class="text-sm text-ds-on-surface-variant py-4 text-center">
+              <p class="text-sm text-cm-text-muted py-4 text-center">
                 {gettext("No matches")}
               </p>
             <% end %>
@@ -65,11 +65,11 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
                 phx-value-id={person.id}
                 phx-target={@myself}
                 class={[
-                  "w-full flex items-center gap-2 px-3 py-2 hover:bg-ds-surface-highest transition-colors text-sm text-left",
-                  @focus_person && person.id == @focus_person.id && "bg-ds-primary/10"
+                  "w-full flex items-center gap-2 px-3 py-2 hover:bg-cm-surface transition-colors text-sm text-left",
+                  @focus_person && person.id == @focus_person.id && "bg-cm-indigo/10"
                 ]}
               >
-                <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div class="w-6 h-6 rounded-full bg-cm-indigo/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                   <%= if person.photo && person.photo_status == "processed" do %>
                     <img
                       src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -77,10 +77,10 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
                       class="w-full h-full object-cover"
                     />
                   <% else %>
-                    <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                    <.icon name="hero-user" class="w-3 h-3 text-cm-indigo" />
                   <% end %>
                 </div>
-                <span class="truncate text-ds-on-surface">
+                <span class="truncate text-cm-black">
                   {Person.display_name(person)}
                 </span>
               </button>

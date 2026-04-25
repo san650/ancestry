@@ -53,19 +53,19 @@ defmodule Web.Layouts do
         <div class="flex-1">
           <a href="/" class="flex-1 flex w-fit items-center gap-2">
             <img src={~p"/images/logo.png"} width="36" />
-            <span class="text-sm font-ds-body font-semibold text-ds-on-surface">
+            <span class="text-sm font-cm-body font-semibold text-cm-black">
               {gettext("Ancestry")}
             </span>
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-row px-1 items-center gap-2 lg:gap-4 font-ds-body text-sm text-ds-on-surface-variant">
+          <ul class="flex flex-row px-1 items-center gap-2 lg:gap-4 font-cm-body text-sm text-cm-text-muted">
             <%= if @current_scope && @current_scope.account do %>
               <%= if @current_scope.organization do %>
                 <li>
                   <.link
                     navigate={~p"/org/#{@current_scope.organization.id}"}
-                    class="font-medium text-ds-on-surface"
+                    class="font-medium text-cm-black"
                   >
                     {@current_scope.organization.name}
                   </.link>
@@ -77,17 +77,17 @@ defmodule Web.Layouts do
               <% end %>
               <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
                 <li>
-                  <.link href={~p"/admin/accounts"} class="hover:text-ds-on-surface transition-colors">
+                  <.link href={~p"/admin/accounts"} class="hover:text-cm-black transition-colors">
                     {gettext("Accounts")}
                   </.link>
                 </li>
               <% end %>
-              <li class="text-ds-outline-variant">|</li>
+              <li class="text-cm-text-muted">|</li>
               <li>{@current_scope.account.email}</li>
               <li>
                 <.link
                   href={~p"/accounts/settings"}
-                  class="p-2 hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-cm-black transition-colors"
                 >
                   {gettext("Settings")}
                 </.link>
@@ -96,7 +96,7 @@ defmodule Web.Layouts do
                 <.link
                   href={~p"/accounts/log-out"}
                   method="delete"
-                  class="p-2 hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-cm-black transition-colors"
                 >
                   {gettext("Log out")}
                 </.link>
@@ -109,7 +109,7 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 bg-ds-surface-low"
+          class="sticky z-1 top-0 bg-cm-surface"
         >
           {render_slot(@toolbar)}
         </div>
@@ -187,8 +187,8 @@ defmodule Web.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="relative flex flex-row items-center bg-ds-surface-low rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full bg-ds-surface-card brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+    <div class="relative flex flex-row items-center bg-cm-surface rounded-full">
+      <div class="absolute w-1/3 h-full rounded-full bg-cm-white brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

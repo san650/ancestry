@@ -9,10 +9,10 @@ defmodule Web.AccountLive.Login do
         <div class="w-full max-w-sm">
           <%!-- Logo --%>
           <div class="flex flex-col items-center pt-16 pb-8 lg:pt-8">
-            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">{gettext("Log in")}</h1>
+            <h1 class="font-cm-display text-lg font-bold text-cm-black">{gettext("Log in")}</h1>
             <p
               :if={@current_scope}
-              class="mt-2 text-sm font-ds-body text-ds-on-surface-variant text-center"
+              class="mt-2 text-sm font-cm-body text-cm-text-muted text-center"
             >
               {gettext("You need to reauthenticate to perform sensitive actions on your account.")}
             </p>
@@ -35,7 +35,7 @@ defmodule Web.AccountLive.Login do
                 autocomplete="username"
                 spellcheck="false"
                 required
-                class="w-full px-4 py-3 bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp text-base font-ds-body text-ds-on-surface placeholder:text-ds-on-surface-variant/50 focus:border-ds-primary focus:ring-1 focus:ring-ds-primary"
+                class="w-full px-4 py-3 bg-cm-white border border-cm-border/20 rounded-cm text-base font-cm-body text-cm-black placeholder:text-cm-text-muted/50 focus:border-cm-indigo focus:ring-1 focus:ring-cm-indigo"
               />
               <.input
                 field={@form[:password]}
@@ -43,20 +43,20 @@ defmodule Web.AccountLive.Login do
                 label={gettext("Password")}
                 autocomplete="current-password"
                 spellcheck="false"
-                class="w-full px-4 py-3 bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp text-base font-ds-body text-ds-on-surface placeholder:text-ds-on-surface-variant/50 focus:border-ds-primary focus:ring-1 focus:ring-ds-primary"
+                class="w-full px-4 py-3 bg-cm-white border border-cm-border/20 rounded-cm text-base font-cm-body text-cm-black placeholder:text-cm-text-muted/50 focus:border-cm-indigo focus:ring-1 focus:ring-cm-indigo"
               />
 
               <button
                 type="submit"
                 name={@form[:remember_me].name}
                 value="true"
-                class="w-full py-3 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary font-ds-heading font-bold text-sm rounded-ds-sharp transition-all hover:brightness-110 focus:ring-2 focus:ring-ds-primary focus:ring-offset-2 cursor-pointer"
+                class="w-full py-3 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white font-cm-display font-bold text-sm rounded-cm transition-all hover:brightness-110 focus:ring-2 focus:ring-cm-indigo focus:ring-offset-2 cursor-pointer"
               >
                 {gettext("Log in and stay logged in")}
               </button>
               <button
                 type="submit"
-                class="w-full py-3 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
+                class="w-full py-3 bg-cm-surface text-cm-black text-sm font-cm-body font-semibold rounded-cm transition-colors hover:bg-cm-surface cursor-pointer"
               >
                 {gettext("Log in only this time")}
               </button>

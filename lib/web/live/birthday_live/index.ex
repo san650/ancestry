@@ -36,19 +36,19 @@ defmodule Web.BirthdayLive.Index do
         <div class="flex items-center gap-3 mb-6">
           <.link
             navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-            class="p-1 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-1 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Back to family")}
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="font-ds-heading font-bold text-lg text-ds-on-surface">
+          <h1 class="font-cm-display font-bold text-lg text-cm-black">
             {gettext("Birthdays")}
           </h1>
           <label
             class="ml-auto flex items-center gap-2 cursor-pointer select-none"
             {test_id("show-all-toggle")}
           >
-            <span class="text-xs text-ds-on-surface-variant">{gettext("Show all people")}</span>
+            <span class="text-xs text-cm-text-muted">{gettext("Show all people")}</span>
             <button
               type="button"
               phx-click="toggle_show_all"
@@ -56,7 +56,7 @@ defmodule Web.BirthdayLive.Index do
               aria-checked={to_string(@show_all)}
               class={[
                 "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200",
-                if(@show_all, do: "bg-ds-primary", else: "bg-ds-on-surface-variant/30")
+                if(@show_all, do: "bg-cm-indigo", else: "bg-cm-text-muted/30")
               ]}
             >
               <span class={[
@@ -71,16 +71,16 @@ defmodule Web.BirthdayLive.Index do
           <%= for month <- @months do %>
             <div class="mb-6">
               <div class={[
-                "sticky top-0 z-10 py-2 px-3 bg-ds-surface-low/80 backdrop-blur-sm border-b border-ds-outline-variant/30 mb-2",
+                "sticky top-0 z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
                 month.is_past && "opacity-50"
               ]}>
-                <span class="font-ds-heading font-bold text-sm text-ds-on-surface">
+                <span class="font-cm-display font-bold text-sm text-cm-black">
                   {month.name}
                 </span>
               </div>
 
               <%= if month.entries == [] do %>
-                <p class="text-sm text-ds-on-surface-variant/60 px-3 py-4">
+                <p class="text-sm text-cm-text-muted/60 px-3 py-4">
                   {gettext("No birthdays")}
                 </p>
               <% else %>
@@ -103,22 +103,22 @@ defmodule Web.BirthdayLive.Index do
                         ~p"/org/#{@current_scope.organization.id}/people/#{entry.person.id}?from_family=#{@family.id}"
                       }
                       class={[
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg bg-ds-surface-low/50 mb-1.5 hover:bg-ds-surface-high transition-colors",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cm-surface/50 mb-1.5 hover:bg-cm-surface transition-colors",
                         entry.is_past && "opacity-45"
                       ]}
                       {test_id("birthday-entry-#{entry.person.id}")}
                     >
                       <%!-- Date box --%>
-                      <div class="flex-shrink-0 bg-ds-surface-highest rounded-lg px-2.5 py-1.5 text-center min-w-[48px]">
-                        <div class="text-lg font-bold text-ds-on-surface leading-none">
+                      <div class="flex-shrink-0 bg-cm-surface rounded-lg px-2.5 py-1.5 text-center min-w-[48px]">
+                        <div class="text-lg font-bold text-cm-black leading-none">
                           {entry.person.birth_day}
                         </div>
-                        <div class="text-[9px] font-semibold text-ds-on-surface-variant uppercase tracking-wider">
+                        <div class="text-[9px] font-semibold text-cm-text-muted uppercase tracking-wider">
                           {month_abbrev(entry.person.birth_month)}
                         </div>
                       </div>
                       <%!-- Avatar --%>
-                      <div class="w-9 h-9 rounded-full bg-ds-surface-high flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div class="w-9 h-9 rounded-full bg-cm-surface flex items-center justify-center overflow-hidden flex-shrink-0">
                         <%= if entry.person.photo && entry.person.photo_status == "processed" do %>
                           <img
                             src={
@@ -139,16 +139,16 @@ defmodule Web.BirthdayLive.Index do
                       </div>
                       <%!-- Name + age --%>
                       <div class="flex-1 min-w-0">
-                        <div class="text-[13px] font-medium text-ds-on-surface truncate">
+                        <div class="text-[13px] font-medium text-cm-black truncate">
                           {Person.display_name(entry.person)}
                           <%= if entry.person.deceased do %>
-                            <span class="text-[10px] font-normal text-ds-on-surface-variant">
+                            <span class="text-[10px] font-normal text-cm-text-muted">
                               ({deceased_label(entry.person.gender)})
                             </span>
                           <% end %>
                         </div>
                         <%= if entry.age_label do %>
-                          <div class="text-[11px] text-ds-on-surface-variant">
+                          <div class="text-[11px] text-cm-text-muted">
                             {entry.age_label}
                           </div>
                         <% end %>
@@ -298,5 +298,5 @@ defmodule Web.BirthdayLive.Index do
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"
-  defp gender_icon_class(_), do: "text-ds-primary"
+  defp gender_icon_class(_), do: "text-cm-indigo"
 end

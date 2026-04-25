@@ -8,9 +8,9 @@ defmodule Web.AccountLive.Confirmation do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="flex items-center justify-center min-h-[70vh] px-4">
-        <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
+        <div class="w-full max-w-sm bg-cm-white rounded-cm p-8 space-y-6">
           <div class="text-center">
-            <h1 class="font-ds-heading text-lg font-bold text-ds-on-surface">
+            <h1 class="font-cm-display text-lg font-bold text-cm-black">
               {gettext("Welcome %{email}", email: @account.email)}
             </h1>
           </div>
@@ -30,14 +30,14 @@ defmodule Web.AccountLive.Confirmation do
               name={@form[:remember_me].name}
               value="true"
               phx-disable-with={gettext("Confirming...")}
-              class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+              class="w-full py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
             >
               {gettext("Confirm and stay logged in")}
             </button>
             <button
               type="submit"
               phx-disable-with={gettext("Confirming...")}
-              class="w-full mt-2 py-2.5 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
+              class="w-full mt-2 py-2.5 bg-cm-surface text-cm-black text-sm font-cm-body font-semibold rounded-cm transition-colors hover:bg-cm-surface cursor-pointer"
             >
               {gettext("Confirm and log in only this time")}
             </button>
@@ -57,7 +57,7 @@ defmodule Web.AccountLive.Confirmation do
               <button
                 type="submit"
                 phx-disable-with={gettext("Logging in...")}
-                class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+                class="w-full py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
               >
                 {gettext("Log in")}
               </button>
@@ -67,14 +67,14 @@ defmodule Web.AccountLive.Confirmation do
                 name={@form[:remember_me].name}
                 value="true"
                 phx-disable-with={gettext("Logging in...")}
-                class="w-full py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+                class="w-full py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
               >
                 {gettext("Keep me logged in on this device")}
               </button>
               <button
                 type="submit"
                 phx-disable-with={gettext("Logging in...")}
-                class="w-full mt-2 py-2.5 bg-ds-surface-high text-ds-on-surface text-sm font-ds-body font-semibold rounded-ds-sharp transition-colors hover:bg-ds-surface-highest cursor-pointer"
+                class="w-full mt-2 py-2.5 bg-cm-surface text-cm-black text-sm font-cm-body font-semibold rounded-cm transition-colors hover:bg-cm-surface cursor-pointer"
               >
                 {gettext("Log me in only this time")}
               </button>
@@ -83,7 +83,7 @@ defmodule Web.AccountLive.Confirmation do
 
           <p
             :if={!@account.confirmed_at}
-            class="bg-ds-surface-low rounded-ds-sharp p-4 text-sm font-ds-body text-ds-on-surface-variant"
+            class="bg-cm-surface rounded-cm p-4 text-sm font-cm-body text-cm-text-muted"
           >
             {gettext("Tip: If you prefer passwords, you can enable them in the account settings.")}
           </p>

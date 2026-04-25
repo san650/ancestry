@@ -34,7 +34,7 @@ defmodule Web.FamilyLive.TreeComponent do
     <button
       type="button"
       phx-click={scroll_to_person(@entry.person.id)}
-      class="flex items-center gap-2 px-3 py-1.5 italic text-xs text-ds-on-surface-variant/60 hover:text-ds-primary transition-colors cursor-pointer"
+      class="flex items-center gap-2 px-3 py-1.5 italic text-xs text-cm-text-muted/60 hover:text-cm-indigo transition-colors cursor-pointer"
     >
       <.icon name="hero-arrow-turn-right-up" class="w-3.5 h-3.5" />
       <span>{Person.display_name(@entry.person)}</span>
@@ -51,7 +51,7 @@ defmodule Web.FamilyLive.TreeComponent do
       <%!-- Partners and children, indented with connector line --%>
       <div
         :if={@entry.partners != [] or @entry.solo_children != []}
-        class="pl-6 border-l-2 border-dotted border-ds-on-surface/30 flex flex-col gap-1 mt-1 pb-3"
+        class="pl-6 border-l-2 border-dotted border-cm-black/30 flex flex-col gap-1 mt-1 pb-3"
       >
         <.partner_block
           :for={partner <- @entry.partners}
@@ -62,7 +62,7 @@ defmodule Web.FamilyLive.TreeComponent do
 
         <%!-- Solo children --%>
         <div :if={@entry.solo_children != []} class="flex flex-col gap-1">
-          <span class="text-[10px] text-ds-on-surface-variant/50 italic">
+          <span class="text-[10px] text-cm-text-muted/50 italic">
             {gettext("no known partner")}:
           </span>
           <.tree_entry
@@ -92,15 +92,15 @@ defmodule Web.FamilyLive.TreeComponent do
         phx-click="focus_person"
         phx-value-id={@entry.person.id}
         class={[
-          "flex flex-col shadow-ds-ambient transition-all duration-150 text-left group",
-          "bg-ds-surface-card border-l-2 hover:bg-ds-surface-high",
+          "flex flex-col transition-all duration-150 text-left group",
+          "bg-cm-white border-l-2 hover:bg-cm-surface",
           gender_border_class(@entry.person.gender),
-          "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2"
+          "focus-visible:outline-2 focus-visible:outline-cm-indigo focus-visible:outline-offset-2"
         ]}
         aria-label={Person.display_name(@entry.person)}
       >
         <%!-- Relationship label row --%>
-        <span class="flex items-center gap-1 text-[11px] font-ds-body text-ds-on-surface-variant/70 px-3 pt-1.5">
+        <span class="flex items-center gap-1 text-[11px] font-cm-body text-cm-text-muted/70 px-3 pt-1.5">
           <.icon name="hero-arrow-turn-down-right" class="w-3 h-3" />
           {relationship_label(@entry.relationship_type)}
         </span>
@@ -109,13 +109,13 @@ defmodule Web.FamilyLive.TreeComponent do
           <%!-- Has more ancestors indicator --%>
           <div
             :if={@entry.has_more_up}
-            class="flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low text-ds-on-surface-variant/60"
+            class="flex items-center justify-center w-5 h-5 rounded-full bg-cm-surface text-cm-text-muted/60"
             title={gettext("Has more ascendants not shown")}
           >
             <.icon name="hero-share" class="w-3 h-3" />
           </div>
           <%!-- Photo circle (32px) --%>
-          <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden bg-ds-surface-low">
+          <div class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden bg-cm-surface">
             <%= if @entry.person.photo && @entry.person.photo_status == "processed" do %>
               <img
                 src={
@@ -135,17 +135,17 @@ defmodule Web.FamilyLive.TreeComponent do
             <% end %>
           </div>
           <%!-- Name --%>
-          <span class="text-sm font-ds-body font-medium whitespace-nowrap text-ds-on-surface group-hover:text-ds-primary">
+          <span class="text-sm font-cm-body font-medium whitespace-nowrap text-cm-black group-hover:text-cm-indigo">
             {Person.display_name(@entry.person)}
           </span>
           <%!-- Dates --%>
-          <span class="text-xs font-ds-body flex-shrink-0 text-ds-on-surface-variant">
+          <span class="text-xs font-cm-body flex-shrink-0 text-cm-text-muted">
             {format_life_span(@entry.person)}
           </span>
           <%!-- Navigate-to-person link (desktop only) --%>
           <.link
             navigate={~p"/org/#{@organization.id}/people/#{@entry.person.id}"}
-            class="hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+            class="hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-cm-surface/80 hover:bg-cm-indigo hover:text-white transition-colors opacity-0 group-hover:opacity-100"
             aria-label={gettext("View person")}
           >
             <.icon name="hero-arrow-top-right-on-square" class="w-3 h-3" />
@@ -156,9 +156,9 @@ defmodule Web.FamilyLive.TreeComponent do
       <%!-- Children of this partnership --%>
       <div
         :if={@entry.children != []}
-        class="pl-6 border-ds-on-surface/30 flex flex-col gap-1 mt-1 pb-3"
+        class="pl-6 border-cm-black/30 flex flex-col gap-1 mt-1 pb-3"
       >
-        <span class="flex items-center gap-1 text-[11px] font-ds-body text-ds-on-surface-variant/70 bg-ds-background px-1">
+        <span class="flex items-center gap-1 text-[11px] font-cm-body text-cm-text-muted/70 bg-cm-surface px-1">
           <.icon name="hero-user-group" class="w-3 h-3" />
           {ngettext("1 child", "%{count} children", length(@entry.children))}
         </span>
@@ -187,13 +187,13 @@ defmodule Web.FamilyLive.TreeComponent do
       phx-click="focus_person"
       phx-value-id={@entry.person.id}
       class={[
-        "flex items-center gap-2.5 px-3 py-2 shadow-ds-ambient transition-all duration-150 text-left group",
+        "flex items-center gap-2.5 px-3 py-2 transition-all duration-150 text-left group",
         if(@entry.is_focus,
-          do: "bg-ds-primary-container text-ds-on-primary border-l-2 shadow-ds-ambient",
-          else: "bg-ds-surface-card border-l-2 hover:bg-ds-surface-high"
+          do: "bg-cm-indigo text-cm-white border-l-2",
+          else: "bg-cm-white border-l-2 hover:bg-cm-surface"
         ),
         gender_border_class(@entry.person.gender),
-        "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2"
+        "focus-visible:outline-2 focus-visible:outline-cm-indigo focus-visible:outline-offset-2"
       ]}
       aria-label={Person.display_name(@entry.person)}
     >
@@ -201,8 +201,8 @@ defmodule Web.FamilyLive.TreeComponent do
       <div
         :if={@entry.has_more_up}
         class={[
-          "flex items-center justify-center w-5 h-5 rounded-full text-ds-on-surface-variant/60",
-          if(@entry.is_focus, do: "bg-white/15", else: "bg-ds-surface-low")
+          "flex items-center justify-center w-5 h-5 rounded-full text-cm-text-muted/60",
+          if(@entry.is_focus, do: "bg-white/15", else: "bg-cm-surface")
         ]}
         title={gettext("Has more ascendants not shown")}
       >
@@ -212,7 +212,7 @@ defmodule Web.FamilyLive.TreeComponent do
       <%!-- Photo circle (32px) --%>
       <div class={[
         "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden",
-        if(@entry.is_focus, do: "bg-white/15", else: "bg-ds-surface-low")
+        if(@entry.is_focus, do: "bg-white/15", else: "bg-cm-surface")
       ]}>
         <%= if @entry.person.photo && @entry.person.photo_status == "processed" do %>
           <img
@@ -230,10 +230,10 @@ defmodule Web.FamilyLive.TreeComponent do
 
       <%!-- Name --%>
       <span class={[
-        "text-sm font-ds-body font-medium whitespace-nowrap",
+        "text-sm font-cm-body font-medium whitespace-nowrap",
         if(@entry.is_focus,
-          do: "text-ds-on-primary",
-          else: "text-ds-on-surface group-hover:text-ds-primary"
+          do: "text-cm-white",
+          else: "text-cm-black group-hover:text-cm-indigo"
         )
       ]}>
         {Person.display_name(@entry.person)}
@@ -241,8 +241,8 @@ defmodule Web.FamilyLive.TreeComponent do
 
       <%!-- Dates --%>
       <span class={[
-        "text-xs font-ds-body flex-shrink-0",
-        if(@entry.is_focus, do: "text-ds-on-primary/70", else: "text-ds-on-surface-variant")
+        "text-xs font-cm-body flex-shrink-0",
+        if(@entry.is_focus, do: "text-cm-white/70", else: "text-cm-text-muted")
       ]}>
         {format_life_span(@entry.person)}
       </span>
@@ -255,7 +255,7 @@ defmodule Web.FamilyLive.TreeComponent do
           if(@entry.is_focus,
             do: "bg-white/15 hover:bg-white/30 opacity-100",
             else:
-              "bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white opacity-0 group-hover:opacity-100"
+              "bg-cm-surface/80 hover:bg-cm-indigo hover:text-white opacity-0 group-hover:opacity-100"
           )
         ]}
         aria-label={gettext("View person")}
@@ -267,8 +267,8 @@ defmodule Web.FamilyLive.TreeComponent do
       <div
         :if={@entry.has_more_down}
         class={[
-          "flex items-center justify-center w-5 h-5 rounded-full text-ds-on-surface-variant/60",
-          if(@entry.is_focus, do: "bg-white/15", else: "bg-ds-surface-low")
+          "flex items-center justify-center w-5 h-5 rounded-full text-cm-text-muted/60",
+          if(@entry.is_focus, do: "bg-white/15", else: "bg-cm-surface")
         ]}
         title={gettext("Has more descendants not shown")}
       >
@@ -288,11 +288,11 @@ defmodule Web.FamilyLive.TreeComponent do
 
   defp gender_border_class("male"), do: "border-l-blue-400"
   defp gender_border_class("female"), do: "border-l-pink-400"
-  defp gender_border_class(_), do: "border-l-ds-on-surface-variant/50"
+  defp gender_border_class(_), do: "border-l-cm-text-muted/50"
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"
-  defp gender_icon_class(_), do: "text-ds-primary"
+  defp gender_icon_class(_), do: "text-cm-indigo"
 
   defp format_life_span(person) do
     birth = person.birth_year

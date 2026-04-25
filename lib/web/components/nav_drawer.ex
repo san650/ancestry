@@ -34,7 +34,7 @@ defmodule Web.Components.NavDrawer do
     <aside
       id={@id}
       class={[
-        "fixed top-0 left-0 bottom-0 z-50 w-[85vw] max-w-sm bg-ds-surface-card overflow-y-auto",
+        "fixed top-0 left-0 bottom-0 z-50 w-[85vw] max-w-sm bg-cm-white overflow-y-auto",
         "transition-transform duration-200 ease-out",
         "lg:hidden",
         "-translate-x-full"
@@ -44,15 +44,15 @@ defmodule Web.Components.NavDrawer do
       phx-key="Escape"
     >
       <%!-- Header: logo + close --%>
-      <div class="flex items-center justify-between p-4 border-b border-ds-outline-variant/20">
+      <div class="flex items-center justify-between p-4 border-b border-cm-border/20">
         <a href="/" class="flex items-center gap-2">
-          <img src="/images/logo.png" width="32" class="rounded-ds-sharp" />
-          <span class="font-ds-heading font-bold text-ds-on-surface">{gettext("Ancestry")}</span>
+          <img src="/images/logo.png" width="32" class="rounded-cm" />
+          <span class="font-cm-display font-bold text-cm-black">{gettext("Ancestry")}</span>
         </a>
         <button
           type="button"
           phx-click={toggle_nav_drawer(@id)}
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-high min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 rounded-cm text-cm-text-muted hover:bg-cm-surface min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Close menu")}
         >
           <.icon name="hero-x-mark" class="size-5" />
@@ -62,12 +62,12 @@ defmodule Web.Components.NavDrawer do
       <%!-- Page actions section --%>
       <%= if @page_actions != [] do %>
         <div class="px-4 pt-4 pb-2">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-ds-on-surface-variant px-2 pb-2">
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
             {gettext("Page Actions")}
           </p>
           {render_slot(@page_actions)}
         </div>
-        <div class="mx-4 border-b border-ds-outline-variant/20" />
+        <div class="mx-4 border-b border-cm-border/20" />
       <% end %>
 
       <%!-- Page panel section (e.g., people search + galleries) --%>
@@ -75,47 +75,47 @@ defmodule Web.Components.NavDrawer do
         <div class="px-4 pt-4 pb-2">
           {render_slot(@page_panel)}
         </div>
-        <div class="mx-4 border-b border-ds-outline-variant/20" />
+        <div class="mx-4 border-b border-cm-border/20" />
       <% end %>
 
       <%!-- Organizations section --%>
       <%= if @current_scope && @current_scope.account do %>
         <div class="px-4 pt-4 pb-2">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-ds-on-surface-variant px-2 pb-2">
+          <p class="text-[10px] font-semibold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
             {gettext("Organizations")}
           </p>
           {render_slot(@inner_block)}
         </div>
-        <div class="mx-4 border-b border-ds-outline-variant/20" />
+        <div class="mx-4 border-b border-cm-border/20" />
 
         <%!-- Account section --%>
         <div class="px-4 pt-4 pb-6">
           <.link
             href="/accounts/settings"
-            class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+            class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
           >
-            <.icon name="hero-cog-6-tooth" class="size-5 shrink-0 text-ds-on-surface-variant" />
-            <span class="font-ds-body text-sm">{gettext("Settings")}</span>
+            <.icon name="hero-cog-6-tooth" class="size-5 shrink-0 text-cm-text-muted" />
+            <span class="font-cm-body text-sm">{gettext("Settings")}</span>
           </.link>
           <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
             <.link
               href="/admin/accounts"
-              class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+              class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
             >
-              <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-              <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
+              <.icon name="hero-users" class="size-5 shrink-0 text-cm-text-muted" />
+              <span class="font-cm-body text-sm">{gettext("Accounts")}</span>
             </.link>
           <% end %>
           <.link
             href="/accounts/log-out"
             method="delete"
-            class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+            class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
           >
             <.icon
               name="hero-arrow-right-start-on-rectangle"
-              class="size-5 shrink-0 text-ds-on-surface-variant"
+              class="size-5 shrink-0 text-cm-text-muted"
             />
-            <span class="font-ds-body text-sm">{gettext("Log out")}</span>
+            <span class="font-cm-body text-sm">{gettext("Log out")}</span>
           </.link>
         </div>
       <% end %>
@@ -145,14 +145,14 @@ defmodule Web.Components.NavDrawer do
     <button
       type="button"
       class={[
-        "flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px]",
-        "transition-colors hover:bg-ds-surface-high",
-        if(@danger, do: "text-ds-error", else: "text-ds-on-surface")
+        "flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px]",
+        "transition-colors hover:bg-cm-surface",
+        if(@danger, do: "text-cm-error", else: "text-cm-black")
       ]}
       {@rest}
     >
       <.icon name={@icon} class="size-5 shrink-0" />
-      <span class="font-ds-body text-sm">{@label}</span>
+      <span class="font-cm-body text-sm">{@label}</span>
     </button>
     """
   end

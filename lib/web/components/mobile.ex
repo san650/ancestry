@@ -39,7 +39,7 @@ defmodule Web.Components.Mobile do
     <aside
       id={@id}
       class={[
-        "fixed top-0 right-0 bottom-0 z-50 w-[85vw] max-w-sm bg-ds-surface-card overflow-y-auto",
+        "fixed top-0 right-0 bottom-0 z-50 w-[85vw] max-w-sm bg-cm-white overflow-y-auto",
         "transition-transform duration-200 ease-out",
         "lg:static lg:w-auto lg:max-w-none lg:z-auto lg:translate-x-0 lg:transition-none",
         if(@open, do: "translate-x-0", else: "translate-x-full")
@@ -47,11 +47,11 @@ defmodule Web.Components.Mobile do
       aria-label="Side panel"
     >
       <div class="flex items-center justify-between p-4 lg:hidden">
-        <span class="font-ds-heading font-bold text-ds-on-surface">Menu</span>
+        <span class="font-cm-display font-bold text-cm-black">Menu</span>
         <button
           type="button"
           phx-click={toggle_drawer(@id)}
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-high"
+          class="p-2 rounded-cm text-cm-text-muted hover:bg-cm-surface"
           aria-label="Close menu"
         >
           <.icon name="hero-x-mark" class="size-5" />
@@ -96,12 +96,12 @@ defmodule Web.Components.Mobile do
     <%!-- Sheet --%>
     <div
       id={@id}
-      class="fixed bottom-0 left-0 right-0 z-50 bg-ds-surface-card rounded-t-lg translate-y-full transition-transform duration-200 ease-out pb-[env(safe-area-inset-bottom)]"
+      class="fixed bottom-0 left-0 right-0 z-50 bg-cm-white rounded-t-lg translate-y-full transition-transform duration-200 ease-out pb-[env(safe-area-inset-bottom)]"
       role="menu"
       aria-label="Actions"
     >
       <div class="flex justify-center pt-3 pb-1">
-        <div class="w-10 h-1 rounded-full bg-ds-outline-variant/40" />
+        <div class="w-10 h-1 rounded-full bg-cm-border/40" />
       </div>
       <div class="px-4 pb-4">
         {render_slot(@inner_block)}
@@ -137,15 +137,15 @@ defmodule Web.Components.Mobile do
     <button
       type="button"
       class={[
-        "flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[48px]",
-        "transition-colors hover:bg-ds-surface-high",
-        if(@danger, do: "text-ds-error", else: "text-ds-on-surface")
+        "flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[48px]",
+        "transition-colors hover:bg-cm-surface",
+        if(@danger, do: "text-cm-error", else: "text-cm-black")
       ]}
       role="menuitem"
       {@rest}
     >
       <.icon name={@icon} class="size-5 shrink-0" />
-      <span class="font-ds-body text-sm">{@label}</span>
+      <span class="font-cm-body text-sm">{@label}</span>
     </button>
     """
   end

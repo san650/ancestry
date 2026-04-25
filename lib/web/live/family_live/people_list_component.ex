@@ -11,14 +11,14 @@ defmodule Web.FamilyLive.PeopleListComponent do
     ~H"""
     <div id={@id}>
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-ds-body font-semibold text-ds-on-surface-variant uppercase tracking-wider">
+        <h3 class="text-sm font-cm-body font-semibold text-cm-text-muted uppercase tracking-wider">
           {gettext("People")}
         </h3>
         <div class="flex items-center gap-1">
           <button
             id={"#{@id}-link-btn"}
             phx-click="open_search"
-            class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
+            class="p-1 rounded text-cm-text-muted hover:text-cm-indigo hover:bg-cm-indigo/10 transition-colors"
             title={gettext("Link existing person")}
             {test_id("person-link-btn")}
           >
@@ -27,7 +27,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
           <.link
             id={"#{@id}-add-btn"}
             navigate={~p"/org/#{@organization.id}/families/#{@family_id}/members/new"}
-            class="p-1 rounded text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10 transition-colors"
+            class="p-1 rounded text-cm-text-muted hover:text-cm-indigo hover:bg-cm-indigo/10 transition-colors"
             title={gettext("New member")}
             {test_id("person-add-btn")}
           >
@@ -41,7 +41,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
           id={"#{@id}-filter"}
           type="text"
           placeholder={gettext("Filter people...")}
-          class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm"
+          class="w-full px-3 py-2 bg-cm-white text-cm-black border-b-2 border-cm-border/20 focus:border-cm-indigo focus:outline-none font-cm-body text-sm"
           phx-hook="FuzzyFilter"
           data-target={"#{@id}-items"}
           phx-update="ignore"
@@ -54,15 +54,15 @@ defmodule Web.FamilyLive.PeopleListComponent do
         {test_id("person-list")}
       >
         <%= if @people == [] do %>
-          <p class="text-sm text-ds-on-surface-variant py-2">{gettext("No members yet.")}</p>
+          <p class="text-sm text-cm-text-muted py-2">{gettext("No members yet.")}</p>
         <% end %>
         <%= for person <- @people do %>
           <div
             class={[
-              "flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp transition-colors text-sm group",
+              "flex items-center gap-2 px-2 py-1.5 rounded-cm transition-colors text-sm group",
               if(person.id == @focus_person_id,
-                do: "bg-ds-primary/10",
-                else: "hover:bg-ds-surface-highest"
+                do: "bg-cm-indigo/10",
+                else: "hover:bg-cm-surface"
               )
             ]}
             data-filter-name={
@@ -74,7 +74,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
               phx-click={focus_click(assigns, person.id)}
               class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
             >
-              <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+              <div class="w-6 h-6 rounded-full bg-cm-indigo/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                 <%= if person.photo && person.photo_status == "processed" do %>
                   <img
                     src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -82,10 +82,10 @@ defmodule Web.FamilyLive.PeopleListComponent do
                     class="w-full h-full object-cover"
                   />
                 <% else %>
-                  <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                  <.icon name="hero-user" class="w-3 h-3 text-cm-indigo" />
                 <% end %>
               </div>
-              <span class="text-ds-on-surface truncate">
+              <span class="text-cm-black truncate">
                 {person.surname}
                 <%= if person.surname && person.given_name do %>
                   ,
@@ -95,7 +95,7 @@ defmodule Web.FamilyLive.PeopleListComponent do
             </button>
             <.link
               navigate={~p"/org/#{@organization.id}/people/#{person.id}?from_family=#{@family_id}"}
-              class="p-1 rounded text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+              class="p-1 rounded text-cm-text-muted/50 hover:text-cm-indigo hover:bg-cm-indigo/10 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
               title={gettext("View details")}
             >
               <.icon name="hero-arrow-top-right-on-square-mini" class="w-3.5 h-3.5" />

@@ -1,12 +1,12 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <%!-- Hamburger: mobile only --%>
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -27,7 +27,7 @@
       <div class="hidden lg:flex items-center gap-1">
         <%!-- View mode toggle --%>
         <div
-          class="flex bg-ds-surface-highest rounded-sm p-0.5 mr-1"
+          class="flex bg-cm-surface rounded-sm p-0.5 mr-1"
           {test_id("view-mode-toggle")}
         >
           <button
@@ -36,8 +36,8 @@
             phx-value-view="graph"
             class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
               if(@view_mode == "graph",
-                do: "bg-ds-on-surface text-ds-surface",
-                else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+                do: "bg-cm-black text-cm-surface",
+                else: "text-cm-text-muted hover:text-cm-black"
               )}
             aria-label={gettext("Graph view")}
           >
@@ -49,15 +49,15 @@
             phx-value-view="tree"
             class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
               if(@view_mode == "tree",
-                do: "bg-ds-on-surface text-ds-surface",
-                else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+                do: "bg-cm-black text-cm-surface",
+                else: "text-cm-text-muted hover:text-cm-black"
               )}
             aria-label={gettext("Tree view")}
           >
             <.icon name="hero-queue-list" class="size-4" />
           </button>
         </div>
-        <div class="w-px h-5 bg-ds-outline-variant/20 mr-1"></div>
+        <div class="w-px h-5 bg-cm-border/20 mr-1"></div>
         <.link
           navigate={
             if(@focus_person,
@@ -66,7 +66,7 @@
               else: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/kinship"
             )
           }
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="p-2 text-cm-text-muted hover:text-cm-black"
           aria-label={gettext("Kinship calculator")}
           id="kinship-btn"
           {test_id("family-kinship-btn")}
@@ -77,7 +77,7 @@
           type="button"
           id="edit-family-btn"
           phx-click="edit"
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="p-2 text-cm-text-muted hover:text-cm-black"
           aria-label={gettext("Edit family")}
           {test_id("family-edit-btn")}
         >
@@ -87,7 +87,7 @@
           type="button"
           id="delete-family-btn"
           phx-click="request_delete"
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="p-2 text-cm-text-muted hover:text-cm-black"
           aria-label={gettext("Delete family")}
           {test_id("family-delete-btn")}
         >
@@ -98,7 +98,7 @@
           <button
             type="button"
             phx-click="toggle_menu"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-2 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("More actions")}
             {test_id("meatball-btn")}
           >
@@ -108,15 +108,15 @@
           <div
             :if={@show_menu}
             phx-click-away="close_menu"
-            class="absolute right-0 top-full mt-1 w-56 bg-ds-surface-card rounded-lg shadow-ds-ambient border border-ds-outline-variant py-1 z-50"
+            class="absolute right-0 top-full mt-1 w-56 bg-cm-white rounded-lg border border-cm-border py-1 z-50"
             {test_id("meatball-dropdown")}
           >
             <.link
               navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/people"}
-              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-cm-black hover:bg-cm-surface transition-colors"
               {test_id("family-manage-people-btn")}
             >
-              <.icon name="hero-user-group" class="size-4 text-ds-on-surface-variant" />
+              <.icon name="hero-user-group" class="size-4 text-cm-text-muted" />
               <span>{gettext("Manage people")}</span>
             </.link>
 
@@ -124,10 +124,10 @@
               navigate={
                 ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/birthdays"
               }
-              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-cm-black hover:bg-cm-surface transition-colors"
               {test_id("family-birthdays-btn")}
             >
-              <.icon name="hero-cake" class="size-4 text-ds-on-surface-variant" />
+              <.icon name="hero-cake" class="size-4 text-cm-text-muted" />
               <span>{gettext("Birthdays")}</span>
             </.link>
 
@@ -135,10 +135,10 @@
               <button
                 type="button"
                 phx-click={JS.push("close_menu") |> JS.push("open_create_subfamily")}
-                class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+                class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-cm-black hover:bg-cm-surface transition-colors"
                 {test_id("family-create-subfamily-btn")}
               >
-                <.icon name="hero-square-2-stack" class="size-4 text-ds-on-surface-variant" />
+                <.icon name="hero-square-2-stack" class="size-4 text-cm-text-muted" />
                 <span>{gettext("Create subfamily")}</span>
               </button>
             <% end %>
@@ -146,10 +146,10 @@
             <button
               type="button"
               phx-click={JS.push("close_menu") |> JS.push("open_import")}
-              class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-left text-cm-black hover:bg-cm-surface transition-colors"
               {test_id("import-csv-btn")}
             >
-              <.icon name="hero-arrow-up-tray" class="size-4 text-ds-on-surface-variant" />
+              <.icon name="hero-arrow-up-tray" class="size-4 text-cm-text-muted" />
               <span>{gettext("Import from CSV")}</span>
             </button>
 
@@ -157,10 +157,10 @@
               :if={@graph}
               href={@print_url}
               target="_blank"
-              class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
+              class="flex items-center gap-3 px-4 py-2.5 text-sm text-cm-black hover:bg-cm-surface transition-colors"
               {test_id("family-print-btn")}
             >
-              <.icon name="hero-printer" class="size-4 text-ds-on-surface-variant" />
+              <.icon name="hero-printer" class="size-4 text-cm-text-muted" />
               <span>{gettext("Print tree")}</span>
             </.link>
           </div>
@@ -218,10 +218,10 @@
         :if={@graph}
         href={@print_url}
         target="_blank"
-        class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] transition-colors hover:bg-ds-surface-high text-ds-on-surface"
+        class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] transition-colors hover:bg-cm-surface text-cm-black"
       >
         <.icon name="hero-printer" class="size-5 shrink-0" />
-        <span class="font-ds-body text-sm">{gettext("Print tree")}</span>
+        <span class="font-cm-body text-sm">{gettext("Print tree")}</span>
       </.link>
     </:page_actions>
     <:page_panel>
@@ -240,10 +240,10 @@
     </:page_panel>
     <.link
       navigate={~p"/org/#{@current_scope.organization.id}"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{@current_scope.organization.name}</span>
     </.link>
   </.nav_drawer>
 
@@ -273,12 +273,12 @@
             <div class="text-center">
               <.icon
                 name="hero-share"
-                class="w-16 h-16 mx-auto mb-4 text-ds-on-surface-variant/50"
+                class="w-16 h-16 mx-auto mb-4 text-cm-text-muted/50"
               />
-              <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
+              <h2 class="text-xl font-cm-display font-semibold text-cm-black mb-2">
                 {gettext("Explore the Family Tree")}
               </h2>
-              <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
+              <p class="text-cm-text-muted mb-6 max-w-sm font-cm-body">
                 {gettext("Select a family member to see their ancestors and descendants")}
               </p>
               <.live_component
@@ -290,7 +290,7 @@
               />
             </div>
           <% else %>
-            <div class="text-center text-ds-on-surface-variant" {test_id("family-empty-state")}>
+            <div class="text-center text-cm-text-muted" {test_id("family-empty-state")}>
               <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3" />
               <p class="text-lg font-medium">{gettext("No family members yet")}</p>
               <p class="text-sm mt-1">
@@ -306,42 +306,42 @@
     <div
       :if={@graph}
       id="tree-drawer"
-      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-ds-surface-high/90 backdrop-blur-md rounded-sm shadow-sm"
+      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-cm-surface/90 backdrop-blur-md rounded-sm shadow-sm"
       {test_id("tree-drawer")}
     >
       <%!-- Collapsed bar --%>
       <button
         type="button"
         phx-click="toggle_drawer"
-        class="flex items-center gap-3 px-4 py-1.5 hover:bg-ds-surface-highest/50 transition-colors rounded-sm"
+        class="flex items-center gap-3 px-4 py-1.5 hover:bg-cm-surface/50 transition-colors rounded-sm"
         aria-label={gettext("Toggle tree controls")}
       >
-        <span class="text-ds-on-surface font-ds-body font-medium text-xs">
+        <span class="text-cm-black font-cm-body font-medium text-xs">
           {if @tree_display == "complete",
             do: gettext("Complete Tree"),
             else: gettext("Partial Tree")}
         </span>
-        <span class="text-ds-on-surface-variant font-ds-body text-[11px]">
+        <span class="text-cm-text-muted font-cm-body text-[11px]">
           {@tree_ancestors}↑ {@tree_descendants}↓ {@tree_other}↔
         </span>
-        <.icon name="hero-chevron-up" class="size-3.5 text-ds-on-surface-variant" />
+        <.icon name="hero-chevron-up" class="size-3.5 text-cm-text-muted" />
       </button>
 
       <%!-- Expanded panel --%>
       <div class={if @drawer_open, do: "max-h-[200px] opacity-100", else: "max-h-0 opacity-0"}>
-        <div class="px-4 py-3 bg-ds-surface-low/60 flex items-start gap-5">
+        <div class="px-4 py-3 bg-cm-surface/60 flex items-start gap-5">
           <%!-- Display toggle --%>
           <div class="flex-shrink-0">
-            <div class="text-[10px] text-ds-on-surface-variant uppercase tracking-wider mb-2 font-ds-body">
+            <div class="text-[10px] text-cm-text-muted uppercase tracking-wider mb-2 font-cm-body">
               {gettext("Display")}
             </div>
-            <div class="flex bg-ds-surface-highest rounded-sm p-0.5">
+            <div class="flex bg-cm-surface rounded-sm p-0.5">
               <button
                 type="button"
                 phx-click="toggle_display"
                 phx-value-display="partial"
-                class={"px-2.5 py-1 rounded-sm text-[11px] font-ds-body font-medium transition-colors " <>
-                  if(@tree_display == "partial", do: "bg-ds-on-surface text-ds-surface", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
+                class={"px-2.5 py-1 rounded-sm text-[11px] font-cm-body font-medium transition-colors " <>
+                  if(@tree_display == "partial", do: "bg-cm-black text-cm-surface", else: "text-cm-text-muted hover:text-cm-black")}
               >
                 {gettext("Partial Tree")}
               </button>
@@ -349,8 +349,8 @@
                 type="button"
                 phx-click="toggle_display"
                 phx-value-display="complete"
-                class={"px-2.5 py-1 rounded-sm text-[11px] font-ds-body font-medium transition-colors " <>
-                  if(@tree_display == "complete", do: "bg-ds-on-surface text-ds-surface", else: "text-ds-on-surface-variant hover:text-ds-on-surface")}
+                class={"px-2.5 py-1 rounded-sm text-[11px] font-cm-body font-medium transition-colors " <>
+                  if(@tree_display == "complete", do: "bg-cm-black text-cm-surface", else: "text-cm-text-muted hover:text-cm-black")}
               >
                 {gettext("Complete Tree")}
               </button>
@@ -379,7 +379,7 @@
             />
           </div>
           <div :if={@tree_display == "complete"} class="flex-1 flex items-center mt-3">
-            <span class="text-xs text-ds-on-surface-variant font-ds-body">
+            <span class="text-xs text-cm-text-muted font-cm-body">
               {gettext("Showing all generations")}
             </span>
           </div>
@@ -412,7 +412,7 @@
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
       <div
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-family-title"
@@ -420,7 +420,7 @@
       >
         <h2
           id="edit-family-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+          class="text-xl font-cm-display font-bold text-cm-black mb-6"
         >
           {gettext("Edit Family")}
         </h2>
@@ -435,15 +435,15 @@
 
           <%!-- Default Person Picker --%>
           <div class="mt-4" {test_id("default-person-picker")}>
-            <label class="label text-sm font-ds-body font-medium text-ds-on-surface">
+            <label class="label text-sm font-cm-body font-medium text-cm-black">
               {gettext("Default person")}
             </label>
 
             <%= if @default_person_id do %>
               <% selected = Enum.find(@people, &(&1.id == @default_person_id)) %>
               <%= if selected do %>
-                <div class="flex items-center gap-2 p-2 rounded-ds-sharp bg-ds-surface-low mb-2">
-                  <div class="w-8 h-8 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div class="flex items-center gap-2 p-2 rounded-cm bg-cm-surface mb-2">
+                  <div class="w-8 h-8 rounded-full bg-cm-indigo/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <%= if selected.photo && selected.photo_status == "processed" do %>
                       <img
                         src={
@@ -456,16 +456,16 @@
                         class="w-full h-full object-cover"
                       />
                     <% else %>
-                      <.icon name="hero-user" class="w-4 h-4 text-ds-primary" />
+                      <.icon name="hero-user" class="w-4 h-4 text-cm-indigo" />
                     <% end %>
                   </div>
-                  <span class="text-sm font-ds-body font-medium flex-1">
+                  <span class="text-sm font-cm-body font-medium flex-1">
                     {Person.display_name(selected)}
                   </span>
                   <button
                     type="button"
                     phx-click="clear_default_person"
-                    class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+                    class="inline-flex items-center gap-1.5 bg-cm-surface text-cm-black rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
                     {test_id("default-person-clear")}
                   >
                     <.icon name="hero-x-mark" class="w-4 h-4" />
@@ -482,7 +482,7 @@
               placeholder={gettext("Filter members...")}
               phx-keyup="filter_default_person"
               phx-debounce="200"
-              class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm mb-2"
+              class="w-full px-3 py-2 bg-cm-white text-cm-black border-b-2 border-cm-border/20 focus:border-cm-indigo focus:outline-none font-cm-body text-sm mb-2"
               {test_id("default-person-filter")}
             />
             <div class="max-h-40 overflow-y-auto space-y-1">
@@ -490,13 +490,13 @@
                 type="button"
                 phx-click="clear_default_person"
                 class={[
-                  "w-full flex items-center gap-2 p-2 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left text-sm",
-                  is_nil(@default_person_id) && "bg-ds-surface-low font-medium"
+                  "w-full flex items-center gap-2 p-2 rounded-cm hover:bg-cm-surface transition-colors text-left text-sm",
+                  is_nil(@default_person_id) && "bg-cm-surface font-medium"
                 ]}
                 {test_id("default-person-none")}
               >
-                <.icon name="hero-no-symbol" class="w-4 h-4 text-ds-on-surface-variant" />
-                <span class="text-ds-on-surface-variant">{gettext("None")}</span>
+                <.icon name="hero-no-symbol" class="w-4 h-4 text-cm-text-muted" />
+                <span class="text-cm-text-muted">{gettext("None")}</span>
               </button>
               <%= for person <- filtered_people(@people, @default_person_filter) do %>
                 <button
@@ -505,13 +505,13 @@
                   phx-click="select_default_person"
                   phx-value-id={person.id}
                   class={[
-                    "w-full flex items-center gap-2 p-2 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left text-sm",
+                    "w-full flex items-center gap-2 p-2 rounded-cm hover:bg-cm-surface transition-colors text-left text-sm",
                     @default_person_id == person.id &&
-                      "bg-ds-primary/10 ring-1 ring-ds-primary/30"
+                      "bg-cm-indigo/10 ring-1 ring-cm-indigo/30"
                   ]}
                   {test_id("default-person-option-#{person.id}")}
                 >
-                  <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div class="w-6 h-6 rounded-full bg-cm-indigo/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <%= if person.photo && person.photo_status == "processed" do %>
                       <img
                         src={
@@ -521,7 +521,7 @@
                         class="w-full h-full object-cover"
                       />
                     <% else %>
-                      <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                      <.icon name="hero-user" class="w-3 h-3 text-cm-indigo" />
                     <% end %>
                   </div>
                   <span>{Person.display_name(person)}</span>
@@ -533,7 +533,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
               {test_id("family-edit-save-btn")}
             >
               {gettext("Save")}
@@ -541,7 +541,7 @@
             <button
               type="button"
               phx-click="cancel_edit"
-              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </button>
@@ -561,7 +561,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-family-title"
@@ -570,11 +570,11 @@
       >
         <h2
           id="delete-family-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-bold text-cm-black mb-2"
         >
           {gettext("Delete Family")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+        <p class="text-cm-text-muted mb-6 font-cm-body">
           Delete <span class="font-semibold">"{@family.name}"</span>? {gettext(
             "All galleries and photos will be permanently removed. This cannot be undone."
           )}
@@ -582,14 +582,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("family-delete-confirm-btn")}
           >
             Delete
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>
@@ -612,7 +612,7 @@
       </div>
       <div
         id="new-gallery-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-gallery-title"
@@ -620,7 +620,7 @@
       >
         <h2
           id="new-gallery-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+          class="text-xl font-cm-display font-bold text-cm-black mb-6"
         >
           {gettext("New Gallery")}
         </h2>
@@ -639,14 +639,14 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
             >
               {gettext("Create")}
             </button>
             <button
               type="button"
               phx-click="close_new_gallery_modal"
-              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -670,7 +670,7 @@
       </div>
       <div
         id="new-vault-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-vault-title"
@@ -678,7 +678,7 @@
       >
         <h2
           id="new-vault-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+          class="text-xl font-cm-display font-bold text-cm-black mb-6"
         >
           {gettext("New Memory Vault")}
         </h2>
@@ -697,14 +697,14 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
             >
               Create
             </button>
             <button
               type="button"
               phx-click="close_new_vault_modal"
-              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -725,7 +725,7 @@
       </div>
       <div
         id="confirm-delete-gallery-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-gallery-title"
@@ -733,11 +733,11 @@
       >
         <h2
           id="delete-gallery-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-bold text-cm-black mb-2"
         >
           {gettext("Delete Gallery")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+        <p class="text-cm-text-muted mb-6 font-cm-body">
           Delete <span class="font-semibold">"{@confirm_delete_gallery.name}"</span>? {gettext(
             "All photos will be permanently removed. This cannot be undone."
           )}
@@ -745,13 +745,13 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_gallery"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
           >
             Delete
           </button>
           <button
             phx-click="cancel_delete_gallery"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
           >
             Cancel
           </button>
@@ -770,7 +770,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
       <div
         id="link-person-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="link-person-title"
@@ -779,7 +779,7 @@
       >
         <h2
           id="link-person-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-4"
+          class="text-xl font-cm-display font-bold text-cm-black mb-4"
         >
           {gettext("Link Existing Person")}
         </h2>
@@ -793,12 +793,12 @@
           phx-keyup="search"
           phx-debounce="300"
           autofocus
-          class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm mb-4"
+          class="w-full px-3 py-2 bg-cm-white text-cm-black border-b-2 border-cm-border/20 focus:border-cm-indigo focus:outline-none font-cm-body text-sm mb-4"
           {test_id("person-search-input")}
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
-            <p class="text-ds-on-surface-variant text-sm text-center py-4">
+            <p class="text-cm-text-muted text-sm text-center py-4">
               {gettext("No results found")}
             </p>
           <% end %>
@@ -807,10 +807,10 @@
               id={"link-person-#{person.id}"}
               phx-click="link_person"
               phx-value-id={person.id}
-              class="w-full flex items-center gap-3 p-3 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left"
+              class="w-full flex items-center gap-3 p-3 rounded-cm hover:bg-cm-surface transition-colors text-left"
               {test_id("person-link-result-#{person.id}")}
             >
-              <div class="w-10 h-10 rounded-full bg-ds-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div class="w-10 h-10 rounded-full bg-cm-indigo/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <%= if person.photo && person.photo_status == "processed" do %>
                   <img
                     src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -818,15 +818,15 @@
                     class="w-full h-full object-cover"
                   />
                 <% else %>
-                  <.icon name="hero-user" class="w-5 h-5 text-ds-primary" />
+                  <.icon name="hero-user" class="w-5 h-5 text-cm-indigo" />
                 <% end %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-ds-on-surface truncate">
+                <p class="font-medium text-cm-black truncate">
                   {Ancestry.People.Person.display_name(person)}
                 </p>
                 <%= if person.families != [] do %>
-                  <p class="text-xs text-ds-on-surface-variant truncate">
+                  <p class="text-xs text-cm-text-muted truncate">
                     {Enum.map_join(person.families, ", ", & &1.name)}
                   </p>
                 <% end %>
@@ -836,7 +836,7 @@
         </div>
         <button
           phx-click="close_search"
-          class="inline-flex items-center justify-center gap-2 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors w-full mt-4"
+          class="inline-flex items-center justify-center gap-2 bg-cm-surface text-cm-black rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors w-full mt-4"
         >
           Cancel
         </button>
@@ -858,7 +858,7 @@
       </div>
       <div
         id="add-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-relationship-title"
@@ -889,7 +889,7 @@
       </div>
       <div
         id="create-subfamily-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-subfamily-title"
@@ -898,14 +898,14 @@
       >
         <h2
           id="create-subfamily-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+          class="text-xl font-cm-display font-bold text-cm-black mb-6"
         >
           {gettext("Create Subfamily")}
         </h2>
 
         <%!-- Person Selector --%>
         <div class="mb-4">
-          <label class="label text-sm font-ds-body font-medium text-ds-on-surface mb-1 block">
+          <label class="label text-sm font-cm-body font-medium text-cm-black mb-1 block">
             {gettext("Starting person")}
           </label>
           <.live_component
@@ -941,14 +941,14 @@
                 checked={@subfamily_include_ancestors}
                 phx-click="toggle_ancestors"
                 phx-value-value={to_string(!@subfamily_include_ancestors)}
-                class="mt-0.5 w-4 h-4 rounded-sm border-ds-outline-variant text-ds-primary focus:ring-ds-primary"
+                class="mt-0.5 w-4 h-4 rounded-sm border-cm-border text-cm-indigo focus:ring-cm-indigo"
                 {test_id("create-subfamily-ancestors-checkbox")}
               />
               <div>
-                <span class="text-sm font-ds-body font-medium text-ds-on-surface">
+                <span class="text-sm font-cm-body font-medium text-cm-black">
                   {gettext("Include ascendants")}
                 </span>
-                <p class="text-xs text-ds-on-surface-variant mt-0.5">
+                <p class="text-xs text-cm-text-muted mt-0.5">
                   {gettext(
                     "When checked, parents, grandparents and further ancestors will be included."
                   )}
@@ -963,14 +963,14 @@
                 checked={@subfamily_include_partner_ancestors}
                 phx-click="toggle_partner_ancestors"
                 phx-value-value={to_string(!@subfamily_include_partner_ancestors)}
-                class="mt-0.5 w-4 h-4 rounded-sm border-ds-outline-variant text-ds-primary focus:ring-ds-primary"
+                class="mt-0.5 w-4 h-4 rounded-sm border-cm-border text-cm-indigo focus:ring-cm-indigo"
                 {test_id("create-subfamily-partner-ancestors-checkbox")}
               />
               <div>
-                <span class="text-sm font-ds-body font-medium text-ds-on-surface">
+                <span class="text-sm font-cm-body font-medium text-cm-black">
                   {gettext("Include partners' families")}
                 </span>
-                <p class="text-xs text-ds-on-surface-variant mt-0.5">
+                <p class="text-xs text-cm-text-muted mt-0.5">
                   {gettext("When checked, ascendants of partners will also be included.")}
                 </p>
               </div>
@@ -980,7 +980,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
               phx-disable-with={gettext("Creating...")}
               {test_id("create-subfamily-submit-btn")}
             >
@@ -989,7 +989,7 @@
             <button
               type="button"
               phx-click="close_create_subfamily"
-              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -1009,58 +1009,58 @@
     <div class="absolute inset-0 bg-black/50" phx-click="close_import" />
 
     <%!-- Modal --%>
-    <div class="relative w-full max-w-none lg:max-w-md bg-ds-surface-card rounded-t-lg lg:rounded-ds-sharp shadow-ds-ambient p-6">
+    <div class="relative w-full max-w-none lg:max-w-md bg-cm-white rounded-t-lg lg:rounded-cm p-6">
       <%= if @import_error do %>
         <%!-- Error state --%>
-        <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+        <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
           {gettext("Import failed")}
         </h2>
-        <p class="text-sm text-ds-signal-error mb-6">{@import_error}</p>
+        <p class="text-sm text-cm-error mb-6">{@import_error}</p>
         <button
           type="button"
           phx-click="close_import"
-          class="w-full py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+          class="w-full py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
         >
           {gettext("Close")}
         </button>
       <% else %>
         <%= if @import_summary do %>
           <%!-- Results state --%>
-          <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+          <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
             {gettext("Import complete")}
           </h2>
           <dl class="space-y-2 mb-4">
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">{gettext("People created")}</dt>
-              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-created")}>
+              <dt class="text-sm text-cm-text-muted">{gettext("People created")}</dt>
+              <dd class="text-sm font-medium text-cm-black" {test_id("import-created")}>
                 {@import_summary.people_created}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">
+              <dt class="text-sm text-cm-text-muted">
                 {gettext("People added to the family")}
               </dt>
               <dd
-                class="text-sm font-medium text-ds-on-surface"
+                class="text-sm font-medium text-cm-black"
                 {test_id("import-added-to-family")}
               >
                 {@import_summary.people_added_to_family}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">
+              <dt class="text-sm text-cm-text-muted">
                 {gettext("Already in the family")}
               </dt>
               <dd
-                class="text-sm font-medium text-ds-on-surface"
+                class="text-sm font-medium text-cm-black"
                 {test_id("import-already-in-family")}
               >
                 {@import_summary.people_already_in_family}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-ds-on-surface-variant">{gettext("Errors")}</dt>
-              <dd class="text-sm font-medium text-ds-on-surface" {test_id("import-errors")}>
+              <dt class="text-sm text-cm-text-muted">{gettext("Errors")}</dt>
+              <dd class="text-sm font-medium text-cm-black" {test_id("import-errors")}>
                 {@import_summary.people_skipped}
               </dd>
             </div>
@@ -1068,11 +1068,11 @@
 
           <%= if @import_summary.people_errors != [] do %>
             <div class="mb-4">
-              <h3 class="text-sm font-medium text-ds-on-surface mb-2">
+              <h3 class="text-sm font-medium text-cm-black mb-2">
                 {gettext("Error details")}
               </h3>
               <ul
-                class="max-h-60 overflow-y-auto space-y-1 text-xs text-ds-on-surface-variant bg-ds-surface-low rounded-lg p-3"
+                class="max-h-60 overflow-y-auto space-y-1 text-xs text-cm-text-muted bg-cm-surface rounded-lg p-3"
                 {test_id("import-error-list")}
               >
                 <%= for error <- @import_summary.people_errors do %>
@@ -1085,14 +1085,14 @@
           <button
             type="button"
             phx-click="close_import"
-            class="w-full py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+            class="w-full py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
             {test_id("import-close-btn")}
           >
             Close
           </button>
         <% else %>
           <%!-- Upload form state --%>
-          <h2 class="font-ds-heading font-bold text-lg text-ds-on-surface mb-4">
+          <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
             {gettext("Import from CSV")}
           </h2>
 
@@ -1108,18 +1108,18 @@
             </div>
 
             <div class="mb-4">
-              <label class="block text-sm font-medium text-ds-on-surface mb-1">
+              <label class="block text-sm font-medium text-cm-black mb-1">
                 {gettext("CSV file")}
               </label>
               <.live_file_input
                 upload={@uploads.csv_file}
-                class="block w-full text-sm text-ds-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-ds-surface-low file:text-ds-on-surface hover:file:bg-ds-surface-high"
+                class="block w-full text-sm text-cm-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-cm-surface file:text-cm-black hover:file:bg-cm-surface"
                 {test_id("import-file-input")}
               />
               <%= for entry <- @uploads.csv_file.entries do %>
-                <p class="text-xs text-ds-on-surface-variant mt-1">{entry.client_name}</p>
+                <p class="text-xs text-cm-text-muted mt-1">{entry.client_name}</p>
                 <%= for err <- upload_errors(@uploads.csv_file, entry) do %>
-                  <p class="text-xs text-ds-signal-error mt-1">{upload_error_to_string(err)}</p>
+                  <p class="text-xs text-cm-error mt-1">{upload_error_to_string(err)}</p>
                 <% end %>
               <% end %>
             </div>
@@ -1128,14 +1128,14 @@
               <button
                 type="button"
                 phx-click="close_import"
-                class="flex-1 py-2.5 px-4 bg-ds-surface-low text-ds-on-surface text-sm font-medium rounded-lg hover:bg-ds-surface-high transition-colors"
+                class="flex-1 py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={@uploads.csv_file.entries == []}
-                class="flex-1 py-2.5 px-4 bg-ds-on-surface text-ds-surface text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                class="flex-1 py-2.5 px-4 bg-cm-black text-cm-surface text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
                 {test_id("import-submit-btn")}
               >
                 {gettext("Import")}
@@ -1159,7 +1159,7 @@
         phx-click="close_mobile_tree_sheet"
       />
       <div
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-sm w-full rounded-t-lg"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] shadow-sm w-full rounded-t-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-tree-title"
@@ -1167,38 +1167,38 @@
       >
         <%!-- Drag handle --%>
         <div class="flex justify-center pt-3 pb-1">
-          <div class="w-9 h-1 bg-ds-outline-variant/40 rounded-full"></div>
+          <div class="w-9 h-1 bg-cm-border/40 rounded-full"></div>
         </div>
         <%!-- Header --%>
         <div class="flex items-center justify-between px-5 pb-3">
           <h2
             id="mobile-tree-title"
-            class="text-base font-ds-heading font-semibold text-ds-on-surface"
+            class="text-base font-cm-display font-semibold text-cm-black"
           >
             {gettext("Tree View")}
           </h2>
           <button
             type="button"
             phx-click="close_mobile_tree_sheet"
-            class="text-sm text-ds-on-surface font-ds-body font-medium"
+            class="text-sm text-cm-black font-cm-body font-medium"
           >
             {gettext("Done")}
           </button>
         </div>
         <%!-- Display toggle --%>
         <div class="px-5 pt-4 pb-3">
-          <div class="text-[10px] text-ds-on-surface-variant uppercase tracking-wider mb-2 font-ds-body">
+          <div class="text-[10px] text-cm-text-muted uppercase tracking-wider mb-2 font-cm-body">
             {gettext("Display")}
           </div>
-          <div class="flex bg-ds-surface-low rounded-sm p-0.5">
+          <div class="flex bg-cm-surface rounded-sm p-0.5">
             <button
               type="button"
               phx-click="toggle_display"
               phx-value-display="partial"
-              class={"flex-1 text-center py-2 rounded-sm text-sm font-ds-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-sm text-sm font-cm-body font-medium transition-colors " <>
                 if(@tree_display == "partial",
-                  do: "bg-ds-on-surface text-ds-surface",
-                  else: "text-ds-on-surface-variant"
+                  do: "bg-cm-black text-cm-surface",
+                  else: "text-cm-text-muted"
                 )}
             >
               {gettext("Partial Tree")}
@@ -1207,10 +1207,10 @@
               type="button"
               phx-click="toggle_display"
               phx-value-display="complete"
-              class={"flex-1 text-center py-2 rounded-sm text-sm font-ds-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-sm text-sm font-cm-body font-medium transition-colors " <>
                 if(@tree_display == "complete",
-                  do: "bg-ds-on-surface text-ds-surface",
-                  else: "text-ds-on-surface-variant"
+                  do: "bg-cm-black text-cm-surface",
+                  else: "text-cm-text-muted"
                 )}
             >
               {gettext("Complete Tree")}
@@ -1239,7 +1239,7 @@
           />
         </div>
         <div :if={@tree_display == "complete"} class="px-5 pb-6">
-          <span class="text-sm text-ds-on-surface-variant font-ds-body">
+          <span class="text-sm text-cm-text-muted font-cm-body">
             {gettext("Showing all generations")}
           </span>
         </div>

@@ -9,16 +9,16 @@ defmodule Web.AccountLive.Registration do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="flex items-center justify-center min-h-[70vh] px-4">
-        <div class="w-full max-w-sm bg-ds-surface-card rounded-ds-sharp p-8 shadow-ds-ambient space-y-6">
+        <div class="w-full max-w-sm bg-cm-white rounded-cm p-8 space-y-6">
           <div class="text-center">
-            <h1 class="font-ds-heading text-2xl font-bold text-ds-on-surface">
+            <h1 class="font-cm-display text-2xl font-bold text-cm-black">
               {gettext("Register")}
             </h1>
-            <p class="mt-2 text-sm font-ds-body text-ds-on-surface-variant">
+            <p class="mt-2 text-sm font-cm-body text-cm-text-muted">
               {gettext("Already registered?")}
               <.link
                 navigate={~p"/accounts/log-in"}
-                class="font-semibold text-ds-on-surface hover:underline"
+                class="font-semibold text-cm-black hover:underline"
               >
                 {gettext("Log in")}
               </.link>
@@ -39,7 +39,7 @@ defmodule Web.AccountLive.Registration do
             <button
               type="submit"
               phx-disable-with={gettext("Creating account...")}
-              class="w-full mt-4 py-2.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary text-sm font-ds-body font-semibold rounded-ds-sharp transition-opacity hover:opacity-90 cursor-pointer"
+              class="w-full mt-4 py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
             >
               {gettext("Create an account")}
             </button>

@@ -6,7 +6,7 @@
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -25,7 +25,7 @@
         <%= if @editing && MapSet.size(@selected) > 0 do %>
           <button
             phx-click="request_delete"
-            class="inline-flex items-center gap-1.5 bg-ds-error text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="inline-flex items-center gap-1.5 bg-cm-error text-cm-white rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("org-people-delete-btn")}
           >
             <.icon name="hero-trash" class="w-4 h-4" /> {gettext("Delete")}
@@ -34,11 +34,10 @@
         <button
           phx-click="toggle_edit"
           class={[
-            "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+            "inline-flex items-center gap-1.5 rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold",
             if(@editing,
-              do: "bg-ds-primary text-ds-on-primary",
-              else:
-                "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+              do: "bg-cm-indigo text-cm-white",
+              else: "bg-cm-surface text-cm-black hover:bg-cm-surface transition-colors"
             )
           ]}
           {test_id("org-people-edit-btn")}
@@ -57,10 +56,10 @@
   <.nav_drawer current_scope={@current_scope}>
     <.link
       href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -71,7 +70,7 @@
         <form phx-change="filter" phx-submit="filter">
           <.icon
             name="hero-magnifying-glass"
-            class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-ds-on-surface-variant/50 pointer-events-none"
+            class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-cm-text-muted/50 pointer-events-none"
           />
           <input
             type="text"
@@ -79,18 +78,17 @@
             value={@filter}
             phx-debounce="300"
             placeholder={gettext("Search people...")}
-            class="w-full px-3 py-2 bg-ds-surface-card text-ds-on-surface border-b-2 border-ds-outline-variant/20 focus:border-ds-primary focus:outline-none font-ds-body text-sm pl-10"
+            class="w-full px-3 py-2 bg-cm-white text-cm-black border-b-2 border-cm-border/20 focus:border-cm-indigo focus:outline-none font-cm-body text-sm pl-10"
           />
         </form>
       </div>
       <button
         phx-click="toggle_no_family"
         class={[
-          "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+          "inline-flex items-center gap-1.5 rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold",
           if(@no_family_only,
-            do: "bg-ds-tertiary text-ds-on-surface",
-            else:
-              "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+            do: "bg-cm-golden text-cm-black",
+            else: "bg-cm-surface text-cm-black hover:bg-cm-surface transition-colors"
           )
         ]}
         {test_id("org-people-no-family-chip")}
@@ -100,11 +98,10 @@
       <button
         phx-click="toggle_acquaintance"
         class={[
-          "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+          "inline-flex items-center gap-1.5 rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold",
           if(@acquaintance_only,
-            do: "bg-ds-tertiary text-ds-on-surface",
-            else:
-              "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+            do: "bg-cm-golden text-cm-black",
+            else: "bg-cm-surface text-cm-black hover:bg-cm-surface transition-colors"
           )
         ]}
         {test_id("org-people-acquaintance-chip")}
@@ -117,16 +114,16 @@
   <%!-- Select all / deselect all bar --%>
   <%= if @editing do %>
     <div class="px-4 pb-2 max-w-4xl mx-auto w-full">
-      <div class="flex items-center gap-3 text-sm text-ds-on-surface-variant">
-        <button phx-click="select_all" class="text-ds-primary hover:underline">
+      <div class="flex items-center gap-3 text-sm text-cm-text-muted">
+        <button phx-click="select_all" class="text-cm-indigo hover:underline">
           {gettext("Select all")}
         </button>
-        <span class="text-ds-on-surface-variant/50">|</span>
-        <button phx-click="deselect_all" class="text-ds-primary hover:underline">
+        <span class="text-cm-text-muted/50">|</span>
+        <button phx-click="deselect_all" class="text-cm-indigo hover:underline">
           Deselect all
         </button>
         <%= if MapSet.size(@selected) > 0 do %>
-          <span class="text-ds-on-surface-variant ml-auto">
+          <span class="text-cm-text-muted ml-auto">
             {ngettext("1 selected", "%{count} selected", MapSet.size(@selected))}
           </span>
         <% end %>
@@ -143,22 +140,22 @@
     )
   ]}>
     <%!-- Header cells --%>
-    <div class="contents text-sm font-medium text-ds-on-surface-variant">
+    <div class="contents text-sm font-medium text-cm-text-muted">
       <%= if @editing do %>
-        <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
+        <div class="px-3 py-2.5 border-b border-cm-border/20"></div>
       <% end %>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
-      <div class="px-3 py-2.5 border-b border-ds-outline-variant/20">{gettext("Name")}</div>
-      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+      <div class="px-3 py-2.5 border-b border-cm-border/20"></div>
+      <div class="px-3 py-2.5 border-b border-cm-border/20">{gettext("Name")}</div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-cm-border/20">
         Est. Age
       </div>
-      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+      <div class="hidden md:block px-3 py-2.5 border-b border-cm-border/20">
         Lifespan
       </div>
-      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20">
+      <div class="hidden md:block px-3 py-2.5 border-b border-cm-border/20">
         {gettext("Links")}
       </div>
-      <div class="hidden md:block px-3 py-2.5 border-b border-ds-outline-variant/20"></div>
+      <div class="hidden md:block px-3 py-2.5 border-b border-cm-border/20"></div>
     </div>
 
     <%!-- Stream rows --%>
@@ -169,8 +166,8 @@
       {test_id("org-people-table")}
     >
       <div id="org-people-empty-state" class="hidden only:block col-span-full py-16 text-center">
-        <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-ds-on-surface-variant/50" />
-        <p class="text-lg font-medium text-ds-on-surface-variant">
+        <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-cm-text-muted/50" />
+        <p class="text-lg font-medium text-cm-text-muted">
           No people in this organization
         </p>
       </div>
@@ -191,8 +188,8 @@
               class={[
                 "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
                 if(MapSet.member?(@selected, person.id),
-                  do: "bg-ds-primary border-ds-primary text-ds-on-primary",
-                  else: "border-ds-outline-variant hover:border-ds-primary"
+                  do: "bg-cm-indigo border-cm-indigo text-cm-white",
+                  else: "border-cm-border hover:border-cm-indigo"
                 )
               ]}
               {test_id("org-people-checkbox-#{person.id}")}
@@ -209,13 +206,13 @@
           <div class="relative">
             <%= if person.deceased do %>
               <span
-                class="absolute -top-1 -right-1 text-[10px] text-ds-on-surface-variant bg-ds-surface-card px-1 rounded-full border border-ds-outline-variant/20 z-10"
+                class="absolute -top-1 -right-1 text-[10px] text-cm-text-muted bg-cm-white px-1 rounded-full border border-cm-border/20 z-10"
                 title="Deceased"
               >
                 d.
               </span>
             <% end %>
-            <div class="w-10 h-10 rounded-full overflow-hidden bg-ds-surface-low flex items-center justify-center">
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-cm-surface flex items-center justify-center">
               <%= if person.photo && person.photo_status == "processed" do %>
                 <img
                   src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -223,7 +220,7 @@
                   class="w-full h-full object-cover"
                 />
               <% else %>
-                <.icon name="hero-user" class="w-5 h-5 text-ds-on-surface-variant/50" />
+                <.icon name="hero-user" class="w-5 h-5 text-cm-text-muted/50" />
               <% end %>
             </div>
           </div>
@@ -235,7 +232,7 @@
             navigate={
               ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_org=true"
             }
-            class="font-medium text-ds-on-surface hover:text-ds-primary truncate block"
+            class="font-medium text-cm-black hover:text-cm-indigo truncate block"
           >
             <%= if person.surname && person.surname != "" do %>
               {person.surname}, {person.given_name}
@@ -244,14 +241,14 @@
             <% end %>
           </.link>
           <%= if person.kind == "acquaintance" do %>
-            <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-ds-surface-high text-ds-on-surface-variant">
+            <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-cm-surface text-cm-text-muted">
               {gettext("Non-family")}
             </span>
           <% end %>
         </div>
 
         <%!-- Estimated Age cell --%>
-        <div class="hidden md:block px-3 py-2.5 text-sm text-ds-on-surface-variant">
+        <div class="hidden md:block px-3 py-2.5 text-sm text-cm-text-muted">
           <%= case estimated_age(person) do %>
             <% nil -> %>
               &mdash;
@@ -261,7 +258,7 @@
         </div>
 
         <%!-- Lifespan cell --%>
-        <div class="hidden md:block px-3 py-2.5 text-sm text-ds-on-surface-variant">
+        <div class="hidden md:block px-3 py-2.5 text-sm text-cm-text-muted">
           <%= cond do %>
             <% person.birth_year && person.death_year -> %>
               b. {person.birth_year} &ndash; d. {person.death_year}
@@ -280,9 +277,9 @@
           {test_id("org-people-links-#{person.id}")}
         >
           <%= if rel_count > 0 do %>
-            <span class="text-ds-on-surface-variant">{rel_count}</span>
+            <span class="text-cm-text-muted">{rel_count}</span>
           <% else %>
-            <.icon name="hero-exclamation-triangle" class="w-4 h-4 text-ds-tertiary" />
+            <.icon name="hero-exclamation-triangle" class="w-4 h-4 text-cm-golden" />
           <% end %>
         </div>
 
@@ -293,7 +290,7 @@
               navigate={
                 ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_org=true&edit=true"
               }
-              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-primary transition-colors"
+              class="p-1.5 rounded-cm text-cm-text-muted hover:bg-cm-surface hover:text-cm-indigo transition-colors"
               title={gettext("Edit person")}
               {test_id("org-people-edit-person-#{person.id}")}
             >
@@ -302,7 +299,7 @@
             <button
               phx-click="request_delete_one"
               phx-value-id={person.id}
-              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant hover:bg-ds-surface-highest hover:text-ds-error transition-colors"
+              class="p-1.5 rounded-cm text-cm-text-muted hover:bg-cm-surface hover:text-cm-error transition-colors"
               title={gettext("Delete person")}
               {test_id("org-people-delete-person-#{person.id}")}
             >
@@ -320,7 +317,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-t-lg lg:rounded-ds-sharp w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] rounded-t-lg lg:rounded-cm w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-delete-modal-title"
@@ -331,11 +328,11 @@
       >
         <h2
           id="confirm-delete-modal-title"
-          class="text-xl font-ds-heading font-extrabold tracking-tight text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-extrabold tracking-tight text-cm-black mb-2"
         >
           Delete People
         </h2>
-        <p class="text-ds-on-surface-variant mb-6">
+        <p class="text-cm-text-muted mb-6">
           Permanently delete <span class="font-semibold">{MapSet.size(@selected)}</span>
           {if MapSet.size(@selected) == 1, do: gettext("person"), else: gettext("people")}? {gettext(
             "This cannot be undone. All their photos, relationships, and family links will be removed."
@@ -344,14 +341,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
             {test_id("org-people-confirm-delete-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
             {test_id("org-people-cancel-delete-btn")}
           >
             {gettext("Cancel")}

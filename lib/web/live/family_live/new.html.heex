@@ -6,7 +6,7 @@
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -28,10 +28,10 @@
   <.nav_drawer current_scope={@current_scope}>
     <.link
       href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -52,26 +52,26 @@
       />
 
       <div class="mt-6">
-        <label class="block text-sm font-ds-body font-medium text-ds-on-surface mb-2">
+        <label class="block text-sm font-cm-body font-medium text-cm-black mb-2">
           {gettext("Cover photo")}
-          <span class="text-ds-on-surface-variant">({gettext("optional")})</span>
+          <span class="text-cm-text-muted">({gettext("optional")})</span>
         </label>
         <.live_file_input
           upload={@uploads.cover}
-          class="w-full text-sm font-ds-body file:bg-ds-primary file:text-ds-on-primary file:border-0 file:rounded-ds-sharp file:px-4 file:py-2 file:mr-4 file:font-semibold"
+          class="w-full text-sm font-cm-body file:bg-cm-indigo file:text-cm-white file:border-0 file:rounded-cm file:px-4 file:py-2 file:mr-4 file:font-semibold"
           {test_id("family-cover-input")}
         />
 
         <%= for entry <- @uploads.cover.entries do %>
           <div class="mt-3 flex items-center gap-3">
-            <.live_img_preview entry={entry} class="w-20 h-20 rounded-ds-sharp object-cover" />
+            <.live_img_preview entry={entry} class="w-20 h-20 rounded-cm object-cover" />
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-ds-body font-medium text-ds-on-surface truncate">
+              <p class="text-sm font-cm-body font-medium text-cm-black truncate">
                 {entry.client_name}
               </p>
-              <div class="mt-1 h-1.5 bg-ds-surface-low rounded-full overflow-hidden">
+              <div class="mt-1 h-1.5 bg-cm-surface rounded-full overflow-hidden">
                 <div
-                  class="h-full bg-ds-primary rounded-full transition-all duration-300"
+                  class="h-full bg-cm-indigo rounded-full transition-all duration-300"
                   style={"width: #{entry.progress}%"}
                 >
                 </div>
@@ -81,7 +81,7 @@
               type="button"
               phx-click="cancel_upload"
               phx-value-ref={entry.ref}
-              class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
+              class="p-1.5 rounded-cm text-cm-text-muted/50 hover:text-cm-error hover:bg-cm-error/10 transition-all"
             >
               <.icon name="hero-x-mark" class="w-4 h-4" />
             </button>
@@ -89,21 +89,21 @@
         <% end %>
 
         <%= for err <- upload_errors(@uploads.cover) do %>
-          <p class="text-ds-error text-sm mt-2">{upload_error_to_string(err)}</p>
+          <p class="text-cm-error text-sm mt-2">{upload_error_to_string(err)}</p>
         <% end %>
       </div>
 
       <div class="flex gap-3 mt-8">
         <button
           type="submit"
-          class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
           {test_id("family-create-btn")}
         >
           {gettext("Create")}
         </button>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}"}
-          class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors text-center"
+          class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors text-center"
         >
           {gettext("Cancel")}
         </.link>

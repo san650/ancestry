@@ -782,18 +782,18 @@ defmodule Web.FamilyLive.Show do
   defp tree_stepper(assigns) do
     ~H"""
     <div class="flex items-center gap-2">
-      <span class="text-xs text-ds-on-surface font-ds-body w-14">{@label}</span>
+      <span class="text-xs text-cm-black font-cm-body w-14">{@label}</span>
       <button
         type="button"
         phx-click="step_depth"
         phx-value-field={@name}
         phx-value-dir="down"
         disabled={@value <= 0}
-        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="size-6 flex items-center justify-center rounded-sm bg-cm-surface text-cm-black hover:bg-cm-border/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <.icon name="hero-minus" class="size-3" />
       </button>
-      <span class="text-xs text-ds-on-surface font-ds-body font-semibold w-4 text-center">
+      <span class="text-xs text-cm-black font-cm-body font-semibold w-4 text-center">
         {@value}
       </span>
       <button
@@ -802,7 +802,7 @@ defmodule Web.FamilyLive.Show do
         phx-value-field={@name}
         phx-value-dir="up"
         disabled={@value >= @max}
-        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="size-6 flex items-center justify-center rounded-sm bg-cm-surface text-cm-black hover:bg-cm-border/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <.icon name="hero-plus" class="size-3" />
       </button>

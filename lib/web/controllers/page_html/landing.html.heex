@@ -1,11 +1,11 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <div class="flex items-center min-h-[calc(100vh-52px)] px-6 sm:pl-[20%]">
     <div class="flex flex-col gap-6 max-w-xl">
-      <h1 class="font-ds-heading text-[2rem] sm:text-[3.5rem] font-extrabold leading-tight text-ds-primary">
+      <h1 class="font-cm-display text-[2rem] sm:text-[3.5rem] font-extrabold leading-tight text-cm-indigo">
         {gettext("Organize your family's photos and history.")}
       </h1>
 
-      <p class="font-ds-body text-base text-ds-on-surface-variant max-w-[480px]">
+      <p class="font-cm-body text-base text-cm-text-muted max-w-[480px]">
         {gettext(
           "Build galleries, connect people, and preserve what matters -- all in one place."
         )}
@@ -14,11 +14,11 @@
       <div class="flex items-center gap-4 mt-2">
         <a
           href={~p"/accounts/log-in"}
-          class="inline-block bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-6 py-3 font-ds-body text-sm font-medium hover:brightness-110 transition-all focus-visible:ring-2 focus-visible:ring-ds-primary focus-visible:ring-offset-2"
+          class="inline-block bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-6 py-3 font-cm-body text-sm font-medium hover:brightness-110 transition-all focus-visible:ring-2 focus-visible:ring-cm-indigo focus-visible:ring-offset-2"
         >
           {gettext("Log in")}
         </a>
-        <span class="font-ds-body text-sm text-ds-on-surface-variant">
+        <span class="font-cm-body text-sm text-cm-text-muted">
           {gettext("Registration coming soon")}
         </span>
       </div>

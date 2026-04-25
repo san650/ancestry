@@ -319,7 +319,7 @@ defmodule Web.CoreComponents do
         <h1 class="text-lg font-semibold leading-8">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="text-sm text-cm-black/70">
           {render_slot(@subtitle)}
         </p>
       </div>
@@ -348,7 +348,7 @@ defmodule Web.CoreComponents do
   def breadcrumb(assigns) do
     ~H"""
     <div {@rest} class="min-w-0">
-      <h1 class="font-ds-heading font-semibold text-base lg:text-lg text-ds-on-surface truncate">
+      <h1 class="font-cm-display font-semibold text-base lg:text-lg text-cm-black truncate">
         {@current}
       </h1>
       <nav :if={@items != []} class="min-w-0" aria-label={gettext("Breadcrumb")}>
@@ -357,13 +357,13 @@ defmodule Web.CoreComponents do
             <li class="flex items-center gap-1 shrink min-w-0">
               <.link
                 navigate={item.navigate}
-                class="inline-block px-2 py-0.5 rounded-full bg-ds-surface-high text-ds-on-surface-variant hover:text-ds-on-surface text-xs truncate max-w-[8rem] lg:max-w-[12rem]"
+                class="inline-block px-2 py-0.5 rounded-full bg-cm-surface text-cm-text-muted hover:text-cm-black text-xs truncate max-w-[8rem] lg:max-w-[12rem]"
               >
                 {item.label}
               </.link>
               <span
                 :if={idx < length(@items) - 1}
-                class="text-ds-on-surface-variant text-xs shrink-0"
+                class="text-cm-text-muted text-xs shrink-0"
               >
                 /
               </span>

@@ -143,7 +143,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
     <div id="photo-comments-panel" class="flex flex-col h-full p-2.5 gap-2 text-white">
       <%!-- Section title row --%>
       <div class="flex items-center gap-2 px-1 shrink-0">
-        <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
+        <h4 class="text-xs font-cm-display font-bold text-white/90 tracking-wide uppercase">
           {gettext("Comments")}
         </h4>
         <span
@@ -179,7 +179,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                   name="comment[text]"
                   id={"edit-comment-text-#{comment.id}"}
                   rows="2"
-                  class="w-full bg-white/[0.10] rounded-ds-sharp px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:bg-white/[0.16] resize-none"
+                  class="w-full bg-white/[0.10] rounded-cm px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:bg-white/[0.16] resize-none"
                   phx-mounted={JS.dispatch("focus", to: "#edit-comment-text-#{comment.id}")}
                 >{Phoenix.HTML.Form.normalize_value("textarea", Ecto.Changeset.get_field(@edit_form.source, :text))}</textarea>
                 <div class="flex items-center gap-2">
@@ -204,7 +204,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
               <div
                 {test_id("mobile-comment-list")}
                 class={[
-                  "flex gap-2 items-start py-1.5 px-1.5 rounded-ds-sharp md:hidden transition-colors",
+                  "flex gap-2 items-start py-1.5 px-1.5 rounded-cm md:hidden transition-colors",
                   @selected_comment_id == comment.id && "bg-white/[0.16]"
                 ]}
                 phx-click="select_comment"
@@ -246,7 +246,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                       {format_relative_time(comment.inserted_at)}
                     </time>
                   </div>
-                  <div class="bg-white/[0.10] rounded-ds-sharp px-2.5 py-1.5 inline-block max-w-full mt-0.5">
+                  <div class="bg-white/[0.10] rounded-cm px-2.5 py-1.5 inline-block max-w-full mt-0.5">
                     <p
                       phx-no-format
                       class="text-[13px] text-white/85 leading-snug break-words whitespace-pre-line"
@@ -270,7 +270,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
           id="new-comment-form"
           phx-submit="save_comment"
           phx-target={@myself}
-          class="bg-white/[0.10] rounded-ds-sharp px-3 py-1.5 flex items-end gap-2"
+          class="bg-white/[0.10] rounded-cm px-3 py-1.5 flex items-end gap-2"
         >
           <textarea
             name="comment[text]"

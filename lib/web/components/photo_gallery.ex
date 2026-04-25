@@ -38,7 +38,7 @@ defmodule Web.Components.PhotoGallery do
     >
       <div
         id={"#{@id}-empty"}
-        class="hidden only:block col-span-full text-center py-20 text-ds-on-surface-variant/50"
+        class="hidden only:block col-span-full text-center py-20 text-cm-text-muted/50"
       >
         No photos yet
       </div>
@@ -46,10 +46,10 @@ defmodule Web.Components.PhotoGallery do
         :for={{id, photo} <- @photos}
         id={id}
         class={[
-          "relative group rounded-ds-sharp overflow-hidden bg-ds-surface-low cursor-pointer",
+          "relative group rounded-cm overflow-hidden bg-cm-surface cursor-pointer",
           @grid_layout == :masonry && "mb-2 break-inside-avoid",
           if(@selection_mode && MapSet.member?(@selected_ids, photo.id),
-            do: "outline outline-3 outline-ds-primary outline-offset-2",
+            do: "outline outline-3 outline-cm-indigo outline-offset-2",
             else: "outline outline-3 outline-transparent outline-offset-2"
           )
         ]}
@@ -60,14 +60,14 @@ defmodule Web.Components.PhotoGallery do
             <div class="aspect-square flex flex-col items-center justify-center gap-2">
               <.icon
                 name="hero-photo"
-                class="w-8 h-8 text-ds-on-surface-variant/50 animate__animated animate__pulse animate__infinite"
+                class="w-8 h-8 text-cm-text-muted/50 animate__animated animate__pulse animate__infinite"
               />
-              <p class="text-xs text-ds-on-surface-variant/50 font-ds-body font-medium">Processing</p>
+              <p class="text-xs text-cm-text-muted/50 font-cm-body font-medium">Processing</p>
             </div>
           <% photo.status == "failed" -> %>
-            <div class="aspect-square flex flex-col items-center justify-center gap-2 bg-ds-error/5">
-              <.icon name="hero-exclamation-triangle" class="w-8 h-8 text-ds-error/50" />
-              <p class="text-xs text-ds-error/70">Processing failed</p>
+            <div class="aspect-square flex flex-col items-center justify-center gap-2 bg-cm-error/5">
+              <.icon name="hero-exclamation-triangle" class="w-8 h-8 text-cm-error/50" />
+              <p class="text-xs text-cm-error/70">Processing failed</p>
             </div>
           <% true -> %>
             <img
@@ -81,12 +81,12 @@ defmodule Web.Components.PhotoGallery do
         <%= if @selection_mode do %>
           <div class={[
             "absolute inset-0 transition-colors",
-            MapSet.member?(@selected_ids, photo.id) && "bg-ds-primary/30"
+            MapSet.member?(@selected_ids, photo.id) && "bg-cm-indigo/30"
           ]}>
             <div class={[
               "absolute top-2 right-2 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center",
               if(MapSet.member?(@selected_ids, photo.id),
-                do: "bg-ds-primary border-ds-primary",
+                do: "bg-cm-indigo border-cm-indigo",
                 else: "border-white/70 bg-black/20"
               )
             ]}>
@@ -134,19 +134,19 @@ defmodule Web.Components.PhotoGallery do
         <button
           type="button"
           phx-click="close_lightbox"
-          class="p-2 hover:bg-white/10 rounded-ds-sharp"
+          class="p-2 hover:bg-white/10 rounded-cm"
           aria-label="Close"
         >
           <.icon name="hero-x-mark" class="size-6" />
         </button>
 
         <%!-- Position indicator: mobile only --%>
-        <span :if={@total_photos > 1} class="text-sm text-white/70 font-ds-body lg:hidden">
+        <span :if={@total_photos > 1} class="text-sm text-white/70 font-cm-body lg:hidden">
           {@current_index + 1} of {@total_photos}
         </span>
 
         <%!-- Desktop: filename --%>
-        <span class="hidden lg:block text-sm text-white/70 font-ds-body truncate max-w-xs">
+        <span class="hidden lg:block text-sm text-white/70 font-cm-body truncate max-w-xs">
           {@selected_photo.original_filename}
         </span>
 
@@ -158,8 +158,8 @@ defmodule Web.Components.PhotoGallery do
             type="button"
             phx-click="toggle_panel"
             class={[
-              "p-2 hover:bg-white/10 rounded-ds-sharp",
-              if(@panel_open, do: "text-ds-primary bg-white/10", else: "text-white/50")
+              "p-2 hover:bg-white/10 rounded-cm",
+              if(@panel_open, do: "text-cm-indigo bg-white/10", else: "text-white/50")
             ]}
             aria-label="Photo info"
           >
@@ -169,7 +169,7 @@ defmodule Web.Components.PhotoGallery do
           <a
             href={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)}
             download={@selected_photo.original_filename}
-            class="p-2 hover:bg-white/10 rounded-ds-sharp hidden lg:block text-white/50 hover:text-white"
+            class="p-2 hover:bg-white/10 rounded-cm hidden lg:block text-white/50 hover:text-white"
             aria-label="Download"
           >
             <.icon name="hero-arrow-down-tray" class="size-6" />
@@ -199,7 +199,7 @@ defmodule Web.Components.PhotoGallery do
             id="lightbox-image"
             src={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :large)}
             alt={@selected_photo.original_filename}
-            class="max-h-full max-w-full object-contain rounded-ds-sharp shadow-2xl"
+            class="max-h-full max-w-full object-contain rounded-cm shadow-2xl"
             phx-hook="PhotoTagger"
             data-photo-id={@selected_photo.id}
           />
@@ -222,13 +222,13 @@ defmodule Web.Components.PhotoGallery do
             <div class="flex flex-col h-full bg-white/[0.03] p-2 gap-2">
               <%!-- Panel header — close X, no bottom border --%>
               <div class="flex items-center justify-between px-2 py-2 shrink-0">
-                <h3 class="text-sm font-ds-heading font-bold text-white/90">
+                <h3 class="text-sm font-cm-display font-bold text-white/90">
                   {gettext("Photo info")}
                 </h3>
                 <button
                   type="button"
                   phx-click="toggle_panel"
-                  class="p-2 -mr-2 rounded-ds-sharp text-white/50 hover:text-white hover:bg-white/[0.10] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
+                  class="p-2 -mr-2 rounded-cm text-white/50 hover:text-white hover:bg-white/[0.10] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
                   aria-label={gettext("Close info")}
                 >
                   <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
@@ -238,10 +238,10 @@ defmodule Web.Components.PhotoGallery do
               <%!-- People card (L2) --%>
               <div
                 {test_id("lightbox-people-card")}
-                class="bg-white/[0.06] rounded-ds-sharp p-2.5 flex flex-col gap-2 shrink-0 max-h-[30vh] lg:max-h-none overflow-hidden"
+                class="bg-white/[0.06] rounded-cm p-2.5 flex flex-col gap-2 shrink-0 max-h-[30vh] lg:max-h-none overflow-hidden"
               >
                 <div class="flex items-center gap-2 px-1">
-                  <h4 class="text-xs font-ds-heading font-bold text-white/90 tracking-wide uppercase">
+                  <h4 class="text-xs font-cm-display font-bold text-white/90 tracking-wide uppercase">
                     {gettext("People")}
                   </h4>
                   <span
@@ -270,7 +270,7 @@ defmodule Web.Components.PhotoGallery do
                       <%= for pp <- @photo_people do %>
                         <div
                           id={"photo-person-#{pp.id}"}
-                          class="group flex items-center gap-3 lg:gap-2 px-1.5 py-2 lg:py-1.5 rounded-ds-sharp hover:bg-white/[0.06] transition-colors min-h-[44px] lg:min-h-0"
+                          class="group flex items-center gap-3 lg:gap-2 px-1.5 py-2 lg:py-1.5 rounded-cm hover:bg-white/[0.06] transition-colors min-h-[44px] lg:min-h-0"
                           data-person-id={pp.person_id}
                           phx-hook="PersonHighlight"
                         >
@@ -411,7 +411,7 @@ defmodule Web.Components.PhotoGallery do
               <%!-- Comments card (L2) — wraps the live component --%>
               <div
                 {test_id("lightbox-comments-card")}
-                class="bg-white/[0.06] rounded-ds-sharp flex-1 min-h-0 flex flex-col overflow-hidden"
+                class="bg-white/[0.06] rounded-cm flex-1 min-h-0 flex flex-col overflow-hidden"
               >
                 <.live_component
                   module={PhotoCommentsComponent}
@@ -427,7 +427,7 @@ defmodule Web.Components.PhotoGallery do
                   Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)
                 }
                 download={@selected_photo.original_filename}
-                class="lg:hidden shrink-0 flex items-center justify-center gap-2 bg-white/[0.10] rounded-ds-sharp py-3 text-sm font-ds-body font-semibold text-white/90 hover:bg-white/[0.16] transition-colors"
+                class="lg:hidden shrink-0 flex items-center justify-center gap-2 bg-white/[0.10] rounded-cm py-3 text-sm font-cm-body font-semibold text-white/90 hover:bg-white/[0.16] transition-colors"
               >
                 <.icon name="hero-arrow-down-tray" class="size-5" /> {gettext("Download")}
               </a>
@@ -443,7 +443,7 @@ defmodule Web.Components.PhotoGallery do
             phx-click="lightbox_select"
             phx-value-id={photo.id}
             class={[
-              "shrink-0 w-16 h-16 rounded-ds-sharp overflow-hidden border-2 transition-all duration-150",
+              "shrink-0 w-16 h-16 rounded-cm overflow-hidden border-2 transition-all duration-150",
               if(photo.id == @selected_photo.id,
                 do: "border-white scale-105 shadow-lg",
                 else: "border-transparent opacity-50 hover:opacity-90"
