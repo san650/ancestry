@@ -63,7 +63,7 @@ defmodule Web.UserFlows.CreateOrganizationTest do
       |> assert_has("h2", text: "New Test Org")
 
     # Verify flash message
-    conn = assert_has(conn, ".alert", text: "Organization created")
+    conn = assert_has(conn, "[role=alert]", text: "Organization created")
 
     # Verify the existing org is still there
     assert_has(conn, "h2", text: "Existing Org")

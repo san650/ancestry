@@ -9,11 +9,8 @@ defmodule Web.CoreComponents do
   them in any way you want, based on your application growth and needs.
 
   The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
-
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
+  with a custom brutalist design system using `cm-*` design tokens. Here are
+  useful references:
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
       we build on. You will use it for layout, sizing, flexbox, grid, and
@@ -56,25 +53,36 @@ defmodule Web.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class={[
+        "border-l-[3px] rounded-cm px-4 py-3 font-cm-body text-sm text-cm-black shadow-md max-w-sm flex items-start gap-3",
+        @kind == :info && "border-l-cm-indigo bg-indigo-50",
+        @kind == :error && "border-l-cm-error bg-red-50"
+      ]}
       {@rest}
     >
-      <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
-      ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
-        <div>
-          <p :if={@title} class="font-semibold">{@title}</p>
-          <p>{msg}</p>
-        </div>
-        <div class="flex-1" />
-        <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
-          <.icon name="hero-x-mark" class="size-5 opacity-40 group-hover:opacity-70" />
-        </button>
+      <.icon
+        :if={@kind == :info}
+        name="hero-information-circle"
+        class="size-5 shrink-0 text-cm-indigo"
+      />
+      <.icon
+        :if={@kind == :error}
+        name="hero-exclamation-circle"
+        class="size-5 shrink-0 text-cm-error"
+      />
+      <div class="flex-1 min-w-0">
+        <p :if={@title} class="font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+          {@title}
+        </p>
+        <p>{msg}</p>
       </div>
+      <button
+        type="button"
+        class="group shrink-0 cursor-pointer font-cm-mono text-xs uppercase text-cm-text-muted hover:text-cm-black"
+        aria-label={gettext("close")}
+      >
+        <.icon name="hero-x-mark" class="size-4 opacity-60 group-hover:opacity-100" />
+      </button>
     </div>
     """
   end
@@ -94,11 +102,17 @@ defmodule Web.CoreComponents do
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    base =
+      "font-cm-mono text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-cm transition-colors"
+
+    variants = %{
+      "primary" => "bg-cm-coral text-cm-white hover:bg-cm-coral-hover #{base}",
+      nil => "bg-cm-indigo text-cm-white hover:bg-cm-indigo-hover #{base}"
+    }
 
     assigns =
       assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
+        Map.fetch!(variants, assigns[:variant])
       end)
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
@@ -205,8 +219,8 @@ defmodule Web.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
+    <div class="mb-2">
+      <label for={@id} class="flex items-center gap-2 cursor-pointer">
         <input
           type="hidden"
           name={@name}
@@ -214,16 +228,17 @@ defmodule Web.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class={@class || "size-4 border-2 border-cm-black rounded-cm accent-cm-coral"}
+          {@rest}
+        />
+        <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted">
+          {@label}
         </span>
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -233,13 +248,22 @@ defmodule Web.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span
+          :if={@label}
+          class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-1 block"
+        >
+          {@label}
+        </span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[
+            @class ||
+              "w-full border-2 border-cm-black rounded-cm font-cm-body text-sm px-3 py-2 focus:border-cm-coral focus:ring-0 focus:outline-none bg-cm-white",
+            @errors != [] && (@error_class || "border-cm-error")
+          ]}
           multiple={@multiple}
           {@rest}
         >
@@ -254,15 +278,21 @@ defmodule Web.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span
+          :if={@label}
+          class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-1 block"
+        >
+          {@label}
+        </span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class ||
+              "w-full border-2 border-cm-black rounded-cm font-cm-body text-sm px-3 py-2 focus:border-cm-coral focus:ring-0 focus:outline-none",
+            @errors != [] && (@error_class || "border-cm-error")
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -275,17 +305,23 @@ defmodule Web.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-2">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span
+          :if={@label}
+          class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-1 block"
+        >
+          {@label}
+        </span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class ||
+              "w-full border-2 border-cm-black rounded-cm font-cm-body text-sm px-3 py-2 focus:border-cm-coral focus:ring-0 focus:outline-none",
+            @errors != [] && (@error_class || "border-cm-error")
           ]}
           {@rest}
         />
@@ -298,8 +334,8 @@ defmodule Web.CoreComponents do
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
+    <p class="mt-1.5 flex gap-2 items-center text-sm text-cm-error font-cm-body">
+      <.icon name="hero-exclamation-circle" class="size-4 shrink-0" />
       {render_slot(@inner_block)}
     </p>
     """

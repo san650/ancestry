@@ -59,6 +59,6 @@ defmodule Web.FamilyLive.NewTest do
     |> form("#new-family-form", family: %{name: ""})
     |> render_submit()
 
-    assert has_element?(view, "#new-family-form .text-error")
+    assert has_element?(view, "#new-family-form .text-cm-error")
   end
 end

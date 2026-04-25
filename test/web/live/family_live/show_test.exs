@@ -97,7 +97,7 @@ defmodule Web.FamilyLive.ShowTest do
       |> form("#new-gallery-form", gallery: %{name: ""})
       |> render_submit()
 
-      assert has_element?(view, "#new-gallery-form .text-error")
+      assert has_element?(view, "#new-gallery-form .text-cm-error")
     end
 
     test "deletes a gallery after confirmation", %{conn: conn, family: family, org: org} do
