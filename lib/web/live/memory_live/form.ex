@@ -199,15 +199,10 @@ defmodule Web.MemoryLive.Form do
     # Push mention data to JS so Trix hook can insert the attachment.
     # The MemoryMention record is created automatically by ContentParser
     # when the memory form is saved — no need to create it here.
-    socket =
-      if socket.assigns[:show_quick_person_modal] do
-        push_event(socket, "mention_created", %{id: person.id, name: display_name})
-      else
-        socket
-      end
-
+    # Push unconditionally — the JS handler guards against null saved state.
     {:noreply,
      socket
+     |> push_event("mention_created", %{id: person.id, name: display_name})
      |> assign(:show_quick_person_modal, false)
      |> assign(:quick_person_prefill, nil)}
   end
