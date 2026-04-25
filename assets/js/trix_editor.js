@@ -111,7 +111,7 @@ const TrixEditor = {
       const range = editor.getSelectedRange()
       const position = range[0]
       const text = editor.getDocument().toString().slice(0, position)
-      const match = text.match(/(?:^|[^a-zA-Z0-9])@([a-zA-Z0-9 ]{0,30})$/)
+      const match = text.match(/(?:^|[^\p{L}\p{N}])@([\p{L}\p{N} ]{0,30})$/u)
 
       if (match) {
         const query = match[1]
