@@ -4,10 +4,10 @@ defmodule Web.FamilyLive.Print do
   alias Ancestry.Families
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
-  alias Ancestry.People.PersonGraph
+  alias Ancestry.People.PrintTree
   alias Ancestry.Relationships
 
-  import Web.FamilyLive.PrintGraphComponent
+  import Web.FamilyLive.PrintTreeComponent
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
@@ -57,33 +57,16 @@ defmodule Web.FamilyLive.Print do
         {tree_ancestors, tree_descendants, min(tree_other, tree_ancestors)}
       end
 
-    graph =
+    tree =
       if focus_person do
-        PersonGraph.build(focus_person, socket.assigns.family_graph,
+        PrintTree.build(focus_person, socket.assigns.family_graph,
           ancestors: tree_ancestors,
           descendants: tree_descendants,
           other: tree_other
         )
       end
 
-    # Calculate column width to fit the tree on A4 landscape.
-    # A4 landscape = 297mm, minus 0.5cm margins each side = 287mm ≈ 1085px at 96dpi.
-    # Layout padding: p-2 = 16px total. Available ≈ 1060px.
-    col_width =
-      if graph && graph.grid_cols > 0 do
-        cols = graph.grid_cols
-        available = 1060
-        gap = 8
-        max_width = div(available - max(cols - 1, 0) * gap, cols)
-        min(120, max(50, max_width))
-      else
-        120
-      end
-
-    {:noreply,
-     socket
-     |> assign(:graph, graph)
-     |> assign(:col_width, col_width)}
+    {:noreply, assign(socket, :tree, tree)}
   end
 
   defp parse_depth(params, key, default) do

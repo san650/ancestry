@@ -3,9 +3,9 @@
     {@family.name}
   </h1>
 
-  <%= if @graph do %>
+  <%= if @tree do %>
     <div id="print-page" phx-hook="AutoPrint">
-      <.print_graph_canvas graph={@graph} col_width={@col_width} />
+      <.print_tree tree={@tree} />
     </div>
   <% else %>
     <p class="text-center text-gray-500">
