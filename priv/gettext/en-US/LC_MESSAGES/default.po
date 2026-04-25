@@ -353,8 +353,9 @@ msgstr ""
 #: lib/web/live/memory_live/form.html.heex:129
 #: lib/web/live/memory_live/form.html.heex:302
 #: lib/web/live/org_people_live/index.html.heex:357
-#: lib/web/live/organization_live/index.html.heex:172
-#: lib/web/live/organization_live/index.html.heex:230
+#: lib/web/live/organization_live/index.html.heex:183
+#: lib/web/live/organization_live/index.html.heex:243
+#: lib/web/live/organization_live/index.html.heex:301
 #: lib/web/live/people_live/index.html.heex:362
 #: lib/web/live/person_live/index.html.heex:139
 #: lib/web/live/person_live/show.html.heex:693
@@ -464,7 +465,7 @@ msgid_plural "Could not delete %{count} families. Try again."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/web/live/organization_live/index.ex:152
+#: lib/web/live/organization_live/index.ex:202
 #, elixir-autogen, elixir-format
 msgid "Could not delete 1 organization. Try again."
 msgid_plural "Could not delete %{count} organizations. Try again."
@@ -495,7 +496,7 @@ msgstr ""
 #: lib/web/live/family_live/new.html.heex:102
 #: lib/web/live/family_live/show.html.heex:644
 #: lib/web/live/gallery_live/index.html.heex:103
-#: lib/web/live/organization_live/index.html.heex:164
+#: lib/web/live/organization_live/index.html.heex:175
 #: lib/web/live/shared/person_form_component.html.heex:352
 #: lib/web/live/shared/quick_person_modal.ex:270
 #, elixir-autogen, elixir-format
@@ -543,7 +544,7 @@ msgid "Creating account..."
 msgstr ""
 
 #: lib/web/live/family_live/show.html.heex:984
-#: lib/web/live/organization_live/index.html.heex:161
+#: lib/web/live/organization_live/index.html.heex:172
 #, elixir-autogen, elixir-format
 msgid "Creating..."
 msgstr ""
@@ -622,8 +623,8 @@ msgstr ""
 #: lib/web/live/memory_live/form.html.heex:296
 #: lib/web/live/org_people_live/index.html.heex:31
 #: lib/web/live/org_people_live/index.html.heex:350
-#: lib/web/live/organization_live/index.html.heex:76
-#: lib/web/live/organization_live/index.html.heex:224
+#: lib/web/live/organization_live/index.html.heex:86
+#: lib/web/live/organization_live/index.html.heex:295
 #: lib/web/live/person_live/show.html.heex:722
 #: lib/web/live/vault_live/show.html.heex:79
 #: lib/web/live/vault_live/show.html.heex:215
@@ -637,7 +638,7 @@ msgstr ""
 msgid "Delete %{count} families? All galleries and photos will be permanently removed. This cannot be undone."
 msgstr ""
 
-#: lib/web/live/organization_live/index.html.heex:212
+#: lib/web/live/organization_live/index.html.heex:283
 #, elixir-autogen, elixir-format
 msgid "Delete %{count} organizations? All families, galleries, and photos will be permanently removed. This cannot be undone."
 msgstr ""
@@ -654,7 +655,7 @@ msgid_plural "Delete %{count} memories? This cannot be undone."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/web/live/organization_live/index.html.heex:208
+#: lib/web/live/organization_live/index.html.heex:279
 #, elixir-autogen, elixir-format
 msgid "Delete 1 organization? All families, galleries, and photos will be permanently removed. This cannot be undone."
 msgstr ""
@@ -727,7 +728,7 @@ msgid_plural "Deleted %{count} families."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/web/live/organization_live/index.ex:144
+#: lib/web/live/organization_live/index.ex:194
 #, elixir-autogen, elixir-format
 msgid "Deleted 1 organization."
 msgid_plural "Deleted %{count} organizations."
@@ -1492,7 +1493,7 @@ msgstr ""
 msgid "No memory vaults yet."
 msgstr ""
 
-#: lib/web/live/organization_live/index.html.heex:91
+#: lib/web/live/organization_live/index.html.heex:102
 #, elixir-autogen, elixir-format
 msgid "No organizations yet"
 msgstr ""
@@ -1573,12 +1574,13 @@ msgstr ""
 msgid "Open menu"
 msgstr ""
 
-#: lib/web/live/organization_live/index.ex:57
+#: lib/web/live/organization_live/index.ex:60
 #, elixir-autogen, elixir-format
 msgid "Organization created"
 msgstr ""
 
-#: lib/web/live/organization_live/index.html.heex:156
+#: lib/web/live/organization_live/index.html.heex:167
+#: lib/web/live/organization_live/index.html.heex:227
 #, elixir-autogen, elixir-format
 msgid "Organization name"
 msgstr ""
@@ -1799,6 +1801,7 @@ msgstr ""
 
 #: lib/web/live/comments/photo_comments_component.ex:190
 #: lib/web/live/family_live/show.html.heex:539
+#: lib/web/live/organization_live/index.html.heex:235
 #: lib/web/live/shared/person_form_component.html.heex:354
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -1822,6 +1825,7 @@ msgstr ""
 
 #: lib/web/live/account_live/settings.ex:86
 #: lib/web/live/account_live/settings.ex:112
+#: lib/web/live/organization_live/index.html.heex:232
 #, elixir-autogen, elixir-format
 msgid "Saving..."
 msgstr ""
@@ -1847,7 +1851,7 @@ msgstr ""
 msgid "Search people"
 msgstr ""
 
-#: lib/web/components/photo_gallery.ex:329
+#: lib/web/components/photo_gallery.ex:328
 #: lib/web/live/family_live/person_selector_component.ex:47
 #: lib/web/live/org_people_live/index.html.heex:81
 #: lib/web/live/people_live/index.html.heex:85
@@ -3176,7 +3180,7 @@ msgstr ""
 msgid "Click on the photo to tag with position"
 msgstr ""
 
-#: lib/web/components/photo_gallery.ex:384
+#: lib/web/components/photo_gallery.ex:385
 #, elixir-autogen, elixir-format
 msgid "Create \"%{query}\"..."
 msgstr ""
@@ -3189,4 +3193,19 @@ msgstr ""
 #: lib/web/live/shared/quick_person_modal.ex:75
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New Person"
+msgstr ""
+
+#: lib/web/live/organization_live/index.ex:132
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Organization renamed"
+msgstr ""
+
+#: lib/web/live/organization_live/index.html.heex:77
+#, elixir-autogen, elixir-format
+msgid "Rename"
+msgstr ""
+
+#: lib/web/live/organization_live/index.html.heex:218
+#, elixir-autogen, elixir-format
+msgid "Rename Organization"
 msgstr ""
