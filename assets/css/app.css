@@ -17,7 +17,7 @@
 /* === Design System: Font Loading === */
 @font-face {
   font-family: 'Bebas Neue';
-  src: url('/fonts/bebas-neue-regular.woff2') format('woff2');
+  src: url('/fonts/bebas-neue.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
