@@ -67,6 +67,24 @@ topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 
+// Scroll-and-highlight for tree view back-references
+window.addEventListener("scroll-highlight", (e) => {
+  const el = e.target
+  if (!el) return
+  // Scroll with offset to account for the sticky toolbar
+  const toolbar = document.getElementById("toolbar")
+  const offset = toolbar ? toolbar.offsetHeight + 46 : 46
+  const top = el.getBoundingClientRect().top + window.scrollY - offset
+  window.scrollTo({ top, behavior: "smooth" })
+  // Highlight with animate.css after scroll settles
+  setTimeout(() => {
+    el.classList.add("animate__animated", "animate__bounce")
+    el.addEventListener("animationend", () => {
+      el.classList.remove("animate__animated", "animate__bounce")
+    }, { once: true })
+  }, 400)
+})
+
 // connect if there are any LiveViews on the page
 liveSocket.connect()
 

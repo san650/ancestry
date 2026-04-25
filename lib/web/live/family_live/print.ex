@@ -4,7 +4,7 @@ defmodule Web.FamilyLive.Print do
   alias Ancestry.Families
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
-  alias Ancestry.People.PrintTree
+  alias Ancestry.People.PersonTree
   alias Ancestry.Relationships
 
   import Web.FamilyLive.PrintTreeComponent
@@ -59,7 +59,7 @@ defmodule Web.FamilyLive.Print do
 
     tree =
       if focus_person do
-        PrintTree.build(focus_person, socket.assigns.family_graph,
+        PersonTree.build(focus_person, socket.assigns.family_graph,
           ancestors: tree_ancestors,
           descendants: tree_descendants,
           other: tree_other
