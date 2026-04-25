@@ -245,7 +245,6 @@ defmodule Ancestry.People do
     Repo.all(
       from p in Person,
         where: p.organization_id == ^org_id,
-        where: p.kind == "family_member",
         where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
@@ -260,7 +259,6 @@ defmodule Ancestry.People do
       from p in Person,
         where: p.id != ^exclude_person_id,
         where: p.organization_id == ^org_id,
-        where: p.kind == "family_member",
         where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,

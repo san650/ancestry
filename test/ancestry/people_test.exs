@@ -245,6 +245,31 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "search_all_people/2 includes acquaintances" do
+    test "returns acquaintances alongside family members" do
+      {org, _} = org_fixture()
+
+      {:ok, family_member} =
+        People.create_person_without_family(org, %{
+          "given_name" => "Carlos",
+          "surname" => "Test",
+          "kind" => "family_member"
+        })
+
+      {:ok, acquaintance} =
+        People.create_person_without_family(org, %{
+          "given_name" => "Carmen",
+          "surname" => "Test",
+          "kind" => "acquaintance"
+        })
+
+      results = People.search_all_people("Car", org.id)
+      ids = Enum.map(results, & &1.id)
+      assert family_member.id in ids
+      assert acquaintance.id in ids
+    end
+  end
+
   describe "search_all_people/3 diacritics" do
     test "finds people with diacritics, excluding a given person" do
       {org, _} = org_fixture()
@@ -837,7 +862,7 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
-  describe "search_all_people/3 excludes acquaintances" do
+  describe "search_all_people/3 includes acquaintances" do
     setup do
       org = insert(:organization)
       person = insert(:person, given_name: "Bob", organization: org)
@@ -845,11 +870,15 @@ defmodule Ancestry.PeopleTest do
       %{org: org, person: person, acquaintance: acquaintance}
     end
 
-    test "does not return acquaintances", %{org: org, person: person, acquaintance: acquaintance} do
+    test "returns both family members and acquaintances", %{
+      org: org,
+      person: person,
+      acquaintance: acquaintance
+    } do
       results = People.search_all_people("Bo", 0, org.id)
       ids = Enum.map(results, & &1.id)
       assert person.id in ids
-      refute acquaintance.id in ids
+      assert acquaintance.id in ids
     end
   end
 
