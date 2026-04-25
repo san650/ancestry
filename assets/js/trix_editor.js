@@ -170,8 +170,12 @@ const TrixEditor = {
     if ((!results || results.length === 0) && (!this.mentionQuery || this.mentionQuery.length < 1)) return
 
     const dropdown = document.createElement("div")
-    dropdown.className = "absolute z-50 bg-white shadow-lg rounded border border-gray-200 py-1 max-h-48 overflow-y-auto"
+    dropdown.className = "absolute z-50 bg-white shadow-lg rounded border border-gray-200 py-1"
     dropdown.style.minWidth = "200px"
+
+    // Scrollable results area
+    const resultsArea = document.createElement("div")
+    resultsArea.className = "max-h-48 overflow-y-auto"
 
     results.forEach((person, index) => {
       const item = document.createElement("button")
@@ -185,10 +189,12 @@ const TrixEditor = {
         e.preventDefault() // keep focus in Trix editor
         this._selectMention(item)
       })
-      dropdown.appendChild(item)
+      resultsArea.appendChild(item)
     })
 
-    // "Create person" button at the bottom of the dropdown
+    dropdown.appendChild(resultsArea)
+
+    // "Create person" button — sticky footer outside the scrollable area
     if (this.mentionQuery && this.mentionQuery.length >= 1) {
       const divider = document.createElement("div")
       divider.className = "border-t border-gray-200 mt-1 pt-1"

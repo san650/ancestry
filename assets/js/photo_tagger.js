@@ -115,6 +115,12 @@ const PhotoTagger = {
     resultsDiv.appendChild(hint)
     wrapper.appendChild(resultsDiv)
 
+    // Sticky footer for "Create person" — outside the scrollable results
+    const createFooter = document.createElement("div")
+    createFooter.id = "tag-create-footer"
+    createFooter.style.display = "none"
+    wrapper.appendChild(createFooter)
+
     c.appendChild(wrapper)
 
     const popoverLeft = Math.min(clientX, window.innerWidth - popoverWidth - 16)
@@ -220,13 +226,17 @@ const PhotoTagger = {
       })
     }
 
-    // "Create person" button at the bottom of search results
+    // "Create person" button in the sticky footer (outside scrollable results)
+    const footer = this.popoverContainer.querySelector("#tag-create-footer")
+    if (!footer) return
+
     const input = this.popoverContainer.querySelector("#tag-search-input")
     const query = input ? input.value.trim() : ""
 
     if (query.length >= 1) {
-      const divider = document.createElement("div")
-      divider.className = "border-t border-white/10 mt-1 pt-1"
+      footer.replaceChildren()
+      footer.style.display = ""
+      footer.className = "border-t border-white/10 p-1"
 
       const createBtn = document.createElement("button")
       createBtn.className = "flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
@@ -255,8 +265,9 @@ const PhotoTagger = {
         }
       })
 
-      divider.appendChild(createBtn)
-      container.appendChild(divider)
+      footer.appendChild(createBtn)
+    } else {
+      footer.style.display = "none"
     }
   },
 

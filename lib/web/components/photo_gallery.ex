@@ -340,6 +340,7 @@ defmodule Web.Components.PhotoGallery do
                         </button>
                       </div>
 
+                      <%!-- Scrollable results --%>
                       <div class="max-h-36 overflow-y-auto flex flex-col gap-0.5">
                         <%= for person <- @link_search_results do %>
                           <button
@@ -368,27 +369,27 @@ defmodule Web.Components.PhotoGallery do
                             </span>
                           </button>
                         <% end %>
-
-                        <%!-- "Create person" at bottom --%>
-                        <%= if String.length(@link_search_query || "") >= 1 do %>
-                          <div class="border-t border-white/10 mt-1 pt-1">
-                            <button
-                              phx-click="create_person_from_link"
-                              phx-value-query={@link_search_query}
-                              class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
-                            >
-                              <div class="w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center shrink-0 text-emerald-400 text-sm font-bold">
-                                +
-                              </div>
-                              <span class="text-sm text-emerald-400 truncate">
-                                {gettext("Create \"%{query}\"...",
-                                  query: String.slice(@link_search_query, 0..19)
-                                )}
-                              </span>
-                            </button>
-                          </div>
-                        <% end %>
                       </div>
+
+                      <%!-- "Create person" sticky footer — outside the scrollable area --%>
+                      <%= if String.length(@link_search_query || "") >= 1 do %>
+                        <div class="border-t border-white/10 mt-1 pt-1">
+                          <button
+                            phx-click="create_person_from_link"
+                            phx-value-query={@link_search_query}
+                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
+                          >
+                            <div class="w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center shrink-0 text-emerald-400 text-sm font-bold">
+                              +
+                            </div>
+                            <span class="text-sm text-emerald-400 truncate">
+                              {gettext("Create \"%{query}\"...",
+                                query: String.slice(@link_search_query, 0..19)
+                              )}
+                            </span>
+                          </button>
+                        </div>
+                      <% end %>
                     </div>
                   <% else %>
                     <button
