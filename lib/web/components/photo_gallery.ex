@@ -324,10 +324,9 @@ defmodule Web.Components.PhotoGallery do
                       <div class="relative">
                         <input
                           type="text"
-                          name="value"
                           value={@link_search_query}
                           placeholder={gettext("Search people...")}
-                          phx-change="link_person_search"
+                          phx-keyup="link_person_search"
                           phx-debounce="300"
                           class="w-full bg-white/[0.08] border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/40"
                           autofocus
