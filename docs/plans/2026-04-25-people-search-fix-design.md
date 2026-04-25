@@ -29,7 +29,7 @@ Add a `name_search` text column to the `persons` table that stores a pre-compute
 #### Migration
 
 - Add column `name_search` (`:text`, nullable) to `persons` table
-- Backfill all existing rows by computing from their current name fields
+- Backfill using Elixir (not SQL) — load all persons in batches, compute `name_search` via `StringUtils.normalize/1`, and update. This guarantees consistency with the changeset logic (SQL `unaccent()` and Elixir's NFD normalization may differ on edge-case characters).
 
 #### Person Schema
 
@@ -62,10 +62,14 @@ where:
 
 **After:**
 ```elixir
-where: ilike(p.name_search, ^like)
+like = StringUtils.normalize_sql_search(search_term)
+
+from p in Person,
+  where: ilike(p.name_search, ^like),
+  ...
 ```
 
-Search term normalization is handled by a new `StringUtils.normalize_sql_search/1` function.
+The `like` variable is built by `StringUtils.normalize_sql_search/1` which normalizes, escapes, and wraps the search term. The raw user input must never be used directly against `name_search`.
 
 **Functions to update:**
 - `search_all_people/2`
@@ -92,7 +96,7 @@ def normalize_sql_search(term) do
 end
 ```
 
-The existing `normalize/1` remains unchanged — it's used for in-memory filtering (kinship, person selector) and for computing the `name_search` column value.
+The existing `normalize/1` remains unchanged — it's used for in-memory filtering (kinship, person selector) and for computing the `name_search` column value. Add a `nil` clause: `def normalize(nil), do: ""` — prevents crashes when name fields are nil.
 
 ### 4. JS Regex Fix
 
@@ -130,3 +134,17 @@ const match = text.match(/(?:^|[^\p{L}\p{N}])@([\p{L}\p{N} ]{0,30})$/u)
 - Photo tagger: cross-field search finds the person
 
 All tests use factory-generated people with fake names.
+
+## Invariants and Out-of-Scope Notes
+
+**`name_search` is only recomputed in `Person.changeset/2`.** Functions that modify Person via `Ecto.Changeset.change/2` (e.g., `convert_to_acquaintance/1`, `convert_to_family_member/1`, photo status updates) do NOT touch name fields and do NOT need to recompute `name_search`. This is safe because those functions never modify name fields. If a future function modifies name fields, it must go through `Person.changeset/2`.
+
+**`photo_changeset/2` does not need updating** — it only casts `:photo` and `:photo_status`.
+
+**CSV import is safe** — it creates people via `People.create_person/2` which calls `Person.changeset/2`.
+
+**Behavior expansion:** `list_people_for_family_with_relationship_counts` and `list_people_for_org` currently only search given_name, surname, and nickname. After this change, they will also match alternate_names and birth names via the `name_search` column. This is intentional and a welcome improvement.
+
+**Duplicated tokens from `default_birth_names`:** When `given_name_at_birth` defaults to `given_name`, the `name_search` column will contain the name twice (e.g., "martin martin"). This is harmless for ILIKE matching.
+
+**Client-side sidebar filter (`PeopleListComponent`)** only filters on surname + given_name via `data-filter-name`. Expanding it to use `name_search` is out of scope for this fix.
