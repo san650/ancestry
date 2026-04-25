@@ -97,6 +97,20 @@
       >
         <.icon name="hero-exclamation-triangle-mini" class="w-4 h-4" /> {gettext("No family")}
       </button>
+      <button
+        phx-click="toggle_acquaintance"
+        class={[
+          "inline-flex items-center gap-1.5 rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold",
+          if(@acquaintance_only,
+            do: "bg-ds-tertiary text-ds-on-surface",
+            else:
+              "bg-ds-surface-high text-ds-on-surface hover:bg-ds-surface-highest transition-colors"
+          )
+        ]}
+        {test_id("org-people-acquaintance-chip")}
+      >
+        <.icon name="hero-user-minus-mini" class="w-4 h-4" /> {gettext("Non-family")}
+      </button>
     </div>
   </div>
 
@@ -229,6 +243,11 @@
               {person.given_name}
             <% end %>
           </.link>
+          <%= if person.kind == "acquaintance" do %>
+            <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-ds-surface-high text-ds-on-surface-variant">
+              {gettext("Non-family")}
+            </span>
+          <% end %>
         </div>
 
         <%!-- Estimated Age cell --%>

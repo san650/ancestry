@@ -55,9 +55,11 @@ defmodule Ancestry.People do
 
   def list_people_for_family_with_relationship_counts(family_id, opts) when is_list(opts) do
     unlinked_only = Keyword.get(opts, :unlinked_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     base_people_query(family_id)
     |> maybe_filter_unlinked(unlinked_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -71,6 +73,7 @@ defmodule Ancestry.People do
 
   def list_people_for_family_with_relationship_counts(family_id, search_term, opts) do
     unlinked_only = Keyword.get(opts, :unlinked_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     escaped =
       search_term
@@ -88,6 +91,7 @@ defmodule Ancestry.People do
         fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
     )
     |> maybe_filter_unlinked(unlinked_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -98,9 +102,11 @@ defmodule Ancestry.People do
 
   def list_people_for_org(org_id, opts) when is_list(opts) do
     no_family_only = Keyword.get(opts, :no_family_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     base_org_people_query(org_id)
     |> maybe_filter_no_family(no_family_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -112,6 +118,7 @@ defmodule Ancestry.People do
 
   def list_people_for_org(org_id, search_term, opts) do
     no_family_only = Keyword.get(opts, :no_family_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     escaped =
       search_term
@@ -129,6 +136,7 @@ defmodule Ancestry.People do
         fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
     )
     |> maybe_filter_no_family(no_family_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -497,4 +505,10 @@ defmodule Ancestry.People do
   end
 
   defp maybe_filter_unlinked(query, false), do: query
+
+  defp maybe_filter_acquaintance_only(query, true) do
+    where(query, [p], p.kind == "acquaintance")
+  end
+
+  defp maybe_filter_acquaintance_only(query, false), do: query
 end
