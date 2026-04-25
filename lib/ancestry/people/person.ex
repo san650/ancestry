@@ -23,6 +23,7 @@ defmodule Ancestry.People.Person do
     field :external_id, :string
     field :photo, Ancestry.Uploaders.PersonPhoto.Type
     field :photo_status, :string
+    field :kind, :string, default: "family_member"
 
     belongs_to :organization, Ancestry.Organizations.Organization
     many_to_many :families, Ancestry.Families.Family, join_through: "family_members"
@@ -50,7 +51,8 @@ defmodule Ancestry.People.Person do
     :death_year,
     :deceased,
     :gender,
-    :external_id
+    :external_id,
+    :kind
   ]
 
   def changeset(person, attrs) do
@@ -58,6 +60,7 @@ defmodule Ancestry.People.Person do
     |> cast(attrs, @cast_fields)
     |> default_birth_names()
     |> validate_inclusion(:gender, ~w(female male other))
+    |> validate_inclusion(:kind, ~w(family_member acquaintance))
     |> validate_number(:birth_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
     |> validate_number(:birth_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)
     |> validate_number(:birth_year, greater_than_or_equal_to: 1, less_than_or_equal_to: 9999)
@@ -92,4 +95,7 @@ defmodule Ancestry.People.Person do
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
   end
+
+  def acquaintance?(%__MODULE__{kind: "acquaintance"}), do: true
+  def acquaintance?(%__MODULE__{}), do: false
 end
