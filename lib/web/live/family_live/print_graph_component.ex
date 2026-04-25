@@ -52,7 +52,7 @@ defmodule Web.FamilyLive.PrintGraphComponent do
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
       class="relative z-10 flex items-center justify-center"
     >
-      <.print_person_card person={@node.person} col_width={@col_width} />
+      <.print_person_card person={@node.person} />
     </div>
     """
   end
@@ -61,14 +61,11 @@ defmodule Web.FamilyLive.PrintGraphComponent do
 
   defp print_person_card(assigns) do
     ~H"""
-    <div
-      class={[
-        "flex items-center justify-center text-center h-[40px] px-1 py-2",
-        "bg-white border border-gray-300 rounded-sm",
-        gender_border_class(@person.gender)
-      ]}
-      style={"width: #{@col_width}px"}
-    >
+    <div class={[
+      "flex items-center justify-center text-center w-full h-[40px] px-1 py-2",
+      "bg-white border border-gray-300 rounded-sm",
+      gender_border_class(@person.gender)
+    ]}>
       <p class="text-[10px] font-medium text-black leading-tight line-clamp-2">
         {Person.display_name(@person)}
       </p>
