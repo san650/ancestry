@@ -198,6 +198,7 @@ defmodule Web.Components.PhotoGallery do
             alt={@selected_photo.original_filename}
             class="max-h-full max-w-full object-contain rounded-ds-sharp shadow-2xl"
             phx-hook="PhotoTagger"
+            data-photo-id={@selected_photo.id}
           />
 
           <button

@@ -171,55 +171,93 @@ const PhotoTagger = {
       p.className = "text-xs text-white/30 px-2 py-3 text-center"
       p.textContent = "No results"
       container.appendChild(p)
-      return
+    } else {
+      results.forEach(person => {
+        const btn = document.createElement("button")
+        btn.dataset.personId = person.id
+        btn.className = "flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-left"
+
+        if (person.has_photo) {
+          const img = document.createElement("img")
+          img.src = person.photo_url
+          img.className = "w-6 h-6 rounded-full object-cover shrink-0"
+          btn.appendChild(img)
+        } else {
+          const placeholder = document.createElement("div")
+          placeholder.className = "w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0"
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+          svg.setAttribute("class", "w-3.5 h-3.5 text-white/40")
+          svg.setAttribute("fill", "none")
+          svg.setAttribute("viewBox", "0 0 24 24")
+          svg.setAttribute("stroke", "currentColor")
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
+          path.setAttribute("stroke-linecap", "round")
+          path.setAttribute("stroke-linejoin", "round")
+          path.setAttribute("stroke-width", "2")
+          path.setAttribute("d", "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
+          svg.appendChild(path)
+          placeholder.appendChild(svg)
+          btn.appendChild(placeholder)
+        }
+
+        const nameSpan = document.createElement("span")
+        nameSpan.className = "text-sm text-white/80 truncate"
+        nameSpan.textContent = person.name
+        btn.appendChild(nameSpan)
+
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation()
+          if (this.pendingClick) {
+            this.pushEvent("tag_person", {
+              person_id: String(person.id),
+              x: this.pendingClick.x,
+              y: this.pendingClick.y
+            })
+          }
+        })
+
+        container.appendChild(btn)
+      })
     }
 
-    results.forEach(person => {
-      const btn = document.createElement("button")
-      btn.dataset.personId = person.id
-      btn.className = "flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors text-left"
+    // "Create person" button at the bottom of search results
+    const input = this.popoverContainer.querySelector("#tag-search-input")
+    const query = input ? input.value.trim() : ""
 
-      if (person.has_photo) {
-        const img = document.createElement("img")
-        img.src = person.photo_url
-        img.className = "w-6 h-6 rounded-full object-cover shrink-0"
-        btn.appendChild(img)
-      } else {
-        const placeholder = document.createElement("div")
-        placeholder.className = "w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0"
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-        svg.setAttribute("class", "w-3.5 h-3.5 text-white/40")
-        svg.setAttribute("fill", "none")
-        svg.setAttribute("viewBox", "0 0 24 24")
-        svg.setAttribute("stroke", "currentColor")
-        const path = document.createElementNS("http://www.w3.org/2000/svg", "path")
-        path.setAttribute("stroke-linecap", "round")
-        path.setAttribute("stroke-linejoin", "round")
-        path.setAttribute("stroke-width", "2")
-        path.setAttribute("d", "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z")
-        svg.appendChild(path)
-        placeholder.appendChild(svg)
-        btn.appendChild(placeholder)
-      }
+    if (query.length >= 1) {
+      const divider = document.createElement("div")
+      divider.className = "border-t border-white/10 mt-1 pt-1"
 
-      const nameSpan = document.createElement("span")
-      nameSpan.className = "text-sm text-white/80 truncate"
-      nameSpan.textContent = person.name
-      btn.appendChild(nameSpan)
+      const createBtn = document.createElement("button")
+      createBtn.className = "flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
 
-      btn.addEventListener("click", (e) => {
+      const plusIcon = document.createElement("div")
+      plusIcon.className = "w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center shrink-0 text-emerald-400 text-sm font-bold"
+      plusIcon.textContent = "+"
+      createBtn.appendChild(plusIcon)
+
+      const label = document.createElement("span")
+      label.className = "text-sm text-emerald-400 truncate"
+      const truncated = query.length > 20 ? query.substring(0, 20) + "..." : query
+      label.textContent = `Create "${truncated}"`
+      createBtn.appendChild(label)
+
+      createBtn.addEventListener("click", (e) => {
         e.stopPropagation()
         if (this.pendingClick) {
-          this.pushEvent("tag_person", {
-            person_id: String(person.id),
+          this.pushEvent("create_person_from_tag", {
             x: this.pendingClick.x,
-            y: this.pendingClick.y
+            y: this.pendingClick.y,
+            query: query,
+            photo_id: this.el.dataset.photoId
           })
+          this.hidePopover()
         }
       })
 
-      container.appendChild(btn)
-    })
+      divider.appendChild(createBtn)
+      container.appendChild(divider)
+    }
   },
 
   renderCircles(people) {

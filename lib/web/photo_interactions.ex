@@ -160,7 +160,7 @@ defmodule Web.PhotoInteractions do
     {:noreply, socket}
   end
 
-  defp push_photo_people(socket) do
+  def push_photo_people(socket) do
     people_data =
       Enum.map(socket.assigns.photo_people, fn pp ->
         %{

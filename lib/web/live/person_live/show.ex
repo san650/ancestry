@@ -31,6 +31,9 @@ defmodule Web.PersonLive.Show do
      |> assign(:panel_open, false)
      |> assign(:photo_people, [])
      |> assign(:comments_topic, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:pending_tag, nil)
+     |> assign(:quick_person_prefill, nil)
      |> load_relationships(person)
      |> load_person_photos(person)
      |> allow_upload(:photo,
@@ -375,6 +378,18 @@ defmodule Web.PersonLive.Show do
     {:reply, payload, socket}
   end
 
+  def handle_event(
+        "create_person_from_tag",
+        %{"x" => x, "y" => y, "query" => query, "photo_id" => photo_id},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:pending_tag, %{x: x, y: y, photo_id: String.to_integer(photo_id)})
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, query)}
+  end
+
   @impl true
   def handle_info({:person_photo_processed, person}, socket) do
     {:noreply, assign(socket, :person, person)}
@@ -404,6 +419,39 @@ defmodule Web.PersonLive.Show do
 
   def handle_info({:relationship_error, message}, socket) do
     {:noreply, put_flash(socket, :error, message)}
+  end
+
+  def handle_info({:person_created, person}, socket) do
+    socket =
+      case socket.assigns[:pending_tag] do
+        %{x: x, y: y, photo_id: photo_id} ->
+          Galleries.tag_person_in_photo(photo_id, person.id, x, y)
+
+          if socket.assigns.selected_photo && socket.assigns.selected_photo.id == photo_id do
+            socket
+            |> assign(:photo_people, Galleries.list_photo_people(photo_id))
+            |> PhotoInteractions.push_photo_people()
+          else
+            socket
+          end
+
+        nil ->
+          socket
+      end
+
+    {:noreply,
+     socket
+     |> assign(:pending_tag, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    {:noreply,
+     socket
+     |> assign(:pending_tag, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
   end
 
   # --- Private helpers ---

@@ -356,6 +356,15 @@
     />
   <% end %>
 
+  <.live_component
+    :if={@show_quick_person_modal}
+    module={Web.Shared.QuickPersonModal}
+    id="quick-person-modal"
+    show_acquaintance={true}
+    organization_id={@current_scope.organization.id}
+    prefill_name={@quick_person_prefill}
+  />
+
   <%!-- Delete photos confirmation modal --%>
   <%= if @confirm_delete_photos do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">

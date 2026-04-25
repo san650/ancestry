@@ -650,6 +650,15 @@
         current_scope={@current_scope}
       />
     <% end %>
+
+    <.live_component
+      :if={@show_quick_person_modal}
+      module={Web.Shared.QuickPersonModal}
+      id="quick-person-modal"
+      show_acquaintance={true}
+      organization_id={@current_scope.organization.id}
+      prefill_name={@quick_person_prefill}
+    />
   <% end %>
 
   <%!-- Remove Confirmation Modal --%>
