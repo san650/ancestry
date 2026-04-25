@@ -16,7 +16,10 @@ defmodule Web.OrganizationLive.Index do
        Organizations.list_organizations_for_account(socket.assigns.current_scope.account)
      )
      |> assign(:show_create_modal, false)
-     |> assign(:form, to_form(Organizations.change_organization(%Organization{})))}
+     |> assign(:form, to_form(Organizations.change_organization(%Organization{})))
+     |> assign(:show_rename_modal, false)
+     |> assign(:rename_form, nil)
+     |> assign(:rename_org, nil)}
   end
 
   @impl true
@@ -92,6 +95,53 @@ defmodule Web.OrganizationLive.Index do
     else
       {:noreply, push_navigate(socket, to: ~p"/org/#{org_id}")}
     end
+  end
+
+  def handle_event("rename_selected", _, socket) do
+    [org_id] = MapSet.to_list(socket.assigns.selected_ids)
+    org = Organizations.get_organization!(org_id)
+    changeset = Organizations.change_organization(org)
+
+    {:noreply,
+     socket
+     |> assign(:selection_mode, false)
+     |> assign(:selected_ids, MapSet.new())
+     |> assign(:show_rename_modal, true)
+     |> assign(:rename_org, org)
+     |> assign(:rename_form, to_form(changeset))}
+  end
+
+  def handle_event("validate_rename", %{"organization" => params}, socket) do
+    changeset =
+      socket.assigns.rename_org
+      |> Organizations.change_organization(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :rename_form, to_form(changeset))}
+  end
+
+  def handle_event("save_rename", %{"organization" => params}, socket) do
+    case Organizations.update_organization(socket.assigns.rename_org, params) do
+      {:ok, updated_org} ->
+        {:noreply,
+         socket
+         |> stream_insert(:organizations, updated_org)
+         |> assign(:show_rename_modal, false)
+         |> assign(:rename_form, nil)
+         |> assign(:rename_org, nil)
+         |> put_flash(:info, gettext("Organization renamed"))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :rename_form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("cancel_rename", _, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_rename_modal, false)
+     |> assign(:rename_form, nil)
+     |> assign(:rename_org, nil)}
   end
 
   def handle_event("request_batch_delete", _, socket) do

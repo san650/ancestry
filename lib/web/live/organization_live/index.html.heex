@@ -55,7 +55,7 @@
     </.link>
   </.nav_drawer>
 
-  <div class="bg-ds-surface-low min-h-screen">
+  <div class="bg-white min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
       <%= if @selection_mode do %>
@@ -67,14 +67,25 @@
           <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
             {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
           </span>
-          <button
-            phx-click="request_batch_delete"
-            disabled={MapSet.size(@selected_ids) == 0}
-            class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-            {test_id("selection-bar-delete-btn")}
-          >
-            {gettext("Delete")}
-          </button>
+          <div class="flex items-center gap-2">
+            <%= if MapSet.size(@selected_ids) == 1 and can?(@current_scope, :update, Organization) do %>
+              <button
+                phx-click="rename_selected"
+                class="px-3 py-2 text-sm font-ds-body font-semibold text-ds-on-surface bg-ds-surface-high rounded-ds-sharp transition-colors hover:bg-ds-surface-highest lg:bg-ds-surface-high lg:text-ds-on-surface"
+                {test_id("selection-bar-rename-btn")}
+              >
+                {gettext("Rename")}
+              </button>
+            <% end %>
+            <button
+              phx-click="request_batch_delete"
+              disabled={MapSet.size(@selected_ids) == 0}
+              class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+              {test_id("selection-bar-delete-btn")}
+            >
+              {gettext("Delete")}
+            </button>
+          </div>
         </div>
       <% end %>
 
@@ -95,7 +106,7 @@
           :for={{id, org} <- @streams.organizations}
           id={id}
           class={[
-            "block bg-ds-surface-card rounded-ds-sharp p-5 hover:bg-ds-surface-highest transition-colors cursor-pointer",
+            "block bg-ds-surface-card rounded-ds-sharp shadow-ds-card p-5 hover:bg-ds-surface-highest transition-colors cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, org.id),
               do: "outline outline-3 outline-ds-primary outline-offset-2",
               else: "outline outline-3 outline-transparent outline-offset-2"
@@ -168,6 +179,66 @@
               phx-click="cancel_create"
               class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
               {test_id("org-create-cancel-btn")}
+            >
+              {gettext("Cancel")}
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <%!-- Rename Organization Modal --%>
+  <%= if @show_rename_modal do %>
+    <div
+      id="rename-org-overlay"
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_rename"
+      phx-key="Escape"
+      phx-mounted={JS.focus_first()}
+    >
+      <div
+        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        phx-click="cancel_rename"
+        {test_id("org-rename-backdrop")}
+      >
+      </div>
+      <div
+        id="rename-organization-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rename-org-title"
+        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        {test_id("org-rename-modal")}
+      >
+        <h2
+          id="rename-org-title"
+          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6"
+        >
+          {gettext("Rename Organization")}
+        </h2>
+        <.form
+          for={@rename_form}
+          id="rename-organization-form"
+          phx-change="validate_rename"
+          phx-submit="save_rename"
+          {test_id("org-rename-form")}
+        >
+          <.input field={@rename_form[:name]} label={gettext("Organization name")} autofocus />
+          <div class="flex gap-3 mt-6">
+            <button
+              type="submit"
+              class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              phx-disable-with={gettext("Saving...")}
+              {test_id("org-rename-submit-btn")}
+            >
+              {gettext("Save")}
+            </button>
+            <button
+              type="button"
+              phx-click="cancel_rename"
+              class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              {test_id("org-rename-cancel-btn")}
             >
               {gettext("Cancel")}
             </button>

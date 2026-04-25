@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-white sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <button
           type="button"
@@ -85,7 +85,7 @@
     </.link>
   </.nav_drawer>
 
-  <div class="bg-ds-surface-low min-h-screen">
+  <div class="bg-white min-h-screen">
     <div id="family-index-root" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
       <%= if @selection_mode do %>
@@ -126,7 +126,7 @@
           :for={{id, family} <- @streams.families}
           id={id}
           class={[
-            "group relative bg-ds-surface-card rounded-ds-sharp hover:bg-ds-surface-highest transition-colors overflow-hidden cursor-pointer",
+            "group relative bg-ds-surface-card rounded-ds-sharp shadow-ds-card hover:bg-ds-surface-highest transition-colors overflow-hidden cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, family.id),
               do: "outline outline-3 outline-ds-primary outline-offset-2",
               else: "outline outline-3 outline-transparent outline-offset-2"
