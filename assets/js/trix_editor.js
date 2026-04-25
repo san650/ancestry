@@ -96,6 +96,37 @@ const TrixEditor = {
     this.handleEvent("mention_results", ({ results }) => {
       this._showMentionDropdown(results)
     })
+
+    // Receive newly created person from QuickPersonModal — insert as mention
+    this.handleEvent("mention_created", ({ id, name }) => {
+      const editor = this.editorEl.editor
+      const start = this._savedMentionStart
+      const query = this._savedMentionQuery
+
+      if (start != null && query != null) {
+        // Delete the @query text (start already points at the @ character)
+        const deleteEnd = start + query.length + 1 // +1 for the @ symbol
+        editor.setSelectedRange([start, deleteEnd])
+        editor.deleteInDirection("backward")
+      }
+
+      // Insert mention attachment using the same pattern as _selectMention
+      const attachment = new Trix.Attachment({
+        contentType: "application/vnd.memory-mention",
+        content: `<span data-person-id="${id}">@${name}</span>`,
+      })
+      editor.insertAttachment(attachment)
+
+      // Cleanup saved state
+      this._savedMentionStart = null
+      this._savedMentionQuery = null
+    })
+
+    // QuickPersonModal was cancelled — just clean up saved state
+    this.handleEvent("mention_cancelled", () => {
+      this._savedMentionStart = null
+      this._savedMentionQuery = null
+    })
   },
 
   destroyed() {
@@ -136,7 +167,7 @@ const TrixEditor = {
       this.mentionDropdown = null
     }
     this.selectedIndex = 0
-    if (!results || results.length === 0) return
+    if ((!results || results.length === 0) && (!this.mentionQuery || this.mentionQuery.length < 1)) return
 
     const dropdown = document.createElement("div")
     dropdown.className = "absolute z-50 bg-white shadow-lg rounded border border-gray-200 py-1 max-h-48 overflow-y-auto"
@@ -156,6 +187,40 @@ const TrixEditor = {
       })
       dropdown.appendChild(item)
     })
+
+    // "Create person" button at the bottom of the dropdown
+    if (this.mentionQuery && this.mentionQuery.length >= 1) {
+      const divider = document.createElement("div")
+      divider.className = "border-t border-gray-200 mt-1 pt-1"
+
+      const createBtn = document.createElement("button")
+      createBtn.type = "button"
+      createBtn.className = "w-full text-left px-3 py-2 text-sm hover:bg-emerald-50 text-emerald-600 flex items-center gap-2"
+
+      const plusSpan = document.createElement("span")
+      plusSpan.className = "w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-600 text-xs font-bold"
+      plusSpan.textContent = "+"
+      createBtn.appendChild(plusSpan)
+
+      const label = document.createElement("span")
+      const truncated = this.mentionQuery.length > 20 ? this.mentionQuery.substring(0, 20) + "..." : this.mentionQuery
+      label.textContent = `Create "${truncated}"`
+      createBtn.appendChild(label)
+
+      createBtn.addEventListener("mousedown", (e) => {
+        e.preventDefault()
+        // Save cursor position for later insertion — _closeMentionDropdown
+        // resets mentionQuery to null, so we must capture these first.
+        this._savedMentionStart = this.mentionStart
+        this._savedMentionQuery = this.mentionQuery
+
+        this.pushEvent("create_person_from_mention", { query: this.mentionQuery })
+        this._closeMentionDropdown()
+      })
+
+      divider.appendChild(createBtn)
+      dropdown.appendChild(divider)
+    }
 
     // Position near the text cursor using browser selection API
     const sel = window.getSelection()

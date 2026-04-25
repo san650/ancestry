@@ -1,3 +1,59 @@
+# Test harness LiveView that embeds the QuickPersonModal component.
+# Defined BEFORE the test module so it is compiled and available when
+# `live_isolated` tries to mount it in async test runs.
+defmodule Web.Shared.QuickPersonModalTestLive do
+  use Phoenix.LiveView
+
+  @impl true
+  def mount(_params, session, socket) do
+    org_id = session["org_id"]
+    family_id = session["family_id"]
+    show_modal_wrapper = Map.get(session, "show_modal_wrapper", true)
+    show_acquaintance = Map.get(session, "show_acquaintance", true)
+    prefill_name = Map.get(session, "prefill_name", nil)
+
+    {:ok,
+     assign(socket,
+       org_id: org_id,
+       family_id: family_id,
+       show_modal_wrapper: show_modal_wrapper,
+       show_acquaintance: show_acquaintance,
+       prefill_name: prefill_name,
+       result: nil
+     )}
+  end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div>
+      <%= if @result do %>
+        <div id="test-result">{@result}</div>
+      <% end %>
+      <.live_component
+        module={Web.Shared.QuickPersonModal}
+        id="quick-person-modal"
+        organization_id={@org_id}
+        family_id={@family_id}
+        show_modal_wrapper={@show_modal_wrapper}
+        show_acquaintance={@show_acquaintance}
+        prefill_name={@prefill_name}
+      />
+    </div>
+    """
+  end
+
+  @impl true
+  def handle_info({:person_created, person}, socket) do
+    name = Ancestry.People.Person.display_name(person)
+    {:noreply, assign(socket, :result, "person_created:#{name}")}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    {:noreply, assign(socket, :result, "cancelled")}
+  end
+end
+
 defmodule Web.Shared.QuickPersonModalTest do
   use Web.ConnCase, async: true
 
@@ -310,59 +366,5 @@ defmodule Web.Shared.QuickPersonModalTest do
       assert diana.birth_month == 3
       assert diana.birth_year == 1990
     end
-  end
-end
-
-# Test harness LiveView that embeds the QuickPersonModal component
-defmodule Web.Shared.QuickPersonModalTestLive do
-  use Phoenix.LiveView
-
-  @impl true
-  def mount(_params, session, socket) do
-    org_id = session["org_id"]
-    family_id = session["family_id"]
-    show_modal_wrapper = Map.get(session, "show_modal_wrapper", true)
-    show_acquaintance = Map.get(session, "show_acquaintance", true)
-    prefill_name = Map.get(session, "prefill_name", nil)
-
-    {:ok,
-     assign(socket,
-       org_id: org_id,
-       family_id: family_id,
-       show_modal_wrapper: show_modal_wrapper,
-       show_acquaintance: show_acquaintance,
-       prefill_name: prefill_name,
-       result: nil
-     )}
-  end
-
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-      <%= if @result do %>
-        <div id="test-result">{@result}</div>
-      <% end %>
-      <.live_component
-        module={Web.Shared.QuickPersonModal}
-        id="quick-person-modal"
-        organization_id={@org_id}
-        family_id={@family_id}
-        show_modal_wrapper={@show_modal_wrapper}
-        show_acquaintance={@show_acquaintance}
-        prefill_name={@prefill_name}
-      />
-    </div>
-    """
-  end
-
-  @impl true
-  def handle_info({:person_created, person}, socket) do
-    name = Ancestry.People.Person.display_name(person)
-    {:noreply, assign(socket, :result, "person_created:#{name}")}
-  end
-
-  def handle_info({:quick_person_cancelled}, socket) do
-    {:noreply, assign(socket, :result, "cancelled")}
   end
 end

@@ -697,6 +697,9 @@ defmodule Web.FamilyLive.Show do
   # assign_async spawns linked tasks that send :EXIT on completion
   def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
 
+  # Catch-all for unexpected messages (e.g. :query_fired from Tidewave MCP)
+  def handle_info(_msg, socket), do: {:noreply, socket}
+
   # Private helpers
 
   defp find_person(people, person_id) do
