@@ -1,9 +1,10 @@
-defmodule Ancestry.People.PrintTree do
+defmodule Ancestry.People.PersonTree do
   @moduledoc """
-  Builds a nested tree structure from a FamilyGraph for print rendering.
+  Builds a nested tree structure from a FamilyGraph for the interactive tree view.
 
-  Walks upward from the focus person to find root ancestors, then downward
-  to produce a nested list of person entries with their partners and children.
+  Similar to `PrintTree` but includes additional UI-relevant flags on each entry:
+  `has_more_up`, `has_more_down`, and `duplicated`. These allow the tree view
+  component to render expansion indicators and duplicate markers on person cards.
   """
 
   alias Ancestry.People.FamilyGraph
@@ -12,7 +13,7 @@ defmodule Ancestry.People.PrintTree do
   defstruct [:focus_person_id, :roots]
 
   @doc """
-  Builds a print tree centered on the focus person.
+  Builds an interactive tree centered on the focus person.
 
   Options:
     - `ancestors:` — generations upward (default 2)
@@ -24,14 +25,15 @@ defmodule Ancestry.People.PrintTree do
     descendants = Keyword.get(opts, :descendants, 2)
     other = Keyword.get(opts, :other, 1)
 
-    # Find the root ancestors by walking up from the focus person
-    roots = find_roots(graph, focus_person.id, ancestors)
+    # Find the root ancestors by walking up from the focus person.
+    # Returns {root_id, has_more_up} tuples.
+    root_tuples = find_roots(graph, focus_person.id, ancestors)
 
     # Build the tree downward from each root
     seen = MapSet.new()
 
     {tree_roots, _seen} =
-      Enum.map_reduce(roots, seen, fn root_id, seen ->
+      Enum.map_reduce(root_tuples, seen, fn {root_id, has_more_up}, seen ->
         build_person_entry(
           graph,
           root_id,
@@ -40,7 +42,8 @@ defmodule Ancestry.People.PrintTree do
           descendants,
           other,
           0,
-          ancestors
+          ancestors,
+          has_more_up
         )
       end)
 
@@ -48,17 +51,23 @@ defmodule Ancestry.People.PrintTree do
   end
 
   # Walk upward from the focus person to find the oldest ancestors within depth.
+  # Returns a list of {person_id, has_more_up} tuples.
   defp find_roots(graph, person_id, max_depth) do
-    do_find_roots(graph, [person_id], 0, max_depth, MapSet.new())
+    do_find_roots(graph, [{person_id, false}], 0, max_depth, MapSet.new())
   end
 
-  defp do_find_roots(_graph, person_ids, depth, max_depth, _visited) when depth >= max_depth do
-    person_ids
+  defp do_find_roots(graph, person_tuples, depth, max_depth, _visited)
+       when depth >= max_depth do
+    # At the depth limit — check if each person has parents beyond the boundary
+    Enum.map(person_tuples, fn {pid, _} ->
+      has_more = FamilyGraph.parents(graph, pid) != []
+      {pid, has_more}
+    end)
   end
 
-  defp do_find_roots(graph, person_ids, depth, max_depth, visited) do
+  defp do_find_roots(graph, person_tuples, depth, max_depth, visited) do
     {roots, next_level, visited} =
-      Enum.reduce(person_ids, {[], [], visited}, fn pid, {roots_acc, next_acc, vis} ->
+      Enum.reduce(person_tuples, {[], [], visited}, fn {pid, _}, {roots_acc, next_acc, vis} ->
         if MapSet.member?(vis, pid) do
           {roots_acc, next_acc, vis}
         else
@@ -67,9 +76,11 @@ defmodule Ancestry.People.PrintTree do
           parent_ids = Enum.map(parents, fn {p, _r} -> p.id end)
 
           if parent_ids == [] do
-            {[pid | roots_acc], next_acc, vis}
+            # No parents — this is a true root, no more ancestors above
+            {[{pid, false} | roots_acc], next_acc, vis}
           else
-            {roots_acc, parent_ids ++ next_acc, vis}
+            next_tuples = Enum.map(parent_ids, fn id -> {id, false} end)
+            {roots_acc, next_tuples ++ next_acc, vis}
           end
         end
       end)
@@ -77,7 +88,11 @@ defmodule Ancestry.People.PrintTree do
     if next_level == [] do
       Enum.reverse(roots)
     else
-      upper_roots = do_find_roots(graph, Enum.uniq(next_level), depth + 1, max_depth, visited)
+      unique_next = next_level |> Enum.uniq_by(fn {id, _} -> id end)
+
+      upper_roots =
+        do_find_roots(graph, unique_next, depth + 1, max_depth, visited)
+
       Enum.reverse(roots) ++ upper_roots
     end
   end
@@ -90,11 +105,23 @@ defmodule Ancestry.People.PrintTree do
          max_desc,
          max_other,
          depth_from_focus,
-         max_ancestors
+         max_ancestors,
+         has_more_up
        ) do
     if MapSet.member?(seen, person_id) do
       person = FamilyGraph.fetch_person!(graph, person_id)
-      entry = %{type: :back_ref, person: person}
+
+      entry = %{
+        type: :person,
+        person: person,
+        is_focus: person_id == focus_id,
+        partners: [],
+        solo_children: [],
+        has_more_up: FamilyGraph.parents(graph, person_id) != [],
+        has_more_down: FamilyGraph.has_children?(graph, person_id),
+        duplicated: true
+      }
+
       {entry, seen}
     else
       person = FamilyGraph.fetch_person!(graph, person_id)
@@ -106,18 +133,21 @@ defmodule Ancestry.People.PrintTree do
       all_partners = FamilyGraph.all_partners(graph, person_id)
       solo_children = FamilyGraph.solo_children(graph, person_id)
 
+      expand_children? =
+        should_expand_children?(
+          is_focus,
+          on_direct_path,
+          depth_from_focus,
+          max_desc,
+          max_other
+        )
+
       {partner_entries, seen} =
         Enum.map_reduce(all_partners, seen, fn {partner, rel}, seen ->
           shared_children = FamilyGraph.children_of_pair(graph, person_id, partner.id)
 
           {children_entries, seen} =
-            if should_expand_children?(
-                 is_focus,
-                 on_direct_path,
-                 depth_from_focus,
-                 max_desc,
-                 max_other
-               ) do
+            if expand_children? do
               Enum.map_reduce(shared_children, seen, fn child, seen ->
                 child_depth = if is_focus, do: 1, else: depth_from_focus + 1
 
@@ -129,31 +159,29 @@ defmodule Ancestry.People.PrintTree do
                   max_desc,
                   max_other,
                   child_depth,
-                  max_ancestors
+                  max_ancestors,
+                  false
                 )
               end)
             else
               {[], seen}
             end
 
+          partner_has_more_up = FamilyGraph.parents(graph, partner.id) != []
+
           entry = %{
             type: :partner,
             person: partner,
             relationship_type: rel.type,
-            children: children_entries
+            children: children_entries,
+            has_more_up: partner_has_more_up
           }
 
           {entry, seen}
         end)
 
       {solo_entries, seen} =
-        if should_expand_children?(
-             is_focus,
-             on_direct_path,
-             depth_from_focus,
-             max_desc,
-             max_other
-           ) do
+        if expand_children? do
           Enum.map_reduce(solo_children, seen, fn child, seen ->
             child_depth = if is_focus, do: 1, else: depth_from_focus + 1
 
@@ -165,11 +193,19 @@ defmodule Ancestry.People.PrintTree do
               max_desc,
               max_other,
               child_depth,
-              max_ancestors
+              max_ancestors,
+              false
             )
           end)
         else
           {[], seen}
+        end
+
+      has_more_down =
+        if expand_children? do
+          false
+        else
+          FamilyGraph.has_children?(graph, person_id)
         end
 
       entry = %{
@@ -177,7 +213,10 @@ defmodule Ancestry.People.PrintTree do
         person: person,
         is_focus: is_focus,
         partners: partner_entries,
-        solo_children: solo_entries
+        solo_children: solo_entries,
+        has_more_up: has_more_up,
+        has_more_down: has_more_down,
+        duplicated: false
       }
 
       {entry, seen}
@@ -188,7 +227,8 @@ defmodule Ancestry.People.PrintTree do
   defp should_expand_children?(_is_focus, true, _depth, _max_desc, _max_other), do: true
 
   defp should_expand_children?(_is_focus, _on_direct, depth, max_desc, _max_other)
-       when depth < max_desc, do: true
+       when depth < max_desc,
+       do: true
 
   defp should_expand_children?(_, _, _, _, _), do: false
 

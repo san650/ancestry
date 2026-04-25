@@ -18,7 +18,7 @@ defmodule Web.FamilyLive.PrintTreeComponent do
 
   # --- Entry dispatcher ---
 
-  defp tree_entry(%{entry: %{type: :back_ref}} = assigns) do
+  defp tree_entry(%{entry: %{duplicated: true}} = assigns) do
     ~H"""
     <div class="text-gray-400 italic text-[10px]">
       &rarr; {Person.display_name(@entry.person)} ({gettext("see above")})

@@ -25,6 +25,39 @@
 
       <%!-- Right: desktop-only actions --%>
       <div class="hidden lg:flex items-center gap-1">
+        <%!-- View mode toggle --%>
+        <div
+          class="flex bg-ds-surface-highest rounded-sm p-0.5 mr-1"
+          {test_id("view-mode-toggle")}
+        >
+          <button
+            type="button"
+            phx-click="switch_view"
+            phx-value-view="graph"
+            class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
+              if(@view_mode == "graph",
+                do: "bg-ds-on-surface text-ds-surface",
+                else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+              )}
+            aria-label={gettext("Graph view")}
+          >
+            <.icon name="hero-share" class="size-4" />
+          </button>
+          <button
+            type="button"
+            phx-click="switch_view"
+            phx-value-view="tree"
+            class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
+              if(@view_mode == "tree",
+                do: "bg-ds-on-surface text-ds-surface",
+                else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+              )}
+            aria-label={gettext("Tree view")}
+          >
+            <.icon name="hero-queue-list" class="size-4" />
+          </button>
+        </div>
+        <div class="w-px h-5 bg-ds-outline-variant/20 mr-1"></div>
         <.link
           navigate={
             if(@focus_person,
@@ -141,8 +174,19 @@
     <:page_actions>
       <.nav_action
         :if={@graph}
+        icon={if(@view_mode == "graph", do: "hero-queue-list", else: "hero-share")}
+        label={if(@view_mode == "graph", do: gettext("Tree view"), else: gettext("Graph view"))}
+        phx-click={
+          toggle_nav_drawer()
+          |> JS.push("switch_view",
+            value: %{view: if(@view_mode == "graph", do: "tree", else: "graph")}
+          )
+        }
+      />
+      <.nav_action
+        :if={@graph}
         icon="hero-adjustments-horizontal"
-        label={gettext("Tree View")}
+        label={gettext("Tree settings")}
         phx-click={toggle_nav_drawer() |> JS.push("open_mobile_tree_sheet")}
       />
       <.nav_action
@@ -210,11 +254,19 @@
       class="relative overflow-auto hide-scrollbar p-6 order-last lg:order-first min-h-[60vh]"
     >
       <%= if @graph do %>
-        <.graph_canvas
-          graph={@graph}
-          family_id={@family.id}
-          organization={@current_scope.organization}
-        />
+        <%= if @view_mode == "tree" do %>
+          <.tree_canvas
+            tree={@person_tree}
+            family_id={@family.id}
+            organization={@current_scope.organization}
+          />
+        <% else %>
+          <.graph_canvas
+            graph={@graph}
+            family_id={@family.id}
+            organization={@current_scope.organization}
+          />
+        <% end %>
       <% else %>
         <div class="flex items-center justify-center h-full">
           <%= if @people != [] do %>

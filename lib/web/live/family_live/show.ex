@@ -11,9 +11,11 @@ defmodule Web.FamilyLive.Show do
   alias Ancestry.People.FamilyGraph
   alias Ancestry.People.Person
   alias Ancestry.People.PersonGraph
+  alias Ancestry.People.PersonTree
   alias Ancestry.Relationships
 
   import Web.FamilyLive.GraphComponent
+  import Web.FamilyLive.TreeComponent
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
@@ -46,6 +48,8 @@ defmodule Web.FamilyLive.Show do
        supervisor: Ancestry.TaskSupervisor
      )
      |> assign(:graph, nil)
+     |> assign(:person_tree, nil)
+     |> assign(:view_mode, "graph")
      |> assign(:tree_ancestors, 2)
      |> assign(:tree_descendants, 2)
      |> assign(:tree_other, 1)
@@ -104,6 +108,7 @@ defmodule Web.FamilyLive.Show do
     tree_descendants = parse_depth_param(params, "descendants", 2)
     tree_other = parse_depth_param(params, "other", 1)
     tree_display = if params["display"] == "complete", do: "complete", else: "partial"
+    view_mode = if params["view"] == "tree", do: "tree", else: "graph"
 
     {tree_ancestors, tree_descendants, tree_other} =
       if tree_display == "complete" do
@@ -115,13 +120,18 @@ defmodule Web.FamilyLive.Show do
     # Clamp other to ancestors
     tree_other = min(tree_other, tree_ancestors)
 
+    depth_opts = [ancestors: tree_ancestors, descendants: tree_descendants, other: tree_other]
+
     graph =
       if focus_person do
-        PersonGraph.build(focus_person, socket.assigns.family_graph,
-          ancestors: tree_ancestors,
-          descendants: tree_descendants,
-          other: tree_other
-        )
+        PersonGraph.build(focus_person, socket.assigns.family_graph, depth_opts)
+      else
+        nil
+      end
+
+    person_tree =
+      if focus_person do
+        PersonTree.build(focus_person, socket.assigns.family_graph, depth_opts)
       else
         nil
       end
@@ -137,6 +147,7 @@ defmodule Web.FamilyLive.Show do
       socket
       |> assign(:focus_person, focus_person)
       |> assign(:graph, graph)
+      |> assign(:person_tree, person_tree)
       |> assign(:tree_ancestors, tree_ancestors)
       |> assign(:tree_descendants, tree_descendants)
       |> assign(:tree_other, tree_other)
@@ -153,6 +164,7 @@ defmodule Web.FamilyLive.Show do
           tree_other
         )
       )
+      |> assign(:view_mode, view_mode)
 
     socket = if focus_person, do: push_event(socket, "scroll_to_focus", %{}), else: socket
 
@@ -619,6 +631,11 @@ defmodule Web.FamilyLive.Show do
     end
   end
 
+  def handle_event("switch_view", %{"view" => view}, socket) do
+    person_id = socket.assigns.focus_person && socket.assigns.focus_person.id
+    {:noreply, push_patch(socket, to: family_path(socket, person_id, %{view: view}))}
+  end
+
   # Mobile tree sheet
 
   def handle_event("open_mobile_tree_sheet", _, socket) do
@@ -710,13 +727,20 @@ defmodule Web.FamilyLive.Show do
         fp -> Enum.find(people, &(&1.id == fp.id))
       end
 
+    depth_opts = [
+      ancestors: socket.assigns.tree_ancestors,
+      descendants: socket.assigns.tree_descendants,
+      other: socket.assigns.tree_other
+    ]
+
     graph =
       if focus_person do
-        PersonGraph.build(focus_person, family_graph,
-          ancestors: socket.assigns.tree_ancestors,
-          descendants: socket.assigns.tree_descendants,
-          other: socket.assigns.tree_other
-        )
+        PersonGraph.build(focus_person, family_graph, depth_opts)
+      end
+
+    person_tree =
+      if focus_person do
+        PersonTree.build(focus_person, family_graph, depth_opts)
       end
 
     socket
@@ -724,6 +748,7 @@ defmodule Web.FamilyLive.Show do
     |> assign(:family_graph, family_graph)
     |> assign(:focus_person, focus_person)
     |> assign(:graph, graph)
+    |> assign(:person_tree, person_tree)
   end
 
   attr :label, :string, required: true
@@ -824,6 +849,7 @@ defmodule Web.FamilyLive.Show do
     descendants = Map.get(overrides, :descendants, socket.assigns.tree_descendants)
     other = Map.get(overrides, :other, socket.assigns.tree_other)
     display = Map.get(overrides, :display, socket.assigns.tree_display)
+    view = Map.get(overrides, :view, socket.assigns.view_mode)
 
     params = %{}
     params = if person_id, do: Map.put(params, :person, person_id), else: params
@@ -831,6 +857,7 @@ defmodule Web.FamilyLive.Show do
     params = if descendants != 2, do: Map.put(params, :descendants, descendants), else: params
     params = if other != 1, do: Map.put(params, :other, other), else: params
     params = if display != "partial", do: Map.put(params, :display, display), else: params
+    params = if view != "graph", do: Map.put(params, :view, view), else: params
 
     if params == %{}, do: base, else: "#{base}?#{URI.encode_query(params)}"
   end
