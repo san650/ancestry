@@ -1,39 +1,192 @@
-# Print Family Tree Implementation Plan
+# Print Family Tree (Indented List) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Dedicated print page for the family tree — opens in a new tab, shows family name + text-only person cards with SVG connectors, auto-triggers `window.print()`.
+**Goal:** Replace the grid-based print page with an indented list that always fits on paper — pure HTML, no SVG, no grid coordinates.
 
-**Architecture:** New LiveView with minimal layout, separate print graph component, reuses `PersonGraph` and `GraphConnector` hook.
+**Architecture:** A new `PrintTree` module builds a nested tree structure by walking the `FamilyGraph` upward from the focus person's oldest ancestors and downward through descendants. A `PrintTreeComponent` renders it as recursive HEEx with indentation, vertical border lines, and gender-colored squares. The existing print LiveView, route, layout, AutoPrint hook, and print button are reused as-is.
 
-**Tech Stack:** Phoenix LiveView, Tailwind CSS v4, JS hooks
+**Tech Stack:** Phoenix LiveView, FamilyGraph API, recursive HEEx components
 
 **Spec:** `docs/plans/2026-04-24-print-family-tree-design.md`
 
 ---
 
-### Task 1: Add `print/1` layout function
+### Task 1: Create `PrintTree` module — builds nested tree from FamilyGraph
 
 **Files:**
-- Modify: `lib/web/components/layouts.ex`
+- Create: `lib/ancestry/people/print_tree.ex`
 
-- [ ] **Step 1: Add the `print` layout function**
+This module walks the `FamilyGraph` to produce a nested tree structure for printing. It starts from the focus person, walks UP to find the oldest ancestors (respecting depth limits), then walks DOWN from those ancestors to produce the indented hierarchy.
 
-Add after the `app/1` function (before `flash_group`). This is a minimal layout with no header, toolbar, or nav — just the page content on a white background:
+- [ ] **Step 1: Create the module**
 
 ```elixir
-@doc """
-Minimal layout for print pages. No header, toolbar, or navigation.
-"""
-attr :flash, :map, required: true, doc: "the map of flash messages"
-slot :inner_block, required: true
+defmodule Ancestry.People.PrintTree do
+  @moduledoc """
+  Builds a nested tree structure from a FamilyGraph for print rendering.
 
-def print(assigns) do
-  ~H"""
-  <div class="bg-white min-h-screen p-6">
-    {render_slot(@inner_block)}
-  </div>
+  Walks upward from the focus person to find root ancestors, then downward
+  to produce a nested list of person entries with their partners and children.
   """
+
+  alias Ancestry.People.FamilyGraph
+  alias Ancestry.People.Person
+
+  defstruct [:focus_person_id, :roots]
+
+  @doc """
+  Builds a print tree centered on the focus person.
+
+  Options:
+    - `ancestors:` — generations upward (default 2)
+    - `descendants:` — generations downward from focus (default 2)
+    - `other:` — lateral expansion depth (default 1)
+  """
+  def build(%Person{} = focus_person, %FamilyGraph{} = graph, opts \\ []) do
+    ancestors = Keyword.get(opts, :ancestors, 2)
+    descendants = Keyword.get(opts, :descendants, 2)
+    other = Keyword.get(opts, :other, 1)
+
+    # Find the root ancestors by walking up from the focus person
+    roots = find_roots(graph, focus_person.id, ancestors)
+
+    # Build the tree downward from each root
+    seen = MapSet.new()
+
+    {tree_roots, _seen} =
+      Enum.map_reduce(roots, seen, fn root_id, seen ->
+        build_person_entry(graph, root_id, focus_person.id, seen, descendants, other, 0, ancestors)
+      end)
+
+    %__MODULE__{focus_person_id: focus_person.id, roots: tree_roots}
+  end
+
+  # Walk upward from the focus person to find the oldest ancestors within depth.
+  defp find_roots(graph, person_id, max_depth) do
+    do_find_roots(graph, [person_id], 0, max_depth, MapSet.new())
+  end
+
+  defp do_find_roots(_graph, person_ids, depth, max_depth, _visited) when depth >= max_depth do
+    person_ids
+  end
+
+  defp do_find_roots(graph, person_ids, depth, max_depth, visited) do
+    # For each person, get their parents. If they have parents and we haven't
+    # exceeded depth, keep walking up. Otherwise, they're a root.
+    {roots, next_level, visited} =
+      Enum.reduce(person_ids, {[], [], visited}, fn pid, {roots_acc, next_acc, vis} ->
+        if MapSet.member?(vis, pid) do
+          {roots_acc, next_acc, vis}
+        else
+          vis = MapSet.put(vis, pid)
+          parents = FamilyGraph.parents(graph, pid)
+          parent_ids = Enum.map(parents, fn {p, _r} -> p.id end)
+
+          if parent_ids == [] do
+            {[pid | roots_acc], next_acc, vis}
+          else
+            {roots_acc, parent_ids ++ next_acc, vis}
+          end
+        end
+      end)
+
+    if next_level == [] do
+      Enum.reverse(roots)
+    else
+      upper_roots = do_find_roots(graph, Enum.uniq(next_level), depth + 1, max_depth, visited)
+      Enum.reverse(roots) ++ upper_roots
+    end
+  end
+
+  # Build a person entry with their partners and children.
+  # Returns {entry, seen} where seen tracks visited person IDs to prevent duplicates.
+  defp build_person_entry(graph, person_id, focus_id, seen, max_desc, max_other, depth_from_focus, max_ancestors) do
+    if MapSet.member?(seen, person_id) do
+      person = FamilyGraph.fetch_person!(graph, person_id)
+      entry = %{type: :back_ref, person: person}
+      {entry, seen}
+    else
+      person = FamilyGraph.fetch_person!(graph, person_id)
+      seen = MapSet.put(seen, person_id)
+      is_focus = person_id == focus_id
+
+      # Determine if this person is on the direct ancestor path to focus
+      # (affects whether we expand descendants for lateral branches)
+      on_direct_path = is_ancestor_of_focus?(graph, person_id, focus_id, max_ancestors)
+
+      # Get all partners with their shared children
+      all_partners = FamilyGraph.all_partners(graph, person_id)
+      solo_children = FamilyGraph.solo_children(graph, person_id)
+
+      # Build partner sub-entries
+      {partner_entries, seen} =
+        Enum.map_reduce(all_partners, seen, fn {partner, rel}, seen ->
+          shared_children = FamilyGraph.children_of_pair(graph, person_id, partner.id)
+
+          # Build children entries recursively
+          {children_entries, seen} =
+            if should_expand_children?(is_focus, on_direct_path, depth_from_focus, max_desc, max_other) do
+              Enum.map_reduce(shared_children, seen, fn child, seen ->
+                child_depth = if is_focus, do: 1, else: depth_from_focus + 1
+                build_person_entry(graph, child.id, focus_id, seen, max_desc, max_other, child_depth, max_ancestors)
+              end)
+            else
+              {[], seen}
+            end
+
+          entry = %{
+            type: :partner,
+            person: partner,
+            relationship_type: rel.type,
+            children: children_entries
+          }
+
+          {entry, seen}
+        end)
+
+      # Build solo children entries
+      {solo_entries, seen} =
+        if should_expand_children?(is_focus, on_direct_path, depth_from_focus, max_desc, max_other) do
+          Enum.map_reduce(solo_children, seen, fn child, seen ->
+            child_depth = if is_focus, do: 1, else: depth_from_focus + 1
+            build_person_entry(graph, child.id, focus_id, seen, max_desc, max_other, child_depth, max_ancestors)
+          end)
+        else
+          {[], seen}
+        end
+
+      entry = %{
+        type: :person,
+        person: person,
+        is_focus: is_focus,
+        partners: partner_entries,
+        solo_children: solo_entries
+      }
+
+      {entry, seen}
+    end
+  end
+
+  defp should_expand_children?(true, _on_direct, _depth, _max_desc, _max_other), do: true
+  defp should_expand_children?(_is_focus, true, _depth, _max_desc, _max_other), do: true
+  defp should_expand_children?(_is_focus, _on_direct, depth, max_desc, _max_other) when depth < max_desc, do: true
+  defp should_expand_children?(_, _, _, _, _), do: false
+
+  # Check if person_id is an ancestor of focus_id (within max_depth).
+  defp is_ancestor_of_focus?(graph, person_id, focus_id, max_depth) do
+    person_id == focus_id or do_is_ancestor?(graph, focus_id, person_id, 0, max_depth)
+  end
+
+  defp do_is_ancestor?(_graph, _current_id, _target_id, depth, max_depth) when depth >= max_depth, do: false
+
+  defp do_is_ancestor?(graph, current_id, target_id, depth, max_depth) do
+    parents = FamilyGraph.parents(graph, current_id)
+
+    Enum.any?(parents, fn {parent, _rel} ->
+      parent.id == target_id or do_is_ancestor?(graph, parent.id, target_id, depth + 1, max_depth)
+    end)
+  end
 end
 ```
 
@@ -44,174 +197,170 @@ Run: `mix compile --warnings-as-errors`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add lib/web/components/layouts.ex
-git commit -m "Add print layout function to Layouts"
+git add lib/ancestry/people/print_tree.ex
+git commit -m "Add PrintTree module for indented list print layout"
 ```
 
 ---
 
-### Task 2: Create `PrintGraphComponent`
+### Task 2: Create `PrintTreeComponent` — renders the indented list
 
 **Files:**
-- Create: `lib/web/live/family_live/print_graph_component.ex`
+- Create: `lib/web/live/family_live/print_tree_component.ex`
+- Delete: `lib/web/live/family_live/print_graph_component.ex`
 
-- [ ] **Step 1: Create the print graph component**
-
-This component renders the same CSS grid structure as `GraphComponent` but with simplified person cards — just a bordered box with the person's name.
+- [ ] **Step 1: Create the component**
 
 ```elixir
-defmodule Web.FamilyLive.PrintGraphComponent do
+defmodule Web.FamilyLive.PrintTreeComponent do
   use Web, :html
 
   alias Ancestry.People.Person
-  alias Ancestry.People.PersonGraph
 
-  # --- Print Graph Canvas ---
+  @doc "Renders the full print tree as an indented list."
+  attr :tree, :map, required: true
 
-  attr :graph, PersonGraph, required: true
-
-  def print_graph_canvas(assigns) do
+  def print_tree(assigns) do
     ~H"""
-    <div
-      id="graph-canvas"
-      phx-hook="GraphConnector"
-      data-edges={Jason.encode!(@graph.edges)}
-      class="relative overflow-visible"
-    >
-      <div
-        data-graph-grid
-        style={"display:grid; grid-template-columns:repeat(#{@graph.grid_cols}, 120px); grid-template-rows:repeat(#{@graph.grid_rows}, auto); gap:48px 12px;"}
-        class="w-fit mx-auto"
-      >
-        <%= for node <- @graph.nodes do %>
-          <.print_cell node={node} />
-        <% end %>
+    <div class="print-tree font-['Inter',system-ui,sans-serif] text-[11.5px] text-[#1a1a1a] leading-[1.9]">
+      <%= for root <- @tree.roots do %>
+        <.tree_entry entry={root} focus_person_id={@tree.focus_person_id} />
+      <% end %>
+    </div>
+    """
+  end
+
+  # --- Entry dispatcher ---
+
+  defp tree_entry(%{entry: %{type: :back_ref}} = assigns) do
+    ~H"""
+    <div class="text-gray-400 italic text-[10px]">
+      &rarr; {Person.display_name(@entry.person)} ({gettext("see above")})
+    </div>
+    """
+  end
+
+  defp tree_entry(%{entry: %{type: :person}} = assigns) do
+    ~H"""
+    <div>
+      <%!-- Person line --%>
+      <div class={if @entry.is_focus, do: "bg-blue-50 -mx-2 px-2 py-0.5 rounded border-l-[3px] border-l-blue-500", else: ""}>
+        <.gender_icon gender={@entry.person.gender} />
+        <span class={if @entry.is_focus, do: "font-bold text-blue-700", else: "font-semibold"}>
+          {Person.display_name(@entry.person)}
+        </span>
+        <.life_span person={@entry.person} />
       </div>
+
+      <%!-- Partners and their children --%>
+      <%= if @entry.partners != [] or @entry.solo_children != [] do %>
+        <div class="ml-6 border-l-[1.5px] border-gray-200 pl-3">
+          <%= for partner_entry <- @entry.partners do %>
+            <.partner_block entry={partner_entry} focus_person_id={@focus_person_id} />
+          <% end %>
+
+          <%!-- Solo children --%>
+          <%= if @entry.solo_children != [] do %>
+            <div class="text-gray-400 italic text-[10px] mt-1">{gettext("no known partner")}:</div>
+            <%= for child <- @entry.solo_children do %>
+              <.tree_entry entry={child} focus_person_id={@focus_person_id} />
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
     """
   end
 
-  # --- Print Cell ---
+  # --- Partner block ---
 
-  defp print_cell(%{node: %{type: :separator}} = assigns) do
+  defp partner_block(assigns) do
     ~H"""
-    <div
-      id={@node.id}
-      style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      aria-hidden="true"
-    />
-    """
-  end
+    <div>
+      <%!-- Partner line with relationship type --%>
+      <div class="text-gray-400 text-[10px]">
+        <.gender_icon gender={@entry.person.gender} />
+        <em>{relationship_label(@entry.relationship_type)}</em>
+        <strong class="text-gray-600">{Person.display_name(@entry.person)}</strong>
+        <.life_span person={@entry.person} />
+      </div>
 
-  defp print_cell(%{node: %{type: :person}} = assigns) do
-    ~H"""
-    <div
-      id={@node.id}
-      data-node-id={@node.id}
-      style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="flex items-center justify-center"
-    >
-      <.print_person_card person={@node.person} />
+      <%!-- Children of this partnership --%>
+      <%= if @entry.children != [] do %>
+        <div class="ml-6 border-l-[1.5px] border-gray-200 pl-3">
+          <%= for child <- @entry.children do %>
+            <.tree_entry entry={child} focus_person_id={@focus_person_id} />
+          <% end %>
+        </div>
+      <% end %>
     </div>
     """
   end
 
-  # --- Print Person Card ---
+  # --- Helpers ---
 
-  defp print_person_card(assigns) do
+  defp gender_icon(assigns) do
     ~H"""
-    <div class={[
-      "flex items-center justify-center text-center w-[120px] px-1 py-2",
-      "bg-white border border-gray-300 rounded-sm",
-      gender_border_class(@person.gender)
-    ]}>
-      <p class="text-xs font-medium text-black leading-tight line-clamp-2">
-        {Person.display_name(@person)}
-      </p>
-    </div>
+    <span class={["text-[7px]", gender_color(@gender)]}>&#9632;</span>
     """
   end
 
-  defp gender_border_class("male"), do: "border-t-2 border-t-blue-400"
-  defp gender_border_class("female"), do: "border-t-2 border-t-pink-400"
-  defp gender_border_class(_), do: "border-t-2 border-t-gray-400"
+  defp life_span(assigns) do
+    ~H"""
+    <span class="text-gray-400 text-[10px]">
+      <%= cond do %>
+        <% @person.birth_year && @person.deceased -> %>
+          ({@person.birth_year}&ndash;{@person.death_year || "?"})
+        <% @person.birth_year -> %>
+          ({@person.birth_year})
+        <% true -> %>
+      <% end %>
+    </span>
+    """
+  end
+
+  defp gender_color("male"), do: "text-blue-400"
+  defp gender_color("female"), do: "text-pink-400"
+  defp gender_color(_), do: "text-gray-400"
+
+  defp relationship_label("married"), do: gettext("married to")
+  defp relationship_label("relationship"), do: gettext("partner of")
+  defp relationship_label("divorced"), do: gettext("divorced from")
+  defp relationship_label("separated"), do: gettext("separated from")
+  defp relationship_label(_), do: gettext("partner of")
 end
 ```
 
-- [ ] **Step 2: Verify compilation**
-
-Run: `mix compile --warnings-as-errors`
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Delete the old grid component**
 
 ```bash
-git add lib/web/live/family_live/print_graph_component.ex
-git commit -m "Add PrintGraphComponent with text-only person cards"
-```
-
----
-
-### Task 3: Create `AutoPrint` JS hook
-
-**Files:**
-- Create: `assets/js/auto_print.js`
-- Modify: `assets/js/app.js`
-
-- [ ] **Step 1: Create the AutoPrint hook**
-
-```javascript
-// assets/js/auto_print.js
-//
-// AutoPrint — triggers window.print() after the page has rendered.
-// Waits for the GraphConnector hook to finish drawing SVG connectors.
-
-const AutoPrint = {
-  mounted() {
-    // Give the GraphConnector hook time to draw SVG connectors,
-    // then trigger the print dialog.
-    setTimeout(() => window.print(), 500)
-  },
-}
-
-export { AutoPrint }
-```
-
-- [ ] **Step 2: Register the hook in app.js**
-
-In `assets/js/app.js`, find the existing hook imports and add:
-
-```javascript
-import { AutoPrint } from "./auto_print"
-```
-
-Then add `AutoPrint` to the hooks object in the LiveSocket constructor:
-
-```javascript
-hooks: { GraphConnector, AutoPrint, ... }
+rm lib/web/live/family_live/print_graph_component.ex
 ```
 
 - [ ] **Step 3: Verify compilation**
 
 Run: `mix compile --warnings-as-errors`
+Expected: may fail because `print.ex` still imports `PrintGraphComponent` — that's fixed in the next task.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add assets/js/auto_print.js assets/js/app.js
-git commit -m "Add AutoPrint JS hook for print page"
+git add lib/web/live/family_live/print_tree_component.ex
+git rm lib/web/live/family_live/print_graph_component.ex
+git commit -m "Add PrintTreeComponent, remove PrintGraphComponent"
 ```
 
 ---
 
-### Task 4: Create Print LiveView and template
+### Task 3: Update Print LiveView and template
 
 **Files:**
-- Create: `lib/web/live/family_live/print.ex`
-- Create: `lib/web/live/family_live/print.html.heex`
+- Modify: `lib/web/live/family_live/print.ex`
+- Modify: `lib/web/live/family_live/print.html.heex`
 
-- [ ] **Step 1: Create the LiveView**
+- [ ] **Step 1: Rewrite `print.ex`**
 
-The mount loads the family and builds the graph. It reuses the same data loading pattern as `FamilyLive.Show` but only loads what's needed for the graph.
+Replace the entire content of `print.ex` with:
 
 ```elixir
 defmodule Web.FamilyLive.Print do
@@ -220,10 +369,10 @@ defmodule Web.FamilyLive.Print do
   alias Ancestry.Families
   alias Ancestry.People
   alias Ancestry.People.FamilyGraph
-  alias Ancestry.People.PersonGraph
+  alias Ancestry.People.PrintTree
   alias Ancestry.Relationships
 
-  import Web.FamilyLive.PrintGraphComponent
+  import Web.FamilyLive.PrintTreeComponent
 
   @impl true
   def mount(%{"family_id" => family_id}, _session, socket) do
@@ -273,16 +422,16 @@ defmodule Web.FamilyLive.Print do
         {tree_ancestors, tree_descendants, min(tree_other, tree_ancestors)}
       end
 
-    graph =
+    tree =
       if focus_person do
-        PersonGraph.build(focus_person, socket.assigns.family_graph,
+        PrintTree.build(focus_person, socket.assigns.family_graph,
           ancestors: tree_ancestors,
           descendants: tree_descendants,
           other: tree_other
         )
       end
 
-    {:noreply, assign(socket, :graph, graph)}
+    {:noreply, assign(socket, :tree, tree)}
   end
 
   defp parse_depth(params, key, default) do
@@ -294,7 +443,9 @@ defmodule Web.FamilyLive.Print do
 end
 ```
 
-- [ ] **Step 2: Create the template**
+- [ ] **Step 2: Rewrite the template**
+
+Replace the entire content of `print.html.heex` with:
 
 ```heex
 <Layouts.print flash={@flash}>
@@ -302,9 +453,9 @@ end
     {@family.name}
   </h1>
 
-  <%= if @graph do %>
+  <%= if @tree do %>
     <div id="print-page" phx-hook="AutoPrint">
-      <.print_graph_canvas graph={@graph} />
+      <.print_tree tree={@tree} />
     </div>
   <% else %>
     <p class="text-center text-gray-500">
@@ -322,157 +473,48 @@ Run: `mix compile --warnings-as-errors`
 
 ```bash
 git add lib/web/live/family_live/print.ex lib/web/live/family_live/print.html.heex
-git commit -m "Add Print LiveView and template"
+git commit -m "Switch print page from grid to indented list"
 ```
 
 ---
 
-### Task 5: Add route
+### Task 4: Update CLAUDE.md
 
 **Files:**
-- Modify: `lib/web/router.ex`
+- Modify: `lib/web/live/family_live/CLAUDE.md`
 
-- [ ] **Step 1: Add the print route**
+- [ ] **Step 1: Update the CLAUDE.md**
 
-In the `:organization` live_session block, after the `FamilyLive.Show` route (line 71), add:
-
-```elixir
-live "/families/:family_id/print", FamilyLive.Print, :print
-```
-
-- [ ] **Step 2: Verify compilation**
-
-Run: `mix compile --warnings-as-errors`
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add lib/web/router.ex
-git commit -m "Add print route for family tree"
-```
-
----
-
-### Task 6: Add "Print tree" button to family show page
-
-**Files:**
-- Modify: `lib/web/live/family_live/show.html.heex`
-
-- [ ] **Step 1: Build the print URL helper**
-
-In `lib/web/live/family_live/show.ex`, add a private helper function that builds the print URL from the current tree state:
-
-```elixir
-defp print_url(socket) do
-  org_id = socket.assigns.current_scope.organization.id
-  family_id = socket.assigns.family.id
-  params = %{}
-
-  params =
-    if socket.assigns.focus_person,
-      do: Map.put(params, :person, socket.assigns.focus_person.id),
-      else: params
-
-  params =
-    if socket.assigns.tree_display == "complete" do
-      Map.put(params, :display, "complete")
-    else
-      params
-      |> Map.put(:ancestors, socket.assigns.tree_ancestors)
-      |> Map.put(:descendants, socket.assigns.tree_descendants)
-      |> Map.put(:other, socket.assigns.tree_other)
-    end
-
-  ~p"/org/#{org_id}/families/#{family_id}/print?#{params}"
-end
-```
-
-- [ ] **Step 2: Add to meatball menu (desktop)**
-
-In `show.html.heex`, add a "Print tree" link inside the meatball dropdown (after the "Import from CSV" button), as the last item:
-
-```heex
-<.link
-  :if={@graph}
-  href={print_url(@socket)}
-  target="_blank"
-  class="flex items-center gap-3 px-4 py-2.5 text-sm text-ds-on-surface hover:bg-ds-surface-low transition-colors"
-  {test_id("family-print-btn")}
->
-  <.icon name="hero-printer" class="size-4 text-ds-on-surface-variant" />
-  <span>{gettext("Print tree")}</span>
-</.link>
-```
-
-- [ ] **Step 3: Add to nav drawer (mobile)**
-
-In the `<:page_actions>` slot of the nav drawer, add after the "Kinship calculator" action:
-
-```heex
-<.nav_action
-  :if={@graph}
-  icon="hero-printer"
-  label={gettext("Print tree")}
-  phx-click={JS.navigate(print_url(@socket), replace: false)}
-/>
-```
-
-Note: `nav_action` uses `phx-click`, so we need to use `JS.navigate` to open in a new tab. Actually, since `nav_action` is a button, we can't use `target="_blank"`. Instead, use a direct `<.link>` styled like a nav action:
-
-```heex
-<.link
-  :if={@graph}
-  href={print_url(@socket)}
-  target="_blank"
-  class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] transition-colors hover:bg-ds-surface-high text-ds-on-surface"
->
-  <.icon name="hero-printer" class="size-5 shrink-0" />
-  <span class="font-ds-body text-sm">{gettext("Print tree")}</span>
-</.link>
-```
-
-- [ ] **Step 4: Verify compilation**
-
-Run: `mix compile --warnings-as-errors`
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add lib/web/live/family_live/show.ex lib/web/live/family_live/show.html.heex
-git commit -m "Add Print tree button to family show page"
-```
-
----
-
-### Task 7: Add CLAUDE.md for family_live
-
-**Files:**
-- Create: `lib/web/live/family_live/CLAUDE.md`
-
-- [ ] **Step 1: Create the CLAUDE.md**
+Replace the entire content with:
 
 ```markdown
 # Family Live
 
 ## Print page
 
-The family tree has a dedicated print page (`print.ex` + `print.html.heex`) that opens in a new tab.
+The family tree has a dedicated print page (`print.ex` + `print.html.heex`) that opens in a new tab with an indented list layout.
 
-- `PrintGraphComponent` renders the tree with simplified text-only person cards — keep this component separate from `GraphComponent` so each can evolve independently
-- Both components consume the same `PersonGraph` struct — changes to graph computation apply to both views automatically
-- Both use the `GraphConnector` JS hook for SVG connectors
+- `PrintTreeComponent` renders the tree as an indented hierarchy with vertical border lines — keep this component separate from `GraphComponent` (the interactive grid view)
+- `PrintTree` (in `lib/ancestry/people/print_tree.ex`) walks the `FamilyGraph` to produce a nested tree structure — it does NOT use `PersonGraph` or grid coordinates
+- Both the print page and show page use the same underlying `FamilyGraph` data — changes to family data loading apply to both automatically
+- The printing page and the show page must be kept in sync conceptually — if new relationship types are added or the FamilyGraph API changes, both pages must be updated accordingly
+
+## Pages
+
+- **`show.ex` / `show.html.heex`** — Interactive family tree view with CSS grid, SVG connectors, photos, hover effects, depth controls, side panel, and navigation. Uses `PersonGraph` for grid coordinates and `GraphConnector` JS hook for SVG.
+- **`print.ex` / `print.html.heex`** — Print-optimized indented list view. Uses `PrintTree` to walk `FamilyGraph` directly. Pure HTML text, no SVG, no JS (except `AutoPrint` to trigger print dialog). Always fits on paper.
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
 git add lib/web/live/family_live/CLAUDE.md
-git commit -m "Add CLAUDE.md documenting print page relationship"
+git commit -m "Update CLAUDE.md for indented list print approach"
 ```
 
 ---
 
-### Task 8: Verification
+### Task 5: Verification
 
 - [ ] **Step 1: Run precommit**
 
@@ -484,7 +526,11 @@ Expected: all checks pass
 1. Start dev server: `iex -S mix phx.server`
 2. Navigate to a family with a tree
 3. Open the meatball menu → click "Print tree"
-4. Verify: new tab opens with family name + text-only person cards + SVG connectors
-5. Verify: print dialog auto-opens
-6. Verify: the tree fits the page (no clipping)
-7. On mobile viewport: verify "Print tree" appears in nav drawer
+4. Verify: new tab opens with family name + indented list
+5. Verify: focus person is highlighted in blue
+6. Verify: partners appear on separate lines with relationship labels
+7. Verify: children are indented under their parent's partner block
+8. Verify: back-references appear for duplicate people (if applicable)
+9. Verify: print dialog auto-opens
+10. Verify: content fits within A4 landscape (no clipping!)
+11. Verify: vertical border lines show parent-child relationships
