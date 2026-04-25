@@ -55,7 +55,7 @@
     </.link>
   </.nav_drawer>
 
-  <div class="bg-ds-surface-low min-h-screen">
+  <div class="bg-white min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
       <%= if @selection_mode do %>
@@ -95,7 +95,7 @@
           :for={{id, org} <- @streams.organizations}
           id={id}
           class={[
-            "block bg-ds-surface-card rounded-ds-sharp p-5 hover:bg-ds-surface-highest transition-colors cursor-pointer",
+            "block bg-ds-surface-card rounded-ds-sharp shadow-ds-card p-5 hover:bg-ds-surface-highest transition-colors cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, org.id),
               do: "outline outline-3 outline-ds-primary outline-offset-2",
               else: "outline outline-3 outline-transparent outline-offset-2"
