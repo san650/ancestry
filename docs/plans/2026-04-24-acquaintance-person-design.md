@@ -84,8 +84,8 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 ### Tree View
 
 - Exclude `kind: "acquaintance"` persons at the query level.
-- `People.list_people_for_family/1` stays unfiltered (returns all kinds) — it's used by people lists which need both.
-- Add a new function `People.list_family_members_for_family/1` that filters to `kind: "family_member"` — used by `FamilyGraph`, `PersonTree`, and `KinshipLive`.
+- Rename existing `People.list_people_for_family/1` to `People.list_people/1` — returns all kinds, used by people lists, photo tagging, memory mentions.
+- Add a new `People.list_family_members/1` that filters to `kind: "family_member"` — used by `FamilyGraph`, `PersonTree`, and `KinshipLive`.
 
 ### Relationship & Kinship Dropdowns
 
