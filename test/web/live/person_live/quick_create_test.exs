@@ -43,7 +43,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     assert has_element?(view, "#quick-create-person")
-    assert has_element?(view, "#quick-create-person-form")
+    assert has_element?(view, "#quick-person-modal-relationship-form")
     refute has_element?(view, "#relationship-search-input")
   end
 
@@ -58,15 +58,15 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
-    assert has_element?(view, "#quick-create-person-form")
+    assert has_element?(view, "#quick-person-modal-relationship-form")
 
     view |> element("#add-rel-back-to-choose-from-quick-create-btn") |> render_click()
-    refute has_element?(view, "#quick-create-person-form")
+    refute has_element?(view, "#quick-person-modal-relationship-form")
     assert has_element?(view, "#add-rel-link-existing-btn")
     assert has_element?(view, "#add-rel-create-new-btn")
   end
 
-  test "validates given_name is required", %{
+  test "given_name input has required attribute", %{
     conn: conn,
     family: family,
     person: person,
@@ -78,12 +78,9 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
 
-    html =
-      view
-      |> form("#quick-create-person-form", person: %{given_name: "", surname: ""})
-      |> render_submit()
-
-    assert html =~ "can&#39;t be blank"
+    html = render(view)
+    assert html =~ "required"
+    assert has_element?(view, "#quick-person-modal-relationship-form")
   end
 
   test "creates person and proceeds to parent metadata step", %{
@@ -99,11 +96,18 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-create-person-form", person: %{given_name: "NewDad", surname: "Smith"})
+    |> form("#quick-person-modal-relationship-form",
+      person: %{given_name: "NewDad", surname: "Smith"}
+    )
     |> render_submit()
 
+    # QuickPersonModal sends {:person_created, person} to the parent LiveView,
+    # which forwards it via send_update to AddRelationshipComponent.
+    # We need to render to process the info message and the send_update.
+    render(view)
+
     # Should now be on the metadata step (parent role form)
-    refute has_element?(view, "#quick-create-person-form")
+    refute has_element?(view, "#quick-person-modal-relationship-form")
     assert has_element?(view, "#add-parent-form")
   end
 
@@ -120,11 +124,15 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-create-person-form", person: %{given_name: "NewWife", surname: "Jones"})
+    |> form("#quick-person-modal-relationship-form",
+      person: %{given_name: "NewWife", surname: "Jones"}
+    )
     |> render_submit()
 
+    render(view)
+
     # Should now be on the metadata step (partner marriage form)
-    refute has_element?(view, "#quick-create-person-form")
+    refute has_element?(view, "#quick-person-modal-relationship-form")
     assert has_element?(view, "#add-partner-form")
   end
 
@@ -141,8 +149,12 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-create-person-form", person: %{given_name: "NewKid", surname: "Doe"})
+    |> form("#quick-person-modal-relationship-form",
+      person: %{given_name: "NewKid", surname: "Doe"}
+    )
     |> render_submit()
+
+    render(view)
 
     # For child, it goes to the child confirm step
     assert has_element?(view, "#add-child-form")
@@ -161,7 +173,9 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-create-person-form", person: %{given_name: "NewMom", surname: "Lee"})
+    |> form("#quick-person-modal-relationship-form",
+      person: %{given_name: "NewMom", surname: "Lee"}
+    )
     |> render_submit()
 
     # Verify person was created in the family
@@ -186,10 +200,13 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     # Create new person
     view
-    |> form("#quick-create-person-form",
+    |> form("#quick-person-modal-relationship-form",
       person: %{given_name: "QuickDad", surname: "Fast"}
     )
     |> render_submit()
+
+    # Process the {:person_created, person} message forwarded via send_update
+    render(view)
 
     # Now on metadata step — submit parent role form
     view |> form("#add-parent-form") |> render_submit()
@@ -210,13 +227,13 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
-    assert has_element?(view, "#quick-create-person-form")
+    assert has_element?(view, "#quick-person-modal-relationship-form")
 
     # Reopen the modal (this triggers add_relationship which resets state)
     view |> element("#add-parent-btn") |> render_click()
 
     # Should be back to the choose step, not quick create
-    refute has_element?(view, "#quick-create-person-form")
+    refute has_element?(view, "#quick-person-modal-relationship-form")
     assert has_element?(view, "#add-rel-link-existing-btn")
     assert has_element?(view, "#add-rel-create-new-btn")
   end

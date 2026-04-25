@@ -694,6 +694,26 @@ defmodule Web.FamilyLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:person_created, person}, socket) do
+    person = People.get_person!(person.id)
+
+    send_update(Web.Shared.AddRelationshipComponent,
+      id: "add-relationship",
+      person_created: person
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    send_update(Web.Shared.AddRelationshipComponent,
+      id: "add-relationship",
+      cancelled: true
+    )
+
+    {:noreply, socket}
+  end
+
   # assign_async spawns linked tasks that send :EXIT on completion
   def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
 

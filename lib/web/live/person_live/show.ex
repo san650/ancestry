@@ -467,6 +467,16 @@ defmodule Web.PersonLive.Show do
           socket
       end
 
+    # Forward to AddRelationshipComponent if it's active
+    if socket.assigns[:adding_relationship] do
+      person = People.get_person!(person.id)
+
+      send_update(Web.Shared.AddRelationshipComponent,
+        id: "add-relationship-#{socket.assigns.add_rel_key}",
+        person_created: person
+      )
+    end
+
     {:noreply,
      socket
      |> assign(:pending_tag, nil)
@@ -475,6 +485,14 @@ defmodule Web.PersonLive.Show do
   end
 
   def handle_info({:quick_person_cancelled}, socket) do
+    # Forward to AddRelationshipComponent if it's active
+    if socket.assigns[:adding_relationship] do
+      send_update(Web.Shared.AddRelationshipComponent,
+        id: "add-relationship-#{socket.assigns.add_rel_key}",
+        cancelled: true
+      )
+    end
+
     {:noreply,
      socket
      |> assign(:pending_tag, nil)

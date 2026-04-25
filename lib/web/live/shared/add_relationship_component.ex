@@ -10,6 +10,21 @@ defmodule Web.Shared.AddRelationshipComponent do
   # -------------------------------------------------------------------
 
   @impl true
+  def update(%{person_created: person}, socket) do
+    person = People.get_person!(person.id)
+    relationship_form = build_relationship_form(socket.assigns.relationship_type, person)
+
+    {:ok,
+     socket
+     |> assign(:step, :metadata)
+     |> assign(:selected_person, person)
+     |> assign(:relationship_form, relationship_form)}
+  end
+
+  def update(%{cancelled: true}, socket) do
+    {:ok, assign(socket, :step, :search)}
+  end
+
   def update(assigns, socket) do
     {:ok,
      socket
@@ -22,9 +37,7 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign_new(:search_results, fn -> [] end)
      |> assign_new(:selected_person, fn -> nil end)
      |> assign_new(:relationship_form, fn -> nil end)
-     |> assign_new(:person_form, fn ->
-       to_form(People.change_person(%Person{}), as: :person)
-     end)}
+     |> assign_new(:quick_create_prefill_name, fn -> nil end)}
   end
 
   # -------------------------------------------------------------------
@@ -88,10 +101,16 @@ defmodule Web.Shared.AddRelationshipComponent do
   end
 
   def handle_event("start_quick_create", _, socket) do
+    prefill =
+      case String.trim(socket.assigns.search_query) do
+        "" -> nil
+        query -> query
+      end
+
     {:noreply,
      socket
      |> assign(:step, :quick_create)
-     |> assign(:person_form, to_form(People.change_person(%Person{}), as: :person))}
+     |> assign(:quick_create_prefill_name, prefill)}
   end
 
   def handle_event("back_to_choose", _, socket) do
@@ -101,43 +120,7 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:search_query, "")
      |> assign(:search_results, [])
      |> assign(:selected_person, nil)
-     |> assign(:person_form, to_form(People.change_person(%Person{}), as: :person))}
-  end
-
-  def handle_event("validate_person", %{"person" => params}, socket) do
-    changeset =
-      %Person{}
-      |> People.change_person(params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :person_form, to_form(changeset, as: :person))}
-  end
-
-  def handle_event("save_person", %{"person" => params}, socket) do
-    changeset =
-      %Person{}
-      |> People.change_person(params)
-      |> Ecto.Changeset.validate_required([:given_name])
-
-    if changeset.valid? do
-      case create_quick_person(socket.assigns, params) do
-        {:ok, person} ->
-          person = People.get_person!(person.id)
-          relationship_form = build_relationship_form(socket.assigns.relationship_type, person)
-
-          {:noreply,
-           socket
-           |> assign(:step, :metadata)
-           |> assign(:selected_person, person)
-           |> assign(:relationship_form, relationship_form)}
-
-        {:error, changeset} ->
-          {:noreply, assign(socket, :person_form, to_form(changeset, as: :person))}
-      end
-    else
-      {:noreply,
-       assign(socket, :person_form, to_form(%{changeset | action: :validate}, as: :person))}
-    end
+     |> assign(:quick_create_prefill_name, nil)}
   end
 
   def handle_event("validate_partner_form", %{"metadata" => metadata_params}, socket) do
@@ -347,28 +330,15 @@ defmodule Web.Shared.AddRelationshipComponent do
               <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
             </button>
 
-            <p class="text-sm text-ds-on-surface-variant mb-4">
-              {gettext("Create a new person to add as a relationship.")}
-            </p>
-
-            <.form
-              for={@person_form}
-              id="quick-create-person-form"
-              phx-target={@myself}
-              phx-change="validate_person"
-              phx-submit="save_person"
-            >
-              <div class="space-y-4">
-                <.input field={@person_form[:given_name]} label={gettext("Given name")} />
-                <.input field={@person_form[:surname]} label={gettext("Surname")} />
-                <button
-                  type="submit"
-                  class="w-full bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
-                >
-                  {gettext("Create & Continue")}
-                </button>
-              </div>
-            </.form>
+            <.live_component
+              module={Web.Shared.QuickPersonModal}
+              id="quick-person-modal-relationship"
+              show_acquaintance={false}
+              show_modal_wrapper={false}
+              organization_id={@family.organization_id}
+              family_id={@family.id}
+              prefill_name={@quick_create_prefill_name}
+            />
           </div>
         <% :metadata -> %>
           <div class="space-y-4">
@@ -539,14 +509,6 @@ defmodule Web.Shared.AddRelationshipComponent do
   # -------------------------------------------------------------------
   # Private helpers
   # -------------------------------------------------------------------
-
-  defp create_quick_person(%{family: %{} = family}, params) do
-    People.create_person(family, params)
-  end
-
-  defp create_quick_person(%{organization: org}, params) do
-    People.create_person_without_family(org, params)
-  end
 
   defp build_relationship_form(type, selected_person) do
     case type do

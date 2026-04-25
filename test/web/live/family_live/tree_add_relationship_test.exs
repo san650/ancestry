@@ -90,11 +90,16 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       view |> element("#add-rel-create-new-btn") |> render_click()
 
-      assert has_element?(view, "#quick-create-person-form")
+      assert has_element?(view, "#quick-person-modal-relationship-form")
 
       view
-      |> form("#quick-create-person-form", person: %{given_name: "NewWife", surname: "Jones"})
+      |> form("#quick-person-modal-relationship-form",
+        person: %{given_name: "NewWife", surname: "Jones"}
+      )
       |> render_submit()
+
+      # Process the {:person_created, person} message forwarded via send_update
+      render(view)
 
       assert has_element?(view, "#add-partner-form")
 
@@ -121,8 +126,13 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
-      |> form("#quick-create-person-form", person: %{given_name: "ChildName", surname: "Doe"})
+      |> form("#quick-person-modal-relationship-form",
+        person: %{given_name: "ChildName", surname: "Doe"}
+      )
       |> render_submit()
+
+      # Process the {:person_created, person} message forwarded via send_update
+      render(view)
 
       assert has_element?(view, "#add-child-form")
       view |> form("#add-child-form") |> render_submit()
@@ -171,10 +181,13 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       view |> element("#add-rel-create-new-btn") |> render_click()
 
       view
-      |> form("#quick-create-person-form",
+      |> form("#quick-person-modal-relationship-form",
         person: %{given_name: "NewDad", surname: "Doe"}
       )
       |> render_submit()
+
+      # Process the {:person_created, person} message forwarded via send_update
+      render(view)
 
       assert has_element?(view, "#add-parent-form")
       view |> form("#add-parent-form") |> render_submit()
@@ -256,7 +269,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       assert has_element?(view, "#add-rel-create-new-btn")
       # Search input is NOT shown yet
       refute has_element?(view, "#relationship-search-input")
-      refute has_element?(view, "#quick-create-person-form")
+      refute has_element?(view, "#quick-person-modal-relationship-form")
     end
 
     # When the user clicks Link existing
@@ -330,7 +343,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       render_click(view, "add_relationship", %{"type" => "parent", "person-id" => "#{person.id}"})
       view |> element("#add-rel-create-new-btn") |> render_click()
 
-      assert has_element?(view, "#quick-create-person-form")
+      assert has_element?(view, "#quick-person-modal-relationship-form")
       assert has_element?(view, "#add-rel-back-to-choose-from-quick-create-btn")
       refute has_element?(view, "#relationship-search-input")
     end
@@ -352,7 +365,9 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
 
       # Fill in some data
       view
-      |> form("#quick-create-person-form", person: %{given_name: "Tmp", surname: "User"})
+      |> form("#quick-person-modal-relationship-form",
+        person: %{given_name: "Tmp", surname: "User"}
+      )
       |> render_change()
 
       view |> element("#add-rel-back-to-choose-from-quick-create-btn") |> render_click()
@@ -360,7 +375,7 @@ defmodule Web.FamilyLive.TreeAddRelationshipTest do
       # Choose step shown again
       assert has_element?(view, "#add-rel-link-existing-btn")
       assert has_element?(view, "#add-rel-create-new-btn")
-      refute has_element?(view, "#quick-create-person-form")
+      refute has_element?(view, "#quick-person-modal-relationship-form")
 
       # Re-enter the quick create form — previous fields should be empty
       view |> element("#add-rel-create-new-btn") |> render_click()
