@@ -5,7 +5,7 @@ defmodule Web.PhotoInteractions do
   """
 
   import Phoenix.LiveView
-  import Phoenix.Component, only: [assign: 3]
+  import Phoenix.Component, only: [assign: 2, assign: 3]
 
   alias Ancestry.Galleries
   alias Web.Comments.PhotoCommentsComponent
@@ -158,6 +158,39 @@ defmodule Web.PhotoInteractions do
   def handle_comment_info(socket, {:comment_deleted, comment}) do
     send_update(PhotoCommentsComponent, id: "photo-comments", comment_deleted: comment)
     {:noreply, socket}
+  end
+
+  def start_link_person(socket) do
+    assign(socket, linking_person: true, link_search_query: "", link_search_results: [])
+  end
+
+  def cancel_link_person(socket) do
+    assign(socket, linking_person: false, link_search_query: "", link_search_results: [])
+  end
+
+  def search_link_person(socket, query) do
+    results =
+      if String.length(query) >= 2 do
+        tagged_ids = Enum.map(socket.assigns.photo_people, & &1.person_id)
+
+        Ancestry.People.search_all_people(query, socket.assigns.current_scope.organization.id)
+        |> Enum.reject(fn p -> p.id in tagged_ids end)
+      else
+        []
+      end
+
+    assign(socket, link_search_query: query, link_search_results: results)
+  end
+
+  def link_existing_person(socket, person_id) do
+    photo = socket.assigns.selected_photo
+
+    Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), nil, nil)
+
+    socket
+    |> assign(:photo_people, Galleries.list_photo_people(photo.id))
+    |> cancel_link_person()
+    |> push_photo_people()
   end
 
   def push_photo_people(socket) do

@@ -34,6 +34,9 @@ defmodule Web.PersonLive.Show do
      |> assign(:show_quick_person_modal, false)
      |> assign(:pending_tag, nil)
      |> assign(:quick_person_prefill, nil)
+     |> assign(:linking_person, false)
+     |> assign(:link_search_query, "")
+     |> assign(:link_search_results, [])
      |> load_relationships(person)
      |> load_person_photos(person)
      |> allow_upload(:photo,
@@ -388,6 +391,31 @@ defmodule Web.PersonLive.Show do
      |> assign(:pending_tag, %{x: x, y: y, photo_id: String.to_integer(photo_id)})
      |> assign(:show_quick_person_modal, true)
      |> assign(:quick_person_prefill, query)}
+  end
+
+  def handle_event("start_link_person", _, socket) do
+    {:noreply, PhotoInteractions.start_link_person(socket)}
+  end
+
+  def handle_event("cancel_link_person", _, socket) do
+    {:noreply, PhotoInteractions.cancel_link_person(socket)}
+  end
+
+  def handle_event("link_person_search", %{"value" => query}, socket) do
+    {:noreply, PhotoInteractions.search_link_person(socket, query)}
+  end
+
+  def handle_event("link_existing_person", %{"person-id" => person_id}, socket) do
+    {:noreply, PhotoInteractions.link_existing_person(socket, person_id)}
+  end
+
+  def handle_event("create_person_from_link", %{"query" => query}, socket) do
+    {:noreply,
+     socket
+     |> assign(:pending_tag, %{x: nil, y: nil, photo_id: socket.assigns.selected_photo.id})
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, query)
+     |> PhotoInteractions.cancel_link_person()}
   end
 
   @impl true
