@@ -20,6 +20,7 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 
 ### Person Schema
 
+- Add `:kind` to `@cast_fields` in `Person.changeset/2`
 - Add `field :kind, :string, default: "family_member"`
 - Validate inclusion in `["family_member", "acquaintance"]` in changeset
 - Add helper: `def acquaintance?(%__MODULE__{kind: "acquaintance"}), do: true`
@@ -29,7 +30,8 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 - Acquaintance persons **do** have `FamilyMember` records (they belong to families)
 - Acquaintance persons can belong to multiple families
 - Acquaintance persons must have **zero** `Relationship` records
-- Block relationship creation if either person is an acquaintance
+- Block relationship creation in `Relationships.create_relationship/4` if either person is an acquaintance — return `{:error, :acquaintance_cannot_have_relationships}`
+- Prevent acquaintances from being set as the family's default person (`People.set_default_member/2`)
 
 ## Behavior by Kind
 
@@ -44,6 +46,8 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 | Appears in memory mention dropdowns | Yes | Yes |
 | Appears in people lists (family & org) | Yes | Yes (with "Non-family" badge) |
 | Shows relationships section on person show | Yes | No |
+| Appears in birthday calendar | Yes | Yes |
+| Can be set as family default person | Yes | No |
 
 ## UI Changes
 
@@ -52,6 +56,8 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 - **PersonFormComponent:** Add a checkbox at the bottom: "This person is not a family member (acquaintance)". Unchecked by default. Sets `kind: "acquaintance"` when checked.
 - **Photo tagging inline create:** Same checkbox when creating a new person during photo tagging.
 - **Memory mention inline create:** Same checkbox if creating a person from vault/memory UI.
+- **Quick-create in AddRelationshipComponent:** No checkbox — that flow creates relationships, so the person is always `kind: "family_member"`.
+- **CSV import:** Imported persons default to `kind: "family_member"`. No `kind` column in CSV. This is correct since CSV imports create relationships.
 
 ### People Lists (Family & Org)
 
@@ -67,7 +73,7 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 - **Hide** the relationships section entirely.
 - **Hide** the "Add relationship" action.
 - Show photos section (same as family members).
-- **"More actions" dropdown:** Show "Convert to family member" option. Updates `kind` to `"family_member"` — person already belongs to families, no modal needed, just a confirmation.
+- Show a prominent **"Convert to family member"** banner/button (since acquaintances have no relationships section, there's space). Updates `kind` to `"family_member"` — person already belongs to families, just a confirmation click.
 
 **For family member persons:**
 - Everything stays the same as today.
@@ -78,7 +84,8 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 ### Tree View
 
 - Exclude `kind: "acquaintance"` persons at the query level.
-- Filter in `People.list_people_for_family/1` (or the tree-specific query) to only return `kind: "family_member"`.
+- `People.list_people_for_family/1` stays unfiltered (returns all kinds) — it's used by people lists which need both.
+- Add a new function `People.list_family_members_for_family/1` that filters to `kind: "family_member"` — used by `FamilyGraph`, `PersonTree`, and `KinshipLive`.
 
 ### Relationship & Kinship Dropdowns
 
@@ -101,6 +108,13 @@ Add a `kind` enum field to the `Person` schema with values `"family_member"` (de
 ### Family Member → Acquaintance
 
 - **Where:** Person show page, "More actions" dropdown → "Convert to non-family".
-- **Action:** Updates `kind` from `"family_member"` to `"acquaintance"`.
+- **Action:** Updates `kind` from `"family_member"` to `"acquaintance"`. If the person is the default member of any family, clear that flag.
 - **Prerequisites:** Person must have zero relationships. If relationships exist, show warning: "Remove all relationships before converting."
 - **Confirmation:** Confirmation dialog explaining the change.
+
+## i18n
+
+All new user-facing strings require `gettext` calls and Spanish translations in `priv/gettext/es-UY/LC_MESSAGES/default.po`. Key strings:
+- Checkbox label, "Non-family" badge, "Non-family only" filter label
+- "Convert to family member" / "Convert to non-family" actions
+- Warning: "Remove all relationships before converting"
