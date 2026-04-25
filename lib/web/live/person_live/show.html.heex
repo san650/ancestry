@@ -84,6 +84,23 @@
           >
             <.icon name="hero-trash" class="size-5" />
           </button>
+          <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
+            <button
+              type="button"
+              id="convert-to-acquaintance-btn"
+              phx-click="convert_to_acquaintance"
+              data-confirm={
+                gettext(
+                  "Convert this person to non-family? They will be excluded from the tree view and relationships."
+                )
+              }
+              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              aria-label={gettext("Convert to non-family")}
+              {test_id("convert-to-acquaintance-btn")}
+            >
+              <.icon name="hero-user-minus" class="size-5" />
+            </button>
+          <% end %>
         </div>
       </div>
     </div>
@@ -110,6 +127,13 @@
         danger
         phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
       />
+      <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
+        <.nav_action
+          icon="hero-user-minus"
+          label={gettext("Convert to non-family")}
+          phx-click={toggle_nav_drawer() |> JS.push("convert_to_acquaintance")}
+        />
+      <% end %>
     </:page_actions>
     <.link
       navigate={~p"/org/#{@current_scope.organization.id}"}
@@ -269,110 +293,174 @@
       <% end %>
     </div>
 
+    <%!-- Acquaintance Banner --%>
+    <%= if Ancestry.People.Person.acquaintance?(@person) do %>
+      <div class="px-4 py-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div
+          class="flex items-center justify-between rounded-ds-sharp bg-ds-tertiary/10 border border-ds-tertiary/20 p-4"
+          {test_id("convert-to-family-banner")}
+        >
+          <div class="flex items-center gap-3">
+            <.icon name="hero-user-plus" class="w-5 h-5 text-ds-tertiary" />
+            <p class="text-sm text-ds-on-surface">
+              {gettext("This person is not a family member.")}
+            </p>
+          </div>
+          <button
+            phx-click="convert_to_family_member"
+            class="px-4 py-1.5 rounded-ds-sharp bg-ds-primary text-ds-on-primary text-sm font-semibold hover:opacity-90 transition-opacity"
+            {test_id("convert-to-family-btn")}
+          >
+            {gettext("Convert to family member")}
+          </button>
+        </div>
+      </div>
+    <% end %>
+
     <%!-- Relationships Section --%>
-    <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-      <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">
-        {gettext("Relationships")}
-      </h2>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <%!-- Left Column: Spouses and Children --%>
-        <div class="space-y-6">
-          <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
-            {gettext("Spouses & Children")}
-          </h3>
+    <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
+      <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">
+          {gettext("Relationships")}
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <%!-- Left Column: Spouses and Children --%>
+          <div class="space-y-6">
+            <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
+              {gettext("Spouses & Children")}
+            </h3>
 
-          <%!-- Partner groups --%>
-          <%= for {partner, rel, children} <- @partner_children do %>
-            <div
-              id={"partner-group-#{partner.id}"}
-              class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
-            >
-              <%!-- Partnership title --%>
-              <p class="text-xs text-ds-on-surface-variant px-2 font-medium uppercase">
-                {partner_section_title(rel, partner)}
-              </p>
+            <%!-- Partner groups --%>
+            <%= for {partner, rel, children} <- @partner_children do %>
+              <div
+                id={"partner-group-#{partner.id}"}
+                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
+              >
+                <%!-- Partnership title --%>
+                <p class="text-xs text-ds-on-surface-variant px-2 font-medium uppercase">
+                  {partner_section_title(rel, partner)}
+                </p>
 
-              <%!-- Current person (highlighted) --%>
-              <.person_card person={@person} highlighted={true} />
+                <%!-- Current person (highlighted) --%>
+                <.person_card person={@person} highlighted={true} />
 
-              <%!-- Partner card with relationship info --%>
-              <div class="flex items-center gap-2">
-                <.link
-                  navigate={person_path(partner, @from_family, @current_scope.organization)}
-                  class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
-                >
-                  <.person_card person={partner} highlighted={false} />
-                </.link>
-                <div class="flex items-center gap-1">
-                  <button
-                    id={"edit-rel-#{rel.id}"}
-                    phx-click="edit_relationship"
-                    phx-value-id={rel.id}
-                    class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
-                    title={gettext("Edit relationship")}
+                <%!-- Partner card with relationship info --%>
+                <div class="flex items-center gap-2">
+                  <.link
+                    navigate={person_path(partner, @from_family, @current_scope.organization)}
+                    class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
                   >
-                    <.icon name="hero-pencil" class="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    id={"delete-rel-#{rel.id}"}
-                    phx-click="delete_relationship"
-                    phx-value-id={rel.id}
-                    data-confirm={gettext("Remove this relationship?")}
-                    class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
-                    title={gettext("Remove relationship")}
-                  >
-                    <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
-                  </button>
+                    <.person_card person={partner} highlighted={false} />
+                  </.link>
+                  <div class="flex items-center gap-1">
+                    <button
+                      id={"edit-rel-#{rel.id}"}
+                      phx-click="edit_relationship"
+                      phx-value-id={rel.id}
+                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
+                      title={gettext("Edit relationship")}
+                    >
+                      <.icon name="hero-pencil" class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      id={"delete-rel-#{rel.id}"}
+                      phx-click="delete_relationship"
+                      phx-value-id={rel.id}
+                      data-confirm={gettext("Remove this relationship?")}
+                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
+                      title={gettext("Remove relationship")}
+                    >
+                      <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <%!-- Partnership info --%>
-              <%= if rel.metadata do %>
-                <% info = format_marriage_info(rel.metadata) %>
-                <%= if info do %>
-                  <p class="text-xs text-ds-on-surface-variant px-2 flex items-center gap-1">
-                    <.icon name="hero-heart" class="w-3 h-3" />
-                    <%= if rel.type in ~w(divorced separated) do %>
-                      {gettext("Married")}: {info}
-                    <% else %>
-                      {info}
+                <%!-- Partnership info --%>
+                <%= if rel.metadata do %>
+                  <% info = format_marriage_info(rel.metadata) %>
+                  <%= if info do %>
+                    <p class="text-xs text-ds-on-surface-variant px-2 flex items-center gap-1">
+                      <.icon name="hero-heart" class="w-3 h-3" />
+                      <%= if rel.type in ~w(divorced separated) do %>
+                        {gettext("Married")}: {info}
+                      <% else %>
+                        {info}
+                      <% end %>
+                    </p>
+                  <% end %>
+                  <%= if rel.type == "divorced" && rel.metadata do %>
+                    <% divorce_info =
+                      format_partial_date(
+                        Map.get(rel.metadata, :divorce_day),
+                        Map.get(rel.metadata, :divorce_month),
+                        Map.get(rel.metadata, :divorce_year)
+                      ) %>
+                    <%= if divorce_info != "" do %>
+                      <p class="text-xs text-ds-error/60 px-2 flex items-center gap-1">
+                        <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Divorced")}: {divorce_info}
+                      </p>
                     <% end %>
-                  </p>
-                <% end %>
-                <%= if rel.type == "divorced" && rel.metadata do %>
-                  <% divorce_info =
-                    format_partial_date(
-                      Map.get(rel.metadata, :divorce_day),
-                      Map.get(rel.metadata, :divorce_month),
-                      Map.get(rel.metadata, :divorce_year)
-                    ) %>
-                  <%= if divorce_info != "" do %>
-                    <p class="text-xs text-ds-error/60 px-2 flex items-center gap-1">
-                      <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Divorced")}: {divorce_info}
-                    </p>
+                  <% end %>
+                  <%= if rel.type == "separated" && rel.metadata do %>
+                    <% separated_info =
+                      format_partial_date(
+                        Map.get(rel.metadata, :separated_day),
+                        Map.get(rel.metadata, :separated_month),
+                        Map.get(rel.metadata, :separated_year)
+                      ) %>
+                    <%= if separated_info != "" do %>
+                      <p class="text-xs text-ds-tertiary/60 px-2 flex items-center gap-1">
+                        <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Separated")}: {separated_info}
+                      </p>
+                    <% end %>
                   <% end %>
                 <% end %>
-                <%= if rel.type == "separated" && rel.metadata do %>
-                  <% separated_info =
-                    format_partial_date(
-                      Map.get(rel.metadata, :separated_day),
-                      Map.get(rel.metadata, :separated_month),
-                      Map.get(rel.metadata, :separated_year)
-                    ) %>
-                  <%= if separated_info != "" do %>
-                    <p class="text-xs text-ds-tertiary/60 px-2 flex items-center gap-1">
-                      <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Separated")}: {separated_info}
-                    </p>
-                  <% end %>
-                <% end %>
-              <% end %>
 
-              <%!-- Children of this pair --%>
-              <%= if children != [] do %>
+                <%!-- Children of this pair --%>
+                <%= if children != [] do %>
+                  <div class="pl-4 border-l-2 border-ds-outline-variant/20 space-y-1 mt-2">
+                    <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide mb-1">
+                      Children
+                    </p>
+                    <%= for child <- children do %>
+                      <.link
+                        navigate={person_path(child, @from_family, @current_scope.organization)}
+                        class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                      >
+                        <.person_card person={child} highlighted={false} />
+                      </.link>
+                    <% end %>
+                  </div>
+                <% end %>
+
+                <%!-- Add child for this pair --%>
+                <button
+                  id={"add-child-partner-#{partner.id}"}
+                  phx-click="add_child_for_partner"
+                  phx-value-partner-id={partner.id}
+                  class="flex items-center gap-1.5 text-xs text-ds-primary/60 hover:text-ds-primary px-2 py-1 rounded transition-colors"
+                >
+                  <.icon name="hero-plus" class="w-3 h-3" /> Add Child
+                </button>
+              </div>
+            <% end %>
+
+            <%!-- Children with unlinked co-parent --%>
+            <%= for {coparent, children} <- @coparent_children do %>
+              <div
+                id={"coparent-children-#{coparent.id}"}
+                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
+              >
+                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                  {gettext("Children with")}
+                </p>
+                <.link
+                  navigate={person_path(coparent, @from_family, @current_scope.organization)}
+                  class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                >
+                  <.person_card person={coparent} highlighted={false} />
+                </.link>
                 <div class="pl-4 border-l-2 border-ds-outline-variant/20 space-y-1 mt-2">
-                  <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide mb-1">
-                    Children
-                  </p>
                   <%= for child <- children do %>
                     <.link
                       navigate={person_path(child, @from_family, @current_scope.organization)}
@@ -382,37 +470,19 @@
                     </.link>
                   <% end %>
                 </div>
-              <% end %>
+              </div>
+            <% end %>
 
-              <%!-- Add child for this pair --%>
-              <button
-                id={"add-child-partner-#{partner.id}"}
-                phx-click="add_child_for_partner"
-                phx-value-partner-id={partner.id}
-                class="flex items-center gap-1.5 text-xs text-ds-primary/60 hover:text-ds-primary px-2 py-1 rounded transition-colors"
+            <%!-- Solo children (unknown other parent) --%>
+            <%= if @solo_children != [] do %>
+              <div
+                id="solo-children-section"
+                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
               >
-                <.icon name="hero-plus" class="w-3 h-3" /> Add Child
-              </button>
-            </div>
-          <% end %>
-
-          <%!-- Children with unlinked co-parent --%>
-          <%= for {coparent, children} <- @coparent_children do %>
-            <div
-              id={"coparent-children-#{coparent.id}"}
-              class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
-            >
-              <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                {gettext("Children with")}
-              </p>
-              <.link
-                navigate={person_path(coparent, @from_family, @current_scope.organization)}
-                class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
-              >
-                <.person_card person={coparent} highlighted={false} />
-              </.link>
-              <div class="pl-4 border-l-2 border-ds-outline-variant/20 space-y-1 mt-2">
-                <%= for child <- children do %>
+                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                  {gettext("Children (other parent unknown)")}
+                </p>
+                <%= for child <- @solo_children do %>
                   <.link
                     navigate={person_path(child, @from_family, @current_scope.organization)}
                     class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
@@ -421,151 +491,135 @@
                   </.link>
                 <% end %>
               </div>
-            </div>
-          <% end %>
-
-          <%!-- Solo children (unknown other parent) --%>
-          <%= if @solo_children != [] do %>
-            <div
-              id="solo-children-section"
-              class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
-            >
-              <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                {gettext("Children (other parent unknown)")}
-              </p>
-              <%= for child <- @solo_children do %>
-                <.link
-                  navigate={person_path(child, @from_family, @current_scope.organization)}
-                  class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
-                >
-                  <.person_card person={child} highlighted={false} />
-                </.link>
-              <% end %>
-            </div>
-          <% end %>
-
-          <%!-- Action buttons --%>
-          <div class="flex flex-wrap gap-2">
-            <button
-              id="add-partner-btn"
-              phx-click="add_relationship"
-              phx-value-type="partner"
-              class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
-            >
-              <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Partner")}
-            </button>
-            <button
-              id="add-child-solo-btn"
-              phx-click="add_relationship"
-              phx-value-type="child_solo"
-              class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
-            >
-              <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Child")}
-            </button>
-          </div>
-        </div>
-
-        <%!-- Right Column: Parents and Siblings --%>
-        <div class="space-y-6">
-          <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
-            {gettext("Parents & Siblings")}
-          </h3>
-
-          <%!-- Parents --%>
-          <div id="parents-section" class="space-y-3">
-            <%= for {parent, rel} <- @parents do %>
-              <div class="flex items-center gap-2">
-                <.link
-                  navigate={person_path(parent, @from_family, @current_scope.organization)}
-                  class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
-                >
-                  <.person_card person={parent} highlighted={false} />
-                </.link>
-                <div class="flex items-center gap-1">
-                  <%= if rel.metadata && rel.metadata.role do %>
-                    <span class={[
-                      "text-xs px-2 py-0.5 rounded-full",
-                      rel.metadata.role == "father" && "bg-ds-surface-low text-ds-on-surface",
-                      rel.metadata.role == "mother" && "bg-ds-surface-low text-ds-on-surface"
-                    ]}>
-                      {String.capitalize(rel.metadata.role)}
-                    </span>
-                  <% end %>
-                  <button
-                    id={"edit-parent-rel-#{rel.id}"}
-                    phx-click="edit_relationship"
-                    phx-value-id={rel.id}
-                    class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
-                    title={gettext("Edit")}
-                  >
-                    <.icon name="hero-pencil" class="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    id={"delete-parent-rel-#{rel.id}"}
-                    phx-click="delete_relationship"
-                    phx-value-id={rel.id}
-                    data-confirm={gettext("Remove this parent relationship?")}
-                    class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
-                    title={gettext("Remove")}
-                  >
-                    <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
             <% end %>
 
-            <%= if @parents_marriage do %>
-              <div class="text-sm text-ds-on-surface-variant pl-2 border-l-2 border-ds-outline-variant/20">
-                <span class="font-medium text-ds-on-surface">{gettext("Marriage")}</span>
-                <% info = format_marriage_info(@parents_marriage.metadata) %>
-                <%= if info do %>
-                  <div>{info}</div>
+            <%!-- Action buttons --%>
+            <div class="flex flex-wrap gap-2">
+              <button
+                id="add-partner-btn"
+                phx-click="add_relationship"
+                phx-value-type="partner"
+                class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+              >
+                <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Partner")}
+              </button>
+              <button
+                id="add-child-solo-btn"
+                phx-click="add_relationship"
+                phx-value-type="child_solo"
+                class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+              >
+                <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Child")}
+              </button>
+            </div>
+          </div>
+
+          <%!-- Right Column: Parents and Siblings --%>
+          <div class="space-y-6">
+            <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
+              {gettext("Parents & Siblings")}
+            </h3>
+
+            <%!-- Parents --%>
+            <div id="parents-section" class="space-y-3">
+              <%= for {parent, rel} <- @parents do %>
+                <div class="flex items-center gap-2">
+                  <.link
+                    navigate={person_path(parent, @from_family, @current_scope.organization)}
+                    class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                  >
+                    <.person_card person={parent} highlighted={false} />
+                  </.link>
+                  <div class="flex items-center gap-1">
+                    <%= if rel.metadata && rel.metadata.role do %>
+                      <span class={[
+                        "text-xs px-2 py-0.5 rounded-full",
+                        rel.metadata.role == "father" && "bg-ds-surface-low text-ds-on-surface",
+                        rel.metadata.role == "mother" && "bg-ds-surface-low text-ds-on-surface"
+                      ]}>
+                        {String.capitalize(rel.metadata.role)}
+                      </span>
+                    <% end %>
+                    <button
+                      id={"edit-parent-rel-#{rel.id}"}
+                      phx-click="edit_relationship"
+                      phx-value-id={rel.id}
+                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
+                      title={gettext("Edit")}
+                    >
+                      <.icon name="hero-pencil" class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      id={"delete-parent-rel-#{rel.id}"}
+                      phx-click="delete_relationship"
+                      phx-value-id={rel.id}
+                      data-confirm={gettext("Remove this parent relationship?")}
+                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
+                      title={gettext("Remove")}
+                    >
+                      <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+
+              <%= if @parents_marriage do %>
+                <div class="text-sm text-ds-on-surface-variant pl-2 border-l-2 border-ds-outline-variant/20">
+                  <span class="font-medium text-ds-on-surface">{gettext("Marriage")}</span>
+                  <% info = format_marriage_info(@parents_marriage.metadata) %>
+                  <%= if info do %>
+                    <div>{info}</div>
+                  <% end %>
+                </div>
+              <% end %>
+
+              <%= if length(@parents) < 2 do %>
+                <button
+                  id="add-parent-btn"
+                  phx-click="add_relationship"
+                  phx-value-type="parent"
+                  class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+                >
+                  <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Parent")}
+                </button>
+              <% end %>
+            </div>
+
+            <%!-- Siblings --%>
+            <%= if @siblings != [] do %>
+              <div id="siblings-section" class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3">
+                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                  Siblings
+                </p>
+                <%!-- Current person highlighted --%>
+                <.person_card person={@person} highlighted={true} />
+                <%= for sib <- @siblings do %>
+                  <div class="flex items-center gap-2">
+                    <.link
+                      navigate={
+                        person_path(
+                          sibling_person(sib),
+                          @from_family,
+                          @current_scope.organization
+                        )
+                      }
+                      class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    >
+                      <.person_card person={sibling_person(sib)} highlighted={false} />
+                    </.link>
+                    <%= if sibling_type(sib) == :half do %>
+                      <span class="text-xs text-ds-on-surface-variant bg-ds-surface-low px-2 py-0.5 rounded-full">
+                        {gettext("Half")}
+                      </span>
+                    <% end %>
+                  </div>
                 <% end %>
               </div>
             <% end %>
-
-            <%= if length(@parents) < 2 do %>
-              <button
-                id="add-parent-btn"
-                phx-click="add_relationship"
-                phx-value-type="parent"
-                class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
-              >
-                <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Parent")}
-              </button>
-            <% end %>
           </div>
-
-          <%!-- Siblings --%>
-          <%= if @siblings != [] do %>
-            <div id="siblings-section" class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3">
-              <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                Siblings
-              </p>
-              <%!-- Current person highlighted --%>
-              <.person_card person={@person} highlighted={true} />
-              <%= for sib <- @siblings do %>
-                <div class="flex items-center gap-2">
-                  <.link
-                    navigate={
-                      person_path(sibling_person(sib), @from_family, @current_scope.organization)
-                    }
-                    class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
-                  >
-                    <.person_card person={sibling_person(sib)} highlighted={false} />
-                  </.link>
-                  <%= if sibling_type(sib) == :half do %>
-                    <span class="text-xs text-ds-on-surface-variant bg-ds-surface-low px-2 py-0.5 rounded-full">
-                      {gettext("Half")}
-                    </span>
-                  <% end %>
-                </div>
-              <% end %>
-            </div>
-          <% end %>
         </div>
       </div>
-    </div>
+    <% end %>
 
     <%!-- Tagged Photos Section --%>
     <%= if @person_photos_count > 0 do %>

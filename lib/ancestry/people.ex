@@ -404,9 +404,32 @@ defmodule Ancestry.People do
   end
 
   def convert_to_acquaintance(%Person{} = person) do
-    person
-    |> Ecto.Changeset.change(%{kind: "acquaintance"})
-    |> Repo.update()
+    alias Ecto.Multi
+
+    person = Repo.preload(person, :families)
+
+    Multi.new()
+    |> Multi.update(:person, Ecto.Changeset.change(person, %{kind: "acquaintance"}))
+    |> Multi.run(:clear_defaults, &clear_default_memberships(&1, &2, person))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{person: person}} -> {:ok, person}
+      {:error, _op, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  defp clear_default_memberships(_repo, _changes, person) do
+    for family <- person.families do
+      Repo.update_all(
+        from(fm in FamilyMember,
+          where:
+            fm.family_id == ^family.id and fm.person_id == ^person.id and fm.is_default == true
+        ),
+        set: [is_default: false]
+      )
+    end
+
+    {:ok, :cleared}
   end
 
   def convert_to_family_member(%Person{} = person) do

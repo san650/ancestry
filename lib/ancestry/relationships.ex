@@ -33,6 +33,14 @@ defmodule Ancestry.Relationships do
     Repo.delete(rel)
   end
 
+  def count_relationships(person_id) do
+    Repo.one(
+      from r in Relationship,
+        where: r.person_a_id == ^person_id or r.person_b_id == ^person_id,
+        select: count(r.id)
+    )
+  end
+
   @doc """
   Changes a partner-type relationship to a new partner type, carrying over
   overlapping metadata fields and merging new metadata attributes.

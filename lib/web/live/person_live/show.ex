@@ -279,6 +279,43 @@ defmodule Web.PersonLive.Show do
     end
   end
 
+  # --- Conversion events ---
+
+  def handle_event("convert_to_family_member", _, socket) do
+    case People.convert_to_family_member(socket.assigns.person) do
+      {:ok, person} ->
+        {:noreply,
+         socket
+         |> assign(:person, person)
+         |> load_relationships(person)
+         |> put_flash(:info, gettext("Converted to family member"))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to convert"))}
+    end
+  end
+
+  def handle_event("convert_to_acquaintance", _, socket) do
+    person = socket.assigns.person
+    relationship_count = Relationships.count_relationships(person.id)
+
+    if relationship_count > 0 do
+      {:noreply, put_flash(socket, :error, gettext("Remove all relationships before converting"))}
+    else
+      case People.convert_to_acquaintance(person) do
+        {:ok, person} ->
+          {:noreply,
+           socket
+           |> assign(:person, person)
+           |> load_relationships(person)
+           |> put_flash(:info, gettext("Converted to non-family"))}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to convert"))}
+      end
+    end
+  end
+
   # --- Photo gallery events ---
 
   def handle_event("photo_clicked", %{"id" => id}, socket) do
@@ -381,6 +418,25 @@ defmodule Web.PersonLive.Show do
   end
 
   defp load_relationships(socket, person) do
+    if Ancestry.People.Person.acquaintance?(person) do
+      socket
+      |> assign(:parents, [])
+      |> assign(:parents_marriage, nil)
+      |> assign(:partner_children, [])
+      |> assign(:coparent_children, [])
+      |> assign(:siblings, [])
+      |> assign(:solo_children, [])
+      |> assign(:adding_relationship, nil)
+      |> assign(:adding_partner_id, nil)
+      |> assign_new(:add_rel_key, fn -> 0 end)
+      |> assign(:editing_relationship, nil)
+      |> assign(:edit_relationship_form, nil)
+    else
+      load_family_relationships(socket, person)
+    end
+  end
+
+  defp load_family_relationships(socket, person) do
     partners = Relationships.get_active_partners(person.id)
     ex_partners = Relationships.get_former_partners(person.id)
     all_partner_rels = partners ++ ex_partners
