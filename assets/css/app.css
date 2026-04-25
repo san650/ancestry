@@ -135,6 +135,12 @@ trix-editor .attachment--content {
   }
 }
 
+/* Print page — landscape orientation for wider trees */
+@page {
+  size: A4 landscape;
+  margin: 0.5cm;
+}
+
 /* Tree drawer transitions */
 [data-drawer-panel] {
   transition: max-height 200ms ease-out, opacity 150ms ease-out;

@@ -25,6 +25,7 @@ import { LiveSocket } from "phoenix_live_view"
 import { hooks as colocatedHooks } from "phoenix-colocated/ancestry"
 import topbar from "../vendor/topbar"
 import { PhotoTagger, PersonHighlight } from "./photo_tagger"
+import { AutoPrint } from "./auto_print"
 import { GraphConnector } from "./graph_connector"
 import Swipe from "./swipe"
 import { TrixEditor } from "./trix_editor"
@@ -58,7 +59,7 @@ const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: { ...colocatedHooks, FuzzyFilter, GraphConnector, PhotoTagger, PersonHighlight, Swipe, TrixEditor, TextareaAutogrow, ScrollToToday },
+  hooks: { ...colocatedHooks, AutoPrint, FuzzyFilter, GraphConnector, PhotoTagger, PersonHighlight, Swipe, TrixEditor, TextareaAutogrow, ScrollToToday },
 })
 
 // Show progress bar on live navigation and form submits

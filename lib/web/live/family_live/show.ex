@@ -142,6 +142,17 @@ defmodule Web.FamilyLive.Show do
       |> assign(:tree_other, tree_other)
       |> assign(:tree_display, tree_display)
       |> assign(:partial_settings, partial_settings)
+      |> assign(
+        :print_url,
+        build_print_url(
+          socket,
+          focus_person,
+          tree_display,
+          tree_ancestors,
+          tree_descendants,
+          tree_other
+        )
+      )
 
     socket = if focus_person, do: push_event(socket, "scroll_to_focus", %{}), else: socket
 
@@ -768,6 +779,40 @@ defmodule Web.FamilyLive.Show do
     case params[key] do
       nil -> default
       val -> val |> String.to_integer() |> max(0) |> min(20)
+    end
+  end
+
+  defp build_print_url(
+         socket,
+         focus_person,
+         tree_display,
+         tree_ancestors,
+         tree_descendants,
+         tree_other
+       ) do
+    case socket.assigns do
+      %{current_scope: %{organization: %{id: org_id}}, family: %{id: family_id}} ->
+        params = %{}
+
+        params =
+          if focus_person,
+            do: Map.put(params, :person, focus_person.id),
+            else: params
+
+        params =
+          if tree_display == "complete" do
+            Map.put(params, :display, "complete")
+          else
+            params
+            |> Map.put(:ancestors, tree_ancestors)
+            |> Map.put(:descendants, tree_descendants)
+            |> Map.put(:other, tree_other)
+          end
+
+        ~p"/org/#{org_id}/families/#{family_id}/print?#{params}"
+
+      _ ->
+        "#"
     end
   end
 
