@@ -1,6 +1,8 @@
 defmodule Ancestry.Factory do
   use ExMachina.Ecto, repo: Ancestry.Repo
 
+  alias Ancestry.StringUtils
+
   def organization_factory do
     %Ancestry.Organizations.Organization{
       name: sequence(:org_name, &"Organization #{&1}")
@@ -18,6 +20,7 @@ defmodule Ancestry.Factory do
     %Ancestry.People.Person{
       given_name: sequence(:given_name, &"Person #{&1}"),
       surname: "Test",
+      name_search: &person_name_search/1,
       organization: build(:organization)
     }
   end
@@ -26,9 +29,20 @@ defmodule Ancestry.Factory do
     %Ancestry.People.Person{
       given_name: sequence(:given_name, &"Acquaintance #{&1}"),
       surname: "Test",
+      name_search: &person_name_search/1,
       kind: "acquaintance",
       organization: build(:organization)
     }
+  end
+
+  defp person_name_search(%Ancestry.People.Person{} = p) do
+    fields = [p.given_name, p.surname, p.given_name_at_birth, p.surname_at_birth, p.nickname]
+    alt_names = p.alternate_names || []
+
+    (fields ++ alt_names)
+    |> Enum.reject(&(is_nil(&1) or &1 == ""))
+    |> Enum.join(" ")
+    |> StringUtils.normalize()
   end
 
   def family_member_factory do

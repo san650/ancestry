@@ -894,6 +894,72 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
+  describe "cross-field and diacritics search" do
+    setup do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+
+      person =
+        insert(:person,
+          given_name: "Máximo",
+          surname: "Fernández",
+          nickname: "Maxi",
+          alternate_names: ["Max Fernando"],
+          organization: org
+        )
+
+      # Force name_search computation by updating through changeset
+      {:ok, person} = Ancestry.People.update_person(person, %{})
+      insert(:family_member, family: family, person: person)
+      %{org: org, family: family, person: person}
+    end
+
+    test "search_all_people finds by cross-field query", %{org: org, person: person} do
+      results = People.search_all_people("maximo f", org.id)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+    end
+
+    test "search_all_people finds by diacritics-stripped query", %{org: org, person: person} do
+      results = People.search_all_people("maximo", org.id)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+    end
+
+    test "search_all_people finds by nickname", %{org: org, person: person} do
+      results = People.search_all_people("maxi", org.id)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+    end
+
+    test "search_all_people finds by alternate name", %{org: org, person: person} do
+      results = People.search_all_people("fernando", org.id)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+    end
+
+    test "search_family_members finds by cross-field query", %{family: family, person: person} do
+      results = People.search_family_members("maximo f", family.id, 0)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+    end
+
+    test "list_people_for_family_with_relationship_counts finds by cross-field query", %{
+      family: family,
+      person: person
+    } do
+      results = People.list_people_for_family_with_relationship_counts(family.id, "maximo f")
+      ids = Enum.map(results, fn {p, _} -> p.id end)
+      assert person.id in ids
+    end
+
+    test "list_people_for_org finds by cross-field query", %{org: org, person: person} do
+      results = People.list_people_for_org(org.id, "maximo f")
+      ids = Enum.map(results, fn {p, _} -> p.id end)
+      assert person.id in ids
+    end
+  end
+
   defp org_fixture do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {org, org}

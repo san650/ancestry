@@ -5,6 +5,7 @@ defmodule Ancestry.People do
   alias Ancestry.People.FamilyMember
   alias Ancestry.People.Person
   alias Ancestry.Relationships.Relationship
+  alias Ancestry.StringUtils
 
   def list_birthdays_for_family(family_id) do
     Repo.all(
@@ -75,21 +76,10 @@ defmodule Ancestry.People do
     unlinked_only = Keyword.get(opts, :unlinked_only, false)
     acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
-    escaped =
-      search_term
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(search_term)
 
     base_people_query(family_id)
-    |> where(
-      [p],
-      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
-    )
+    |> where([p], ilike(p.name_search, ^like))
     |> maybe_filter_unlinked(unlinked_only)
     |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
@@ -120,21 +110,10 @@ defmodule Ancestry.People do
     no_family_only = Keyword.get(opts, :no_family_only, false)
     acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
-    escaped =
-      search_term
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(search_term)
 
     base_org_people_query(org_id)
-    |> where(
-      [p],
-      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
-    )
+    |> where([p], ilike(p.name_search, ^like))
     |> maybe_filter_no_family(no_family_only)
     |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
@@ -245,13 +224,7 @@ defmodule Ancestry.People do
   end
 
   def search_people(query, exclude_family_id, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
@@ -259,15 +232,7 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id and fm.family_id == ^exclude_family_id,
         where: is_nil(fm.id),
         where: p.organization_id == ^org_id,
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -275,27 +240,13 @@ defmodule Ancestry.People do
   end
 
   def search_all_people(query, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
         where: p.organization_id == ^org_id,
         where: p.kind == "family_member",
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -303,28 +254,14 @@ defmodule Ancestry.People do
   end
 
   def search_all_people(query, exclude_person_id, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
         where: p.id != ^exclude_person_id,
         where: p.organization_id == ^org_id,
         where: p.kind == "family_member",
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -332,13 +269,7 @@ defmodule Ancestry.People do
   end
 
   def search_family_members(query, family_id, exclude_person_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
@@ -347,10 +278,7 @@ defmodule Ancestry.People do
         where: fm.family_id == ^family_id,
         where: p.id != ^exclude_person_id,
         where: p.kind == "family_member",
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20
     )
