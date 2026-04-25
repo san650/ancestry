@@ -231,6 +231,29 @@
         </label>
       </div>
 
+      <%!-- Acquaintance checkbox --%>
+      <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
+        <div></div>
+        <label
+          class="flex items-center gap-2 cursor-pointer"
+          {test_id("person-acquaintance-label")}
+        >
+          <input type="hidden" name="person[kind]" value="family_member" />
+          <input
+            type="checkbox"
+            name="person[kind]"
+            id="person-kind"
+            value="acquaintance"
+            checked={to_string(@form[:kind].value) == "acquaintance"}
+            class="w-4 h-4 accent-ds-primary rounded"
+            {test_id("person-acquaintance-checkbox")}
+          />
+          <span class="text-sm text-ds-on-surface">
+            {gettext("This person is not a family member (acquaintance)")}
+          </span>
+        </label>
+      </div>
+
       <%!-- Death date (shown when not living) --%>
       <%= unless living_checked?(@form) do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
