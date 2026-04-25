@@ -22,6 +22,7 @@ defmodule Web.PeopleLive.Index do
      |> assign(:selected, MapSet.new())
      |> assign(:confirm_remove, false)
      |> assign(:unlinked_only, false)
+     |> assign(:acquaintance_only, false)
      |> assign(:people_empty?, people == [])
      |> stream_configure(:people, dom_id: fn {person, _rel_count} -> "people-#{person.id}" end)
      |> stream(:people, people)}
@@ -33,7 +34,8 @@ defmodule Web.PeopleLive.Index do
 
     people =
       People.list_people_for_family_with_relationship_counts(family_id, query,
-        unlinked_only: socket.assigns.unlinked_only
+        unlinked_only: socket.assigns.unlinked_only,
+        acquaintance_only: socket.assigns.acquaintance_only
       )
 
     {:noreply,
@@ -62,6 +64,18 @@ defmodule Web.PeopleLive.Index do
     {:noreply,
      socket
      |> assign(:unlinked_only, unlinked_only)
+     |> assign(:selected, MapSet.new())
+     |> assign(:people_empty?, people == [])
+     |> stream(:people, people, reset: true)}
+  end
+
+  def handle_event("toggle_acquaintance", _, socket) do
+    acquaintance_only = !socket.assigns.acquaintance_only
+    people = refetch_people(socket, acquaintance_only: acquaintance_only)
+
+    {:noreply,
+     socket
+     |> assign(:acquaintance_only, acquaintance_only)
      |> assign(:selected, MapSet.new())
      |> assign(:people_empty?, people == [])
      |> stream(:people, people, reset: true)}
@@ -156,11 +170,13 @@ defmodule Web.PeopleLive.Index do
 
   defp refetch_people(socket, opts \\ []) do
     unlinked_only = Keyword.get(opts, :unlinked_only, socket.assigns.unlinked_only)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, socket.assigns.acquaintance_only)
 
     People.list_people_for_family_with_relationship_counts(
       socket.assigns.family.id,
       socket.assigns.filter,
-      unlinked_only: unlinked_only
+      unlinked_only: unlinked_only,
+      acquaintance_only: acquaintance_only
     )
   end
 

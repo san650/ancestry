@@ -20,7 +20,7 @@ defmodule Ancestry.People.FamilyGraph do
   Builds the graph from DB — exactly 2 queries.
   """
   def for_family(family_id) do
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     from(people, relationships, family_id)
   end

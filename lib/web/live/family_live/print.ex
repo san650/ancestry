@@ -17,7 +17,7 @@ defmodule Web.FamilyLive.Print do
       raise Ecto.NoResultsError, queryable: Ancestry.Families.Family
     end
 
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     family_graph = FamilyGraph.from(people, relationships, family.id)
 

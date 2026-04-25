@@ -5,6 +5,7 @@ defmodule Ancestry.People do
   alias Ancestry.People.FamilyMember
   alias Ancestry.People.Person
   alias Ancestry.Relationships.Relationship
+  alias Ancestry.StringUtils
 
   def list_birthdays_for_family(family_id) do
     Repo.all(
@@ -28,12 +29,23 @@ defmodule Ancestry.People do
     )
   end
 
-  def list_people_for_family(family_id) do
+  def list_people(family_id) do
     Repo.all(
       from p in Person,
         join: fm in FamilyMember,
         on: fm.person_id == p.id,
         where: fm.family_id == ^family_id,
+        order_by: [asc: p.surname, asc: p.given_name]
+    )
+  end
+
+  def list_family_members(family_id) do
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id,
+        where: fm.family_id == ^family_id,
+        where: p.kind == "family_member",
         order_by: [asc: p.surname, asc: p.given_name]
     )
   end
@@ -44,9 +56,11 @@ defmodule Ancestry.People do
 
   def list_people_for_family_with_relationship_counts(family_id, opts) when is_list(opts) do
     unlinked_only = Keyword.get(opts, :unlinked_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     base_people_query(family_id)
     |> maybe_filter_unlinked(unlinked_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -60,23 +74,14 @@ defmodule Ancestry.People do
 
   def list_people_for_family_with_relationship_counts(family_id, search_term, opts) do
     unlinked_only = Keyword.get(opts, :unlinked_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
-    escaped =
-      search_term
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(search_term)
 
     base_people_query(family_id)
-    |> where(
-      [p],
-      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
-    )
+    |> where([p], ilike(p.name_search, ^like))
     |> maybe_filter_unlinked(unlinked_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -87,9 +92,11 @@ defmodule Ancestry.People do
 
   def list_people_for_org(org_id, opts) when is_list(opts) do
     no_family_only = Keyword.get(opts, :no_family_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
     base_org_people_query(org_id)
     |> maybe_filter_no_family(no_family_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -101,23 +108,14 @@ defmodule Ancestry.People do
 
   def list_people_for_org(org_id, search_term, opts) do
     no_family_only = Keyword.get(opts, :no_family_only, false)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, false)
 
-    escaped =
-      search_term
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(search_term)
 
     base_org_people_query(org_id)
-    |> where(
-      [p],
-      fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-        fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like)
-    )
+    |> where([p], ilike(p.name_search, ^like))
     |> maybe_filter_no_family(no_family_only)
+    |> maybe_filter_acquaintance_only(acquaintance_only)
     |> Repo.all()
   end
 
@@ -226,13 +224,7 @@ defmodule Ancestry.People do
   end
 
   def search_people(query, exclude_family_id, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
@@ -240,15 +232,7 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id and fm.family_id == ^exclude_family_id,
         where: is_nil(fm.id),
         where: p.organization_id == ^org_id,
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -256,26 +240,12 @@ defmodule Ancestry.People do
   end
 
   def search_all_people(query, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
         where: p.organization_id == ^org_id,
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -283,27 +253,13 @@ defmodule Ancestry.People do
   end
 
   def search_all_people(query, exclude_person_id, org_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
         where: p.id != ^exclude_person_id,
         where: p.organization_id == ^org_id,
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like) or
-            fragment(
-              "EXISTS (SELECT 1 FROM unnest(?) AS name WHERE unaccent(name) ILIKE unaccent(?))",
-              p.alternate_names,
-              ^like
-            ),
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20,
         preload: [:families]
@@ -311,13 +267,7 @@ defmodule Ancestry.People do
   end
 
   def search_family_members(query, family_id, exclude_person_id) do
-    escaped =
-      query
-      |> String.replace("\\", "\\\\")
-      |> String.replace("%", "\\%")
-      |> String.replace("_", "\\_")
-
-    like = "%#{escaped}%"
+    like = StringUtils.normalize_sql_search(query)
 
     Repo.all(
       from p in Person,
@@ -325,10 +275,8 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id,
         where: fm.family_id == ^family_id,
         where: p.id != ^exclude_person_id,
-        where:
-          fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
-            fragment("unaccent(?) ILIKE unaccent(?)", p.nickname, ^like),
+        where: p.kind == "family_member",
+        where: ilike(p.name_search, ^like),
         order_by: [asc: p.surname, asc: p.given_name],
         limit: 20
     )
@@ -350,20 +298,26 @@ defmodule Ancestry.People do
   end
 
   def set_default_member(family_id, person_id) do
-    Repo.transaction(fn ->
-      Repo.update_all(
-        from(fm in FamilyMember, where: fm.family_id == ^family_id),
-        set: [is_default: false]
-      )
+    person = Repo.get!(Person, person_id)
 
-      {1, _} =
+    if Person.acquaintance?(person) do
+      {:error, :acquaintance_cannot_be_default}
+    else
+      Repo.transaction(fn ->
         Repo.update_all(
-          from(fm in FamilyMember,
-            where: fm.family_id == ^family_id and fm.person_id == ^person_id
-          ),
-          set: [is_default: true]
+          from(fm in FamilyMember, where: fm.family_id == ^family_id),
+          set: [is_default: false]
         )
-    end)
+
+        {1, _} =
+          Repo.update_all(
+            from(fm in FamilyMember,
+              where: fm.family_id == ^family_id and fm.person_id == ^person_id
+            ),
+            set: [is_default: true]
+          )
+      end)
+    end
   end
 
   def clear_default_member(family_id) do
@@ -373,6 +327,41 @@ defmodule Ancestry.People do
     )
 
     :ok
+  end
+
+  def convert_to_acquaintance(%Person{} = person) do
+    alias Ecto.Multi
+
+    person = Repo.preload(person, :families)
+
+    Multi.new()
+    |> Multi.update(:person, Ecto.Changeset.change(person, %{kind: "acquaintance"}))
+    |> Multi.run(:clear_defaults, &clear_default_memberships(&1, &2, person))
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{person: person}} -> {:ok, person}
+      {:error, _op, changeset, _} -> {:error, changeset}
+    end
+  end
+
+  defp clear_default_memberships(_repo, _changes, person) do
+    for family <- person.families do
+      Repo.update_all(
+        from(fm in FamilyMember,
+          where:
+            fm.family_id == ^family.id and fm.person_id == ^person.id and fm.is_default == true
+        ),
+        set: [is_default: false]
+      )
+    end
+
+    {:ok, :cleared}
+  end
+
+  def convert_to_family_member(%Person{} = person) do
+    person
+    |> Ecto.Changeset.change(%{kind: "family_member"})
+    |> Repo.update()
   end
 
   def change_person(%Person{} = person, attrs \\ %{}) do
@@ -465,4 +454,10 @@ defmodule Ancestry.People do
   end
 
   defp maybe_filter_unlinked(query, false), do: query
+
+  defp maybe_filter_acquaintance_only(query, true) do
+    where(query, [p], p.kind == "acquaintance")
+  end
+
+  defp maybe_filter_acquaintance_only(query, false), do: query
 end

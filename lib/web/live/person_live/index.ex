@@ -18,7 +18,7 @@ defmodule Web.PersonLive.Index do
      |> assign(:search_mode, false)
      |> assign(:search_query, "")
      |> assign(:search_results, [])
-     |> stream(:members, People.list_people_for_family(family_id))}
+     |> stream(:members, People.list_people(family_id))}
   end
 
   @impl true

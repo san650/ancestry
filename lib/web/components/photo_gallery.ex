@@ -109,6 +109,9 @@ defmodule Web.Components.PhotoGallery do
   attr :panel_open, :boolean, default: false
   attr :photo_people, :list, default: []
   attr :current_scope, :any, required: true
+  attr :linking_person, :boolean, default: false
+  attr :link_search_query, :string, default: ""
+  attr :link_search_results, :list, default: []
 
   def lightbox(assigns) do
     current_index = Enum.find_index(assigns.photos, &(&1.id == assigns.selected_photo.id)) || 0
@@ -198,6 +201,7 @@ defmodule Web.Components.PhotoGallery do
             alt={@selected_photo.original_filename}
             class="max-h-full max-w-full object-contain rounded-ds-sharp shadow-2xl"
             phx-hook="PhotoTagger"
+            data-photo-id={@selected_photo.id}
           />
 
           <button
@@ -312,6 +316,96 @@ defmodule Web.Components.PhotoGallery do
                     </div>
                   <% end %>
                 </div>
+
+                <%!-- Link person section --%>
+                <div class="mt-1 px-1">
+                  <%= if @linking_person do %>
+                    <div class="space-y-2">
+                      <div class="relative">
+                        <input
+                          type="text"
+                          value={@link_search_query}
+                          placeholder={gettext("Search people...")}
+                          phx-keyup="link_person_search"
+                          phx-debounce="300"
+                          class="w-full bg-white/[0.08] border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                          autofocus
+                        />
+                        <button
+                          phx-click="cancel_link_person"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                        >
+                          <.icon name="hero-x-mark" class="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <%!-- Scrollable results --%>
+                      <div class="max-h-36 overflow-y-auto flex flex-col gap-0.5">
+                        <%= for person <- @link_search_results do %>
+                          <button
+                            phx-click="link_existing_person"
+                            phx-value-person-id={person.id}
+                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-white/[0.08] transition-colors text-left"
+                          >
+                            <%!-- Person avatar (same pattern as tagged people list) --%>
+                            <%= if person.photo && person.photo_status == "processed" do %>
+                              <img
+                                src={
+                                  Ancestry.Uploaders.PersonPhoto.url(
+                                    {person.photo, person},
+                                    :thumbnail
+                                  )
+                                }
+                                class="w-6 h-6 rounded-full object-cover shrink-0"
+                              />
+                            <% else %>
+                              <div class="w-6 h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
+                                <.icon name="hero-user" class="w-3.5 h-3.5 text-white/40" />
+                              </div>
+                            <% end %>
+                            <span class="text-sm text-white/85 truncate">
+                              {Ancestry.People.Person.display_name(person)}
+                            </span>
+                          </button>
+                        <% end %>
+                      </div>
+
+                      <%!-- "Create person" sticky footer — outside the scrollable area --%>
+                      <%= if String.length(@link_search_query || "") >= 1 do %>
+                        <div class="border-t border-white/10 mt-1 pt-1">
+                          <button
+                            phx-click="create_person_from_link"
+                            phx-value-query={@link_search_query}
+                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
+                          >
+                            <div class="w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center shrink-0 text-emerald-400 text-sm font-bold">
+                              +
+                            </div>
+                            <span class="text-sm text-emerald-400 truncate">
+                              {gettext("Create \"%{query}\"...",
+                                query: String.slice(@link_search_query, 0..19)
+                              )}
+                            </span>
+                          </button>
+                        </div>
+                      <% end %>
+                    </div>
+                  <% else %>
+                    <button
+                      phx-click="start_link_person"
+                      class="w-full py-2 rounded-lg border border-dashed border-white/20 text-white/50 hover:text-white/70 hover:border-white/40 transition-colors text-sm flex items-center justify-center gap-1.5"
+                    >
+                      <span class="text-base">+</span> {gettext("Link person")}
+                    </button>
+                  <% end %>
+                </div>
+
+                <p
+                  :if={!@linking_person}
+                  class="text-center text-white/30 text-[11px] mt-1.5 px-1 hidden lg:block"
+                >
+                  {gettext("Click on the photo to tag with position")}
+                </p>
               </div>
 
               <%!-- Comments card (L2) — wraps the live component --%>

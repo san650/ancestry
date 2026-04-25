@@ -353,8 +353,20 @@
       panel_open={@panel_open}
       photo_people={@photo_people}
       current_scope={@current_scope}
+      linking_person={@linking_person}
+      link_search_query={@link_search_query}
+      link_search_results={@link_search_results}
     />
   <% end %>
+
+  <.live_component
+    :if={@show_quick_person_modal}
+    module={Web.Shared.QuickPersonModal}
+    id="quick-person-modal"
+    show_acquaintance={true}
+    organization_id={@current_scope.organization.id}
+    prefill_name={@quick_person_prefill}
+  />
 
   <%!-- Delete photos confirmation modal --%>
   <%= if @confirm_delete_photos do %>

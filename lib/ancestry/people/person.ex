@@ -23,6 +23,8 @@ defmodule Ancestry.People.Person do
     field :external_id, :string
     field :photo, Ancestry.Uploaders.PersonPhoto.Type
     field :photo_status, :string
+    field :kind, :string, default: "family_member"
+    field :name_search, :string
 
     belongs_to :organization, Ancestry.Organizations.Organization
     many_to_many :families, Ancestry.Families.Family, join_through: "family_members"
@@ -50,14 +52,17 @@ defmodule Ancestry.People.Person do
     :death_year,
     :deceased,
     :gender,
-    :external_id
+    :external_id,
+    :kind
   ]
 
   def changeset(person, attrs) do
     person
     |> cast(attrs, @cast_fields)
     |> default_birth_names()
+    |> compute_name_search()
     |> validate_inclusion(:gender, ~w(female male other))
+    |> validate_inclusion(:kind, ~w(family_member acquaintance))
     |> validate_number(:birth_month, greater_than_or_equal_to: 1, less_than_or_equal_to: 12)
     |> validate_number(:birth_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)
     |> validate_number(:birth_year, greater_than_or_equal_to: 1, less_than_or_equal_to: 9999)
@@ -65,6 +70,26 @@ defmodule Ancestry.People.Person do
     |> validate_number(:death_day, greater_than_or_equal_to: 1, less_than_or_equal_to: 31)
     |> validate_number(:death_year, greater_than_or_equal_to: 1, less_than_or_equal_to: 9999)
     |> unique_constraint(:external_id, name: :persons_organization_id_external_id_index)
+  end
+
+  defp compute_name_search(changeset) do
+    fields = [
+      get_field(changeset, :given_name),
+      get_field(changeset, :surname),
+      get_field(changeset, :given_name_at_birth),
+      get_field(changeset, :surname_at_birth),
+      get_field(changeset, :nickname)
+    ]
+
+    alt_names = get_field(changeset, :alternate_names) || []
+
+    name_search =
+      (fields ++ alt_names)
+      |> Enum.reject(&(is_nil(&1) or &1 == ""))
+      |> Enum.join(" ")
+      |> Ancestry.StringUtils.normalize()
+
+    put_change(changeset, :name_search, name_search)
   end
 
   defp default_birth_names(changeset) do
@@ -92,4 +117,7 @@ defmodule Ancestry.People.Person do
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
   end
+
+  def acquaintance?(%__MODULE__{kind: "acquaintance"}), do: true
+  def acquaintance?(%__MODULE__{}), do: false
 end

@@ -31,6 +31,12 @@ defmodule Web.PersonLive.Show do
      |> assign(:panel_open, false)
      |> assign(:photo_people, [])
      |> assign(:comments_topic, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:pending_tag, nil)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:linking_person, false)
+     |> assign(:link_search_query, "")
+     |> assign(:link_search_results, [])
      |> load_relationships(person)
      |> load_person_photos(person)
      |> allow_upload(:photo,
@@ -279,6 +285,43 @@ defmodule Web.PersonLive.Show do
     end
   end
 
+  # --- Conversion events ---
+
+  def handle_event("convert_to_family_member", _, socket) do
+    case People.convert_to_family_member(socket.assigns.person) do
+      {:ok, person} ->
+        {:noreply,
+         socket
+         |> assign(:person, person)
+         |> load_relationships(person)
+         |> put_flash(:info, gettext("Converted to family member"))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to convert"))}
+    end
+  end
+
+  def handle_event("convert_to_acquaintance", _, socket) do
+    person = socket.assigns.person
+    relationship_count = Relationships.count_relationships(person.id)
+
+    if relationship_count > 0 do
+      {:noreply, put_flash(socket, :error, gettext("Remove all relationships before converting"))}
+    else
+      case People.convert_to_acquaintance(person) do
+        {:ok, person} ->
+          {:noreply,
+           socket
+           |> assign(:person, person)
+           |> load_relationships(person)
+           |> put_flash(:info, gettext("Converted to non-family"))}
+
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to convert"))}
+      end
+    end
+  end
+
   # --- Photo gallery events ---
 
   def handle_event("photo_clicked", %{"id" => id}, socket) do
@@ -338,6 +381,43 @@ defmodule Web.PersonLive.Show do
     {:reply, payload, socket}
   end
 
+  def handle_event(
+        "create_person_from_tag",
+        %{"x" => x, "y" => y, "query" => query, "photo_id" => photo_id},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:pending_tag, %{x: x, y: y, photo_id: String.to_integer(photo_id)})
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, query)}
+  end
+
+  def handle_event("start_link_person", _, socket) do
+    {:noreply, PhotoInteractions.start_link_person(socket)}
+  end
+
+  def handle_event("cancel_link_person", _, socket) do
+    {:noreply, PhotoInteractions.cancel_link_person(socket)}
+  end
+
+  def handle_event("link_person_search", %{"value" => query}, socket) do
+    {:noreply, PhotoInteractions.search_link_person(socket, query)}
+  end
+
+  def handle_event("link_existing_person", %{"person-id" => person_id}, socket) do
+    {:noreply, PhotoInteractions.link_existing_person(socket, person_id)}
+  end
+
+  def handle_event("create_person_from_link", %{"query" => query}, socket) do
+    {:noreply,
+     socket
+     |> assign(:pending_tag, %{x: nil, y: nil, photo_id: socket.assigns.selected_photo.id})
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, query)
+     |> PhotoInteractions.cancel_link_person()}
+  end
+
   @impl true
   def handle_info({:person_photo_processed, person}, socket) do
     {:noreply, assign(socket, :person, person)}
@@ -369,6 +449,57 @@ defmodule Web.PersonLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:person_created, person}, socket) do
+    socket =
+      case socket.assigns[:pending_tag] do
+        %{x: x, y: y, photo_id: photo_id} ->
+          Galleries.tag_person_in_photo(photo_id, person.id, x, y)
+
+          if socket.assigns.selected_photo && socket.assigns.selected_photo.id == photo_id do
+            socket
+            |> assign(:photo_people, Galleries.list_photo_people(photo_id))
+            |> PhotoInteractions.push_photo_people()
+          else
+            socket
+          end
+
+        nil ->
+          socket
+      end
+
+    # Forward to AddRelationshipComponent if it's active
+    if socket.assigns[:adding_relationship] do
+      person = People.get_person!(person.id)
+
+      send_update(Web.Shared.AddRelationshipComponent,
+        id: "add-relationship-#{socket.assigns.add_rel_key}",
+        person_created: person
+      )
+    end
+
+    {:noreply,
+     socket
+     |> assign(:pending_tag, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    # Forward to AddRelationshipComponent if it's active
+    if socket.assigns[:adding_relationship] do
+      send_update(Web.Shared.AddRelationshipComponent,
+        id: "add-relationship-#{socket.assigns.add_rel_key}",
+        cancelled: true
+      )
+    end
+
+    {:noreply,
+     socket
+     |> assign(:pending_tag, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
+  end
+
   # --- Private helpers ---
 
   defp load_person_photos(socket, person) do
@@ -381,6 +512,25 @@ defmodule Web.PersonLive.Show do
   end
 
   defp load_relationships(socket, person) do
+    if Ancestry.People.Person.acquaintance?(person) do
+      socket
+      |> assign(:parents, [])
+      |> assign(:parents_marriage, nil)
+      |> assign(:partner_children, [])
+      |> assign(:coparent_children, [])
+      |> assign(:siblings, [])
+      |> assign(:solo_children, [])
+      |> assign(:adding_relationship, nil)
+      |> assign(:adding_partner_id, nil)
+      |> assign_new(:add_rel_key, fn -> 0 end)
+      |> assign(:editing_relationship, nil)
+      |> assign(:edit_relationship_form, nil)
+    else
+      load_family_relationships(socket, person)
+    end
+  end
+
+  defp load_family_relationships(socket, person) do
     partners = Relationships.get_active_partners(person.id)
     ex_partners = Relationships.get_former_partners(person.id)
     all_partner_rels = partners ++ ex_partners

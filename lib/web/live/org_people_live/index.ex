@@ -15,6 +15,7 @@ defmodule Web.OrgPeopleLive.Index do
      |> assign(:selected, MapSet.new())
      |> assign(:confirm_delete, false)
      |> assign(:no_family_only, false)
+     |> assign(:acquaintance_only, false)
      |> assign(:people_empty?, people == [])
      |> stream_configure(:people, dom_id: fn {person, _rel_count} -> "people-#{person.id}" end)
      |> stream(:people, people)}
@@ -28,7 +29,10 @@ defmodule Web.OrgPeopleLive.Index do
     org_id = socket.assigns.current_scope.organization.id
 
     people =
-      People.list_people_for_org(org_id, query, no_family_only: socket.assigns.no_family_only)
+      People.list_people_for_org(org_id, query,
+        no_family_only: socket.assigns.no_family_only,
+        acquaintance_only: socket.assigns.acquaintance_only
+      )
 
     {:noreply,
      socket
@@ -56,6 +60,18 @@ defmodule Web.OrgPeopleLive.Index do
     {:noreply,
      socket
      |> assign(:no_family_only, no_family_only)
+     |> assign(:selected, MapSet.new())
+     |> assign(:people_empty?, people == [])
+     |> stream(:people, people, reset: true)}
+  end
+
+  def handle_event("toggle_acquaintance", _, socket) do
+    acquaintance_only = !socket.assigns.acquaintance_only
+    people = refetch_people(socket, acquaintance_only: acquaintance_only)
+
+    {:noreply,
+     socket
+     |> assign(:acquaintance_only, acquaintance_only)
      |> assign(:selected, MapSet.new())
      |> assign(:people_empty?, people == [])
      |> stream(:people, people, reset: true)}
@@ -142,11 +158,13 @@ defmodule Web.OrgPeopleLive.Index do
 
   defp refetch_people(socket, opts \\ []) do
     no_family_only = Keyword.get(opts, :no_family_only, socket.assigns.no_family_only)
+    acquaintance_only = Keyword.get(opts, :acquaintance_only, socket.assigns.acquaintance_only)
 
     People.list_people_for_org(
       socket.assigns.current_scope.organization.id,
       socket.assigns.filter,
-      no_family_only: no_family_only
+      no_family_only: no_family_only,
+      acquaintance_only: acquaintance_only
     )
   end
 

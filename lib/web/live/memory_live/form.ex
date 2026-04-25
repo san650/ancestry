@@ -37,7 +37,9 @@ defmodule Web.MemoryLive.Form do
      |> assign(:picker_mode, nil)
      |> assign(:picker_gallery, nil)
      |> assign(:picker_photos, [])
-     |> assign(:confirm_delete, false)}
+     |> assign(:confirm_delete, false)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
   end
 
   @impl true
@@ -177,6 +179,40 @@ defmodule Web.MemoryLive.Form do
       end)
 
     {:noreply, push_event(socket, "mention_results", %{results: results})}
+  end
+
+  # --- Create person from mention ---
+
+  def handle_event("create_person_from_mention", %{"query" => query}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, query)}
+  end
+
+  # --- handle_info callbacks ---
+
+  @impl true
+  def handle_info({:person_created, person}, socket) do
+    display_name = Ancestry.People.Person.display_name(person)
+
+    # Push mention data to JS so Trix hook can insert the attachment.
+    # The MemoryMention record is created automatically by ContentParser
+    # when the memory form is saved — no need to create it here.
+    # Push unconditionally — the JS handler guards against null saved state.
+    {:noreply,
+     socket
+     |> push_event("mention_created", %{id: person.id, name: display_name})
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> push_event("mention_cancelled", %{})}
   end
 
   # --- Private ---

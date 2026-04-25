@@ -78,7 +78,11 @@ defmodule Ancestry.Galleries do
   def tag_person_in_photo(photo_id, person_id, x, y) do
     %PhotoPerson{photo_id: photo_id, person_id: person_id}
     |> PhotoPerson.changeset(%{x: x, y: y})
-    |> Repo.insert()
+    |> Repo.insert(
+      on_conflict: {:replace, [:x, :y]},
+      conflict_target: [:photo_id, :person_id],
+      returning: true
+    )
   end
 
   def untag_person_from_photo(photo_id, person_id) do

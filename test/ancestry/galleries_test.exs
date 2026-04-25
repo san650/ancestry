@@ -192,10 +192,41 @@ defmodule Ancestry.GalleriesTest do
       assert photo_person.y == 0.3
     end
 
-    test "tag_person_in_photo/4 rejects duplicate tag", %{photo: photo, person: person} do
-      assert {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.3)
-      assert {:error, changeset} = Galleries.tag_person_in_photo(photo.id, person.id, 0.2, 0.8)
-      assert "has already been taken" in errors_on(changeset).photo_id
+    test "tag_person_in_photo/4 creates a photo_person with nil coordinates", %{
+      photo: photo,
+      person: person
+    } do
+      assert {:ok, photo_person} = Galleries.tag_person_in_photo(photo.id, person.id, nil, nil)
+      assert photo_person.photo_id == photo.id
+      assert photo_person.person_id == person.id
+      assert photo_person.x == nil
+      assert photo_person.y == nil
+    end
+
+    test "tag_person_in_photo/4 upserts coordinates on an existing nil-coordinate tag", %{
+      photo: photo,
+      person: person
+    } do
+      assert {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, nil, nil)
+      assert {:ok, updated} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.5)
+      assert updated.x == 0.5
+      assert updated.y == 0.5
+
+      # Verify only one record exists
+      assert length(Galleries.list_photo_people(photo.id)) == 1
+    end
+
+    test "tag_person_in_photo/4 upserts coordinates on an existing positioned tag", %{
+      photo: photo,
+      person: person
+    } do
+      assert {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.3, 0.3)
+      assert {:ok, updated} = Galleries.tag_person_in_photo(photo.id, person.id, 0.7, 0.8)
+      assert updated.x == 0.7
+      assert updated.y == 0.8
+
+      # Verify only one record exists
+      assert length(Galleries.list_photo_people(photo.id)) == 1
     end
 
     test "tag_person_in_photo/4 validates coordinate bounds", %{photo: photo, person: person} do

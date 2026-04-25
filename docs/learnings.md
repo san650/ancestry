@@ -60,3 +60,4 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | at-limit-simplified-path-data-loss | elixir, tree-view, silent-failure, code-path-divergence | Simplified code paths at boundaries silently drop data |
 | pgettext-gendered-adjectives | i18n, gettext, spanish, gender, pgettext, translation | Use pgettext contexts for gendered adjectives in Spanish |
 | hook-mounted-scroll-timing | liveview, js-hooks, scroll, live-navigation, timing | JS hook scrollIntoView fails on live navigation without requestAnimationFrame |
+| phx-change-bare-input | liveview, forms, phx-change, phx-keyup, silent-failure | phx-change on a bare input outside a form does not fire events |

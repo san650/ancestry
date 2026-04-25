@@ -66,7 +66,7 @@ defmodule Web.UserFlows.AutoLinkCoparentsTest do
       |> click("#add-rel-create-new-btn")
       |> fill_in("Given name", with: "Martha")
       |> fill_in("Surname", with: "Nuclear")
-      |> click_button("Create & Continue")
+      |> click_button("Create")
 
     # Now in metadata step — select mother role and submit
     conn =
@@ -106,7 +106,7 @@ defmodule Web.UserFlows.AutoLinkCoparentsTest do
       |> click("#add-rel-create-new-btn")
       |> fill_in("Given name", with: "Pat")
       |> fill_in("Surname", with: "Nuclear")
-      |> click_button("Create & Continue")
+      |> click_button("Create")
 
     # Role defaults to "mother" for a person with no gender.
     # Submit with the default — gender should be auto-set to female.

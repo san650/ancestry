@@ -29,7 +29,7 @@ defmodule Web.FamilyLive.Show do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "family:#{family_id}")
     end
 
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     family_graph = FamilyGraph.from(people, relationships, family.id)
     galleries = Galleries.list_galleries(family_id)
@@ -694,8 +694,31 @@ defmodule Web.FamilyLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:person_created, person}, socket) do
+    person = People.get_person!(person.id)
+
+    send_update(Web.Shared.AddRelationshipComponent,
+      id: "add-relationship",
+      person_created: person
+    )
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:quick_person_cancelled}, socket) do
+    send_update(Web.Shared.AddRelationshipComponent,
+      id: "add-relationship",
+      cancelled: true
+    )
+
+    {:noreply, socket}
+  end
+
   # assign_async spawns linked tasks that send :EXIT on completion
   def handle_info({:EXIT, _pid, :normal}, socket), do: {:noreply, socket}
+
+  # Catch-all for unexpected messages (e.g. :query_fired from Tidewave MCP)
+  def handle_info(_msg, socket), do: {:noreply, socket}
 
   # Private helpers
 
@@ -717,7 +740,7 @@ defmodule Web.FamilyLive.Show do
 
   defp refresh_graph(socket) do
     family_id = socket.assigns.family.id
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     family_graph = FamilyGraph.from(people, relationships, family_id)
 
