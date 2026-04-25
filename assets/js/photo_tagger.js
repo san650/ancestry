@@ -225,7 +225,9 @@ const PhotoTagger = {
   renderCircles(people) {
     this.circlesContainer.replaceChildren()
 
-    people.forEach(pp => {
+    people
+    .filter(pp => pp.x != null && pp.y != null)
+    .forEach(pp => {
       const circle = document.createElement("div")
       circle.dataset.circlePersonId = pp.person_id
       circle.className = "absolute w-10 h-10 -ml-5 -mt-5 rounded-full border-2 border-dashed border-white/40 transition-all duration-200 pointer-events-auto"
