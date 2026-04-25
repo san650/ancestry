@@ -1,102 +1,101 @@
-# Print Family Tree — Design Spec (v2)
+# Print Family Tree — Design Spec (v3: Indented List)
 
 **Date:** 2026-04-24
 **Status:** Approved
 
 ## Goal
 
-Add a dedicated print page for the family tree. A "Print" button on the family show page opens a new tab with a clean, print-optimized layout showing only the family name and text-only person cards with SVG connectors. The page auto-triggers the browser's print dialog.
+Replace the grid-based print page with an indented list layout that always fits on paper regardless of family size. The print page opens in a new tab, shows the family name and an indented hierarchy of people with their relationships, and auto-triggers the browser print dialog.
 
-## Why not `@media print`?
+## Why not the CSS grid approach?
 
-The first approach (CSS `@media print` on the existing page) failed because:
-- Nested scroll containers (`#tree-canvas` + `#graph-canvas`) clip the wide tree grid
-- SVG connectors are drawn for screen layout coordinates and don't redraw for print reflow
-- Fixed inline grid columns (`repeat(N, 120px)`) overflow any print page width
-- `beforeprint`/`afterprint` timing prevents reliable scaling
+The grid-based print view (v1: `@media print`, v2: dedicated page with grid) failed because:
+- Wide trees (15+ columns at 120px) overflow any print page
+- CSS `zoom` creates coordinate mismatches between `scrollWidth` (unzoomed) and `getBoundingClientRect` (zoomed), breaking SVG connector positioning
+- Dynamic column widths make text unreadable for wide trees
+- SVG connectors are inherently coupled to the grid layout and break when the layout changes between screen and print
 
-A dedicated page avoids all of these: the `GraphConnector` hook draws SVG for the actual rendered layout (which IS the print layout), and there are no scroll containers to fight.
+An indented list is pure HTML text — no SVG, no fixed-width grid, no coordinate system. It wraps naturally within any page width.
 
-## Architecture
+## Layout
 
-**Route:** `/org/:org_id/families/:family_id/print`
+### Structure
 
-Query params (carried from the family show page):
-- `person` — focus person ID
-- `ancestors`, `descendants`, `other` — depth settings
-- `display` — `partial` or `complete`
+```
+Family Name
+(centered on Focus Person)
 
-**LiveView:** `Web.FamilyLive.Print` — minimal mount, loads family + graph, renders.
+ANCESTORS
+Person (year)
+    | relationship Partner (year)
+        Person (year)
+            | relationship Partner (year)
+                Sibling 1 (year)
+                Sibling 2 (year)
+                ★ Focus Person (year)        ← highlighted
+                    | relationship Partner (year)
+                        DESCENDANTS
+                        Child 1 (year)
+                        Child 2 (year)
+                Sibling 3 (year)
 
-**Layout:** A new `print` layout function in `Web.Layouts` — just the page title, CSS, JS assets. No header, no toolbar, no nav drawer.
+Other Ancestor Branch (year)
+    | relationship Partner (year)
+        → Person (see above)                 ← back-reference
+```
 
-**Component:** `Web.FamilyLive.PrintGraphComponent` — a separate graph component for print with its own simplified person card.
+### Rules
 
-## Components
+1. **Direct descendant first.** The person who belongs to the lineage is the top-level entry. Partners are always indented below on a separate line.
 
-### Shared with family show
+2. **Partners on separate lines.** Always shown as indented sub-entries with the relationship type label: `| casado con Partner`, `| divorciado de Partner`, etc.
 
-| Component | What it provides |
-|---|---|
-| `PersonGraph.build/3` | Graph computation (nodes, edges, grid dimensions) |
-| `FamilyGraph.from/3` | Family data indexing |
-| `GraphConnector` JS hook | SVG connector drawing |
+3. **Multiple partners are sequential sub-blocks.** Each partnership gets its own indented block under the person. Children of each partnership are nested under their respective partner line.
 
-### New for print
+4. **Solo children.** Children with no known co-parent are listed under a "sin pareja conocida" (no known partner) label.
 
-| Component | Purpose |
-|---|---|
-| `Web.FamilyLive.Print` | LiveView — loads data, renders print page |
-| `Web.FamilyLive.PrintGraphComponent` | Print-specific graph canvas + person cards |
-| `Layouts.print/1` | Minimal layout — no chrome |
+5. **Focus person highlighted.** Light blue background with a left blue border. Name in bold blue.
 
-### Print graph component
+6. **Duplicates become back-references.** Instead of showing a person twice, the second occurrence is an italic arrow reference: `→ Person (see above)` or on the partner line: `← son of X (above)`.
 
-`PrintGraphComponent` renders:
-- The outer `#graph-canvas` div with the `GraphConnector` hook (same as screen, but with `overflow: visible` instead of `overflow: auto`)
-- The CSS grid with the same column/row structure
-- Simplified person cards: a bordered box with just the person's name, no photos, no hover, no navigation
+7. **Gender indicator.** Small colored square: blue (male), pink (female). Prints well in color, degrades to dark/light in B&W.
 
-The grid structure (column count, row positioning, edges JSON) comes from the same `PersonGraph` struct, ensuring layout parity with the screen view.
+8. **Life span.** Birth year shown after name. If deceased: `(1920–1988)`. If living: `(1982)`.
 
-### Print person card
+9. **Ancestors/Descendants labels.** Section headers in small uppercase text with a thin bottom border.
 
-A `<div>` (not a `<button>`) with:
-- Border (solid, light gray)
-- Gender border-top color (blue/pink/gray)
-- Person's display name, centered
-- Fixed width matching the grid column (120px)
-- No photos, no hover effects, no focus styles, no navigation links, no "has more" pills
+10. **Vertical border lines.** Left border on indented blocks shows the parent-child relationship visually.
 
-## Print trigger
+## Data source
 
-A "Print tree" item in the family show page's:
-- **Desktop:** meatball menu (right side of toolbar)
-- **Mobile:** nav drawer page actions
+The indented list renders from the same `PersonGraph` struct used by the interactive tree view. The `PersonGraph` provides:
+- `nodes` — all people in the tree with their generation, focus flag, and duplicate flag
+- `edges` — parent-child and partner relationships with types
 
-The link opens the print page in a new tab (`target="_blank"`). It carries the current tree state via query params (focus person, depth settings, display mode).
+However, the indented list does NOT use the grid coordinate system (col/row) or the SVG edges. Instead, it walks the `FamilyGraph` directly, starting from the oldest ancestors and recursing downward, which naturally produces the indented hierarchy.
 
-## Auto-print on load
-
-A small JS hook (`AutoPrint`) on the print page that calls `window.print()` after the `GraphConnector` hook has finished drawing. This can be a `setTimeout` after mount to ensure the SVG is rendered.
-
-## Files
-
-### New files
-1. `lib/web/live/family_live/print.ex` — Print LiveView
-2. `lib/web/live/family_live/print.html.heex` — Print template
-3. `lib/web/live/family_live/print_graph_component.ex` — Print graph canvas + person card
+## Files changed
 
 ### Modified files
-4. `lib/web/components/layouts.ex` — Add `print/1` layout function
-5. `lib/web/live/family_live/show.html.heex` — Add "Print tree" to meatball menu + nav drawer
-6. `lib/web/router.ex` — Add print route
-7. `assets/js/app.js` — Register `AutoPrint` hook
-8. `lib/web/live/family_live/CLAUDE.md` — Document print page relationship
+1. **`lib/web/live/family_live/print.ex`** — Rewrite `handle_params` to build an indented tree data structure from `FamilyGraph` instead of `PersonGraph`
+2. **`lib/web/live/family_live/print.html.heex`** — Replace `print_graph_canvas` with a recursive indented list template
+3. **`lib/web/live/family_live/print_graph_component.ex`** — Replace grid rendering with indented list rendering (rename to `print_tree_component.ex`)
+4. **`lib/web/live/family_live/CLAUDE.md`** — Update to reflect indented list approach
+
+### Removed
+- `GraphConnector` JS hook is no longer used by the print page
+- `AutoPrint` hook remains (still triggers `window.print()`)
+- `@page` CSS rule remains (landscape, small margins)
+
+### Unchanged
+- Route (`/org/:org_id/families/:family_id/print`)
+- "Print tree" button in family show page (meatball menu + nav drawer)
+- `Layouts.print` layout function
+- `AutoPrint` JS hook
 
 ## Out of scope
 
 - PDF export
-- Photo inclusion toggle
+- Photo inclusion
 - Custom paper size selection
-- Print preview within the app
+- Printing the grid view (abandoned due to SVG/layout issues)
