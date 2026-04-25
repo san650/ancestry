@@ -165,7 +165,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     |> render_submit()
 
     # Verify person was created in the family
-    members = People.list_people_for_family(family.id)
+    members = People.list_people(family.id)
     assert Enum.any?(members, &(&1.given_name == "NewMom" && &1.surname == "Lee"))
   end
 

@@ -29,7 +29,7 @@ defmodule Web.FamilyLive.Show do
       Phoenix.PubSub.subscribe(Ancestry.PubSub, "family:#{family_id}")
     end
 
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     family_graph = FamilyGraph.from(people, relationships, family.id)
     galleries = Galleries.list_galleries(family_id)
@@ -717,7 +717,7 @@ defmodule Web.FamilyLive.Show do
 
   defp refresh_graph(socket) do
     family_id = socket.assigns.family.id
-    people = People.list_people_for_family(family_id)
+    people = People.list_family_members(family_id)
     relationships = Relationships.list_relationships_for_family(family_id)
     family_graph = FamilyGraph.from(people, relationships, family_id)
 

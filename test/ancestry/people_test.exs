@@ -68,7 +68,7 @@ defmodule Ancestry.PeopleTest do
       assert person.given_name == "Jane"
       assert person.surname == "Doe"
 
-      people = People.list_people_for_family(family.id)
+      people = People.list_people(family.id)
       assert length(people) == 1
       assert hd(people).id == person.id
     end
@@ -83,7 +83,7 @@ defmodule Ancestry.PeopleTest do
     end
   end
 
-  describe "list_people_for_family/1" do
+  describe "list_people/1" do
     test "returns only people in the given family" do
       {org, _} = org_fixture()
       family1 = family_fixture(org, %{name: "Family One"})
@@ -91,7 +91,7 @@ defmodule Ancestry.PeopleTest do
       {:ok, person1} = People.create_person(family1, %{given_name: "Alice", surname: "A"})
       {:ok, _person2} = People.create_person(family2, %{given_name: "Bob", surname: "B"})
 
-      people = People.list_people_for_family(family1.id)
+      people = People.list_people(family1.id)
       assert length(people) == 1
       assert hd(people).id == person1.id
     end
@@ -132,7 +132,7 @@ defmodule Ancestry.PeopleTest do
       {:ok, person} = People.create_person(family1, %{given_name: "Jane", surname: "Doe"})
 
       assert {:ok, _} = People.add_to_family(person, family2)
-      assert length(People.list_people_for_family(family2.id)) == 1
+      assert length(People.list_people(family2.id)) == 1
     end
 
     test "add_to_family returns error for duplicate membership" do
@@ -145,7 +145,7 @@ defmodule Ancestry.PeopleTest do
       family = family_fixture()
       {:ok, person} = People.create_person(family, %{given_name: "Jane", surname: "Doe"})
       assert {:ok, _} = People.remove_from_family(person, family)
-      assert People.list_people_for_family(family.id) == []
+      assert People.list_people(family.id) == []
     end
   end
 
@@ -777,6 +777,120 @@ defmodule Ancestry.PeopleTest do
       ids = Enum.map(results, & &1.id)
 
       assert leap_day.id in ids
+    end
+  end
+
+  describe "list_people/1 and list_family_members/1" do
+    setup do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      person = insert(:person, organization: org)
+      acquaintance = insert(:acquaintance, organization: org)
+      insert(:family_member, family: family, person: person)
+      insert(:family_member, family: family, person: acquaintance)
+      %{family: family, person: person, acquaintance: acquaintance}
+    end
+
+    test "list_people/1 returns both kinds", %{
+      family: family,
+      person: person,
+      acquaintance: acquaintance
+    } do
+      people = People.list_people(family.id)
+      ids = Enum.map(people, & &1.id)
+      assert person.id in ids
+      assert acquaintance.id in ids
+    end
+
+    test "list_family_members/1 returns only family_member kind", %{
+      family: family,
+      person: person,
+      acquaintance: acquaintance
+    } do
+      people = People.list_family_members(family.id)
+      ids = Enum.map(people, & &1.id)
+      assert person.id in ids
+      refute acquaintance.id in ids
+    end
+  end
+
+  describe "search_family_members/3 excludes acquaintances" do
+    setup do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      person = insert(:person, given_name: "Alice", organization: org)
+      acquaintance = insert(:acquaintance, given_name: "Alicia", organization: org)
+      insert(:family_member, family: family, person: person)
+      insert(:family_member, family: family, person: acquaintance)
+      %{family: family, person: person, acquaintance: acquaintance}
+    end
+
+    test "does not return acquaintances", %{
+      family: family,
+      person: person,
+      acquaintance: acquaintance
+    } do
+      results = People.search_family_members("Al", family.id, 0)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+      refute acquaintance.id in ids
+    end
+  end
+
+  describe "search_all_people/3 excludes acquaintances" do
+    setup do
+      org = insert(:organization)
+      person = insert(:person, given_name: "Bob", organization: org)
+      acquaintance = insert(:acquaintance, given_name: "Bobby", organization: org)
+      %{org: org, person: person, acquaintance: acquaintance}
+    end
+
+    test "does not return acquaintances", %{org: org, person: person, acquaintance: acquaintance} do
+      results = People.search_all_people("Bo", 0, org.id)
+      ids = Enum.map(results, & &1.id)
+      assert person.id in ids
+      refute acquaintance.id in ids
+    end
+  end
+
+  describe "set_default_member/2 blocks acquaintances" do
+    setup do
+      org = insert(:organization)
+      family = insert(:family, organization: org)
+      acquaintance = insert(:acquaintance, organization: org)
+      insert(:family_member, family: family, person: acquaintance)
+      %{family: family, acquaintance: acquaintance}
+    end
+
+    test "returns error for acquaintance", %{family: family, acquaintance: acquaintance} do
+      assert {:error, :acquaintance_cannot_be_default} =
+               People.set_default_member(family.id, acquaintance.id)
+    end
+  end
+
+  describe "convert_to_acquaintance/1" do
+    setup do
+      org = insert(:organization)
+      person = insert(:person, organization: org)
+      %{person: person}
+    end
+
+    test "updates kind to acquaintance", %{person: person} do
+      assert {:ok, updated} = People.convert_to_acquaintance(person)
+      assert updated.kind == "acquaintance"
+    end
+  end
+
+  describe "convert_to_family_member/1" do
+    setup do
+      org = insert(:organization)
+      acquaintance = insert(:acquaintance, organization: org)
+      %{acquaintance: acquaintance}
+    end
+
+    test "updates kind to family_member", %{acquaintance: acquaintance} do
+      assert {:ok, updated} = People.convert_to_family_member(acquaintance)
+      assert updated.kind == "family_member"
     end
   end
 

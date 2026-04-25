@@ -413,7 +413,7 @@ defmodule Ancestry.Import.CSVTest do
       assert second.people_skipped == 0
 
       person = Repo.get_by!(Person, external_id: "family_echo_P1")
-      family_b_people = Ancestry.People.list_people_for_family(family_b.id)
+      family_b_people = Ancestry.People.list_people(family_b.id)
       assert Enum.any?(family_b_people, &(&1.id == person.id))
     end
 
@@ -453,7 +453,7 @@ defmodule Ancestry.Import.CSVTest do
 
       person = Repo.get_by!(Person, external_id: "family_echo_P1")
       assert person.birth_year == 1991
-      family_b_people = Ancestry.People.list_people_for_family(family_b.id)
+      family_b_people = Ancestry.People.list_people(family_b.id)
       assert Enum.any?(family_b_people, &(&1.id == person.id))
     end
   end

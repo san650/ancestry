@@ -22,6 +22,22 @@ defmodule Ancestry.Factory do
     }
   end
 
+  def acquaintance_factory do
+    %Ancestry.People.Person{
+      given_name: sequence(:given_name, &"Acquaintance #{&1}"),
+      surname: "Test",
+      kind: "acquaintance",
+      organization: build(:organization)
+    }
+  end
+
+  def family_member_factory do
+    %Ancestry.People.FamilyMember{
+      family: build(:family),
+      person: build(:person)
+    }
+  end
+
   def gallery_factory do
     %Ancestry.Galleries.Gallery{
       name: sequence(:gallery_name, &"Gallery #{&1}"),

@@ -28,12 +28,23 @@ defmodule Ancestry.People do
     )
   end
 
-  def list_people_for_family(family_id) do
+  def list_people(family_id) do
     Repo.all(
       from p in Person,
         join: fm in FamilyMember,
         on: fm.person_id == p.id,
         where: fm.family_id == ^family_id,
+        order_by: [asc: p.surname, asc: p.given_name]
+    )
+  end
+
+  def list_family_members(family_id) do
+    Repo.all(
+      from p in Person,
+        join: fm in FamilyMember,
+        on: fm.person_id == p.id,
+        where: fm.family_id == ^family_id,
+        where: p.kind == "family_member",
         order_by: [asc: p.surname, asc: p.given_name]
     )
   end
@@ -267,6 +278,7 @@ defmodule Ancestry.People do
     Repo.all(
       from p in Person,
         where: p.organization_id == ^org_id,
+        where: p.kind == "family_member",
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -295,6 +307,7 @@ defmodule Ancestry.People do
       from p in Person,
         where: p.id != ^exclude_person_id,
         where: p.organization_id == ^org_id,
+        where: p.kind == "family_member",
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -325,6 +338,7 @@ defmodule Ancestry.People do
         on: fm.person_id == p.id,
         where: fm.family_id == ^family_id,
         where: p.id != ^exclude_person_id,
+        where: p.kind == "family_member",
         where:
           fragment("unaccent(?) ILIKE unaccent(?)", p.given_name, ^like) or
             fragment("unaccent(?) ILIKE unaccent(?)", p.surname, ^like) or
@@ -350,20 +364,26 @@ defmodule Ancestry.People do
   end
 
   def set_default_member(family_id, person_id) do
-    Repo.transaction(fn ->
-      Repo.update_all(
-        from(fm in FamilyMember, where: fm.family_id == ^family_id),
-        set: [is_default: false]
-      )
+    person = Repo.get!(Person, person_id)
 
-      {1, _} =
+    if Person.acquaintance?(person) do
+      {:error, :acquaintance_cannot_be_default}
+    else
+      Repo.transaction(fn ->
         Repo.update_all(
-          from(fm in FamilyMember,
-            where: fm.family_id == ^family_id and fm.person_id == ^person_id
-          ),
-          set: [is_default: true]
+          from(fm in FamilyMember, where: fm.family_id == ^family_id),
+          set: [is_default: false]
         )
-    end)
+
+        {1, _} =
+          Repo.update_all(
+            from(fm in FamilyMember,
+              where: fm.family_id == ^family_id and fm.person_id == ^person_id
+            ),
+            set: [is_default: true]
+          )
+      end)
+    end
   end
 
   def clear_default_member(family_id) do
@@ -373,6 +393,18 @@ defmodule Ancestry.People do
     )
 
     :ok
+  end
+
+  def convert_to_acquaintance(%Person{} = person) do
+    person
+    |> Ecto.Changeset.change(%{kind: "acquaintance"})
+    |> Repo.update()
+  end
+
+  def convert_to_family_member(%Person{} = person) do
+    person
+    |> Ecto.Changeset.change(%{kind: "family_member"})
+    |> Repo.update()
   end
 
   def change_person(%Person{} = person, attrs \\ %{}) do

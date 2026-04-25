@@ -14,7 +14,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
       assert new_family.name == "New Family"
       assert new_family.organization_id == org.id
 
-      members = People.list_people_for_family(new_family.id)
+      members = People.list_people(new_family.id)
       assert length(members) == 1
       assert hd(members).id == person.id
     end
@@ -26,7 +26,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         Families.create_family_from_person(org, "New", person, family.id, [])
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, person.id)
       assert MapSet.member?(member_ids, parent.id)
@@ -50,7 +50,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         )
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, partner.id)
       refute MapSet.member?(member_ids, partner_parent.id)
@@ -71,7 +71,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         )
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, partner.id)
       assert MapSet.member?(member_ids, partner_parent.id)
@@ -94,7 +94,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         Families.create_family_from_person(org, "New", person, family.id, [])
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, person.id)
       refute MapSet.member?(member_ids, outside_parent.id)
@@ -129,7 +129,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         Families.create_family_from_person(org, "New", alice, family.id, [])
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, alice.id)
       assert MapSet.member?(member_ids, bob.id)
@@ -147,7 +147,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         )
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, person.id)
       assert MapSet.member?(member_ids, child.id)
@@ -173,7 +173,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         Families.create_family_from_person(org, "New", person, family.id, [])
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       # Person and parent should be included (parent is an ascendant)
       assert MapSet.member?(member_ids, person.id)
@@ -214,7 +214,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
         Families.create_family_from_person(org, "New", alice, family.id, [])
 
       member_ids =
-        People.list_people_for_family(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
+        People.list_people(new_family.id) |> Enum.map(& &1.id) |> MapSet.new()
 
       assert MapSet.member?(member_ids, alice.id)
       assert MapSet.member?(member_ids, child.id)
@@ -244,7 +244,7 @@ defmodule Ancestry.Families.CreateFamilyFromPersonTest do
       assert {:ok, new_family} =
                Families.create_family_from_person(org, "New", person, family_a.id, [])
 
-      members = People.list_people_for_family(new_family.id)
+      members = People.list_people(new_family.id)
       assert length(members) == 1
       assert hd(members).id == person.id
 
