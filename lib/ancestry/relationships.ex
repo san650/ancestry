@@ -14,7 +14,8 @@ defmodule Ancestry.Relationships do
       metadata: Map.put(metadata_attrs, :__type__, type)
     }
 
-    with :ok <- validate_parent_limit(person_b.id, type),
+    with :ok <- validate_not_acquaintance(person_a, person_b),
+         :ok <- validate_parent_limit(person_b.id, type),
          :ok <- validate_unique_partner_pair(person_a.id, person_b.id, type) do
       %Relationship{}
       |> Relationship.changeset(attrs)
@@ -309,6 +310,14 @@ defmodule Ancestry.Relationships do
     from [p, ...] in query,
       join: fm in FamilyMember,
       on: fm.person_id == p.id and fm.family_id == ^family_id
+  end
+
+  defp validate_not_acquaintance(person_a, person_b) do
+    if Person.acquaintance?(person_a) or Person.acquaintance?(person_b) do
+      {:error, :acquaintance_cannot_have_relationships}
+    else
+      :ok
+    end
   end
 
   defp validate_parent_limit(child_id, "parent") do

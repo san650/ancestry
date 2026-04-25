@@ -649,6 +649,25 @@ defmodule Ancestry.RelationshipsTest do
     end
   end
 
+  describe "create_relationship/4 acquaintance guard" do
+    setup do
+      org = insert(:organization)
+      person = insert(:person, organization: org)
+      acquaintance = insert(:acquaintance, organization: org)
+      %{person: person, acquaintance: acquaintance}
+    end
+
+    test "blocks when person_a is acquaintance", %{person: person, acquaintance: acquaintance} do
+      assert {:error, :acquaintance_cannot_have_relationships} =
+               Relationships.create_relationship(acquaintance, person, "parent", %{role: "father"})
+    end
+
+    test "blocks when person_b is acquaintance", %{person: person, acquaintance: acquaintance} do
+      assert {:error, :acquaintance_cannot_have_relationships} =
+               Relationships.create_relationship(person, acquaintance, "parent", %{role: "father"})
+    end
+  end
+
   defp org_fixture do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     org
