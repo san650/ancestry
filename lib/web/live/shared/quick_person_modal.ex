@@ -338,7 +338,8 @@ defmodule Web.Shared.QuickPersonModal do
     case uploaded do
       [original_path] ->
         People.update_photo_pending(person, original_path)
-        person
+        # Re-fetch to get updated photo_status ("pending")
+        People.get_person!(person.id)
 
       [] ->
         person

@@ -133,6 +133,8 @@ defmodule Web.Shared.QuickPersonModalTest do
           session: %{"org_id" => org.id, "family_id" => family.id}
         )
 
+      # element |> render_keydown works for both phx-keydown and phx-window-keydown
+      # per Phoenix LiveView docs (the element just needs the attribute on it)
       view
       |> element("#quick-person-modal")
       |> render_keydown(%{"key" => "Escape"})
