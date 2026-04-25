@@ -29,7 +29,9 @@ Apply these rules to all interface work. Build mobile first, then enhance for de
 - Do not add decorative “information blue” accents.
 - Prefer tonal layers over heavy dividers.
 - Borders are a fallback. If required, keep them subtle and low contrast.
-- Prefer tonal depth over strong shadows. Use soft shadows only for floating layers.
+- Use `shadow-ds-card` (`0 1px 3px rgba(11,28,48,0.08), 0 4px 12px rgba(11,28,48,0.04)`) for grounded card elevation on index/grid pages with white backgrounds.
+- Reserve `shadow-ds-ambient` (`0 8px 32px rgba(11,28,48,0.06)`) for floating layers: modals, popovers, drawers.
+- Index and grid pages use a white (`bg-white`) page background. Cards use `bg-ds-surface-card` + `shadow-ds-card`.
 - Use sharp or lightly rounded corners. Avoid large radii.
 
 ### Typography
