@@ -125,5 +125,5 @@ E2E tests in `test/user_flows/`:
 | `lib/web/live/family_live/index.html.heex` | White bg, card shadows |
 | `DESIGN.md` | Document white bg + shadow-ds-card as standard pattern |
 | `COMPONENTS.jsonl` | Append card shadow decision |
-| `test/user_flows/organization_rename_test.exs` | E2E tests for rename flow |
+| `test/user_flows/rename_organization_test.exs` | E2E tests for rename flow |
 | `priv/gettext/es-UY/LC_MESSAGES/default.po` | Spanish translations for new strings (run `mix gettext.extract --merge`) |
