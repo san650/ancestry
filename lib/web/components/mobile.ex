@@ -39,7 +39,7 @@ defmodule Web.Components.Mobile do
     <aside
       id={@id}
       class={[
-        "fixed top-0 right-0 bottom-0 z-50 w-[85vw] max-w-sm bg-cm-white overflow-y-auto",
+        "fixed top-0 right-0 bottom-0 z-50 w-[85vw] max-w-sm bg-cm-white border-l-2 border-cm-black overflow-y-auto",
         "transition-transform duration-200 ease-out",
         "lg:static lg:w-auto lg:max-w-none lg:z-auto lg:translate-x-0 lg:transition-none",
         if(@open, do: "translate-x-0", else: "translate-x-full")
@@ -96,7 +96,7 @@ defmodule Web.Components.Mobile do
     <%!-- Sheet --%>
     <div
       id={@id}
-      class="fixed bottom-0 left-0 right-0 z-50 bg-cm-white rounded-t-lg translate-y-full transition-transform duration-200 ease-out pb-[env(safe-area-inset-bottom)]"
+      class="fixed bottom-0 left-0 right-0 z-50 bg-cm-white border-t-2 border-cm-black rounded-t-sm translate-y-full transition-transform duration-200 ease-out pb-[env(safe-area-inset-bottom)]"
       role="menu"
       aria-label="Actions"
     >

@@ -45,9 +45,13 @@ defmodule Web.Components.NavDrawer do
     >
       <%!-- Header: logo + close --%>
       <div class="flex items-center justify-between p-4 border-b border-cm-border/20">
-        <a href="/" class="flex items-center gap-2">
-          <img src="/images/logo.png" width="32" class="rounded-cm" />
-          <span class="font-cm-display font-bold text-cm-black">{gettext("Ancestry")}</span>
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-8 h-8 border-[2.5px] border-cm-indigo rounded-cm flex items-center justify-center">
+            <span class="font-cm-display text-cm-indigo text-base leading-none">A</span>
+          </div>
+          <span class="font-cm-display text-cm-indigo tracking-[2px] text-lg uppercase">
+            {gettext("Ancestry")}
+          </span>
         </a>
         <button
           type="button"
@@ -62,7 +66,7 @@ defmodule Web.Components.NavDrawer do
       <%!-- Page actions section --%>
       <%= if @page_actions != [] do %>
         <div class="px-4 pt-4 pb-2">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
+          <p class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
             {gettext("Page Actions")}
           </p>
           {render_slot(@page_actions)}
@@ -81,7 +85,7 @@ defmodule Web.Components.NavDrawer do
       <%!-- Organizations section --%>
       <%= if @current_scope && @current_scope.account do %>
         <div class="px-4 pt-4 pb-2">
-          <p class="text-[10px] font-semibold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
+          <p class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted px-2 pb-2">
             {gettext("Organizations")}
           </p>
           {render_slot(@inner_block)}
