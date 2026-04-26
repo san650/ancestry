@@ -112,7 +112,7 @@ defmodule Web.AccountManagementLive.New do
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="text-lg font-cm-display font-bold text-cm-black">
+          <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
             {gettext("New Account")}
           </h1>
         </div>
@@ -143,7 +143,7 @@ defmodule Web.AccountManagementLive.New do
           id="account-form"
           phx-change="validate"
           phx-submit="save"
-          class="space-y-6"
+          class="space-y-6 border-2 border-cm-black rounded-cm bg-cm-white p-6"
           {test_id("account-form")}
         >
           <.input field={@form[:name]} type="text" label={gettext("Full name")} />
@@ -173,7 +173,7 @@ defmodule Web.AccountManagementLive.New do
 
           <%!-- Avatar upload --%>
           <div>
-            <label class="block text-sm font-medium text-cm-black mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Avatar")}
             </label>
             <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
@@ -198,7 +198,7 @@ defmodule Web.AccountManagementLive.New do
 
           <%!-- Organization selection --%>
           <div>
-            <label class="block text-sm font-medium text-cm-black mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Organizations")}
             </label>
             <div class="space-y-2" {test_id("org-selection")}>
@@ -219,14 +219,14 @@ defmodule Web.AccountManagementLive.New do
           <div class="flex gap-4">
             <button
               type="submit"
-              class="rounded-cm bg-cm-indigo px-6 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+              class="rounded-cm bg-cm-coral px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors"
               {test_id("account-submit-btn")}
             >
               {gettext("Create Account")}
             </button>
             <.link
               navigate={~p"/admin/accounts"}
-              class="rounded-cm px-6 py-2 text-sm font-cm-body text-cm-text-muted hover:text-cm-black transition-colors"
+              class="rounded-cm px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </.link>

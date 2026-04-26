@@ -136,13 +136,13 @@ defmodule Web.AccountManagementLive.Show do
             >
               <.icon name="hero-arrow-left" class="size-5" />
             </.link>
-            <h1 class="text-lg font-cm-display font-bold text-cm-black">
+            <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
               {gettext("Account Details")}
             </h1>
           </div>
           <.link
             navigate={~p"/admin/accounts/#{@account.id}/edit"}
-            class="inline-flex items-center gap-2 rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+            class="inline-flex items-center gap-2 rounded-cm bg-cm-coral px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors"
             {test_id("account-edit-btn")}
           >
             <.icon name="hero-pencil-square" class="size-4" /> {gettext("Edit")}
@@ -170,10 +170,10 @@ defmodule Web.AccountManagementLive.Show do
       </.nav_drawer>
 
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="bg-cm-white rounded-cm p-6 shadow-sm" {test_id("account-detail")}>
+        <div class="bg-cm-white rounded-cm p-6 border-2 border-cm-black" {test_id("account-detail")}>
           <dl class="space-y-4">
             <div>
-              <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+              <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                 {gettext("Email")}
               </dt>
               <dd class="mt-1 text-sm text-cm-black" {test_id("account-email")}>
@@ -182,7 +182,7 @@ defmodule Web.AccountManagementLive.Show do
             </div>
 
             <div>
-              <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+              <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                 {gettext("Name")}
               </dt>
               <dd class="mt-1 text-sm text-cm-black" {test_id("account-name")}>
@@ -191,7 +191,7 @@ defmodule Web.AccountManagementLive.Show do
             </div>
 
             <div>
-              <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+              <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                 {gettext("Role")}
               </dt>
               <dd class="mt-1 text-sm text-cm-black" {test_id("account-role")}>
@@ -200,7 +200,7 @@ defmodule Web.AccountManagementLive.Show do
             </div>
 
             <div>
-              <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+              <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                 {gettext("Status")}
               </dt>
               <dd class="mt-1" {test_id("account-status")}>
@@ -213,7 +213,7 @@ defmodule Web.AccountManagementLive.Show do
             </div>
 
             <div>
-              <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+              <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                 {gettext("Organizations")}
               </dt>
               <dd class="mt-1 flex flex-wrap gap-1" {test_id("account-organizations")}>
@@ -222,7 +222,7 @@ defmodule Web.AccountManagementLive.Show do
                 <% else %>
                   <span
                     :for={org <- @account.organizations}
-                    class="inline-block bg-cm-surface rounded-full px-2 py-0.5 text-xs"
+                    class="inline-block bg-cm-surface rounded-cm px-2 py-0.5 font-cm-mono text-[10px] uppercase tracking-wider"
                   >
                     {org.name}
                   </span>
@@ -232,7 +232,7 @@ defmodule Web.AccountManagementLive.Show do
 
             <%= if @account.deactivated_at do %>
               <div>
-                <dt class="text-xs font-medium text-cm-text-muted uppercase tracking-wide">
+                <dt class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                   {gettext("Deactivated By")}
                 </dt>
                 <dd
@@ -249,11 +249,11 @@ defmodule Web.AccountManagementLive.Show do
             <% end %>
           </dl>
 
-          <div class="mt-6 pt-6 border-t border-cm-border/20 flex gap-3">
+          <div class="mt-6 pt-6 border-t-2 border-cm-black flex gap-3">
             <%= if is_nil(@account.deactivated_at) and @account.id != @current_scope.account.id do %>
               <button
                 phx-click="request_deactivate"
-                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("account-deactivate-btn")}
               >
                 {gettext("Deactivate")}
@@ -263,7 +263,7 @@ defmodule Web.AccountManagementLive.Show do
             <%= if @account.deactivated_at && @account.id != @current_scope.account.id do %>
               <button
                 phx-click="request_reactivate"
-                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("account-reactivate-btn")}
               >
                 {gettext("Reactivate")}
@@ -278,11 +278,11 @@ defmodule Web.AccountManagementLive.Show do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("deactivate-modal")}
         >
-          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 border-2 border-cm-black">
+            <h3 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2">
               {gettext("Deactivate Account")}
             </h3>
-            <p class="text-sm text-cm-text-muted mb-6">
+            <p class="text-sm text-cm-text-muted mb-6 font-cm-body">
               {gettext(
                 "Are you sure you want to deactivate %{email}? They will be immediately logged out and unable to log in.",
                 email: @account.email
@@ -291,14 +291,14 @@ defmodule Web.AccountManagementLive.Show do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_deactivate"
-                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
+                class="rounded-cm px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
                 {test_id("deactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_deactivate"
-                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("deactivate-confirm-btn")}
               >
                 {gettext("Deactivate")}
@@ -313,11 +313,11 @@ defmodule Web.AccountManagementLive.Show do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("reactivate-modal")}
         >
-          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 border-2 border-cm-black">
+            <h3 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2">
               {gettext("Reactivate Account")}
             </h3>
-            <p class="text-sm text-cm-text-muted mb-6">
+            <p class="text-sm text-cm-text-muted mb-6 font-cm-body">
               {gettext(
                 "Are you sure you want to reactivate %{email}? They will be able to log in again.",
                 email: @account.email
@@ -326,14 +326,14 @@ defmodule Web.AccountManagementLive.Show do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_reactivate"
-                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
+                class="rounded-cm px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
                 {test_id("reactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_reactivate"
-                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("reactivate-confirm-btn")}
               >
                 {gettext("Reactivate")}

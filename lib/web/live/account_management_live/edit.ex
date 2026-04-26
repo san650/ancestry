@@ -219,7 +219,7 @@ defmodule Web.AccountManagementLive.Edit do
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="text-lg font-cm-display font-bold text-cm-black">
+          <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
             {gettext("Edit Account")}
           </h1>
         </div>
@@ -250,7 +250,7 @@ defmodule Web.AccountManagementLive.Edit do
           id="account-form"
           phx-change="validate"
           phx-submit="save"
-          class="space-y-6"
+          class="space-y-6 border-2 border-cm-black rounded-cm bg-cm-white p-6"
           {test_id("account-form")}
         >
           <.input field={@form[:name]} type="text" label={gettext("Full name")} />
@@ -287,7 +287,7 @@ defmodule Web.AccountManagementLive.Edit do
 
           <%!-- Avatar upload --%>
           <div>
-            <label class="block text-sm font-medium text-cm-black mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Avatar")}
             </label>
             <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
@@ -312,7 +312,7 @@ defmodule Web.AccountManagementLive.Edit do
 
           <%!-- Organization selection --%>
           <div>
-            <label class="block text-sm font-medium text-cm-black mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Organizations")}
             </label>
             <div class="space-y-2" {test_id("org-selection")}>
@@ -333,14 +333,14 @@ defmodule Web.AccountManagementLive.Edit do
           <div class="flex gap-4">
             <button
               type="submit"
-              class="rounded-cm bg-cm-indigo px-6 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+              class="rounded-cm bg-cm-coral px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors"
               {test_id("account-submit-btn")}
             >
               {gettext("Save Changes")}
             </button>
             <.link
               navigate={~p"/admin/accounts/#{@account.id}"}
-              class="rounded-cm px-6 py-2 text-sm font-cm-body text-cm-text-muted hover:text-cm-black transition-colors"
+              class="rounded-cm px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </.link>
@@ -349,11 +349,11 @@ defmodule Web.AccountManagementLive.Edit do
 
         <%!-- Deactivate/Reactivate section (hidden for own account) --%>
         <%= if @account.id != @current_scope.account.id do %>
-          <div class="mt-8 pt-6 border-t border-cm-border/20">
+          <div class="mt-8 pt-6 border-t-2 border-cm-black">
             <%= if is_nil(@account.deactivated_at) do %>
               <button
                 phx-click="request_deactivate"
-                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("account-deactivate-btn")}
               >
                 {gettext("Deactivate Account")}
@@ -361,7 +361,7 @@ defmodule Web.AccountManagementLive.Edit do
             <% else %>
               <button
                 phx-click="request_reactivate"
-                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("account-reactivate-btn")}
               >
                 {gettext("Reactivate Account")}
@@ -376,11 +376,11 @@ defmodule Web.AccountManagementLive.Edit do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("deactivate-modal")}
         >
-          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 border-2 border-cm-black">
+            <h3 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2">
               {gettext("Deactivate Account")}
             </h3>
-            <p class="text-sm text-cm-text-muted mb-6">
+            <p class="text-sm text-cm-text-muted mb-6 font-cm-body">
               {gettext(
                 "Are you sure you want to deactivate %{email}? They will be immediately logged out and unable to log in.",
                 email: @account.email
@@ -389,14 +389,14 @@ defmodule Web.AccountManagementLive.Edit do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_deactivate"
-                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
+                class="rounded-cm px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
                 {test_id("deactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_deactivate"
-                class="rounded-cm bg-cm-error px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-error/90 transition-colors"
+                class="rounded-cm bg-cm-error px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-error/90 transition-colors"
                 {test_id("deactivate-confirm-btn")}
               >
                 {gettext("Deactivate")}
@@ -411,11 +411,11 @@ defmodule Web.AccountManagementLive.Edit do
           class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
           {test_id("reactivate-modal")}
         >
-          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 shadow-xl">
-            <h3 class="text-lg font-cm-display font-bold text-cm-black mb-2">
+          <div class="bg-cm-white rounded-cm p-6 max-w-sm mx-4 border-2 border-cm-black">
+            <h3 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2">
               {gettext("Reactivate Account")}
             </h3>
-            <p class="text-sm text-cm-text-muted mb-6">
+            <p class="text-sm text-cm-text-muted mb-6 font-cm-body">
               {gettext(
                 "Are you sure you want to reactivate %{email}? They will be able to log in again.",
                 email: @account.email
@@ -424,14 +424,14 @@ defmodule Web.AccountManagementLive.Edit do
             <div class="flex gap-3 justify-end">
               <button
                 phx-click="cancel_reactivate"
-                class="rounded-cm px-4 py-2 text-sm font-cm-body font-medium text-cm-text-muted hover:text-cm-black transition-colors"
+                class="rounded-cm px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
                 {test_id("reactivate-cancel-btn")}
               >
                 {gettext("Cancel")}
               </button>
               <button
                 phx-click="confirm_reactivate"
-                class="rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+                class="rounded-cm bg-cm-indigo px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-indigo/90 transition-colors"
                 {test_id("reactivate-confirm-btn")}
               >
                 {gettext("Reactivate")}

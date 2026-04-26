@@ -43,13 +43,13 @@ defmodule Web.AccountManagementLive.Index do
             >
               <.icon name="hero-bars-3" class="size-5" />
             </button>
-            <h1 class="text-lg font-cm-display font-bold text-cm-black">
+            <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
               {gettext("Accounts")}
             </h1>
           </div>
           <.link
             navigate={~p"/admin/accounts/new"}
-            class="hidden lg:inline-flex items-center gap-2 rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors"
+            class="hidden lg:inline-flex items-center gap-2 rounded-cm bg-cm-coral px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors"
             {test_id("account-new-btn")}
           >
             <.icon name="hero-plus" class="size-4" /> {gettext("New Account")}
@@ -81,7 +81,7 @@ defmodule Web.AccountManagementLive.Index do
         <div class="lg:hidden space-y-3">
           <.link
             navigate={~p"/admin/accounts/new"}
-            class="inline-flex items-center gap-2 rounded-cm bg-cm-indigo px-4 py-2 text-sm font-cm-body font-medium text-cm-white hover:bg-cm-indigo/90 transition-colors mb-2"
+            class="inline-flex items-center gap-2 rounded-cm bg-cm-coral px-4 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors mb-2"
             {test_id("account-new-btn-mobile")}
           >
             <.icon name="hero-plus" class="size-4" /> {gettext("New Account")}
@@ -91,7 +91,7 @@ defmodule Web.AccountManagementLive.Index do
             :for={account <- @accounts}
             navigate={~p"/admin/accounts/#{account.id}"}
             class={[
-              "block rounded-cm bg-cm-white p-4",
+              "block rounded-cm border-2 border-cm-black bg-cm-white p-4",
               if(account.deactivated_at, do: "opacity-50")
             ]}
             {test_id("account-row-#{account.id}")}
@@ -106,7 +106,7 @@ defmodule Web.AccountManagementLive.Index do
                 </p>
               </div>
               <div class="flex-shrink-0 flex items-center gap-2">
-                <span class="capitalize text-xs text-cm-text-muted bg-cm-surface rounded-full px-2 py-0.5">
+                <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted bg-cm-surface rounded-cm px-2 py-0.5">
                   {account.role}
                 </span>
                 <%= if account.deactivated_at do %>
@@ -129,7 +129,7 @@ defmodule Web.AccountManagementLive.Index do
             <div :if={account.organizations != []} class="mt-2 flex flex-wrap gap-1">
               <span
                 :for={org <- account.organizations}
-                class="inline-block bg-cm-surface rounded-full px-2 py-0.5 text-xs"
+                class="inline-block bg-cm-surface rounded-cm px-2 py-0.5 font-cm-mono text-[10px] uppercase tracking-wider"
               >
                 {org.name}
               </span>
@@ -141,20 +141,30 @@ defmodule Web.AccountManagementLive.Index do
         <div class="hidden lg:block">
           <table class="w-full text-sm">
             <thead>
-              <tr class="border-b border-cm-border/20 text-left text-cm-text-muted">
-                <th class="pb-3 pr-4 font-medium">{gettext("Name")}</th>
-                <th class="pb-3 pr-4 font-medium">{gettext("Email")}</th>
-                <th class="pb-3 pr-4 font-medium">{gettext("Role")}</th>
-                <th class="pb-3 pr-4 font-medium">{gettext("Organizations")}</th>
-                <th class="pb-3 pr-4 font-medium">{gettext("Status")}</th>
-                <th class="pb-3 font-medium"></th>
+              <tr class="border-b-2 border-cm-black text-left text-cm-text-muted">
+                <th class="pb-3 pr-4 font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+                  {gettext("Name")}
+                </th>
+                <th class="pb-3 pr-4 font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+                  {gettext("Email")}
+                </th>
+                <th class="pb-3 pr-4 font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+                  {gettext("Role")}
+                </th>
+                <th class="pb-3 pr-4 font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+                  {gettext("Organizations")}
+                </th>
+                <th class="pb-3 pr-4 font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+                  {gettext("Status")}
+                </th>
+                <th class="pb-3"></th>
               </tr>
             </thead>
             <tbody>
               <tr
                 :for={account <- @accounts}
                 class={[
-                  "border-b border-cm-border/10",
+                  "border-b border-cm-border",
                   if(account.deactivated_at, do: "opacity-50")
                 ]}
                 {test_id("account-row-#{account.id}")}
@@ -165,7 +175,7 @@ defmodule Web.AccountManagementLive.Index do
                 <td class="py-3 pr-4">
                   <span
                     :for={org <- account.organizations}
-                    class="inline-block bg-cm-surface rounded-full px-2 py-0.5 text-xs mr-1 mb-1"
+                    class="inline-block bg-cm-surface rounded-cm px-2 py-0.5 font-cm-mono text-[10px] uppercase tracking-wider mr-1 mb-1"
                   >
                     {org.name}
                   </span>
@@ -190,13 +200,13 @@ defmodule Web.AccountManagementLive.Index do
                 <td class="py-3 text-right">
                   <.link
                     navigate={~p"/admin/accounts/#{account.id}"}
-                    class="text-cm-indigo hover:underline text-xs mr-2"
+                    class="text-cm-coral font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:underline mr-3"
                   >
                     {gettext("View")}
                   </.link>
                   <.link
                     navigate={~p"/admin/accounts/#{account.id}/edit"}
-                    class="text-cm-indigo hover:underline text-xs"
+                    class="text-cm-coral font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:underline"
                   >
                     {gettext("Edit")}
                   </.link>

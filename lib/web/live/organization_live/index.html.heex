@@ -10,7 +10,7 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <h1 class="text-lg font-cm-display font-bold text-cm-black">
+        <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
           {gettext("Organizations")}
         </h1>
       </div>
@@ -19,10 +19,10 @@
           type="button"
           phx-click="toggle_select_mode"
           class={[
-            "inline-flex items-center gap-2 rounded-cm px-3 py-2 lg:px-4 lg:py-2.5 text-sm font-cm-body font-semibold transition-colors",
+            "inline-flex items-center gap-2 rounded-cm px-3 py-2 lg:px-4 lg:py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider transition-colors",
             if(@selection_mode,
-              do: "bg-cm-indigo text-cm-white",
-              else: "bg-cm-surface text-cm-black hover:bg-cm-surface"
+              do: "bg-cm-indigo text-cm-white border-2 border-cm-indigo",
+              else: "border-2 border-cm-black text-cm-black hover:bg-cm-surface"
             )
           ]}
           {test_id("org-index-select-btn")}
@@ -34,7 +34,7 @@
         </button>
         <button
           phx-click="new_organization"
-          class="inline-flex items-center gap-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-3 py-2 lg:px-5 lg:py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-3 py-2 lg:px-5 lg:py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           {test_id("org-new-btn")}
         >
           <.icon name="hero-plus" class="w-4 h-4" />
@@ -64,14 +64,14 @@
           class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-cm-black lg:rounded-cm lg:mb-4"
           {test_id("selection-bar")}
         >
-          <span class="text-sm font-cm-body font-medium text-cm-black lg:text-cm-white">
+          <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
             {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
           </span>
           <div class="flex items-center gap-2">
             <%= if MapSet.size(@selected_ids) == 1 and can?(@current_scope, :update, Organization) do %>
               <button
                 phx-click="rename_selected"
-                class="px-3 py-2 text-sm font-cm-body font-semibold text-cm-black bg-cm-surface rounded-cm transition-colors hover:bg-cm-surface lg:bg-cm-surface lg:text-cm-black"
+                class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black border-2 border-cm-black rounded-cm transition-colors hover:bg-cm-surface"
                 {test_id("selection-bar-rename-btn")}
               >
                 {gettext("Rename")}
@@ -80,7 +80,7 @@
             <button
               phx-click="request_batch_delete"
               disabled={MapSet.size(@selected_ids) == 0}
-              class="px-3 py-2 text-sm font-cm-body text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+              class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
               {test_id("selection-bar-delete-btn")}
             >
               {gettext("Delete")}
@@ -98,7 +98,7 @@
           id="organizations-empty"
           class="hidden only:flex flex-col items-center justify-center py-24 col-span-full bg-cm-border rounded-cm"
         >
-          <p class="text-lg font-cm-display font-bold text-cm-black">
+          <p class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
             {gettext("No organizations yet")}
           </p>
         </div>
@@ -106,9 +106,9 @@
           :for={{id, org} <- @streams.organizations}
           id={id}
           class={[
-            "block bg-cm-white rounded-cm p-5 hover:bg-cm-surface transition-colors cursor-pointer",
+            "block border-2 border-cm-black rounded-cm bg-cm-white p-5 hover:bg-cm-surface transition-colors cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, org.id),
-              do: "outline outline-3 outline-cm-indigo outline-offset-2",
+              do: "outline outline-3 outline-cm-coral outline-offset-2",
               else: "outline outline-3 outline-transparent outline-offset-2"
             )
           ]}
@@ -117,10 +117,10 @@
           {test_id("org-card-#{org.id}")}
         >
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-cm bg-cm-indigo/10 flex items-center justify-center flex-shrink-0">
-              <.icon name="hero-building-office-2" class="w-5 h-5 text-cm-indigo" />
+            <div class="w-10 h-10 rounded-cm bg-cm-indigo flex items-center justify-center flex-shrink-0">
+              <.icon name="hero-building-office-2" class="w-5 h-5 text-cm-white" />
             </div>
-            <h2 class="text-base font-cm-display font-bold text-cm-black tracking-tight truncate">
+            <h2 class="text-base font-cm-display font-bold text-cm-indigo uppercase tracking-wider truncate">
               {org.name}
             </h2>
           </div>
@@ -148,12 +148,12 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-org-title"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         {test_id("org-create-modal")}
       >
         <h2
           id="create-org-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           New Organization
         </h2>
@@ -168,7 +168,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
               phx-disable-with={gettext("Creating...")}
               {test_id("org-create-submit-btn")}
             >
@@ -177,7 +177,7 @@
             <button
               type="button"
               phx-click="cancel_create"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
               {test_id("org-create-cancel-btn")}
             >
               {gettext("Cancel")}
@@ -208,12 +208,12 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="rename-org-title"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         {test_id("org-rename-modal")}
       >
         <h2
           id="rename-org-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           {gettext("Rename Organization")}
         </h2>
@@ -228,7 +228,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
               phx-disable-with={gettext("Saving...")}
               {test_id("org-rename-submit-btn")}
             >
@@ -237,7 +237,7 @@
             <button
               type="button"
               phx-click="cancel_rename"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
               {test_id("org-rename-cancel-btn")}
             >
               {gettext("Cancel")}
@@ -263,14 +263,14 @@
       >
       </div>
       <div
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-orgs-title"
       >
         <h2
           id="delete-orgs-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           Delete organizations
         </h2>
@@ -289,14 +289,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_batch_delete"
-            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-orgs-confirm-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_batch_delete"
-            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>
