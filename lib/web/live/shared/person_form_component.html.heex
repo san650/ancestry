@@ -10,7 +10,7 @@
     <div class="space-y-5">
       <%!-- Photo --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right md:pt-2">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right md:pt-2">
           {gettext("Photo")}
         </label>
         <div>
@@ -21,21 +21,23 @@
                 alt={gettext("Current photo")}
                 class="w-16 h-16 rounded-cm object-cover"
               />
-              <span class="text-sm text-cm-text-muted">{gettext("Current photo")}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Current photo")}
+              </span>
               <button
                 type="button"
                 id="remove-photo-btn"
                 phx-click="remove_photo"
-                class="text-sm text-cm-error/70 hover:text-cm-error transition-colors"
+                class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error/70 hover:text-cm-error transition-colors"
               >
-                Remove
+                {gettext("Remove")}
               </button>
             </div>
           <% end %>
 
           <.live_file_input
             upload={@uploads.photo}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black w-full"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black w-full"
             {test_id("person-photo-input")}
           />
 
@@ -75,7 +77,7 @@
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
         <label
           for={@form[:given_name].id}
-          class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right"
+          class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right"
         >
           {gettext("Given names")}
         </label>
@@ -85,7 +87,7 @@
       <%!-- Given names at birth (details) --%>
       <%= if @show_details do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-          <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+          <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
             {gettext("Given names at birth")}
           </label>
           <.input field={@form[:given_name_at_birth]} label="" />
@@ -93,7 +95,7 @@
 
         <%!-- Nickname --%>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-          <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+          <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
             {gettext("Nickname")}
           </label>
           <.input field={@form[:nickname]} label="" />
@@ -101,7 +103,7 @@
 
         <%!-- Title / Suffix side by side --%>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-          <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+          <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
             {gettext("Title / Suffix")}
           </label>
           <div class="grid grid-cols-2 gap-3">
@@ -115,7 +117,7 @@
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
         <label
           for={@form[:surname].id}
-          class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right"
+          class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right"
         >
           {gettext("Surname")}
         </label>
@@ -125,7 +127,7 @@
       <%!-- Surname at birth (details) --%>
       <%= if @show_details do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-          <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+          <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
             {gettext("Surname at birth")}
           </label>
           <.input field={@form[:surname_at_birth]} label="" />
@@ -134,7 +136,7 @@
 
       <%!-- Gender --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
           {gettext("Gender")}
         </label>
         <div class="flex items-center gap-4">
@@ -173,14 +175,14 @@
 
       <%!-- Birth date --%>
       <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
           {gettext("Birth date")}
         </label>
         <div class="flex items-center gap-2">
           <select
             name={@form[:birth_day].name}
             id={@form[:birth_day].id}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
           >
             <option value="">{gettext("Day")}</option>
             <%= for {label, val} <- day_options() do %>
@@ -192,7 +194,7 @@
           <select
             name={@form[:birth_month].name}
             id={@form[:birth_month].id}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
           >
             <option value="">{gettext("Month")}</option>
             <%= for {label, val} <- month_options() do %>
@@ -209,7 +211,7 @@
             min="1000"
             max="2100"
             placeholder={gettext("Year")}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black w-24"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black w-24"
           />
         </div>
       </div>
@@ -257,14 +259,14 @@
       <%!-- Death date (shown when not living) --%>
       <%= unless living_checked?(@form) do %>
         <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-center">
-          <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right">
+          <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right">
             {gettext("Death date")}
           </label>
           <div class="flex items-center gap-2">
             <select
               name={@form[:death_day].name}
               id={@form[:death_day].id}
-              class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+              class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
             >
               <option value="">{gettext("Day")}</option>
               <%= for {label, val} <- day_options() do %>
@@ -276,7 +278,7 @@
             <select
               name={@form[:death_month].name}
               id={@form[:death_month].id}
-              class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+              class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
             >
               <option value="">{gettext("Month")}</option>
               <%= for {label, val} <- month_options() do %>
@@ -293,7 +295,7 @@
               min="1000"
               max="2100"
               placeholder={gettext("Year")}
-              class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black w-24"
+              class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black w-24"
             />
           </div>
         </div>
@@ -307,7 +309,7 @@
             type="button"
             id="add-more-details-btn"
             phx-click="toggle_details"
-            class="flex items-center gap-1.5 text-sm text-cm-indigo/70 hover:text-cm-indigo transition-colors"
+            class="flex items-center gap-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-indigo hover:text-cm-indigo-hover transition-colors"
           >
             <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add more details")}
           </button>
@@ -316,20 +318,20 @@
 
       <%!-- Alternate names (details) --%>
       <%= if @show_details do %>
-        <div class="border-t border-cm-border/20 pt-5">
+        <div class="border-t-2 border-cm-black pt-5">
           <div class="md:grid md:grid-cols-[10rem_1fr] md:gap-x-4 md:items-start">
-            <label class="text-sm font-cm-body font-medium text-cm-text-muted md:text-right md:pt-2">
+            <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted md:text-right md:pt-2">
               {gettext("Alternate names")}
             </label>
             <div>
-              <p class="text-xs text-cm-text-muted mb-2">
+              <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider mb-2">
                 {gettext("Also known as (one per line)")}
               </p>
               <textarea
                 name="person[alternate_names_text]"
                 id="person-alternate-names"
                 rows="3"
-                class="bg-cm-white border border-cm-border/20 rounded-cm px-3 py-2 text-sm text-cm-black w-full"
+                class="bg-cm-white border-2 border-cm-black rounded-cm px-3 py-2 text-sm font-cm-body text-cm-black w-full"
                 phx-debounce="300"
               ><%= if @action == :edit && @person.alternate_names != [] do %><%= Enum.join(@person.alternate_names, "\n") %><% end %></textarea>
             </div>
@@ -345,7 +347,7 @@
         <button
           type="submit"
           id="person-form-submit"
-          class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          class="flex-1 bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
           {test_id("person-form-submit")}
         >
           <%= if @action == :new do %>
@@ -358,7 +360,7 @@
           type="button"
           id="person-form-cancel"
           phx-click="cancel"
-          class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+          class="flex-1 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
         >
           {gettext("Cancel")}
         </button>

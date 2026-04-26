@@ -279,7 +279,7 @@ defmodule Web.Shared.AddRelationshipComponent do
               phx-keyup="search_members"
               phx-target={@myself}
               phx-debounce="300"
-              class="bg-cm-white border border-cm-border/20 rounded-cm px-3 py-2 text-sm text-cm-black w-full"
+              class="bg-cm-white border-2 border-cm-black rounded-cm px-3 py-2 text-sm font-cm-body text-cm-black w-full"
               autocomplete="off"
             />
 
@@ -363,7 +363,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     />
                     <button
                       type="submit"
-                      class="w-full bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                      class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                     >
                       Add Parent
                     </button>
@@ -392,7 +392,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <% subtype =
                       Phoenix.HTML.Form.input_value(@relationship_form, :partner_subtype) %>
                     <%= if subtype in ~w(married divorced separated) do %>
-                      <p class="text-sm font-cm-body font-medium text-cm-text-muted">
+                      <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                         {gettext("Marriage Details (optional)")}
                       </p>
                       <div class="grid grid-cols-3 gap-3">
@@ -424,7 +424,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <% end %>
                     <button
                       type="submit"
-                      class="w-full bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                      class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                     >
                       Add Partner
                     </button>
@@ -440,7 +440,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                 >
                   <button
                     type="submit"
-                    class="w-full bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                    class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                   >
                     Add Child
                   </button>
@@ -453,7 +453,7 @@ defmodule Web.Shared.AddRelationshipComponent do
 
             <button
               phx-click="cancel_add_relationship"
-              class="w-full bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="w-full border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </button>

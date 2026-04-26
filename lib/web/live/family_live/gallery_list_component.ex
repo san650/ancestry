@@ -6,7 +6,7 @@ defmodule Web.FamilyLive.GalleryListComponent do
     ~H"""
     <div id={@id}>
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-cm-body font-semibold text-cm-text-muted uppercase tracking-wider">
+        <h3 class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
           {gettext("Galleries")}
         </h3>
         <button

@@ -38,7 +38,7 @@ defmodule Web.FamilyLive.PersonSelectorComponent do
       </button>
 
       <%= if @open do %>
-        <div class="absolute top-full left-0 mt-1 w-full max-w-xs bg-cm-white/80 backdrop-blur-[20px] rounded-cm z-50 max-h-80 flex flex-col">
+        <div class="absolute top-full left-0 mt-1 w-full max-w-xs bg-cm-white border-2 border-cm-black rounded-cm z-50 max-h-80 flex flex-col">
           <div class="p-2 border-b border-cm-border/20">
             <input
               id={"#{@id}-input"}

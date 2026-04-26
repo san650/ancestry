@@ -102,13 +102,13 @@ defmodule Web.FamilyLive.GraphComponent do
       class={[
         "relative flex flex-col items-center text-center rounded-cm transition-all duration-150 group",
         if(@node.focus,
-          do: "bg-cm-indigo text-cm-white border border-cm-indigo-container z-1",
-          else: "bg-cm-white border border-cm-border/20 hover:bg-cm-surface"
+          do: "bg-cm-indigo text-cm-white border-2 border-cm-indigo z-1",
+          else: "bg-cm-white border-2 border-cm-black hover:bg-cm-surface"
         ),
         gender_border_class(@node.person.gender),
-        "focus-visible:outline-2 focus-visible:outline-cm-indigo focus-visible:outline-offset-2",
+        "focus-visible:outline-2 focus-visible:outline-cm-coral focus-visible:outline-offset-2",
         "w-[72px] lg:w-28 lg:p-2",
-        @node.duplicated && "opacity-50 border border-dashed border-cm-text-muted/40"
+        @node.duplicated && "opacity-50 border-2 border-dashed border-cm-text-muted/40"
       ]}
       aria-label={Person.display_name(@node.person)}
     >
@@ -148,7 +148,7 @@ defmodule Web.FamilyLive.GraphComponent do
           <% end %>
         </div>
         <p class={[
-          "text-xs font-medium w-full transition-colors line-clamp-2 leading-tight min-h-[2lh]",
+          "text-xs font-cm-body font-medium w-full transition-colors line-clamp-2 leading-tight min-h-[2lh]",
           if(@node.focus,
             do: "text-cm-white",
             else: "text-cm-black group-hover:text-cm-indigo"
@@ -162,7 +162,7 @@ defmodule Web.FamilyLive.GraphComponent do
           </p>
         <% end %>
         <p class={[
-          "text-[10px]",
+          "font-cm-mono text-[10px]",
           if(@node.focus, do: "text-cm-white/70", else: "text-cm-text-muted")
         ]}>
           <%= if @node.person.birth_year do %>

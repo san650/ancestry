@@ -10,7 +10,7 @@
         >
           <.icon name="hero-bars-3" class="size-5" />
         </button>
-        <h1 class="text-lg font-cm-display font-bold text-cm-black">
+        <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
           {gettext("Families")}
         </h1>
       </div>
@@ -19,10 +19,10 @@
           type="button"
           phx-click="toggle_select_mode"
           class={[
-            "inline-flex items-center gap-2 rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold transition-colors",
+            "inline-flex items-center gap-2 rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider transition-colors",
             if(@selection_mode,
               do: "bg-cm-indigo text-cm-white",
-              else: "bg-cm-surface text-cm-black hover:bg-cm-surface"
+              else: "border-2 border-cm-black text-cm-black hover:bg-cm-surface"
             )
           ]}
           {test_id("family-index-select-btn")}
@@ -34,7 +34,7 @@
         </button>
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/people"}
-          class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+          class="inline-flex items-center gap-2 border-2 border-cm-black text-cm-black rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           {test_id("org-people-btn")}
         >
           <.icon name="hero-users" class="w-4 h-4" /> {gettext("People")}
@@ -42,7 +42,7 @@
         <.link
           id="new-family-btn"
           navigate={~p"/org/#{@current_scope.organization.id}/families/new"}
-          class="inline-flex items-center gap-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-5 py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-5 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           {test_id("family-new-btn")}
         >
           {gettext("New Family")}
@@ -91,16 +91,16 @@
       <%= if @selection_mode do %>
         <div
           id="selection-bar"
-          class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-cm-black lg:rounded-cm lg:mb-4"
+          class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t-2 border-cm-black px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-cm-indigo lg:rounded-cm lg:mb-4"
           {test_id("selection-bar")}
         >
-          <span class="text-sm font-cm-body font-medium text-cm-black lg:text-cm-white">
+          <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
             {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
           </span>
           <button
             phx-click="request_batch_delete"
             disabled={MapSet.size(@selected_ids) == 0}
-            class="px-3 py-2 text-sm font-cm-body text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+            class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-coral lg:text-cm-white lg:hover:bg-cm-coral-hover disabled:opacity-40 disabled:cursor-not-allowed"
             {test_id("selection-bar-delete-btn")}
           >
             {gettext("Delete")}
@@ -118,7 +118,7 @@
           class="hidden only:block col-span-full text-center py-20 bg-cm-border rounded-cm"
           {test_id("families-empty")}
         >
-          <span class="text-cm-black font-cm-display font-bold">
+          <span class="text-cm-indigo font-cm-display font-bold uppercase tracking-wider">
             {gettext("No families yet")}
           </span>
         </div>
@@ -126,9 +126,9 @@
           :for={{id, family} <- @streams.families}
           id={id}
           class={[
-            "group relative bg-cm-white rounded-cm hover:bg-cm-surface transition-colors overflow-hidden cursor-pointer",
+            "group relative cm-card hover:bg-cm-surface transition-colors cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, family.id),
-              do: "outline outline-3 outline-cm-indigo outline-offset-2",
+              do: "outline outline-3 outline-cm-coral outline-offset-2",
               else: "outline outline-3 outline-transparent outline-offset-2"
             )
           ]}
@@ -145,18 +145,18 @@
               />
             </div>
           <% else %>
-            <div class="h-32 bg-cm-surface flex items-center justify-center">
-              <.icon name="hero-users" class="w-8 h-8 text-cm-text-muted" />
+            <div class="h-32 bg-cm-plum flex items-center justify-center">
+              <.icon name="hero-users" class="w-8 h-8 text-cm-white/60" />
             </div>
           <% end %>
           <div class="p-4">
             <h2
               data-family-name
-              class="text-lg font-cm-display font-bold text-cm-black truncate"
+              class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider truncate"
             >
               {family.name}
             </h2>
-            <p class="text-sm text-cm-text-muted mt-1">
+            <p class="font-cm-mono text-[10px] text-cm-text-muted mt-1">
               {Calendar.strftime(family.inserted_at, "%B %d, %Y")}
             </p>
           </div>
@@ -180,14 +180,14 @@
       >
       </div>
       <div
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-families-title"
       >
         <h2
           id="delete-families-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           {gettext("Delete families")}
         </h2>
@@ -206,14 +206,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_batch_delete"
-            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
             {test_id("confirm-delete-families-confirm-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_batch_delete"
-            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>

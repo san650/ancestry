@@ -56,13 +56,13 @@ defmodule Web.Shared.QuickPersonModal do
           phx-target={@myself}
         >
           <div
-            class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm"
             phx-click="cancel"
             phx-target={@myself}
           >
           </div>
           <div
-            class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8 max-h-[90vh] overflow-y-auto"
+            class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-cm p-8 max-h-[90vh] overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-labelledby={"#{@id}-title"}
@@ -70,7 +70,7 @@ defmodule Web.Shared.QuickPersonModal do
           >
             <h2
               id={"#{@id}-title"}
-              class="text-xl font-cm-display font-bold text-cm-black mb-6"
+              class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-6"
             >
               {gettext("New Person")}
             </h2>
@@ -101,13 +101,13 @@ defmodule Web.Shared.QuickPersonModal do
     >
       <%!-- Photo upload --%>
       <div>
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
           {gettext("Photo")}
         </label>
         <div class="mt-1">
           <%= if @uploads.photo.entries == [] do %>
             <label
-              class="flex items-center justify-center w-20 h-20 rounded-full border-2 border-dashed border-cm-border/40 cursor-pointer hover:border-cm-indigo/60 transition-colors"
+              class="flex items-center justify-center w-20 h-20 rounded-full border-2 border-dashed border-cm-black/30 cursor-pointer hover:border-cm-black transition-colors"
               {test_id("quick-person-photo-placeholder")}
             >
               <.icon name="hero-camera" class="w-6 h-6 text-cm-text-muted/40" />
@@ -156,7 +156,7 @@ defmodule Web.Shared.QuickPersonModal do
 
       <%!-- Gender --%>
       <div>
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
           {gettext("Gender")}
         </label>
         <div class="flex items-center gap-4 mt-1">
@@ -195,14 +195,14 @@ defmodule Web.Shared.QuickPersonModal do
 
       <%!-- Birth date --%>
       <div>
-        <label class="text-sm font-cm-body font-medium text-cm-text-muted">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
           {gettext("Birth date")}
         </label>
         <div class="flex items-center gap-2 mt-1">
           <select
             name={@form[:birth_day].name}
             id={@form[:birth_day].id}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
           >
             <option value="">{gettext("Day")}</option>
             <%= for {label, val} <- day_options() do %>
@@ -214,7 +214,7 @@ defmodule Web.Shared.QuickPersonModal do
           <select
             name={@form[:birth_month].name}
             id={@form[:birth_month].id}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black"
           >
             <option value="">{gettext("Month")}</option>
             <%= for {label, val} <- month_options() do %>
@@ -231,7 +231,7 @@ defmodule Web.Shared.QuickPersonModal do
             min="1000"
             max="2100"
             placeholder={gettext("Year")}
-            class="bg-cm-white border border-cm-border/20 rounded-cm px-2 py-1 text-sm text-cm-black w-24"
+            class="bg-cm-white border-2 border-cm-black rounded-cm px-2 py-1 text-sm font-cm-body text-cm-black w-24"
           />
         </div>
       </div>
@@ -264,7 +264,7 @@ defmodule Web.Shared.QuickPersonModal do
         <button
           type="submit"
           id={"#{@id}-submit"}
-          class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+          class="flex-1 bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
           {test_id("quick-person-submit")}
         >
           {gettext("Create")}
@@ -273,7 +273,7 @@ defmodule Web.Shared.QuickPersonModal do
           type="button"
           phx-click="cancel"
           phx-target={@myself}
-          class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+          class="flex-1 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
         >
           {gettext("Cancel")}
         </button>

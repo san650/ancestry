@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-white sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <%!-- Hamburger: mobile only --%>
         <button
@@ -27,16 +27,16 @@
       <div class="hidden lg:flex items-center gap-1">
         <%!-- View mode toggle --%>
         <div
-          class="flex bg-cm-surface rounded-sm p-0.5 mr-1"
+          class="flex border-2 border-cm-black rounded-cm p-0.5 mr-1"
           {test_id("view-mode-toggle")}
         >
           <button
             type="button"
             phx-click="switch_view"
             phx-value-view="graph"
-            class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
+            class={"flex items-center justify-center size-8 rounded-cm transition-colors " <>
               if(@view_mode == "graph",
-                do: "bg-cm-black text-cm-surface",
+                do: "bg-cm-indigo text-cm-white",
                 else: "text-cm-text-muted hover:text-cm-black"
               )}
             aria-label={gettext("Graph view")}
@@ -47,9 +47,9 @@
             type="button"
             phx-click="switch_view"
             phx-value-view="tree"
-            class={"flex items-center justify-center size-8 rounded-sm transition-colors " <>
+            class={"flex items-center justify-center size-8 rounded-cm transition-colors " <>
               if(@view_mode == "tree",
-                do: "bg-cm-black text-cm-surface",
+                do: "bg-cm-indigo text-cm-white",
                 else: "text-cm-text-muted hover:text-cm-black"
               )}
             aria-label={gettext("Tree view")}
@@ -108,7 +108,7 @@
           <div
             :if={@show_menu}
             phx-click-away="close_menu"
-            class="absolute right-0 top-full mt-1 w-56 bg-cm-white rounded-lg border border-cm-border py-1 z-50"
+            class="absolute right-0 top-full mt-1 w-56 bg-cm-white rounded-cm border-2 border-cm-black py-1 z-50"
             {test_id("meatball-dropdown")}
           >
             <.link
@@ -275,7 +275,7 @@
                 name="hero-share"
                 class="w-16 h-16 mx-auto mb-4 text-cm-text-muted/50"
               />
-              <h2 class="text-xl font-cm-display font-semibold text-cm-black mb-2">
+              <h2 class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2">
                 {gettext("Explore the Family Tree")}
               </h2>
               <p class="text-cm-text-muted mb-6 max-w-sm font-cm-body">
@@ -306,22 +306,22 @@
     <div
       :if={@graph}
       id="tree-drawer"
-      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-cm-surface/90 backdrop-blur-md rounded-sm shadow-sm"
+      class="hidden lg:block fixed bottom-0 left-1/2 -translate-x-1/2 z-40 bg-cm-white border-2 border-cm-black rounded-cm"
       {test_id("tree-drawer")}
     >
       <%!-- Collapsed bar --%>
       <button
         type="button"
         phx-click="toggle_drawer"
-        class="flex items-center gap-3 px-4 py-1.5 hover:bg-cm-surface/50 transition-colors rounded-sm"
+        class="flex items-center gap-3 px-4 py-1.5 hover:bg-cm-surface transition-colors rounded-cm"
         aria-label={gettext("Toggle tree controls")}
       >
-        <span class="text-cm-black font-cm-body font-medium text-xs">
+        <span class="text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider">
           {if @tree_display == "complete",
             do: gettext("Complete Tree"),
             else: gettext("Partial Tree")}
         </span>
-        <span class="text-cm-text-muted font-cm-body text-[11px]">
+        <span class="text-cm-text-muted font-cm-mono text-[10px]">
           {@tree_ancestors}↑ {@tree_descendants}↓ {@tree_other}↔
         </span>
         <.icon name="hero-chevron-up" class="size-3.5 text-cm-text-muted" />
@@ -329,19 +329,19 @@
 
       <%!-- Expanded panel --%>
       <div class={if @drawer_open, do: "max-h-[200px] opacity-100", else: "max-h-0 opacity-0"}>
-        <div class="px-4 py-3 bg-cm-surface/60 flex items-start gap-5">
+        <div class="px-4 py-3 border-t-2 border-cm-black flex items-start gap-5">
           <%!-- Display toggle --%>
           <div class="flex-shrink-0">
-            <div class="text-[10px] text-cm-text-muted uppercase tracking-wider mb-2 font-cm-body">
+            <div class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider mb-2">
               {gettext("Display")}
             </div>
-            <div class="flex bg-cm-surface rounded-sm p-0.5">
+            <div class="flex border-2 border-cm-black rounded-cm p-0.5">
               <button
                 type="button"
                 phx-click="toggle_display"
                 phx-value-display="partial"
-                class={"px-2.5 py-1 rounded-sm text-[11px] font-cm-body font-medium transition-colors " <>
-                  if(@tree_display == "partial", do: "bg-cm-black text-cm-surface", else: "text-cm-text-muted hover:text-cm-black")}
+                class={"px-2.5 py-1 rounded-cm font-cm-mono text-[10px] font-bold transition-colors " <>
+                  if(@tree_display == "partial", do: "bg-cm-indigo text-cm-white", else: "text-cm-text-muted hover:text-cm-black")}
               >
                 {gettext("Partial Tree")}
               </button>
@@ -349,8 +349,8 @@
                 type="button"
                 phx-click="toggle_display"
                 phx-value-display="complete"
-                class={"px-2.5 py-1 rounded-sm text-[11px] font-cm-body font-medium transition-colors " <>
-                  if(@tree_display == "complete", do: "bg-cm-black text-cm-surface", else: "text-cm-text-muted hover:text-cm-black")}
+                class={"px-2.5 py-1 rounded-cm font-cm-mono text-[10px] font-bold transition-colors " <>
+                  if(@tree_display == "complete", do: "bg-cm-indigo text-cm-white", else: "text-cm-text-muted hover:text-cm-black")}
               >
                 {gettext("Complete Tree")}
               </button>
@@ -412,7 +412,7 @@
     >
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_edit"></div>
       <div
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="edit-family-title"
@@ -420,7 +420,7 @@
       >
         <h2
           id="edit-family-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           {gettext("Edit Family")}
         </h2>
@@ -533,7 +533,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
               {test_id("family-edit-save-btn")}
             >
               {gettext("Save")}
@@ -541,7 +541,7 @@
             <button
               type="button"
               phx-click="cancel_edit"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </button>
@@ -561,7 +561,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
       <div
         id="confirm-delete-family-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-family-title"
@@ -570,7 +570,7 @@
       >
         <h2
           id="delete-family-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           {gettext("Delete Family")}
         </h2>
@@ -582,14 +582,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
             {test_id("family-delete-confirm-btn")}
           >
             Delete
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>
@@ -612,7 +612,7 @@
       </div>
       <div
         id="new-gallery-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-gallery-title"
@@ -620,7 +620,7 @@
       >
         <h2
           id="new-gallery-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           {gettext("New Gallery")}
         </h2>
@@ -639,14 +639,14 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
             >
               {gettext("Create")}
             </button>
             <button
               type="button"
               phx-click="close_new_gallery_modal"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -670,7 +670,7 @@
       </div>
       <div
         id="new-vault-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-vault-title"
@@ -678,7 +678,7 @@
       >
         <h2
           id="new-vault-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           {gettext("New Memory Vault")}
         </h2>
@@ -697,14 +697,14 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
             >
               Create
             </button>
             <button
               type="button"
               phx-click="close_new_vault_modal"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -725,7 +725,7 @@
       </div>
       <div
         id="confirm-delete-gallery-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-gallery-title"
@@ -733,7 +733,7 @@
       >
         <h2
           id="delete-gallery-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           {gettext("Delete Gallery")}
         </h2>
@@ -745,13 +745,13 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_gallery"
-            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           >
             Delete
           </button>
           <button
             phx-click="cancel_delete_gallery"
-            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
             Cancel
           </button>
@@ -770,7 +770,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
       <div
         id="link-person-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="link-person-title"
@@ -779,7 +779,7 @@
       >
         <h2
           id="link-person-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-4"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-4"
         >
           {gettext("Link Existing Person")}
         </h2>
@@ -836,7 +836,7 @@
         </div>
         <button
           phx-click="close_search"
-          class="inline-flex items-center justify-center gap-2 bg-cm-surface text-cm-black rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors w-full mt-4"
+          class="inline-flex items-center justify-center gap-2 border-2 border-cm-black text-cm-black rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors w-full mt-4"
         >
           Cancel
         </button>
@@ -858,7 +858,7 @@
       </div>
       <div
         id="add-relationship-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-relationship-title"
@@ -889,7 +889,7 @@
       </div>
       <div
         id="create-subfamily-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-subfamily-title"
@@ -898,7 +898,7 @@
       >
         <h2
           id="create-subfamily-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-6"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-6"
         >
           {gettext("Create Subfamily")}
         </h2>
@@ -980,7 +980,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
               phx-disable-with={gettext("Creating...")}
               {test_id("create-subfamily-submit-btn")}
             >
@@ -989,7 +989,7 @@
             <button
               type="button"
               phx-click="close_create_subfamily"
-              class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+              class="flex-1 border-2 border-cm-black text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               Cancel
             </button>
@@ -1009,58 +1009,62 @@
     <div class="absolute inset-0 bg-black/50" phx-click="close_import" />
 
     <%!-- Modal --%>
-    <div class="relative w-full max-w-none lg:max-w-md bg-cm-white rounded-t-lg lg:rounded-cm p-6">
+    <div class="relative w-full max-w-none lg:max-w-md bg-cm-white border-2 border-cm-black rounded-t-lg lg:rounded-cm p-6">
       <%= if @import_error do %>
         <%!-- Error state --%>
-        <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
+        <h2 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider mb-4">
           {gettext("Import failed")}
         </h2>
         <p class="text-sm text-cm-error mb-6">{@import_error}</p>
         <button
           type="button"
           phx-click="close_import"
-          class="w-full py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
+          class="w-full py-2.5 px-4 border-2 border-cm-black text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm hover:bg-cm-surface transition-colors"
         >
           {gettext("Close")}
         </button>
       <% else %>
         <%= if @import_summary do %>
           <%!-- Results state --%>
-          <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
+          <h2 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider mb-4">
             {gettext("Import complete")}
           </h2>
           <dl class="space-y-2 mb-4">
             <div class="flex justify-between">
-              <dt class="text-sm text-cm-text-muted">{gettext("People created")}</dt>
-              <dd class="text-sm font-medium text-cm-black" {test_id("import-created")}>
+              <dt class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+                {gettext("People created")}
+              </dt>
+              <dd class="font-cm-mono text-sm font-bold text-cm-black" {test_id("import-created")}>
                 {@import_summary.people_created}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-cm-text-muted">
+              <dt class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
                 {gettext("People added to the family")}
               </dt>
               <dd
-                class="text-sm font-medium text-cm-black"
+                class="font-cm-mono text-sm font-bold text-cm-black"
                 {test_id("import-added-to-family")}
               >
                 {@import_summary.people_added_to_family}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-cm-text-muted">
+              <dt class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
                 {gettext("Already in the family")}
               </dt>
               <dd
-                class="text-sm font-medium text-cm-black"
+                class="font-cm-mono text-sm font-bold text-cm-black"
                 {test_id("import-already-in-family")}
               >
                 {@import_summary.people_already_in_family}
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-cm-text-muted">{gettext("Errors")}</dt>
-              <dd class="text-sm font-medium text-cm-black" {test_id("import-errors")}>
+              <dt class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+                {gettext("Errors")}
+              </dt>
+              <dd class="font-cm-mono text-sm font-bold text-cm-black" {test_id("import-errors")}>
                 {@import_summary.people_skipped}
               </dd>
             </div>
@@ -1072,7 +1076,7 @@
                 {gettext("Error details")}
               </h3>
               <ul
-                class="max-h-60 overflow-y-auto space-y-1 text-xs text-cm-text-muted bg-cm-surface rounded-lg p-3"
+                class="max-h-60 overflow-y-auto space-y-1 text-xs text-cm-text-muted bg-cm-surface rounded-cm p-3"
                 {test_id("import-error-list")}
               >
                 <%= for error <- @import_summary.people_errors do %>
@@ -1085,14 +1089,14 @@
           <button
             type="button"
             phx-click="close_import"
-            class="w-full py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
+            class="w-full py-2.5 px-4 border-2 border-cm-black text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm hover:bg-cm-surface transition-colors"
             {test_id("import-close-btn")}
           >
             Close
           </button>
         <% else %>
           <%!-- Upload form state --%>
-          <h2 class="font-cm-display font-bold text-lg text-cm-black mb-4">
+          <h2 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider mb-4">
             {gettext("Import from CSV")}
           </h2>
 
@@ -1108,12 +1112,12 @@
             </div>
 
             <div class="mb-4">
-              <label class="block text-sm font-medium text-cm-black mb-1">
+              <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-1">
                 {gettext("CSV file")}
               </label>
               <.live_file_input
                 upload={@uploads.csv_file}
-                class="block w-full text-sm text-cm-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-cm-surface file:text-cm-black hover:file:bg-cm-surface"
+                class="block w-full text-sm text-cm-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-cm file:border-0 file:text-[10px] file:font-bold file:font-cm-mono file:uppercase file:tracking-wider file:bg-cm-indigo file:text-cm-white"
                 {test_id("import-file-input")}
               />
               <%= for entry <- @uploads.csv_file.entries do %>
@@ -1128,14 +1132,14 @@
               <button
                 type="button"
                 phx-click="close_import"
-                class="flex-1 py-2.5 px-4 bg-cm-surface text-cm-black text-sm font-medium rounded-lg hover:bg-cm-surface transition-colors"
+                class="flex-1 py-2.5 px-4 border-2 border-cm-black text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm hover:bg-cm-surface transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={@uploads.csv_file.entries == []}
-                class="flex-1 py-2.5 px-4 bg-cm-black text-cm-surface text-sm font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-40"
+                class="flex-1 py-2.5 px-4 bg-cm-coral text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm hover:bg-cm-coral-hover transition-colors disabled:opacity-40"
                 {test_id("import-submit-btn")}
               >
                 {gettext("Import")}
@@ -1159,7 +1163,7 @@
         phx-click="close_mobile_tree_sheet"
       />
       <div
-        class="relative bg-cm-white/80 backdrop-blur-[20px] shadow-sm w-full rounded-t-lg"
+        class="relative bg-cm-white border-t-2 border-cm-black w-full rounded-t-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-tree-title"
@@ -1173,31 +1177,31 @@
         <div class="flex items-center justify-between px-5 pb-3">
           <h2
             id="mobile-tree-title"
-            class="text-base font-cm-display font-semibold text-cm-black"
+            class="text-base font-cm-display font-bold text-cm-indigo uppercase tracking-wider"
           >
             {gettext("Tree View")}
           </h2>
           <button
             type="button"
             phx-click="close_mobile_tree_sheet"
-            class="text-sm text-cm-black font-cm-body font-medium"
+            class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black"
           >
             {gettext("Done")}
           </button>
         </div>
         <%!-- Display toggle --%>
         <div class="px-5 pt-4 pb-3">
-          <div class="text-[10px] text-cm-text-muted uppercase tracking-wider mb-2 font-cm-body">
+          <div class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider mb-2">
             {gettext("Display")}
           </div>
-          <div class="flex bg-cm-surface rounded-sm p-0.5">
+          <div class="flex border-2 border-cm-black rounded-cm p-0.5">
             <button
               type="button"
               phx-click="toggle_display"
               phx-value-display="partial"
-              class={"flex-1 text-center py-2 rounded-sm text-sm font-cm-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-cm font-cm-mono text-[10px] font-bold transition-colors " <>
                 if(@tree_display == "partial",
-                  do: "bg-cm-black text-cm-surface",
+                  do: "bg-cm-indigo text-cm-white",
                   else: "text-cm-text-muted"
                 )}
             >
@@ -1207,9 +1211,9 @@
               type="button"
               phx-click="toggle_display"
               phx-value-display="complete"
-              class={"flex-1 text-center py-2 rounded-sm text-sm font-cm-body font-medium transition-colors " <>
+              class={"flex-1 text-center py-2 rounded-cm font-cm-mono text-[10px] font-bold transition-colors " <>
                 if(@tree_display == "complete",
-                  do: "bg-cm-black text-cm-surface",
+                  do: "bg-cm-indigo text-cm-white",
                   else: "text-cm-text-muted"
                 )}
             >

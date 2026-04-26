@@ -95,7 +95,7 @@ defmodule Web.FamilyLive.TreeComponent do
           "flex flex-col transition-all duration-150 text-left group",
           "bg-cm-white border-l-2 hover:bg-cm-surface",
           gender_border_class(@entry.person.gender),
-          "focus-visible:outline-2 focus-visible:outline-cm-indigo focus-visible:outline-offset-2"
+          "focus-visible:outline-2 focus-visible:outline-cm-coral focus-visible:outline-offset-2"
         ]}
         aria-label={Person.display_name(@entry.person)}
       >
@@ -139,7 +139,7 @@ defmodule Web.FamilyLive.TreeComponent do
             {Person.display_name(@entry.person)}
           </span>
           <%!-- Dates --%>
-          <span class="text-xs font-cm-body flex-shrink-0 text-cm-text-muted">
+          <span class="font-cm-mono text-[10px] flex-shrink-0 text-cm-text-muted">
             {format_life_span(@entry.person)}
           </span>
           <%!-- Navigate-to-person link (desktop only) --%>
@@ -193,7 +193,7 @@ defmodule Web.FamilyLive.TreeComponent do
           else: "bg-cm-white border-l-2 hover:bg-cm-surface"
         ),
         gender_border_class(@entry.person.gender),
-        "focus-visible:outline-2 focus-visible:outline-cm-indigo focus-visible:outline-offset-2"
+        "focus-visible:outline-2 focus-visible:outline-cm-coral focus-visible:outline-offset-2"
       ]}
       aria-label={Person.display_name(@entry.person)}
     >
@@ -241,7 +241,7 @@ defmodule Web.FamilyLive.TreeComponent do
 
       <%!-- Dates --%>
       <span class={[
-        "text-xs font-cm-body flex-shrink-0",
+        "font-cm-mono text-[10px] flex-shrink-0",
         if(@entry.is_focus, do: "text-cm-white/70", else: "text-cm-text-muted")
       ]}>
         {format_life_span(@entry.person)}
