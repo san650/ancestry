@@ -23,7 +23,7 @@
       </div>
       <div class="hidden lg:flex items-center gap-2">
         <.toolbar_button
-          variant={:secondary}
+          variant={if(@editing, do: :toggle_active, else: :secondary)}
           phx-click="toggle_edit"
           {test_id("org-people-edit-btn")}
         >

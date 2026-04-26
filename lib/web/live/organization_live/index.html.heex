@@ -20,7 +20,7 @@
           phx-click="toggle_select_mode"
           {test_id("org-index-select-btn")}
         >
-          {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+          {if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         </.toolbar_button>
         <.toolbar_button variant={:primary} phx-click="new_organization" {test_id("org-new-btn")}>
           {gettext("New Organization")}
@@ -33,7 +33,7 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        label={if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        label={if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
       />
       <.nav_action
@@ -57,14 +57,14 @@
             {gettext("Rename")}
           </.toolbar_button>
         <% end %>
-        <.toolbar_button
-          variant={:primary}
+        <button
           phx-click="request_batch_delete"
           disabled={MapSet.size(@selected_ids) == 0}
+          class="px-3 py-1.5 rounded-cm font-cm-mono text-[10px] font-bold uppercase tracking-wider bg-cm-error text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           {test_id("selection-bar-delete-btn")}
         >
           {gettext("Delete")}
-        </.toolbar_button>
+        </button>
       </.selection_bar>
 
       <div

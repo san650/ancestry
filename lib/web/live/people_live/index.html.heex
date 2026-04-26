@@ -26,7 +26,11 @@
         />
       </div>
       <div class="hidden lg:flex items-center gap-2">
-        <.toolbar_button variant={:secondary} phx-click="toggle_edit" {test_id("people-edit-btn")}>
+        <.toolbar_button
+          variant={if(@editing, do: :toggle_active, else: :secondary)}
+          phx-click="toggle_edit"
+          {test_id("people-edit-btn")}
+        >
           {if @editing, do: gettext("Done"), else: gettext("Select")}
         </.toolbar_button>
       </div>

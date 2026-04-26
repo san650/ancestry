@@ -29,7 +29,7 @@
 
       <div class="hidden lg:flex items-center gap-2">
         <.toolbar_button
-          variant={:secondary}
+          variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
           {test_id("memory-select-btn")}
         >

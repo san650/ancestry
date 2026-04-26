@@ -31,7 +31,7 @@
           variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
         >
-          {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+          {if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         </.toolbar_button>
         <.toolbar_button variant={:secondary} phx-click="toggle_layout">
           {if(@grid_layout == :masonry, do: gettext("Masonry"), else: gettext("Uniform"))}
@@ -52,7 +52,7 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        label={if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        label={if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
       />
       <.nav_action
@@ -101,13 +101,13 @@
     class="max-w-7xl mx-auto"
   >
     <.selection_bar show={@selection_mode} count={MapSet.size(@selected_ids)}>
-      <.toolbar_button
-        variant={:primary}
+      <button
         phx-click="request_delete_photos"
         disabled={MapSet.size(@selected_ids) == 0}
+        class="px-3 py-1.5 rounded-cm font-cm-mono text-[10px] font-bold uppercase tracking-wider bg-cm-error text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {gettext("Delete")}
-      </.toolbar_button>
+      </button>
     </.selection_bar>
 
     <Web.Components.PhotoGallery.photo_grid

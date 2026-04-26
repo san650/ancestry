@@ -16,11 +16,11 @@
       </div>
       <div class="hidden lg:flex items-center gap-2">
         <.toolbar_button
-          variant={:secondary}
+          variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
           {test_id("family-index-select-btn")}
         >
-          {gettext("Select")}
+          {if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         </.toolbar_button>
         <.toolbar_button
           variant={:primary}
@@ -51,7 +51,7 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        label={gettext("Select")}
+        label={if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
       />
       <.nav_action
@@ -72,7 +72,7 @@
         <button
           phx-click="request_batch_delete"
           disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm border-2 border-cm-error transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          class="px-3 py-1.5 rounded-cm font-cm-mono text-[10px] font-bold uppercase tracking-wider bg-cm-error text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           {test_id("selection-bar-delete-btn")}
         >
           {gettext("Delete")}
