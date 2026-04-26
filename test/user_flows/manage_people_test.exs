@@ -73,7 +73,7 @@ defmodule Web.UserFlows.ManagePeopleTest do
 
     # Verify deceased indicator has title attribute
     conn
-    |> assert_has(test_id("people-row-#{alice.id}") <> " .indicator-item[title='Deceased']")
+    |> assert_has(test_id("people-row-#{alice.id}") <> " [title='Deceased']")
   end
 
   test "navigate from family show via toolbar", %{conn: conn, family: family, org: org} do

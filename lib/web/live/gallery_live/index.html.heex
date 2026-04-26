@@ -8,14 +8,14 @@
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-lg font-cm-display font-bold text-cm-black">
+        <h1 class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
           {@family.name} — {gettext("Galleries")}
         </h1>
       </div>
       <button
         id="open-new-gallery-btn"
         phx-click="open_new_modal"
-        class="inline-flex items-center gap-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-5 py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+        class="inline-flex items-center gap-2 bg-cm-coral text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm px-5 py-2.5 hover:bg-cm-coral-hover transition-colors"
       >
         New Gallery
       </button>
@@ -38,7 +38,7 @@
         :for={{id, gallery} <- @streams.galleries}
         id={id}
         data-gallery-id={gallery.id}
-        class="group relative bg-cm-white rounded-cm hover:bg-cm-surface transition-colors overflow-hidden"
+        class="group relative bg-cm-white border-2 border-cm-black rounded-cm hover:bg-cm-surface transition-colors overflow-hidden"
       >
         <.link
           navigate={
@@ -46,16 +46,16 @@
           }
           class="block p-4"
         >
-          <div class="w-12 h-12 rounded-cm bg-cm-indigo/10 flex items-center justify-center mb-4">
-            <.icon name="hero-photo" class="w-6 h-6 text-cm-indigo" />
+          <div class="w-12 h-12 rounded-cm bg-cm-plum flex items-center justify-center mb-4">
+            <.icon name="hero-photo" class="w-6 h-6 text-cm-white" />
           </div>
           <h2
             data-gallery-name
-            class="text-lg font-cm-display font-bold text-cm-black truncate"
+            class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider truncate"
           >
             {gallery.name}
           </h2>
-          <p class="text-sm text-cm-text-muted mt-1">
+          <p class="font-cm-mono text-[10px] text-cm-text-muted mt-1">
             {Calendar.strftime(gallery.inserted_at, "%B %d, %Y")}
           </p>
         </.link>
@@ -80,7 +80,7 @@
         id="new-gallery-modal"
         class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
       >
-        <h2 class="text-xl font-cm-display font-bold text-cm-black mb-6">
+        <h2 class="text-xl font-cm-display text-cm-indigo uppercase tracking-wider mb-6">
           {gettext("New Gallery")}
         </h2>
         <.form
@@ -98,7 +98,7 @@
           <div class="flex gap-3 mt-6">
             <button
               type="submit"
-              class="flex-1 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+              class="flex-1 bg-cm-coral text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm py-2.5 hover:bg-cm-coral-hover transition-colors"
             >
               {gettext("Create")}
             </button>
@@ -123,7 +123,7 @@
         id="confirm-delete-modal"
         class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
       >
-        <h2 class="text-xl font-cm-display font-bold text-cm-black mb-2">
+        <h2 class="text-xl font-cm-display text-cm-indigo uppercase tracking-wider mb-2">
           {gettext("Delete Gallery")}
         </h2>
         <p class="text-cm-text-muted mb-6">
