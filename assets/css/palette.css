@@ -1,0 +1,70 @@
+/* Brutalist Design System — Color Palette & Utilities */
+/* All project-specific variables and classes use the cm- prefix */
+
+:root {
+  /* Primary colors */
+  --cm-indigo: #1E104E;
+  --cm-plum: #452E5A;
+  --cm-coral: #FF653F;
+  --cm-golden: #FFC85C;
+  --cm-black: #000000;
+  --cm-white: #FFFFFF;
+
+  /* Derived tones */
+  --cm-surface: #FAFAFA;
+  --cm-border: #E0E0E0;
+  --cm-text-muted: #999999;
+  --cm-coral-hover: #E8552F;
+  --cm-indigo-hover: #150B3A;
+
+  /* Semantic colors */
+  --cm-error: #BA1A1A;
+  --cm-success: #006D35;
+
+  /* Semantic aliases */
+  --cm-color-primary: var(--cm-coral);
+  --cm-color-secondary: var(--cm-indigo);
+  --cm-color-accent: var(--cm-golden);
+  --cm-color-bg: var(--cm-white);
+  --cm-color-surface: var(--cm-surface);
+  --cm-color-text: var(--cm-black);
+  --cm-color-text-muted: var(--cm-text-muted);
+}
+
+/* Utility classes for components that need more than a single Tailwind class */
+.cm-tag {
+  font-family: var(--font-cm-mono);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.cm-tag-indigo {
+  background-color: var(--cm-indigo);
+  color: var(--cm-white);
+}
+
+.cm-tag-golden {
+  background-color: var(--cm-golden);
+  color: var(--cm-black);
+}
+
+.cm-stat {
+  border: 1px solid var(--cm-border);
+  border-top: 2px solid var(--cm-coral);
+  border-radius: 2px;
+  padding: 10px;
+  text-align: center;
+  background: var(--cm-white);
+}
+
+.cm-card {
+  border: 2px solid var(--cm-black);
+  border-radius: 2px;
+  background: var(--cm-white);
+  overflow: hidden;
+}

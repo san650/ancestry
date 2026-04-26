@@ -47,7 +47,7 @@ defmodule Web.FamilyLive.GraphComponent do
     <div
       id={@node.id}
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="border border-dashed border-ds-outline-variant/10"
+      class="border border-dashed border-cm-border/10"
       aria-hidden="true"
     />
     """
@@ -60,12 +60,12 @@ defmodule Web.FamilyLive.GraphComponent do
       data-node-id={@node.id}
       data-focus={to_string(@node.focus)}
       style={"grid-column:#{@node.col + 1}; grid-row:#{@node.row + 1}"}
-      class="relative flex items-center justify-center border border-dashed border-ds-outline-variant/10"
+      class="relative flex items-center justify-center border border-dashed border-cm-border/10"
     >
       <%!-- Has more ancestors — pill at top center, half outside card --%>
       <div
         :if={@node.has_more_up}
-        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
+        class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-cm-border/30 text-cm-text-muted/60 hover:bg-cm-surface hover:text-cm-text-muted transition-colors cursor-pointer"
         title={gettext("Has more ancestors")}
       >
         <.icon name="hero-chevron-up" class="w-3 h-3" />
@@ -73,7 +73,7 @@ defmodule Web.FamilyLive.GraphComponent do
       <%!-- Has more descendants — pill at bottom center, half outside card --%>
       <div
         :if={@node.has_more_down}
-        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-ds-outline-variant/30 text-ds-on-surface-variant/60 hover:bg-ds-surface-high hover:text-ds-on-surface-variant transition-colors cursor-pointer"
+        class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-cm-border/30 text-cm-text-muted/60 hover:bg-cm-surface hover:text-cm-text-muted transition-colors cursor-pointer"
         title={gettext("Has more descendants")}
       >
         <.icon name="hero-chevron-down" class="w-3 h-3" />
@@ -100,22 +100,20 @@ defmodule Web.FamilyLive.GraphComponent do
       phx-click="focus_person"
       phx-value-id={@node.person.id}
       class={[
-        "relative flex flex-col items-center text-center rounded-ds-sharp transition-all duration-150 group",
+        "relative flex flex-col items-center text-center rounded-cm transition-all duration-150 group",
         if(@node.focus,
-          do:
-            "bg-ds-primary-container text-ds-on-primary border border-ds-primary-container shadow-ds-ambient z-1",
-          else:
-            "bg-ds-surface-card shadow-ds-ambient border border-ds-outline-variant/20 hover:bg-ds-surface-high"
+          do: "bg-cm-indigo text-cm-white border-2 border-cm-indigo z-1",
+          else: "bg-cm-white border-2 border-cm-black hover:bg-cm-surface"
         ),
         gender_border_class(@node.person.gender),
-        "focus-visible:outline-2 focus-visible:outline-ds-primary focus-visible:outline-offset-2",
+        "focus-visible:outline-2 focus-visible:outline-cm-coral focus-visible:outline-offset-2",
         "w-[72px] lg:w-28 lg:p-2",
-        @node.duplicated && "opacity-50 border border-dashed border-ds-on-surface-variant/40"
+        @node.duplicated && "opacity-50 border-2 border-dashed border-cm-text-muted/40"
       ]}
       aria-label={Person.display_name(@node.person)}
     >
       <%!-- Mobile: photo fills card with name overlay --%>
-      <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-ds-sharp">
+      <div class="relative w-full h-[72px] lg:hidden overflow-hidden rounded-b-cm">
         <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
@@ -123,7 +121,7 @@ defmodule Web.FamilyLive.GraphComponent do
             class="w-full h-[72px] object-cover"
           />
         <% else %>
-          <div class={["w-full h-[72px] flex items-center justify-center", "bg-ds-surface-low"]}>
+          <div class={["w-full h-[72px] flex items-center justify-center", "bg-cm-surface"]}>
             <.icon name="hero-user" class={["w-7 h-7", gender_icon_class(@node.person.gender)]} />
           </div>
         <% end %>
@@ -135,7 +133,7 @@ defmodule Web.FamilyLive.GraphComponent do
       </div>
       <%!-- Desktop: circular photo, name below, dates below name --%>
       <div class="hidden lg:flex lg:flex-col lg:items-center lg:flex-1 lg:w-full">
-        <div class="w-14 h-14 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-ds-primary/50 transition-all">
+        <div class="w-14 h-14 rounded-full bg-cm-indigo/10 flex items-center justify-center overflow-hidden mb-1 group-hover:ring-2 group-hover:ring-cm-indigo/50 transition-all">
           <%= if @node.person.photo && @node.person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@node.person.photo, @node.person}, :thumbnail)}
@@ -150,22 +148,22 @@ defmodule Web.FamilyLive.GraphComponent do
           <% end %>
         </div>
         <p class={[
-          "text-xs font-medium w-full transition-colors line-clamp-2 leading-tight min-h-[2lh]",
+          "text-xs font-cm-body font-medium w-full transition-colors line-clamp-2 leading-tight min-h-[2lh]",
           if(@node.focus,
-            do: "text-ds-on-primary",
-            else: "text-ds-on-surface group-hover:text-ds-primary"
+            do: "text-cm-white",
+            else: "text-cm-black group-hover:text-cm-indigo"
           )
         ]}>
           {Person.display_name(@node.person)}
         </p>
         <%= if @node.duplicated do %>
-          <p class="text-[9px] text-ds-on-surface-variant/60 italic">
+          <p class="text-[9px] text-cm-text-muted/60 italic">
             {gettext("(duplicated)")}
           </p>
         <% end %>
         <p class={[
-          "text-[10px]",
-          if(@node.focus, do: "text-ds-on-primary/70", else: "text-ds-on-surface-variant")
+          "font-cm-mono text-[10px]",
+          if(@node.focus, do: "text-cm-white/70", else: "text-cm-text-muted")
         ]}>
           <%= if @node.person.birth_year do %>
             {format_life_span(@node.person)}
@@ -177,7 +175,7 @@ defmodule Web.FamilyLive.GraphComponent do
       <%!-- Navigation link to person page (overlaid, bottom-right) --%>
       <.link
         navigate={~p"/org/#{@organization.id}/people/#{@node.person.id}"}
-        class="absolute bottom-1 right-1 hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-ds-surface-low/80 hover:bg-ds-primary hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+        class="absolute bottom-1 right-1 hidden lg:flex items-center justify-center w-5 h-5 rounded-full bg-cm-surface/80 hover:bg-cm-indigo hover:text-white transition-colors opacity-0 group-hover:opacity-100"
         aria-label={gettext("Go to person page")}
         title={gettext("View person")}
       >
@@ -191,11 +189,11 @@ defmodule Web.FamilyLive.GraphComponent do
 
   defp gender_border_class("male"), do: "border-t-2 border-t-blue-400"
   defp gender_border_class("female"), do: "border-t-2 border-t-pink-400"
-  defp gender_border_class(_), do: "border-t-2 border-t-ds-on-surface-variant/50"
+  defp gender_border_class(_), do: "border-t-2 border-t-cm-text-muted/50"
 
   defp gender_icon_class("male"), do: "text-blue-400"
   defp gender_icon_class("female"), do: "text-pink-400"
-  defp gender_icon_class(_), do: "text-ds-primary"
+  defp gender_icon_class(_), do: "text-cm-indigo"
 
   defp format_life_span(person) do
     birth = person.birth_year

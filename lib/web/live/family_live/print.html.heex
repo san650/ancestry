@@ -1,5 +1,5 @@
 <Layouts.print flash={@flash}>
-  <h1 class="text-2xl font-bold text-black text-center mb-6">
+  <h1 class="text-2xl font-cm-display font-bold text-cm-black text-center mb-6 uppercase tracking-wider">
     {@family.name}
   </h1>
 
@@ -8,7 +8,7 @@
       <.print_tree tree={@tree} />
     </div>
   <% else %>
-    <p class="text-center text-gray-500">
+    <p class="text-center font-cm-body text-cm-text-muted">
       {gettext("No tree to display")}
     </p>
   <% end %>

@@ -41,13 +41,15 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
+    render(view)
 
-    assert has_element?(view, "#quick-create-person")
-    assert has_element?(view, "#quick-person-modal-relationship-form")
+    # QuickPersonModal is now rendered at the LiveView level (not nested)
+    assert has_element?(view, "#quick-person-modal")
+    assert has_element?(view, "#quick-person-modal-form")
     refute has_element?(view, "#relationship-search-input")
   end
 
-  test "back from quick create returns to choose step", %{
+  test "cancelling quick create returns to search step", %{
     conn: conn,
     family: family,
     person: person,
@@ -58,10 +60,14 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
-    assert has_element?(view, "#quick-person-modal-relationship-form")
+    assert has_element?(view, "#quick-person-modal-form")
 
-    view |> element("#add-rel-back-to-choose-from-quick-create-btn") |> render_click()
-    refute has_element?(view, "#quick-person-modal-relationship-form")
+    # QuickPersonModal is now rendered at the LiveView level.
+    # Cancelling sends {:quick_person_cancelled} to parent, which forwards to AddRelationshipComponent.
+    send(view.pid, {:quick_person_cancelled})
+    render(view)
+
+    refute has_element?(view, "#quick-person-modal-form")
     assert has_element?(view, "#add-rel-link-existing-btn")
     assert has_element?(view, "#add-rel-create-new-btn")
   end
@@ -80,7 +86,7 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     html = render(view)
     assert html =~ "required"
-    assert has_element?(view, "#quick-person-modal-relationship-form")
+    assert has_element?(view, "#quick-person-modal-form")
   end
 
   test "creates person and proceeds to parent metadata step", %{
@@ -96,7 +102,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-person-modal-relationship-form",
+    |> form("#quick-person-modal-form",
       person: %{given_name: "NewDad", surname: "Smith"}
     )
     |> render_submit()
@@ -107,7 +113,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     render(view)
 
     # Should now be on the metadata step (parent role form)
-    refute has_element?(view, "#quick-person-modal-relationship-form")
+    refute has_element?(view, "#quick-person-modal-form")
     assert has_element?(view, "#add-parent-form")
   end
 
@@ -124,7 +130,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-person-modal-relationship-form",
+    |> form("#quick-person-modal-form",
       person: %{given_name: "NewWife", surname: "Jones"}
     )
     |> render_submit()
@@ -132,7 +138,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     render(view)
 
     # Should now be on the metadata step (partner marriage form)
-    refute has_element?(view, "#quick-person-modal-relationship-form")
+    refute has_element?(view, "#quick-person-modal-form")
     assert has_element?(view, "#add-partner-form")
   end
 
@@ -149,7 +155,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-person-modal-relationship-form",
+    |> form("#quick-person-modal-form",
       person: %{given_name: "NewKid", surname: "Doe"}
     )
     |> render_submit()
@@ -173,7 +179,7 @@ defmodule Web.PersonLive.QuickCreateTest do
     view |> element("#add-rel-create-new-btn") |> render_click()
 
     view
-    |> form("#quick-person-modal-relationship-form",
+    |> form("#quick-person-modal-form",
       person: %{given_name: "NewMom", surname: "Lee"}
     )
     |> render_submit()
@@ -200,7 +206,7 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     # Create new person
     view
-    |> form("#quick-person-modal-relationship-form",
+    |> form("#quick-person-modal-form",
       person: %{given_name: "QuickDad", surname: "Fast"}
     )
     |> render_submit()
@@ -216,6 +222,41 @@ defmodule Web.PersonLive.QuickCreateTest do
     assert render(view) =~ "QuickDad"
   end
 
+  test "creates person with photo upload via relationship flow", %{
+    conn: conn,
+    family: family,
+    person: person,
+    org: org
+  } do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
+
+    # Open add parent, switch to quick create
+    view |> element("#add-parent-btn") |> render_click()
+    view |> element("#add-rel-create-new-btn") |> render_click()
+
+    # Process the {:show_quick_create_from_relationship, ...} message
+    render(view)
+
+    # The quick person modal should be rendered at the LiveView level (not nested)
+    # so that file uploads work correctly
+    assert has_element?(view, "#quick-person-modal-form")
+
+    # Submit the form (without photo — photo upload is tested via browser)
+    view
+    |> form("#quick-person-modal-form",
+      person: %{given_name: "PhotoDad", surname: "Smith"}
+    )
+    |> render_submit()
+
+    render(view)
+
+    # Verify person was created
+    members = People.list_people(family.id)
+    photo_dad = Enum.find(members, &(&1.given_name == "PhotoDad"))
+    assert photo_dad
+  end
+
   test "closing modal resets quick_creating state", %{
     conn: conn,
     family: family,
@@ -227,13 +268,13 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
-    assert has_element?(view, "#quick-person-modal-relationship-form")
+    assert has_element?(view, "#quick-person-modal-form")
 
     # Reopen the modal (this triggers add_relationship which resets state)
     view |> element("#add-parent-btn") |> render_click()
 
     # Should be back to the choose step, not quick create
-    refute has_element?(view, "#quick-person-modal-relationship-form")
+    refute has_element?(view, "#quick-person-modal-form")
     assert has_element?(view, "#add-rel-link-existing-btn")
     assert has_element?(view, "#add-rel-create-new-btn")
   end

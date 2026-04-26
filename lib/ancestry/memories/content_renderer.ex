@@ -126,10 +126,10 @@ defmodule Ancestry.Memories.ContentRenderer do
 
     """
     <span class="relative inline-block group">
-      <a href="#{person_url}" class="text-ds-primary font-medium hover:underline">#{display}</a>
-      <span class="absolute bottom-full left-0 mb-1 z-10 hidden group-hover:block w-48 bg-ds-surface-card rounded-ds-sharp shadow-ds-ambient p-2 text-sm pointer-events-none">
+      <a href="#{person_url}" class="text-cm-indigo font-cm-body font-medium hover:underline">#{display}</a>
+      <span class="absolute bottom-full left-0 mb-1 z-10 hidden group-hover:block w-48 bg-cm-white rounded-cm border-2 border-cm-black p-2 text-sm pointer-events-none">
         #{photo_html}
-        <span class="font-semibold text-ds-text-primary">#{display}</span>
+        <span class="font-cm-body font-semibold text-cm-indigo">#{display}</span>
         #{years_html}
       </span>
     </span>
@@ -155,6 +155,6 @@ defmodule Ancestry.Memories.ContentRenderer do
         {b, d} -> "#{b}–#{d}"
       end
 
-    ~s(<span class="block text-ds-text-secondary text-xs">#{text}</span>)
+    ~s(<span class="block font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">#{text}</span>)
   end
 end

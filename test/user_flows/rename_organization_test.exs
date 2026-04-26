@@ -66,7 +66,7 @@ defmodule Web.UserFlows.RenameOrganizationTest do
     conn
     |> refute_has(test_id("org-rename-modal"))
     |> assert_has("h2", text: "Updated Name")
-    |> assert_has(".alert", text: "Organization renamed")
+    |> assert_has("[role=alert]", text: "Organization renamed")
   end
 
   test "cancel rename closes modal without changes", %{conn: conn, org: org} do

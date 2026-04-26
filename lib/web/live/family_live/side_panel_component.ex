@@ -23,29 +23,33 @@ defmodule Web.FamilyLive.SidePanelComponent do
           <%!-- People & Photo counts --%>
           <div class="grid grid-cols-2 gap-3">
             <div
-              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
+              class="cm-stat flex flex-col items-center"
               {test_id("metric-people-count")}
             >
-              <.icon name="hero-users" class="w-5 h-5 text-ds-primary mb-1" />
-              <span class="text-2xl font-bold text-ds-on-surface">
+              <.icon name="hero-users" class="w-5 h-5 text-cm-indigo mb-1" />
+              <span class="text-2xl font-cm-display font-bold text-cm-black">
                 {@metrics.result.people_count}
               </span>
-              <span class="text-xs text-ds-on-surface-variant">{gettext("Members")}</span>
+              <span class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+                {gettext("Members")}
+              </span>
             </div>
             <div
-              class="flex flex-col items-center p-3 rounded-ds-sharp bg-ds-surface-low"
+              class="cm-stat flex flex-col items-center"
               {test_id("metric-photo-count")}
             >
-              <.icon name="hero-photo" class="w-5 h-5 text-ds-secondary mb-1" />
-              <span class="text-2xl font-bold text-ds-on-surface">
+              <.icon name="hero-photo" class="w-5 h-5 text-cm-success mb-1" />
+              <span class="text-2xl font-cm-display font-bold text-cm-black">
                 {@metrics.result.photo_count}
               </span>
-              <span class="text-xs text-ds-on-surface-variant">{gettext("Photos")}</span>
+              <span class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+                {gettext("Photos")}
+              </span>
             </div>
           </div>
         </div>
 
-        <div class="border-t border-ds-outline-variant/20"></div>
+        <div class="border-t border-cm-border/20"></div>
       <% end %>
 
       <.live_component
@@ -56,7 +60,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         organization={@organization}
       />
 
-      <div class="border-t border-ds-outline-variant/20"></div>
+      <div class="border-t border-cm-border/20"></div>
 
       <.live_component
         module={GalleryListComponent}
@@ -66,7 +70,7 @@ defmodule Web.FamilyLive.SidePanelComponent do
         organization={@organization}
       />
 
-      <div class="border-t border-ds-outline-variant/20"></div>
+      <div class="border-t border-cm-border/20"></div>
 
       <.live_component
         module={PeopleListComponent}

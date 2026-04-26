@@ -6,7 +6,7 @@
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -32,10 +32,10 @@
   <.nav_drawer current_scope={@current_scope}>
     <.link
       href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 

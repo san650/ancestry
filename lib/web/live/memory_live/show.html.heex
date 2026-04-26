@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <.breadcrumb
           items={[
@@ -26,7 +26,7 @@
         navigate={
           ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}/edit"
         }
-        class="inline-flex items-center gap-1.5 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+        class="inline-flex items-center gap-1.5 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
         {test_id("memory-edit-btn")}
       >
         <.icon name="hero-pencil" class="size-4" /> {gettext("Edit")}
@@ -37,7 +37,7 @@
   <div class="px-4 py-6 sm:px-6 lg:px-8 max-w-3xl mx-auto">
     <%!-- Cover photo --%>
     <%= if @memory.cover_photo do %>
-      <div class="aspect-video overflow-hidden rounded-ds-sharp mb-6 bg-ds-surface-low">
+      <div class="aspect-video overflow-hidden rounded-cm mb-6 bg-cm-surface">
         <img
           src={
             Ancestry.Uploaders.Photo.url({@memory.cover_photo.image, @memory.cover_photo}, :large)
@@ -50,15 +50,15 @@
 
     <%!-- Rendered content --%>
     <div
-      class="prose prose-sm max-w-none text-ds-on-surface font-ds-body trix-content"
+      class="prose prose-sm max-w-none text-cm-black font-cm-body trix-content"
       {test_id("memory-show-content")}
     >
       {Phoenix.HTML.raw(@rendered_content)}
     </div>
 
     <%!-- Metadata --%>
-    <div class="mt-8 pt-4 border-t border-ds-outline-variant/20">
-      <p class="text-xs text-ds-on-surface-variant/60">
+    <div class="mt-8 pt-4 border-t border-cm-border/20">
+      <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
         Created {Calendar.strftime(@memory.inserted_at, "%B %d, %Y")}
       </p>
     </div>

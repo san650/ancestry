@@ -49,45 +49,49 @@ defmodule Web.Layouts do
   def app(assigns) do
     ~H"""
     <div class="min-h-screen">
-      <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2">
+      <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2 bg-cm-indigo border-b-[3px] border-cm-coral">
         <div class="flex-1">
-          <a href="/" class="flex-1 flex w-fit items-center gap-2">
-            <img src={~p"/images/logo.png"} width="36" />
-            <span class="text-sm font-ds-body font-semibold text-ds-on-surface">
-              {gettext("Ancestry")}
+          <a href="/" class="flex-1 flex w-fit items-center gap-3">
+            <div class="w-9 h-9 border-[2.5px] border-cm-white rounded-cm flex items-center justify-center">
+              <span class="font-cm-display text-cm-white text-lg leading-none">A</span>
+            </div>
+            <span class="font-cm-display text-cm-white tracking-[2px] text-lg">
+              {gettext("ANCESTRY")}
             </span>
           </a>
         </div>
         <div class="flex-none">
-          <ul class="flex flex-row px-1 items-center gap-2 lg:gap-4 font-ds-body text-sm text-ds-on-surface-variant">
+          <ul class="flex flex-row px-1 items-center gap-4 font-cm-mono text-[10px] uppercase tracking-wider text-cm-white/50">
             <%= if @current_scope && @current_scope.account do %>
               <%= if @current_scope.organization do %>
                 <li>
                   <.link
                     navigate={~p"/org/#{@current_scope.organization.id}"}
-                    class="font-medium text-ds-on-surface"
+                    class="text-cm-golden hover:text-cm-white transition-colors"
                   >
                     {@current_scope.organization.name}
                   </.link>
                 </li>
               <% else %>
                 <li>
-                  <.link href={~p"/org"}>{gettext("Organizations")}</.link>
+                  <.link href={~p"/org"} class="hover:text-cm-white transition-colors">
+                    {gettext("Organizations")}
+                  </.link>
                 </li>
               <% end %>
               <%= if can?(@current_scope, :index, Ancestry.Identity.Account) do %>
                 <li>
-                  <.link href={~p"/admin/accounts"} class="hover:text-ds-on-surface transition-colors">
+                  <.link href={~p"/admin/accounts"} class="hover:text-cm-white transition-colors">
                     {gettext("Accounts")}
                   </.link>
                 </li>
               <% end %>
-              <li class="text-ds-outline-variant">|</li>
-              <li>{@current_scope.account.email}</li>
+              <li class="text-cm-white/20">|</li>
+              <li class="text-cm-white/70">{@current_scope.account.email}</li>
               <li>
                 <.link
                   href={~p"/accounts/settings"}
-                  class="p-2 hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-cm-white transition-colors"
                 >
                   {gettext("Settings")}
                 </.link>
@@ -96,7 +100,7 @@ defmodule Web.Layouts do
                 <.link
                   href={~p"/accounts/log-out"}
                   method="delete"
-                  class="p-2 hover:text-ds-on-surface transition-colors"
+                  class="p-2 hover:text-cm-white transition-colors"
                 >
                   {gettext("Log out")}
                 </.link>
@@ -109,17 +113,64 @@ defmodule Web.Layouts do
       <%= if @toolbar != [] do %>
         <div
           id="toolbar"
-          class="sticky z-1 top-0 bg-ds-surface-low"
+          class="sticky z-1 top-0 bg-cm-surface border-b border-cm-border"
         >
-          {render_slot(@toolbar)}
+          <div class="font-cm-mono text-[10px] text-cm-text-muted">
+            {render_slot(@toolbar)}
+          </div>
         </div>
       <% end %>
 
-      <main class="min-h-100">
+      <main class="min-h-100 pb-16 lg:pb-0">
         {render_slot(@inner_block)}
       </main>
+
+      <.bottom_nav current_scope={@current_scope} />
+
       <.flash_group flash={@flash} />
     </div>
+    """
+  end
+
+  # Mobile bottom navigation bar. Only renders when current_scope with an organization is available.
+  # Hidden on desktop (lg:hidden) where the header nav is used instead.
+  attr :current_scope, :map, default: nil
+
+  defp bottom_nav(assigns) do
+    ~H"""
+    <%= if @current_scope && @current_scope.account && @current_scope.organization do %>
+      <nav class="fixed bottom-0 left-0 right-0 bg-cm-white border-t border-cm-border z-40 flex lg:hidden">
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}"}
+          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
+        >
+          <.icon name="hero-home-solid" class="w-5 h-5 mx-auto mb-1" />
+          {gettext("Families")}
+        </.link>
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}/people"}
+          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
+        >
+          <.icon name="hero-users-solid" class="w-5 h-5 mx-auto mb-1" />
+          {gettext("People")}
+        </.link>
+        <.link
+          navigate={~p"/org/#{@current_scope.organization.id}"}
+          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
+        >
+          <.icon name="hero-photo-solid" class="w-5 h-5 mx-auto mb-1" />
+          {gettext("Gallery")}
+        </.link>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
+        >
+          <.icon name="hero-bars-3-solid" class="w-5 h-5 mx-auto mb-1" />
+          {gettext("More")}
+        </button>
+      </nav>
+    <% end %>
     """
   end
 
@@ -149,7 +200,7 @@ defmodule Web.Layouts do
 
   def flash_group(assigns) do
     ~H"""
-    <div id={@id} aria-live="polite">
+    <div id={@id} class="fixed top-4 right-4 z-50 flex flex-col gap-2" aria-live="polite">
       <.flash kind={:info} flash={@flash} />
       <.flash kind={:error} flash={@flash} />
 
@@ -187,8 +238,8 @@ defmodule Web.Layouts do
   """
   def theme_toggle(assigns) do
     ~H"""
-    <div class="relative flex flex-row items-center bg-ds-surface-low rounded-full">
-      <div class="absolute w-1/3 h-full rounded-full bg-ds-surface-card brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+    <div class="relative flex flex-row items-center bg-cm-surface rounded-full">
+      <div class="absolute w-1/3 h-full rounded-full bg-cm-white brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
 
       <button
         class="flex p-2 cursor-pointer w-1/3"

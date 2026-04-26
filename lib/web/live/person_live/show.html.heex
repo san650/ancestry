@@ -1,12 +1,12 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <%!-- Hamburger: mobile only --%>
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -59,7 +59,7 @@
             type="button"
             id="edit-person-btn"
             phx-click="edit"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-2 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Edit person")}
           >
             <.icon name="hero-pencil-square" class="size-5" />
@@ -69,7 +69,7 @@
               type="button"
               id="remove-from-family-btn"
               phx-click="request_remove"
-              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              class="p-2 text-cm-text-muted hover:text-cm-black"
               aria-label={gettext("Remove from family")}
             >
               <.icon name="hero-link-slash" class="size-5" />
@@ -79,7 +79,7 @@
             type="button"
             id="delete-person-btn"
             phx-click="request_delete"
-            class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="p-2 text-cm-text-muted hover:text-cm-black"
             aria-label={gettext("Delete person")}
           >
             <.icon name="hero-trash" class="size-5" />
@@ -94,7 +94,7 @@
                   "Convert this person to non-family? They will be excluded from the tree view and relationships."
                 )
               }
-              class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+              class="p-2 text-cm-text-muted hover:text-cm-black"
               aria-label={gettext("Convert to non-family")}
               {test_id("convert-to-acquaintance-btn")}
             >
@@ -137,10 +137,10 @@
     </:page_actions>
     <.link
       navigate={~p"/org/#{@current_scope.organization.id}"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{@current_scope.organization.name}</span>
+      <.icon name="hero-building-office" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{@current_scope.organization.name}</span>
     </.link>
   </.nav_drawer>
 
@@ -160,39 +160,39 @@
       <%!-- Desktop layout: photo left, vitals right --%>
       <div class="hidden lg:flex lg:gap-6 lg:px-8 lg:py-6 items-start">
         <%!-- Photo --%>
-        <div class="w-48 h-48 shrink-0">
+        <div class="w-48 h-48 shrink-0 border-2 border-cm-black rounded-cm overflow-hidden">
           <%= if @person.photo && @person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
               alt={Ancestry.People.Person.display_name(@person)}
-              class="w-48 h-48 object-cover rounded-ds-sharp"
+              class="w-48 h-48 object-cover"
             />
           <% else %>
-            <div class="w-48 h-48 bg-ds-surface-low flex items-center justify-center rounded-ds-sharp">
-              <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+            <div class="w-48 h-48 bg-cm-surface flex items-center justify-center">
+              <.icon name="hero-user" class="w-16 h-16 text-cm-text-muted/50" />
             </div>
           <% end %>
         </div>
 
         <%!-- Vitals --%>
         <div class="pt-1">
-          <p class="text-[15px] text-ds-on-surface">
+          <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
             <.person_dates person={@person} />
           </p>
           <%= if @person.gender do %>
-            <p class="text-sm text-ds-on-surface-variant mt-0.5">
+            <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider mt-1">
               {String.capitalize(@person.gender)}
             </p>
           <% end %>
           <%= if @person.families != [] do %>
             <div class="mt-4 flex gap-1.5 flex-wrap items-center">
-              <span class="text-xs text-ds-on-surface-variant/60">
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
                 {gettext("In family trees")}
               </span>
               <%= for family <- @person.families do %>
                 <.link
                   navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
-                  class="px-2.5 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
+                  class="cm-tag cm-tag-indigo hover:opacity-80 transition-opacity"
                 >
                   {family.name}
                 </.link>
@@ -204,7 +204,7 @@
 
       <%!-- Mobile layout: hero photo with overlay name, vitals below --%>
       <div class="lg:hidden">
-        <div class="relative">
+        <div class="relative border-b-2 border-cm-black">
           <%= if @person.photo && @person.photo_status == "processed" do %>
             <img
               src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :original)}
@@ -212,31 +212,35 @@
               class="w-full max-h-64 object-cover"
             />
           <% else %>
-            <div class="w-full h-48 bg-ds-surface-low flex items-center justify-center">
-              <.icon name="hero-user" class="w-16 h-16 text-ds-on-surface-variant/50" />
+            <div class="w-full h-48 bg-cm-surface flex items-center justify-center">
+              <.icon name="hero-user" class="w-16 h-16 text-cm-text-muted/50" />
             </div>
           <% end %>
-          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
-            <h1 class="text-white font-ds-heading text-xl font-bold">
+          <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-cm-black/60 to-transparent p-4">
+            <h1 class="text-cm-white font-cm-display text-xl font-bold uppercase tracking-wider">
               {Ancestry.People.Person.display_name(@person)}
             </h1>
           </div>
         </div>
 
         <div class="px-4 py-4 space-y-1">
-          <p class="text-[15px] text-ds-on-surface">
+          <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
             <.person_dates person={@person} />
           </p>
           <%= if @person.gender do %>
-            <p class="text-sm text-ds-on-surface-variant">{String.capitalize(@person.gender)}</p>
+            <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+              {String.capitalize(@person.gender)}
+            </p>
           <% end %>
           <%= if @person.families != [] do %>
             <div class="mt-3 flex gap-1.5 flex-wrap items-center">
-              <span class="text-xs text-ds-on-surface-variant/60">In family trees</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("In family trees")}
+              </span>
               <%= for family <- @person.families do %>
                 <.link
                   navigate={~p"/org/#{@current_scope.organization.id}/families/#{family.id}"}
-                  class="px-2.5 py-0.5 rounded-full bg-ds-primary/10 text-ds-primary text-xs hover:bg-ds-primary/20 transition-colors"
+                  class="cm-tag cm-tag-indigo hover:opacity-80 transition-opacity"
                 >
                   {family.name}
                 </.link>
@@ -256,36 +260,48 @@
           (@person.alternate_names || []) != [] %>
 
       <%= if has_extra do %>
-        <div class="px-4 lg:px-8 py-3 border-t border-ds-surface-low">
-          <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px] max-w-[280px]">
+        <div class="px-4 lg:px-8 py-3 border-t-2 border-cm-black">
+          <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 max-w-[280px]">
             <%= if has_value?(@person.nickname) do %>
-              <span class="text-ds-on-surface-variant/60">{gettext("Nickname")}</span>
-              <span class="text-ds-on-surface">{@person.nickname}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Nickname")}
+              </span>
+              <span class="font-cm-body text-sm text-cm-black">{@person.nickname}</span>
             <% end %>
             <%= if has_value?(@person.title) do %>
-              <span class="text-ds-on-surface-variant/60">{gettext("Title")}</span>
-              <span class="text-ds-on-surface">{@person.title}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Title")}
+              </span>
+              <span class="font-cm-body text-sm text-cm-black">{@person.title}</span>
             <% end %>
             <%= if has_value?(@person.suffix) do %>
-              <span class="text-ds-on-surface-variant/60">{gettext("Suffix")}</span>
-              <span class="text-ds-on-surface">{@person.suffix}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Suffix")}
+              </span>
+              <span class="font-cm-body text-sm text-cm-black">{@person.suffix}</span>
             <% end %>
             <%= if birth_name_differs?(@person.given_name_at_birth, @person.given_name) do %>
-              <span class="text-ds-on-surface-variant/60">{gettext("Birth given name")}</span>
-              <span class="text-ds-on-surface">{@person.given_name_at_birth}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Birth given name")}
+              </span>
+              <span class="font-cm-body text-sm text-cm-black">
+                {@person.given_name_at_birth}
+              </span>
             <% end %>
             <%= if birth_name_differs?(@person.surname_at_birth, @person.surname) do %>
-              <span class="text-ds-on-surface-variant/60">{gettext("Birth surname")}</span>
-              <span class="text-ds-on-surface">{@person.surname_at_birth}</span>
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Birth surname")}
+              </span>
+              <span class="font-cm-body text-sm text-cm-black">{@person.surname_at_birth}</span>
             <% end %>
           </div>
           <%= if (@person.alternate_names || []) != [] do %>
-            <div class="mt-2.5 flex gap-1.5 flex-wrap items-center text-[13px]">
-              <span class="text-ds-on-surface-variant/60">{gettext("Also known as")}</span>
+            <div class="mt-2.5 flex gap-1.5 flex-wrap items-center">
+              <span class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                {gettext("Also known as")}
+              </span>
               <%= for name <- @person.alternate_names do %>
-                <span class="px-2 py-0.5 rounded-full bg-ds-surface-low text-ds-on-surface-variant text-xs">
-                  {name}
-                </span>
+                <span class="cm-tag cm-tag-indigo">{name}</span>
               <% end %>
             </div>
           <% end %>
@@ -297,18 +313,18 @@
     <%= if Ancestry.People.Person.acquaintance?(@person) do %>
       <div class="px-4 py-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div
-          class="flex items-center justify-between rounded-ds-sharp bg-ds-tertiary/10 border border-ds-tertiary/20 p-4"
+          class="flex items-center justify-between border-2 border-cm-golden rounded-cm bg-cm-golden/10 p-4"
           {test_id("convert-to-family-banner")}
         >
           <div class="flex items-center gap-3">
-            <.icon name="hero-user-plus" class="w-5 h-5 text-ds-tertiary" />
-            <p class="text-sm text-ds-on-surface">
+            <.icon name="hero-user-plus" class="w-5 h-5 text-cm-golden" />
+            <p class="text-sm font-cm-body text-cm-black">
               {gettext("This person is not a family member.")}
             </p>
           </div>
           <button
             phx-click="convert_to_family_member"
-            class="px-4 py-1.5 rounded-ds-sharp bg-ds-primary text-ds-on-primary text-sm font-semibold hover:opacity-90 transition-opacity"
+            class="bg-cm-indigo text-cm-white rounded-cm px-4 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
             {test_id("convert-to-family-btn")}
           >
             {gettext("Convert to family member")}
@@ -320,13 +336,13 @@
     <%!-- Relationships Section --%>
     <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
       <div id="relationships-section" class="px-4 py-6 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-6">
+        <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-6">
           {gettext("Relationships")}
         </h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <%!-- Left Column: Spouses and Children --%>
           <div class="space-y-6">
-            <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
+            <h3 class="font-cm-display text-cm-indigo uppercase tracking-wider">
               {gettext("Spouses & Children")}
             </h3>
 
@@ -334,10 +350,10 @@
             <%= for {partner, rel, children} <- @partner_children do %>
               <div
                 id={"partner-group-#{partner.id}"}
-                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
+                class="border-2 border-cm-black rounded-cm bg-cm-white p-4 space-y-3"
               >
                 <%!-- Partnership title --%>
-                <p class="text-xs text-ds-on-surface-variant px-2 font-medium uppercase">
+                <p class="font-cm-mono text-[10px] text-cm-text-muted px-2 font-bold uppercase tracking-wider">
                   {partner_section_title(rel, partner)}
                 </p>
 
@@ -348,7 +364,7 @@
                 <div class="flex items-center gap-2">
                   <.link
                     navigate={person_path(partner, @from_family, @current_scope.organization)}
-                    class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    class="flex-1 rounded-cm transition-colors hover:bg-cm-surface"
                   >
                     <.person_card person={partner} highlighted={false} />
                   </.link>
@@ -357,7 +373,7 @@
                       id={"edit-rel-#{rel.id}"}
                       phx-click="edit_relationship"
                       phx-value-id={rel.id}
-                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
+                      class="p-1.5 rounded-cm text-cm-text-muted/50 hover:text-cm-indigo hover:bg-cm-indigo/10 transition-all"
                       title={gettext("Edit relationship")}
                     >
                       <.icon name="hero-pencil" class="w-3.5 h-3.5" />
@@ -367,7 +383,7 @@
                       phx-click="delete_relationship"
                       phx-value-id={rel.id}
                       data-confirm={gettext("Remove this relationship?")}
-                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
+                      class="p-1.5 rounded-cm text-cm-text-muted/50 hover:text-cm-error hover:bg-cm-error/10 transition-all"
                       title={gettext("Remove relationship")}
                     >
                       <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
@@ -379,7 +395,7 @@
                 <%= if rel.metadata do %>
                   <% info = format_marriage_info(rel.metadata) %>
                   <%= if info do %>
-                    <p class="text-xs text-ds-on-surface-variant px-2 flex items-center gap-1">
+                    <p class="font-cm-mono text-[10px] text-cm-text-muted px-2 flex items-center gap-1">
                       <.icon name="hero-heart" class="w-3 h-3" />
                       <%= if rel.type in ~w(divorced separated) do %>
                         {gettext("Married")}: {info}
@@ -396,7 +412,7 @@
                         Map.get(rel.metadata, :divorce_year)
                       ) %>
                     <%= if divorce_info != "" do %>
-                      <p class="text-xs text-ds-error/60 px-2 flex items-center gap-1">
+                      <p class="font-cm-mono text-[10px] text-cm-error/60 px-2 flex items-center gap-1">
                         <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Divorced")}: {divorce_info}
                       </p>
                     <% end %>
@@ -409,7 +425,7 @@
                         Map.get(rel.metadata, :separated_year)
                       ) %>
                     <%= if separated_info != "" do %>
-                      <p class="text-xs text-ds-tertiary/60 px-2 flex items-center gap-1">
+                      <p class="font-cm-mono text-[10px] text-cm-golden/60 px-2 flex items-center gap-1">
                         <.icon name="hero-arrow-path" class="w-3 h-3" /> {gettext("Separated")}: {separated_info}
                       </p>
                     <% end %>
@@ -418,14 +434,14 @@
 
                 <%!-- Children of this pair --%>
                 <%= if children != [] do %>
-                  <div class="pl-4 border-l-2 border-ds-outline-variant/20 space-y-1 mt-2">
-                    <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide mb-1">
-                      Children
+                  <div class="pl-4 border-l-2 border-cm-black space-y-1 mt-2">
+                    <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider mb-1">
+                      {gettext("Children")}
                     </p>
                     <%= for child <- children do %>
                       <.link
                         navigate={person_path(child, @from_family, @current_scope.organization)}
-                        class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                        class="rounded-cm transition-colors hover:bg-cm-surface"
                       >
                         <.person_card person={child} highlighted={false} />
                       </.link>
@@ -438,9 +454,9 @@
                   id={"add-child-partner-#{partner.id}"}
                   phx-click="add_child_for_partner"
                   phx-value-partner-id={partner.id}
-                  class="flex items-center gap-1.5 text-xs text-ds-primary/60 hover:text-ds-primary px-2 py-1 rounded transition-colors"
+                  class="flex items-center gap-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-indigo/60 hover:text-cm-indigo px-2 py-1 rounded-cm transition-colors"
                 >
-                  <.icon name="hero-plus" class="w-3 h-3" /> Add Child
+                  <.icon name="hero-plus" class="w-3 h-3" /> {gettext("Add Child")}
                 </button>
               </div>
             <% end %>
@@ -449,22 +465,22 @@
             <%= for {coparent, children} <- @coparent_children do %>
               <div
                 id={"coparent-children-#{coparent.id}"}
-                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
+                class="border-2 border-cm-black rounded-cm bg-cm-white p-4 space-y-3"
               >
-                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                   {gettext("Children with")}
                 </p>
                 <.link
                   navigate={person_path(coparent, @from_family, @current_scope.organization)}
-                  class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                  class="rounded-cm transition-colors hover:bg-cm-surface"
                 >
                   <.person_card person={coparent} highlighted={false} />
                 </.link>
-                <div class="pl-4 border-l-2 border-ds-outline-variant/20 space-y-1 mt-2">
+                <div class="pl-4 border-l-2 border-cm-black space-y-1 mt-2">
                   <%= for child <- children do %>
                     <.link
                       navigate={person_path(child, @from_family, @current_scope.organization)}
-                      class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                      class="rounded-cm transition-colors hover:bg-cm-surface"
                     >
                       <.person_card person={child} highlighted={false} />
                     </.link>
@@ -477,15 +493,15 @@
             <%= if @solo_children != [] do %>
               <div
                 id="solo-children-section"
-                class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3"
+                class="border-2 border-cm-black rounded-cm bg-cm-white p-4 space-y-3"
               >
-                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
+                <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                   {gettext("Children (other parent unknown)")}
                 </p>
                 <%= for child <- @solo_children do %>
                   <.link
                     navigate={person_path(child, @from_family, @current_scope.organization)}
-                    class="rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    class="rounded-cm transition-colors hover:bg-cm-surface"
                   >
                     <.person_card person={child} highlighted={false} />
                   </.link>
@@ -499,7 +515,7 @@
                 id="add-partner-btn"
                 phx-click="add_relationship"
                 phx-value-type="partner"
-                class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+                class="flex items-center gap-1.5 border-2 border-dashed border-cm-black/30 hover:border-cm-black rounded-cm px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-indigo hover:text-cm-indigo-hover transition-all"
               >
                 <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Partner")}
               </button>
@@ -507,7 +523,7 @@
                 id="add-child-solo-btn"
                 phx-click="add_relationship"
                 phx-value-type="child_solo"
-                class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+                class="flex items-center gap-1.5 border-2 border-dashed border-cm-black/30 hover:border-cm-black rounded-cm px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-indigo hover:text-cm-indigo-hover transition-all"
               >
                 <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Child")}
               </button>
@@ -516,7 +532,7 @@
 
           <%!-- Right Column: Parents and Siblings --%>
           <div class="space-y-6">
-            <h3 class="text-sm font-semibold text-ds-on-surface-variant uppercase tracking-wide">
+            <h3 class="font-cm-display text-cm-indigo uppercase tracking-wider">
               {gettext("Parents & Siblings")}
             </h3>
 
@@ -526,7 +542,7 @@
                 <div class="flex items-center gap-2">
                   <.link
                     navigate={person_path(parent, @from_family, @current_scope.organization)}
-                    class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                    class="flex-1 rounded-cm transition-colors hover:bg-cm-surface"
                   >
                     <.person_card person={parent} highlighted={false} />
                   </.link>
@@ -534,8 +550,8 @@
                     <%= if rel.metadata && rel.metadata.role do %>
                       <span class={[
                         "text-xs px-2 py-0.5 rounded-full",
-                        rel.metadata.role == "father" && "bg-ds-surface-low text-ds-on-surface",
-                        rel.metadata.role == "mother" && "bg-ds-surface-low text-ds-on-surface"
+                        rel.metadata.role == "father" && "bg-cm-surface text-cm-black",
+                        rel.metadata.role == "mother" && "bg-cm-surface text-cm-black"
                       ]}>
                         {String.capitalize(rel.metadata.role)}
                       </span>
@@ -544,7 +560,7 @@
                       id={"edit-parent-rel-#{rel.id}"}
                       phx-click="edit_relationship"
                       phx-value-id={rel.id}
-                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-primary hover:bg-ds-primary/10 transition-all"
+                      class="p-1.5 rounded-cm text-cm-text-muted/50 hover:text-cm-indigo hover:bg-cm-indigo/10 transition-all"
                       title={gettext("Edit")}
                     >
                       <.icon name="hero-pencil" class="w-3.5 h-3.5" />
@@ -554,7 +570,7 @@
                       phx-click="delete_relationship"
                       phx-value-id={rel.id}
                       data-confirm={gettext("Remove this parent relationship?")}
-                      class="p-1.5 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-error hover:bg-ds-error/10 transition-all"
+                      class="p-1.5 rounded-cm text-cm-text-muted/50 hover:text-cm-error hover:bg-cm-error/10 transition-all"
                       title={gettext("Remove")}
                     >
                       <.icon name="hero-x-mark" class="w-3.5 h-3.5" />
@@ -564,8 +580,10 @@
               <% end %>
 
               <%= if @parents_marriage do %>
-                <div class="text-sm text-ds-on-surface-variant pl-2 border-l-2 border-ds-outline-variant/20">
-                  <span class="font-medium text-ds-on-surface">{gettext("Marriage")}</span>
+                <div class="font-cm-mono text-[10px] text-cm-text-muted pl-2 border-l-2 border-cm-black">
+                  <span class="font-bold text-cm-black uppercase tracking-wider">
+                    {gettext("Marriage")}
+                  </span>
                   <% info = format_marriage_info(@parents_marriage.metadata) %>
                   <%= if info do %>
                     <div>{info}</div>
@@ -578,7 +596,7 @@
                   id="add-parent-btn"
                   phx-click="add_relationship"
                   phx-value-type="parent"
-                  class="flex items-center gap-1.5 text-sm text-ds-primary/70 hover:text-ds-primary border border-dashed border-ds-primary/30 hover:border-ds-primary/60 rounded-ds-sharp px-3 py-2 transition-all"
+                  class="flex items-center gap-1.5 border-2 border-dashed border-cm-black/30 hover:border-cm-black rounded-cm px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-indigo hover:text-cm-indigo-hover transition-all"
                 >
                   <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Parent")}
                 </button>
@@ -587,9 +605,12 @@
 
             <%!-- Siblings --%>
             <%= if @siblings != [] do %>
-              <div id="siblings-section" class="rounded-ds-sharp bg-ds-surface-card p-4 space-y-3">
-                <p class="text-xs font-medium text-ds-on-surface-variant uppercase tracking-wide">
-                  Siblings
+              <div
+                id="siblings-section"
+                class="border-2 border-cm-black rounded-cm bg-cm-white p-4 space-y-3"
+              >
+                <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
+                  {gettext("Siblings")}
                 </p>
                 <%!-- Current person highlighted --%>
                 <.person_card person={@person} highlighted={true} />
@@ -603,12 +624,12 @@
                           @current_scope.organization
                         )
                       }
-                      class="flex-1 rounded-ds-sharp transition-colors hover:bg-ds-surface-highest"
+                      class="flex-1 rounded-cm transition-colors hover:bg-cm-surface"
                     >
                       <.person_card person={sibling_person(sib)} highlighted={false} />
                     </.link>
                     <%= if sibling_type(sib) == :half do %>
-                      <span class="text-xs text-ds-on-surface-variant bg-ds-surface-low px-2 py-0.5 rounded-full">
+                      <span class="text-xs text-cm-text-muted bg-cm-surface px-2 py-0.5 rounded-full">
                         {gettext("Half")}
                       </span>
                     <% end %>
@@ -625,10 +646,10 @@
     <%= if @person_photos_count > 0 do %>
       <div id="person-photos-section" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <div class="flex items-center gap-3 mb-6">
-          <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface">
+          <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider">
             {gettext("Photos")}
           </h2>
-          <span class="text-sm bg-ds-surface-low text-ds-on-surface-variant px-2.5 py-0.5 rounded-full">
+          <span class="cm-tag cm-tag-indigo">
             {@person_photos_count}
           </span>
         </div>
@@ -658,8 +679,9 @@
       :if={@show_quick_person_modal}
       module={Web.Shared.QuickPersonModal}
       id="quick-person-modal"
-      show_acquaintance={true}
+      show_acquaintance={!@adding_relationship}
       organization_id={@current_scope.organization.id}
+      family_id={assigns[:quick_person_family_id]}
       prefill_name={@quick_person_prefill}
     />
   <% end %>
@@ -667,14 +689,18 @@
   <%!-- Remove Confirmation Modal --%>
   <%= if @confirm_remove do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
-      <div class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8">
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+      <div class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm" phx-click="cancel_remove">
+      </div>
+      <div class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-cm p-8">
+        <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-2">
           {gettext("Remove from Family")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6">
-          Remove <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>
-          from <span class="font-semibold">{@from_family.name}</span>? {gettext(
+        <p class="font-cm-body text-sm text-cm-text-muted mb-6">
+          Remove
+          <span class="font-bold text-cm-black">
+            {Ancestry.People.Person.display_name(@person)}
+          </span>
+          from <span class="font-bold text-cm-black">{@from_family.name}</span>? {gettext(
             "The person will still exist and can be linked to other families."
           )}
         </p>
@@ -682,13 +708,13 @@
           <button
             id="confirm-remove-btn"
             phx-click="confirm_remove"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           >
             {gettext("Remove")}
           </button>
           <button
             phx-click="cancel_remove"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
             {gettext("Cancel")}
           </button>
@@ -700,16 +726,18 @@
   <%!-- Delete Confirmation Modal --%>
   <%= if @confirm_delete do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
+      <div class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm" phx-click="cancel_delete">
+      </div>
       <div
         id="confirm-delete-person-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-cm p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2">
+        <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-2">
           {gettext("Delete Person")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6">
-          Permanently delete <span class="font-semibold">{Ancestry.People.Person.display_name(@person)}</span>? {gettext(
+        <p class="font-cm-body text-sm text-cm-text-muted mb-6">
+          {gettext("Permanently delete")}
+          <span class="font-bold text-cm-black">{Ancestry.People.Person.display_name(@person)}</span>? {gettext(
             "This will remove them from all families. This cannot be undone."
           )}
         </p>
@@ -717,32 +745,32 @@
           <button
             id="confirm-delete-btn"
             phx-click="confirm_delete"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-coral text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
           >
-            Cancel
+            {gettext("Cancel")}
           </button>
         </div>
       </div>
     </div>
   <% end %>
 
-  <%!-- Add Relationship Modal --%>
-  <%= if @adding_relationship do %>
+  <%!-- Add Relationship Modal — hidden when quick person modal is open --%>
+  <%= if @adding_relationship && !@show_quick_person_modal do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div
-        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm"
         phx-click="cancel_add_relationship"
       >
       </div>
       <div
         id="add-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8 max-h-[90vh] overflow-y-auto"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-lg mx-0 lg:mx-4 rounded-cm p-8 max-h-[90vh] overflow-y-auto"
       >
         <.live_component
           module={Web.Shared.AddRelationshipComponent}
@@ -751,6 +779,7 @@
           family={@from_family}
           relationship_type={@adding_relationship}
           partner_id={@adding_partner_id}
+          current_scope={@current_scope}
         />
       </div>
     </div>
@@ -760,16 +789,16 @@
   <%= if @editing_relationship do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div
-        class="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm"
         phx-click="cancel_edit_relationship"
       >
       </div>
       <div
         id="edit-relationship-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-cm p-8"
       >
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface mb-4">
-          Edit Relationship
+        <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-4">
+          {gettext("Edit Relationship")}
         </h2>
         <.form
           for={@edit_relationship_form}
@@ -801,7 +830,9 @@
                 <% subtype =
                   Phoenix.HTML.Form.input_value(@edit_relationship_form, :partner_subtype) %>
                 <%= if subtype in ~w(married divorced separated) do %>
-                  <p class="text-sm font-medium text-ds-on-surface-variant">Marriage Details</p>
+                  <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
+                    {gettext("Marriage Details")}
+                  </p>
                   <div class="grid grid-cols-3 gap-3">
                     <.input
                       field={@edit_relationship_form[:marriage_day]}
@@ -830,8 +861,8 @@
                   />
                 <% end %>
                 <%= if subtype == "divorced" do %>
-                  <p class="text-sm font-medium text-ds-on-surface-variant mt-4">
-                    Divorce Details
+                  <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider mt-4">
+                    {gettext("Divorce Details")}
                   </p>
                   <div class="grid grid-cols-3 gap-3">
                     <.input
@@ -855,8 +886,8 @@
                   </div>
                 <% end %>
                 <%= if subtype == "separated" do %>
-                  <p class="text-sm font-medium text-ds-on-surface-variant mt-4">
-                    Separation Details
+                  <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider mt-4">
+                    {gettext("Separation Details")}
                   </p>
                   <div class="grid grid-cols-3 gap-3">
                     <.input
@@ -880,7 +911,7 @@
                   </div>
                 <% end %>
               <% true -> %>
-                <p class="text-sm text-ds-on-surface-variant">
+                <p class="text-sm text-cm-text-muted">
                   No editable fields for this relationship type.
                 </p>
             <% end %>
@@ -888,16 +919,16 @@
             <div class="flex gap-3 mt-4">
               <button
                 type="submit"
-                class="flex-1 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                class="flex-1 bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
               >
-                Save
+                {gettext("Save")}
               </button>
               <button
                 type="button"
                 phx-click="cancel_edit_relationship"
-                class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+                class="flex-1 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
               >
-                Cancel
+                {gettext("Cancel")}
               </button>
             </div>
           </div>

@@ -100,7 +100,7 @@ defmodule Web.AccountManagementLive.New do
           <button
             type="button"
             phx-click={toggle_nav_drawer()}
-            class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+            class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label={gettext("Open menu")}
             {test_id("hamburger-menu")}
           >
@@ -108,11 +108,11 @@ defmodule Web.AccountManagementLive.New do
           </button>
           <.link
             navigate={~p"/admin/accounts"}
-            class="hidden lg:flex text-ds-on-surface-variant hover:text-ds-on-surface"
+            class="hidden lg:flex text-cm-text-muted hover:text-cm-black"
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+          <h1 class="text-lg font-cm-display font-bold text-cm-indigo uppercase tracking-wider">
             {gettext("New Account")}
           </h1>
         </div>
@@ -122,18 +122,18 @@ defmodule Web.AccountManagementLive.New do
         <.link
           href={~p"/org"}
           {test_id("nav-organizations")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
         >
-          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+          <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
         </.link>
         <.link
           href={~p"/admin/accounts"}
           {test_id("nav-accounts")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
         >
-          <.icon name="hero-users" class="size-5 shrink-0 text-ds-on-surface-variant" />
-          <span class="font-ds-body text-sm">{gettext("Accounts")}</span>
+          <.icon name="hero-users" class="size-5 shrink-0 text-cm-text-muted" />
+          <span class="font-cm-body text-sm">{gettext("Accounts")}</span>
         </.link>
       </.nav_drawer>
 
@@ -143,7 +143,7 @@ defmodule Web.AccountManagementLive.New do
           id="account-form"
           phx-change="validate"
           phx-submit="save"
-          class="space-y-6"
+          class="space-y-6 border-2 border-cm-black rounded-cm bg-cm-white p-6"
           {test_id("account-form")}
         >
           <.input field={@form[:name]} type="text" label={gettext("Full name")} />
@@ -173,7 +173,7 @@ defmodule Web.AccountManagementLive.New do
 
           <%!-- Avatar upload --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Avatar")}
             </label>
             <.live_file_input upload={@uploads.avatar} class="text-sm" {test_id("avatar-upload")} />
@@ -183,13 +183,13 @@ defmodule Web.AccountManagementLive.New do
                 type="button"
                 phx-click="cancel_upload"
                 phx-value-ref={entry.ref}
-                class="text-ds-error text-xs mt-1 hover:underline"
+                class="text-cm-error text-xs mt-1 hover:underline"
               >
                 {gettext("Remove")}
               </button>
               <p
                 :for={err <- upload_errors(@uploads.avatar, entry)}
-                class="text-ds-error text-xs mt-1"
+                class="text-cm-error text-xs mt-1"
               >
                 {error_to_string(err)}
               </p>
@@ -198,7 +198,7 @@ defmodule Web.AccountManagementLive.New do
 
           <%!-- Organization selection --%>
           <div>
-            <label class="block text-sm font-medium text-ds-on-surface mb-2">
+            <label class="block font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-text-muted mb-2">
               {gettext("Organizations")}
             </label>
             <div class="space-y-2" {test_id("org-selection")}>
@@ -208,10 +208,10 @@ defmodule Web.AccountManagementLive.New do
                   name="organization_ids[]"
                   value={org.id}
                   checked={org.id in @selected_org_ids}
-                  class="rounded border-ds-outline"
+                  class="rounded border-cm-border"
                   {test_id("org-checkbox-#{org.id}")}
                 />
-                <span class="text-sm text-ds-on-surface">{org.name}</span>
+                <span class="text-sm text-cm-black">{org.name}</span>
               </label>
             </div>
           </div>
@@ -219,14 +219,14 @@ defmodule Web.AccountManagementLive.New do
           <div class="flex gap-4">
             <button
               type="submit"
-              class="rounded-ds-sharp bg-ds-primary px-6 py-2 text-sm font-ds-body font-medium text-ds-on-primary hover:bg-ds-primary/90 transition-colors"
+              class="rounded-cm bg-cm-coral px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-white hover:bg-cm-coral-hover transition-colors"
               {test_id("account-submit-btn")}
             >
               {gettext("Create Account")}
             </button>
             <.link
               navigate={~p"/admin/accounts"}
-              class="rounded-ds-sharp px-6 py-2 text-sm font-ds-body text-ds-on-surface-variant hover:text-ds-on-surface transition-colors"
+              class="rounded-cm px-6 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider border-2 border-cm-black text-cm-black hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </.link>

@@ -1,6 +1,6 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <:toolbar>
-    <div class="flex items-center justify-between px-4 py-2 bg-ds-surface-low sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
         <.breadcrumb
           items={[
@@ -23,10 +23,10 @@
           type="button"
           phx-click="toggle_select_mode"
           class={[
-            "p-2 rounded-ds-sharp transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
+            "p-2 rounded-cm transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
             if(@selection_mode,
-              do: "bg-ds-primary text-ds-on-primary",
-              else: "text-ds-on-surface-variant hover:text-ds-on-surface"
+              do: "bg-cm-indigo text-cm-white",
+              else: "text-cm-text-muted hover:text-cm-black"
             )
           ]}
           aria-label={
@@ -40,7 +40,7 @@
           navigate={
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
           }
-          class="inline-flex items-center gap-1.5 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-3 py-1.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-1.5 bg-cm-coral text-cm-white rounded-cm px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
           {test_id("vault-add-memory-btn")}
         >
           <.icon name="hero-plus" class="size-4" />
@@ -49,7 +49,7 @@
         <button
           type="button"
           phx-click="request_delete_vault"
-          class="p-2 text-ds-on-surface-variant hover:text-ds-on-surface"
+          class="p-2 text-cm-text-muted hover:text-cm-black"
           aria-label={gettext("Delete vault")}
           {test_id("vault-delete-btn")}
         >
@@ -64,16 +64,16 @@
     <%= if @selection_mode do %>
       <div
         id="selection-bar"
-        class="fixed bottom-0 left-0 right-0 z-30 bg-ds-surface-card border-t border-ds-outline-variant/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-ds-on-surface lg:text-ds-on-primary lg:rounded-ds-sharp lg:px-5 lg:py-3"
+        class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-cm-black lg:text-cm-white lg:rounded-cm lg:px-5 lg:py-3"
         {test_id("memory-selection-bar")}
       >
-        <span class="text-sm font-ds-body font-medium text-ds-on-surface lg:text-ds-on-primary">
+        <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
           {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
         </span>
         <button
           phx-click="request_delete_memories"
           disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-2 text-sm font-ds-body text-ds-error hover:bg-ds-error/10 rounded-ds-sharp transition-colors lg:bg-ds-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
           {test_id("memory-delete-selected-btn")}
         >
           {gettext("Delete")}
@@ -94,9 +94,9 @@
           phx-click="memory_clicked"
           phx-value-id={memory.id}
           class={[
-            "group relative block bg-ds-surface-card rounded-ds-sharp shadow-ds-ambient overflow-hidden hover:shadow-lg transition-shadow cursor-pointer",
+            "group relative block bg-cm-white rounded-cm border-2 border-cm-black overflow-hidden hover:bg-cm-surface transition-colors cursor-pointer",
             if(@selection_mode && MapSet.member?(@selected_ids, memory.id),
-              do: "ring-2 ring-ds-primary",
+              do: "ring-2 ring-cm-indigo",
               else: ""
             )
           ]}
@@ -108,12 +108,12 @@
               <div class={[
                 "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors",
                 if(MapSet.member?(@selected_ids, memory.id),
-                  do: "bg-ds-primary border-ds-primary",
-                  else: "border-ds-on-surface-variant/40 bg-ds-surface-card/80"
+                  do: "bg-cm-indigo border-cm-indigo",
+                  else: "border-cm-text-muted/40 bg-cm-white/80"
                 )
               ]}>
                 <%= if MapSet.member?(@selected_ids, memory.id) do %>
-                  <.icon name="hero-check" class="size-4 text-ds-on-primary" />
+                  <.icon name="hero-check" class="size-4 text-cm-white" />
                 <% end %>
               </div>
             </div>
@@ -121,7 +121,7 @@
 
           <%!-- Cover photo --%>
           <%= if memory.cover_photo do %>
-            <div class="aspect-video overflow-hidden bg-ds-surface-low">
+            <div class="aspect-video overflow-hidden bg-cm-surface">
               <img
                 src={
                   Ancestry.Uploaders.Photo.url(
@@ -138,17 +138,17 @@
           <%!-- Card body --%>
           <div class="p-4">
             <h3
-              class="font-ds-heading font-semibold text-ds-on-surface truncate"
+              class="font-cm-display font-semibold text-cm-indigo uppercase tracking-wider truncate"
               {test_id("memory-name-#{memory.id}")}
             >
               {memory.name}
             </h3>
             <%= if memory.description do %>
-              <p class="text-sm text-ds-on-surface-variant mt-1 line-clamp-2">
+              <p class="text-sm text-cm-text-muted mt-1 line-clamp-2">
                 {memory.description}
               </p>
             <% end %>
-            <p class="text-xs text-ds-on-surface-variant/60 mt-2">
+            <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider mt-2">
               {Calendar.strftime(memory.inserted_at, "%b %d, %Y")}
             </p>
           </div>
@@ -159,18 +159,18 @@
         class="flex flex-col items-center justify-center py-16 text-center"
         {test_id("vault-empty-state")}
       >
-        <.icon name="hero-book-open" class="w-16 h-16 text-ds-on-surface-variant/50 mb-4" />
-        <h2 class="text-xl font-ds-heading font-semibold text-ds-on-surface mb-2">
+        <.icon name="hero-book-open" class="w-16 h-16 text-cm-text-muted/50 mb-4" />
+        <h2 class="text-xl font-cm-display font-semibold text-cm-indigo uppercase tracking-wider mb-2">
           {gettext("No memories yet")}
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 max-w-sm font-ds-body">
+        <p class="text-cm-text-muted mb-6 max-w-sm font-cm-body">
           {gettext("Start capturing your family stories, recipes, and traditions.")}
         </p>
         <.link
           navigate={
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
           }
-          class="inline-flex items-center gap-2 bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp px-4 py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
         >
           <.icon name="hero-plus" class="size-4" /> {gettext("Create your first memory")}
         </.link>
@@ -189,7 +189,7 @@
       </div>
       <div
         id="confirm-delete-vault-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-vault-title"
@@ -197,11 +197,11 @@
       >
         <h2
           id="delete-vault-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           Delete Vault
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+        <p class="text-cm-text-muted mb-6 font-cm-body">
           Delete <span class="font-semibold">"{@vault.name}"</span>? {gettext(
             "All memories will be permanently removed. This cannot be undone."
           )}
@@ -209,14 +209,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_vault"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-vault-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_vault"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
           >
             {gettext("Cancel")}
           </button>
@@ -239,7 +239,7 @@
       </div>
       <div
         id="confirm-delete-memories-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-ds-sharp p-8"
+        class="relative bg-cm-white/80 backdrop-blur-[20px] w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-memories-title"
@@ -247,11 +247,11 @@
       >
         <h2
           id="delete-memories-title"
-          class="text-xl font-ds-heading font-bold text-ds-on-surface mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           Delete Memories
         </h2>
-        <p class="text-ds-on-surface-variant mb-6 font-ds-body">
+        <p class="text-cm-text-muted mb-6 font-cm-body">
           {ngettext(
             "Delete 1 memory? This cannot be undone.",
             "Delete %{count} memories? This cannot be undone.",
@@ -261,14 +261,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete_memories"
-            class="flex-1 bg-ds-error text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-memories-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete_memories"
-            class="flex-1 bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
           >
             {gettext("Cancel")}
           </button>

@@ -4,11 +4,11 @@
       <div class="flex items-center gap-3">
         <.link
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-          class="p-2 rounded-lg text-base-content/40 hover:text-base-content hover:bg-base-200 transition-colors"
+          class="p-2 rounded-lg text-cm-black/40 hover:text-cm-black hover:bg-cm-surface transition-colors"
         >
           <.icon name="hero-arrow-left" class="w-5 h-5" />
         </.link>
-        <h1 class="text-lg font-ds-heading font-bold text-ds-on-surface">
+        <h1 class="text-lg font-cm-display font-bold text-cm-black">
           {@family.name} — {gettext("Members")}
         </h1>
       </div>
@@ -16,14 +16,14 @@
         <button
           id="link-existing-btn"
           phx-click="open_search"
-          class="btn btn-ghost btn-sm"
+          class="inline-flex items-center gap-1.5 border-2 border-cm-black bg-cm-white text-cm-black rounded-cm px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
         >
           <.icon name="hero-magnifying-glass" class="w-4 h-4" /> {gettext("Link Existing")}
         </button>
         <.link
           id="add-member-btn"
           navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/members/new"}
-          class="btn btn-primary btn-sm"
+          class="inline-flex items-center gap-1.5 bg-cm-coral text-cm-white rounded-cm px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
         >
           <.icon name="hero-plus" class="w-4 h-4" /> {gettext("Add Member")}
         </.link>
@@ -39,7 +39,7 @@
     >
       <div
         id="members-empty"
-        class="hidden only:block col-span-full text-center py-20 text-base-content/40"
+        class="hidden only:block col-span-full text-center py-20 text-cm-black/40"
       >
         {gettext("No members yet. Add your first family member.")}
       </div>
@@ -49,10 +49,10 @@
         navigate={
           ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_family=#{@family.id}"
         }
-        class="card bg-base-100 shadow-sm border border-base-200 hover:shadow-md transition-all duration-200 p-6"
+        class="cm-card p-6 hover:bg-cm-surface transition-colors"
       >
         <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div class="w-14 h-14 rounded-full bg-cm-surface flex items-center justify-center flex-shrink-0 overflow-hidden">
             <%= if person.photo && person.photo_status == "processed" do %>
               <img
                 src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -60,15 +60,17 @@
                 class="w-full h-full object-cover"
               />
             <% else %>
-              <.icon name="hero-user" class="w-7 h-7 text-primary" />
+              <.icon name="hero-user" class="w-7 h-7 text-cm-text-muted/50" />
             <% end %>
           </div>
           <div class="min-w-0">
-            <h2 class="text-lg font-semibold text-base-content truncate">
+            <h2 class="text-base font-cm-body font-semibold text-cm-black truncate">
               {Ancestry.People.Person.display_name(person)}
             </h2>
             <%= if person.birth_year do %>
-              <p class="text-sm text-base-content/50">b. {person.birth_year}</p>
+              <p class="font-cm-mono text-[10px] text-cm-text-muted uppercase tracking-wider">
+                b. {person.birth_year}
+              </p>
             <% end %>
           </div>
         </div>
@@ -79,12 +81,13 @@
   <%!-- Search/Link Existing Modal --%>
   <%= if @search_mode do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="close_search"></div>
+      <div class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm" phx-click="close_search">
+      </div>
       <div
         id="link-person-modal"
-        class="relative bg-ds-surface-card/80 backdrop-blur-[20px] shadow-ds-ambient rounded-t-lg lg:rounded-ds-sharp w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
+        class="relative bg-cm-white border-2 border-cm-black rounded-cm w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
       >
-        <h2 class="text-xl font-bold text-base-content mb-4">
+        <h2 class="font-cm-display text-xl text-cm-indigo uppercase tracking-wider mb-4">
           {gettext("Link Existing Person")}
         </h2>
         <input
@@ -96,11 +99,11 @@
           phx-keyup="search"
           phx-debounce="300"
           autofocus
-          class="input input-bordered w-full mb-4"
+          class="bg-cm-white border-2 border-cm-black rounded-cm px-3 py-2 text-sm font-cm-body text-cm-black w-full mb-4"
         />
         <div class="max-h-64 overflow-y-auto space-y-2">
           <%= if @search_results == [] && String.length(String.trim(@search_query)) >= 2 do %>
-            <p class="text-base-content/40 text-sm text-center py-4">
+            <p class="text-cm-text-muted text-sm font-cm-body text-center py-4">
               {gettext("No results found")}
             </p>
           <% end %>
@@ -109,9 +112,9 @@
               id={"link-person-#{person.id}"}
               phx-click="link_person"
               phx-value-id={person.id}
-              class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+              class="w-full flex items-center gap-3 p-3 rounded-cm hover:bg-cm-surface transition-colors text-left"
             >
-              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div class="w-10 h-10 rounded-full bg-cm-surface flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <%= if person.photo && person.photo_status == "processed" do %>
                   <img
                     src={Ancestry.Uploaders.PersonPhoto.url({person.photo, person}, :thumbnail)}
@@ -119,15 +122,15 @@
                     class="w-full h-full object-cover"
                   />
                 <% else %>
-                  <.icon name="hero-user" class="w-5 h-5 text-primary" />
+                  <.icon name="hero-user" class="w-5 h-5 text-cm-text-muted/50" />
                 <% end %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-base-content truncate">
+                <p class="font-cm-body font-medium text-cm-black truncate">
                   {Ancestry.People.Person.display_name(person)}
                 </p>
                 <%= if person.families != [] do %>
-                  <p class="text-xs text-base-content/40 truncate">
+                  <p class="font-cm-mono text-[10px] text-cm-text-muted truncate">
                     {Enum.map_join(person.families, ", ", & &1.name)}
                   </p>
                 <% end %>
@@ -135,7 +138,10 @@
             </button>
           <% end %>
         </div>
-        <button phx-click="close_search" class="btn btn-ghost w-full mt-4">
+        <button
+          phx-click="close_search"
+          class="w-full mt-4 py-2.5 border-2 border-cm-black bg-cm-white text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm hover:bg-cm-surface transition-colors"
+        >
           {gettext("Cancel")}
         </button>
       </div>

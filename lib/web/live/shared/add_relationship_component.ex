@@ -22,7 +22,7 @@ defmodule Web.Shared.AddRelationshipComponent do
   end
 
   def update(%{cancelled: true}, socket) do
-    {:ok, assign(socket, :step, :search)}
+    {:ok, assign(socket, :step, :choose)}
   end
 
   def update(assigns, socket) do
@@ -32,6 +32,7 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:family, assigns.family)
      |> assign(:relationship_type, assigns.relationship_type)
      |> assign(:partner_id, Map.get(assigns, :partner_id))
+     |> assign(:current_scope, assigns[:current_scope])
      |> assign_new(:step, fn -> :choose end)
      |> assign_new(:search_query, fn -> "" end)
      |> assign_new(:search_results, fn -> [] end)
@@ -106,6 +107,17 @@ defmodule Web.Shared.AddRelationshipComponent do
         "" -> nil
         query -> query
       end
+
+    # Hoist QuickPersonModal to the parent LiveView level so file uploads work.
+    # LiveView uploads break when a component with allow_upload is nested inside
+    # another LiveComponent — the JS client can't find the DOM element.
+    send(
+      self(),
+      {:show_quick_create_from_relationship,
+       prefill_name: prefill,
+       organization_id: socket.assigns.person.organization_id,
+       family_id: socket.assigns.family && socket.assigns.family.id}
+    )
 
     {:noreply,
      socket
@@ -205,12 +217,12 @@ defmodule Web.Shared.AddRelationshipComponent do
     ~H"""
     <div id="add-relationship-component">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-ds-heading font-bold text-ds-on-surface">
+        <h2 class="text-xl font-cm-display font-bold text-cm-black">
           {relationship_title(@relationship_type)}
         </h2>
         <button
           phx-click="cancel_add_relationship"
-          class="p-2 rounded-ds-sharp text-ds-on-surface-variant/50 hover:text-ds-on-surface hover:bg-ds-surface-highest transition-all"
+          class="p-2 rounded-cm text-cm-text-muted/50 hover:text-cm-black hover:bg-cm-surface transition-all"
         >
           <.icon name="hero-x-mark" class="w-5 h-5" />
         </button>
@@ -219,7 +231,7 @@ defmodule Web.Shared.AddRelationshipComponent do
       <%= case @step do %>
         <% :choose -> %>
           <div class="space-y-3">
-            <p class="text-sm text-ds-on-surface-variant">
+            <p class="text-sm text-cm-text-muted">
               {gettext("Add a relationship by linking an existing person or creating a new one.")}
             </p>
             <button
@@ -227,14 +239,14 @@ defmodule Web.Shared.AddRelationshipComponent do
               type="button"
               phx-click="start_search"
               phx-target={@myself}
-              class="w-full flex items-center gap-3 p-4 rounded-ds-sharp bg-ds-surface-low hover:bg-ds-surface-highest transition-colors text-left"
+              class="w-full flex items-center gap-3 p-4 rounded-cm bg-cm-surface hover:bg-cm-surface transition-colors text-left"
             >
-              <.icon name="hero-magnifying-glass" class="w-5 h-5 text-ds-primary shrink-0" />
+              <.icon name="hero-magnifying-glass" class="w-5 h-5 text-cm-indigo shrink-0" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
+                <p class="text-sm font-cm-body font-semibold text-cm-black">
                   {gettext("Link existing person")}
                 </p>
-                <p class="text-xs text-ds-on-surface-variant">
+                <p class="text-xs text-cm-text-muted">
                   {gettext("Search for someone already in this organization.")}
                 </p>
               </div>
@@ -244,14 +256,14 @@ defmodule Web.Shared.AddRelationshipComponent do
               type="button"
               phx-click="start_quick_create"
               phx-target={@myself}
-              class="w-full flex items-center gap-3 p-4 rounded-ds-sharp bg-ds-surface-low hover:bg-ds-surface-highest transition-colors text-left"
+              class="w-full flex items-center gap-3 p-4 rounded-cm bg-cm-surface hover:bg-cm-surface transition-colors text-left"
             >
-              <.icon name="hero-plus" class="w-5 h-5 text-ds-primary shrink-0" />
+              <.icon name="hero-plus" class="w-5 h-5 text-cm-indigo shrink-0" />
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-ds-body font-semibold text-ds-on-surface">
+                <p class="text-sm font-cm-body font-semibold text-cm-black">
                   {gettext("Create new person")}
                 </p>
-                <p class="text-xs text-ds-on-surface-variant">
+                <p class="text-xs text-cm-text-muted">
                   {gettext("Add someone who isn't in the system yet.")}
                 </p>
               </div>
@@ -264,11 +276,11 @@ defmodule Web.Shared.AddRelationshipComponent do
               type="button"
               phx-click="back_to_choose"
               phx-target={@myself}
-              class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-3 transition-colors"
+              class="flex items-center gap-1 text-sm text-cm-indigo/70 hover:text-cm-indigo mb-3 transition-colors"
             >
               <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
             </button>
-            <p class="text-sm text-ds-on-surface-variant">
+            <p class="text-sm text-cm-text-muted">
               {gettext("Search for a person to add as a relationship.")}
             </p>
             <input
@@ -279,7 +291,7 @@ defmodule Web.Shared.AddRelationshipComponent do
               phx-keyup="search_members"
               phx-target={@myself}
               phx-debounce="300"
-              class="bg-ds-surface-card border border-ds-outline-variant/20 rounded-ds-sharp px-3 py-2 text-sm text-ds-on-surface w-full"
+              class="bg-cm-white border-2 border-cm-black rounded-cm px-3 py-2 text-sm font-cm-body text-cm-black w-full"
               autocomplete="off"
             />
 
@@ -292,9 +304,9 @@ defmodule Web.Shared.AddRelationshipComponent do
                     phx-click="select_person"
                     phx-target={@myself}
                     phx-value-id={result.id}
-                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-ds-sharp hover:bg-ds-surface-highest transition-colors text-left"
+                    class="w-full flex items-center gap-2 px-2 py-1.5 rounded-cm hover:bg-cm-surface transition-colors text-left"
                   >
-                    <div class="w-6 h-6 rounded-full bg-ds-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div class="w-6 h-6 rounded-full bg-cm-indigo/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                       <%= if result.photo && result.photo_status == "processed" do %>
                         <img
                           src={Ancestry.Uploaders.PersonPhoto.url({result.photo, result}, :thumbnail)}
@@ -302,10 +314,10 @@ defmodule Web.Shared.AddRelationshipComponent do
                           class="w-full h-full object-cover"
                         />
                       <% else %>
-                        <.icon name="hero-user" class="w-3 h-3 text-ds-primary" />
+                        <.icon name="hero-user" class="w-3 h-3 text-cm-indigo" />
                       <% end %>
                     </div>
-                    <span class="text-sm text-ds-on-surface truncate">
+                    <span class="text-sm text-cm-black truncate">
                       {Person.display_name(result)}
                     </span>
                   </button>
@@ -313,7 +325,7 @@ defmodule Web.Shared.AddRelationshipComponent do
               </div>
             <% else %>
               <%= if String.length(@search_query) >= 2 do %>
-                <p class="text-sm text-ds-on-surface-variant text-center py-4">
+                <p class="text-sm text-cm-text-muted text-center py-4">
                   {gettext("No results found")}
                 </p>
               <% end %>
@@ -321,28 +333,13 @@ defmodule Web.Shared.AddRelationshipComponent do
           </div>
         <% :quick_create -> %>
           <div id="quick-create-person">
-            <button
-              id="add-rel-back-to-choose-from-quick-create-btn"
-              phx-click="back_to_choose"
-              phx-target={@myself}
-              class="flex items-center gap-1 text-sm text-ds-primary/70 hover:text-ds-primary mb-4 transition-colors"
-            >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
-            </button>
-
-            <.live_component
-              module={Web.Shared.QuickPersonModal}
-              id="quick-person-modal-relationship"
-              show_acquaintance={false}
-              show_modal_wrapper={false}
-              organization_id={@family.organization_id}
-              family_id={@family.id}
-              prefill_name={@quick_create_prefill_name}
-            />
+            <p class="text-sm text-cm-text-muted text-center py-8">
+              {gettext("Creating new person...")}
+            </p>
           </div>
         <% :metadata -> %>
           <div class="space-y-4">
-            <div class="rounded-ds-sharp bg-ds-surface-low/50 p-3">
+            <div class="rounded-cm bg-cm-surface/50 p-3">
               <.person_card_inline person={@selected_person} highlighted={true} />
             </div>
 
@@ -363,7 +360,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     />
                     <button
                       type="submit"
-                      class="w-full bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                      class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                     >
                       Add Parent
                     </button>
@@ -392,7 +389,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <% subtype =
                       Phoenix.HTML.Form.input_value(@relationship_form, :partner_subtype) %>
                     <%= if subtype in ~w(married divorced separated) do %>
-                      <p class="text-sm font-ds-body font-medium text-ds-on-surface-variant">
+                      <p class="font-cm-mono text-[10px] font-bold text-cm-text-muted uppercase tracking-wider">
                         {gettext("Marriage Details (optional)")}
                       </p>
                       <div class="grid grid-cols-3 gap-3">
@@ -424,7 +421,7 @@ defmodule Web.Shared.AddRelationshipComponent do
                     <% end %>
                     <button
                       type="submit"
-                      class="w-full bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                      class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                     >
                       Add Partner
                     </button>
@@ -440,20 +437,20 @@ defmodule Web.Shared.AddRelationshipComponent do
                 >
                   <button
                     type="submit"
-                    class="w-full bg-gradient-to-b from-ds-primary to-ds-primary-container text-ds-on-primary rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold tracking-wide hover:opacity-90 transition-opacity"
+                    class="w-full bg-cm-indigo text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-indigo-hover transition-colors"
                   >
                     Add Child
                   </button>
                 </.form>
               <% true -> %>
-                <p class="text-sm text-ds-on-surface-variant">
+                <p class="text-sm text-cm-text-muted">
                   {gettext("Unknown relationship type.")}
                 </p>
             <% end %>
 
             <button
               phx-click="cancel_add_relationship"
-              class="w-full bg-ds-surface-high text-ds-on-surface rounded-ds-sharp py-2.5 text-sm font-ds-body font-semibold hover:bg-ds-surface-highest transition-colors"
+              class="w-full border-2 border-cm-black bg-cm-white text-cm-black rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
             >
               {gettext("Cancel")}
             </button>
@@ -470,10 +467,10 @@ defmodule Web.Shared.AddRelationshipComponent do
   defp person_card_inline(assigns) do
     ~H"""
     <div class={[
-      "flex items-center gap-3 p-2 rounded-ds-sharp",
-      @highlighted && "bg-ds-primary/10 border border-ds-primary/20"
+      "flex items-center gap-3 p-2 rounded-cm",
+      @highlighted && "bg-cm-indigo/10 border border-cm-indigo/20"
     ]}>
-      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-ds-surface-low">
+      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-cm-surface">
         <%= if @person.photo && @person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
@@ -481,14 +478,14 @@ defmodule Web.Shared.AddRelationshipComponent do
             class="w-full h-full object-cover"
           />
         <% else %>
-          <.icon name="hero-user" class="w-5 h-5 text-ds-on-surface-variant/50" />
+          <.icon name="hero-user" class="w-5 h-5 text-cm-text-muted/50" />
         <% end %>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="font-ds-body font-medium text-sm text-ds-on-surface truncate">
+        <p class="font-cm-body font-medium text-sm text-cm-black truncate">
           {Person.display_name(@person)}
         </p>
-        <p class="text-xs text-ds-on-surface-variant">
+        <p class="text-xs text-cm-text-muted">
           <%= if @person.birth_year do %>
             {@person.birth_year}
           <% end %>

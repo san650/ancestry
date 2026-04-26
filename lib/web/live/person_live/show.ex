@@ -34,6 +34,7 @@ defmodule Web.PersonLive.Show do
      |> assign(:show_quick_person_modal, false)
      |> assign(:pending_tag, nil)
      |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)
      |> assign(:linking_person, false)
      |> assign(:link_search_query, "")
      |> assign(:link_search_results, [])
@@ -181,6 +182,9 @@ defmodule Web.PersonLive.Show do
     {:noreply,
      socket
      |> assign(:adding_relationship, type)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)
      |> update(:add_rel_key, &(&1 + 1))}
   end
 
@@ -449,6 +453,14 @@ defmodule Web.PersonLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:show_quick_create_from_relationship, opts}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, opts[:prefill_name])
+     |> assign(:quick_person_family_id, opts[:family_id])}
+  end
+
   def handle_info({:person_created, person}, socket) do
     socket =
       case socket.assigns[:pending_tag] do
@@ -481,7 +493,8 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:pending_tag, nil)
      |> assign(:show_quick_person_modal, false)
-     |> assign(:quick_person_prefill, nil)}
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   def handle_info({:quick_person_cancelled}, socket) do
@@ -497,7 +510,8 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:pending_tag, nil)
      |> assign(:show_quick_person_modal, false)
-     |> assign(:quick_person_prefill, nil)}
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   # --- Private helpers ---
@@ -844,10 +858,10 @@ defmodule Web.PersonLive.Show do
   defp person_card(assigns) do
     ~H"""
     <div class={[
-      "flex items-center gap-3 p-2 rounded-ds-sharp",
-      @highlighted && "bg-ds-primary/10 border border-ds-primary/20"
+      "flex items-center gap-3 p-2 rounded-cm",
+      @highlighted && "bg-cm-indigo/10 border border-cm-indigo/20"
     ]}>
-      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-ds-surface-low">
+      <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-cm-surface">
         <%= if @person.photo && @person.photo_status == "processed" do %>
           <img
             src={Ancestry.Uploaders.PersonPhoto.url({@person.photo, @person}, :thumbnail)}
@@ -855,14 +869,14 @@ defmodule Web.PersonLive.Show do
             class="w-full h-full object-cover"
           />
         <% else %>
-          <.icon name="hero-user" class="w-5 h-5 text-ds-on-surface-variant/50" />
+          <.icon name="hero-user" class="w-5 h-5 text-cm-text-muted/50" />
         <% end %>
       </div>
       <div class="min-w-0 flex-1">
-        <p class="font-ds-body font-medium text-sm text-ds-on-surface truncate">
+        <p class="font-cm-body font-medium text-sm text-cm-black truncate">
           {Ancestry.People.Person.display_name(@person)}
         </p>
-        <p class="text-xs text-ds-on-surface-variant">
+        <p class="text-xs text-cm-text-muted">
           <%= if @person.birth_year do %>
             {@person.birth_year}
           <% end %>

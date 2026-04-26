@@ -6,7 +6,7 @@
         <button
           type="button"
           phx-click={toggle_nav_drawer()}
-          class="p-2 -ml-2 text-ds-on-surface-variant hover:text-ds-on-surface lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label={gettext("Open menu")}
         >
           <.icon name="hero-bars-3" class="size-5" />
@@ -32,10 +32,10 @@
   <.nav_drawer current_scope={@current_scope}>
     <.link
       href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-ds-sharp min-h-[44px] text-ds-on-surface hover:bg-ds-surface-high transition-colors"
+      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
     >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-ds-on-surface-variant" />
-      <span class="font-ds-body text-sm">{gettext("Organizations")}</span>
+      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
+      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
     </.link>
   </.nav_drawer>
 
@@ -47,7 +47,7 @@
     >
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2 block">
           {gettext("From")}
         </label>
         <.person_selector
@@ -65,10 +65,10 @@
           id="kinship-swap-btn"
           phx-click="swap"
           class={[
-            "p-2 rounded-ds-sharp transition-colors",
+            "p-2 rounded-cm transition-colors",
             if(@person_a && @person_b,
-              do: "text-ds-on-surface-variant hover:text-ds-primary hover:bg-ds-primary/10",
-              else: "text-ds-on-surface-variant/50 cursor-not-allowed"
+              do: "text-cm-text-muted hover:text-cm-indigo hover:bg-cm-indigo/10",
+              else: "text-cm-text-muted/50 cursor-not-allowed"
             )
           ]}
           disabled={!(@person_a && @person_b)}
@@ -80,7 +80,7 @@
 
       <%!-- Person B --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-ds-on-surface-variant mb-2 block">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2 block">
           {gettext("To")}
         </label>
         <.person_selector
@@ -98,31 +98,37 @@
       <%= cond do %>
         <% is_nil(@person_a) or is_nil(@person_b) -> %>
           <div
-            class="text-center py-12 text-ds-on-surface-variant/50"
+            class="text-center py-12 text-cm-text-muted/50"
             {test_id("kinship-empty-state")}
           >
             <.icon name="hero-arrows-right-left" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("Select two people")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("Select two people")}
+            </p>
             <p class="text-sm mt-1">
               {gettext("Choose Person A and Person B to discover their kinship")}
             </p>
           </div>
         <% match?({:error, :same_person}, @result) -> %>
           <div
-            class="text-center py-12 text-ds-on-surface-variant"
+            class="text-center py-12 text-cm-text-muted"
             {test_id("kinship-same-person")}
           >
             <.icon name="hero-user" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("Same person selected")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("Same person selected")}
+            </p>
             <p class="text-sm mt-1">{gettext("Please select two different people")}</p>
           </div>
         <% match?({:error, :no_common_ancestor}, @result) or match?({:error, :no_relationship}, @result) -> %>
           <div
-            class="text-center py-12 text-ds-on-surface-variant"
+            class="text-center py-12 text-cm-text-muted"
             {test_id("kinship-no-result")}
           >
             <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("No relationship found")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("No relationship found")}
+            </p>
             <p class="text-sm mt-1">
               {gettext("These two people don't appear to be related within the family tree")}
             </p>
@@ -133,7 +139,7 @@
             <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
-                class="text-3xl font-ds-heading font-extrabold text-ds-primary"
+                class="text-3xl font-cm-display font-extrabold text-cm-indigo uppercase tracking-wider"
                 {test_id("kinship-relationship-label")}
               >
                 {kinship.relationship}
@@ -143,7 +149,7 @@
             <%!-- DNA percentage --%>
             <div class="text-center mb-2">
               <span
-                class="text-sm text-ds-on-surface-variant"
+                class="font-cm-mono text-sm text-cm-text-muted"
                 {test_id("kinship-dna-percentage")}
               >
                 {gettext("~%{percentage}% shared DNA",
@@ -155,7 +161,7 @@
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
-                class="text-base text-ds-on-surface-variant"
+                class="text-base font-cm-body text-cm-text-muted"
                 {test_id("kinship-directional-label")}
               >
                 {gettext("%{person_a} is %{person_b}'s %{relationship}",
@@ -249,7 +255,7 @@
             <%!-- "Times Removed" footnote --%>
             <%= if kinship.steps_a != kinship.steps_b and min(kinship.steps_a, kinship.steps_b) >= 2 do %>
               <div
-                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-ds-sharp bg-ds-surface-low/50 text-xs text-ds-on-surface-variant"
+                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-cm border-2 border-cm-black bg-cm-surface/50 font-cm-mono text-xs text-cm-text-muted"
                 {test_id("kinship-removed-footnote")}
               >
                 <.icon name="hero-information-circle" class="w-4 h-4 shrink-0 mt-0.5" />
@@ -262,7 +268,7 @@
             <% end %>
 
             <%!-- DNA disclaimer --%>
-            <div class="mt-4 text-center text-xs text-ds-on-surface-variant/50">
+            <div class="mt-4 text-center font-cm-mono text-xs text-cm-text-muted/50">
               {gettext("Percentages are approximate and may vary.")}
             </div>
           </div>
@@ -272,7 +278,7 @@
             <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
-                class="text-3xl font-ds-heading font-extrabold text-ds-primary"
+                class="text-3xl font-cm-display font-extrabold text-cm-indigo uppercase tracking-wider"
                 {test_id("kinship-relationship-label")}
               >
                 {in_law.relationship}
@@ -282,7 +288,7 @@
             <%!-- "Related by marriage" note --%>
             <div class="text-center mb-2">
               <span
-                class="text-sm text-ds-on-surface-variant"
+                class="font-cm-mono text-sm text-cm-text-muted"
                 {test_id("kinship-in-law-note")}
               >
                 {gettext("Related by marriage")}
@@ -292,7 +298,7 @@
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
-                class="text-base text-ds-on-surface-variant"
+                class="text-base font-cm-body text-cm-text-muted"
                 {test_id("kinship-directional-label")}
               >
                 {gettext("%{person_a} is %{person_b}'s %{relationship}",

@@ -79,6 +79,9 @@ defmodule Web.FamilyLive.Show do
      |> assign(:show_import_modal, false)
      |> assign(:import_summary, nil)
      |> assign(:import_error, nil)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)
      |> allow_upload(:csv_file,
        accept: ~w(.csv),
        max_entries: 1,
@@ -694,6 +697,14 @@ defmodule Web.FamilyLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:show_quick_create_from_relationship, opts}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, opts[:prefill_name])
+     |> assign(:quick_person_family_id, opts[:family_id])}
+  end
+
   def handle_info({:person_created, person}, socket) do
     person = People.get_person!(person.id)
 
@@ -702,7 +713,11 @@ defmodule Web.FamilyLive.Show do
       person_created: person
     )
 
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   def handle_info({:quick_person_cancelled}, socket) do
@@ -711,7 +726,11 @@ defmodule Web.FamilyLive.Show do
       cancelled: true
     )
 
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   # assign_async spawns linked tasks that send :EXIT on completion
@@ -782,18 +801,20 @@ defmodule Web.FamilyLive.Show do
   defp tree_stepper(assigns) do
     ~H"""
     <div class="flex items-center gap-2">
-      <span class="text-xs text-ds-on-surface font-ds-body w-14">{@label}</span>
+      <span class="font-cm-mono text-[10px] text-cm-black uppercase tracking-wider w-14">
+        {@label}
+      </span>
       <button
         type="button"
         phx-click="step_depth"
         phx-value-field={@name}
         phx-value-dir="down"
         disabled={@value <= 0}
-        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="size-6 flex items-center justify-center rounded-cm border-2 border-cm-black text-cm-black hover:bg-cm-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <.icon name="hero-minus" class="size-3" />
       </button>
-      <span class="text-xs text-ds-on-surface font-ds-body font-semibold w-4 text-center">
+      <span class="font-cm-mono text-[10px] text-cm-black font-bold w-4 text-center">
         {@value}
       </span>
       <button
@@ -802,7 +823,7 @@ defmodule Web.FamilyLive.Show do
         phx-value-field={@name}
         phx-value-dir="up"
         disabled={@value >= @max}
-        class="size-6 flex items-center justify-center rounded-sm bg-ds-surface-highest text-ds-on-surface hover:bg-ds-outline-variant/40 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        class="size-6 flex items-center justify-center rounded-cm border-2 border-cm-black text-cm-black hover:bg-cm-surface disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
       >
         <.icon name="hero-plus" class="size-3" />
       </button>
