@@ -200,9 +200,9 @@ defmodule Web.UserFlows.ManagePeopleTest do
     conn
     |> refute_has(test_id("people-checkbox-#{alice.id}"))
 
-    # Edit button should say "Edit" again
+    # Edit button should say "Select" again
     conn
-    |> assert_has(test_id("people-edit-btn"), text: "Edit")
+    |> assert_has(test_id("people-edit-btn"), text: "Select")
   end
 
   test "cancel removal dismisses modal", %{
