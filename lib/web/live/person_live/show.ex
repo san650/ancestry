@@ -38,6 +38,7 @@ defmodule Web.PersonLive.Show do
      |> assign(:linking_person, false)
      |> assign(:link_search_query, "")
      |> assign(:link_search_results, [])
+     |> assign(:show_menu, false)
      |> load_relationships(person)
      |> load_person_photos(person)
      |> allow_upload(:photo,
@@ -69,6 +70,14 @@ defmodule Web.PersonLive.Show do
   @impl true
   def handle_event("edit", _, socket) do
     {:noreply, enter_edit_mode(socket)}
+  end
+
+  def handle_event("toggle_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, !socket.assigns.show_menu)}
+  end
+
+  def handle_event("close_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, false)}
   end
 
   def handle_event("cancel_edit", _, socket) do

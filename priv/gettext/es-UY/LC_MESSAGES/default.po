@@ -111,8 +111,8 @@ msgstr "Acciones"
 msgid "Active"
 msgstr "Activo"
 
-#: lib/web/live/person_live/show.html.heex:459
-#: lib/web/live/person_live/show.html.heex:528
+#: lib/web/live/person_live/show.html.heex:440
+#: lib/web/live/person_live/show.html.heex:509
 #: lib/web/live/shared/add_relationship_component.ex:574
 #, elixir-autogen, elixir-format
 msgid "Add Child"
@@ -128,13 +128,13 @@ msgstr "Agregar hijo/a (otro padre/madre desconocido)"
 msgid "Add Memory"
 msgstr "Agregar recuerdo"
 
-#: lib/web/live/person_live/show.html.heex:601
+#: lib/web/live/person_live/show.html.heex:582
 #: lib/web/live/shared/add_relationship_component.ex:572
 #, elixir-autogen, elixir-format
 msgid "Add Parent"
 msgstr "Agregar padre/madre"
 
-#: lib/web/live/person_live/show.html.heex:520
+#: lib/web/live/person_live/show.html.heex:501
 #: lib/web/live/shared/add_relationship_component.ex:573
 #, elixir-autogen, elixir-format
 msgid "Add Partner"
@@ -201,7 +201,7 @@ msgstr "Ya pertenece a la familia"
 msgid "Already registered?"
 msgstr "¿Ya tienes cuenta?"
 
-#: lib/web/live/person_live/show.html.heex:301
+#: lib/web/live/person_live/show.html.heex:282
 #, elixir-autogen, elixir-format
 msgid "Also known as"
 msgstr "También conocido/a como"
@@ -291,19 +291,19 @@ msgstr "Volver a familia"
 msgid "Birth date"
 msgstr "Fecha de nacimiento"
 
-#: lib/web/live/person_live/show.html.heex:285
+#: lib/web/live/person_live/show.html.heex:266
 #, elixir-autogen, elixir-format
 msgid "Birth given name"
 msgstr "Nombre de nacimiento"
 
-#: lib/web/live/person_live/show.html.heex:293
+#: lib/web/live/person_live/show.html.heex:274
 #, elixir-autogen, elixir-format
 msgid "Birth surname"
 msgstr "Apellido de nacimiento"
 
-#: lib/web/live/person_live/show.ex:724
-#: lib/web/live/person_live/show.ex:732
-#: lib/web/live/person_live/show.ex:738
+#: lib/web/live/person_live/show.ex:733
+#: lib/web/live/person_live/show.ex:741
+#: lib/web/live/person_live/show.ex:747
 #, elixir-autogen, elixir-format
 msgid "Born"
 msgstr "Nacido/a"
@@ -342,9 +342,9 @@ msgstr "El archivo CSV está vacío o no tiene filas de datos"
 #: lib/web/live/organization_live/index.html.heex:221
 #: lib/web/live/organization_live/index.html.heex:279
 #: lib/web/live/people_live/index.html.heex:359
-#: lib/web/live/person_live/show.html.heex:719
-#: lib/web/live/person_live/show.html.heex:756
-#: lib/web/live/person_live/show.html.heex:931
+#: lib/web/live/person_live/show.html.heex:700
+#: lib/web/live/person_live/show.html.heex:737
+#: lib/web/live/person_live/show.html.heex:912
 #: lib/web/live/shared/add_relationship_component.ex:455
 #: lib/web/live/shared/person_form_component.html.heex:365
 #: lib/web/live/shared/quick_person_modal.ex:284
@@ -370,12 +370,12 @@ msgstr "Cambiar correo"
 msgid "Changing..."
 msgstr "Cambiando..."
 
-#: lib/web/live/person_live/show.html.heex:499
+#: lib/web/live/person_live/show.html.heex:480
 #, elixir-autogen, elixir-format
 msgid "Children (other parent unknown)"
 msgstr "Hijos (otro padre/madre desconocido)"
 
-#: lib/web/live/person_live/show.html.heex:471
+#: lib/web/live/person_live/show.html.heex:452
 #, elixir-autogen, elixir-format
 msgid "Children with"
 msgstr "Hijos con"
@@ -584,9 +584,9 @@ msgstr "Fecha de fallecimiento"
 msgid "Dec"
 msgstr "Dic"
 
-#: lib/web/live/person_live/show.ex:726
-#: lib/web/live/person_live/show.ex:744
-#: lib/web/live/person_live/show.ex:749
+#: lib/web/live/person_live/show.ex:735
+#: lib/web/live/person_live/show.ex:753
+#: lib/web/live/person_live/show.ex:758
 #, elixir-autogen, elixir-format
 msgid "Deceased"
 msgstr "Fallecido/a"
@@ -606,7 +606,7 @@ msgstr "Persona predeterminada"
 #: lib/web/live/org_people_live/index.html.heex:347
 #: lib/web/live/organization_live/index.html.heex:66
 #: lib/web/live/organization_live/index.html.heex:273
-#: lib/web/live/person_live/show.html.heex:750
+#: lib/web/live/person_live/show.html.heex:731
 #: lib/web/live/vault_live/show.html.heex:79
 #: lib/web/live/vault_live/show.html.heex:215
 #: lib/web/live/vault_live/show.html.heex:267
@@ -660,7 +660,9 @@ msgstr "Eliminar familia"
 msgid "Delete Gallery"
 msgstr "Eliminar galería"
 
-#: lib/web/live/person_live/show.html.heex:736
+#: lib/web/live/person_live/show.html.heex:94
+#: lib/web/live/person_live/show.html.heex:121
+#: lib/web/live/person_live/show.html.heex:717
 #, elixir-autogen, elixir-format
 msgid "Delete Person"
 msgstr "Eliminar persona"
@@ -681,8 +683,6 @@ msgid "Delete families"
 msgstr "Eliminar familias"
 
 #: lib/web/live/org_people_live/index.html.heex:303
-#: lib/web/live/person_live/show.html.heex:83
-#: lib/web/live/person_live/show.html.heex:126
 #, elixir-autogen, elixir-format
 msgid "Delete person"
 msgstr "Eliminar persona"
@@ -718,7 +718,7 @@ msgid_plural "Deleted %{count} people."
 msgstr[0] "Se eliminó 1 persona."
 msgstr[1] "Se eliminaron %{count} personas."
 
-#: lib/web/live/person_live/show.html.heex:416
+#: lib/web/live/person_live/show.html.heex:397
 #: lib/web/live/shared/add_relationship_component.ex:385
 #, elixir-autogen, elixir-format
 msgid "Divorced"
@@ -742,8 +742,9 @@ msgstr "Arrastra para subir fotos"
 #: lib/web/live/memory_live/show.html.heex:32
 #: lib/web/live/org_people_live/index.html.heex:48
 #: lib/web/live/people_live/index.html.heex:52
-#: lib/web/live/person_live/show.html.heex:114
-#: lib/web/live/person_live/show.html.heex:564
+#: lib/web/live/person_live/show.html.heex:57
+#: lib/web/live/person_live/show.html.heex:107
+#: lib/web/live/person_live/show.html.heex:545
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "Editar"
@@ -773,12 +774,11 @@ msgstr "Editar comentario"
 
 #: lib/web/live/org_people_live/index.html.heex:294
 #: lib/web/live/people_live/index.html.heex:297
-#: lib/web/live/person_live/show.html.heex:63
 #, elixir-autogen, elixir-format
 msgid "Edit person"
 msgstr "Editar persona"
 
-#: lib/web/live/person_live/show.html.heex:377
+#: lib/web/live/person_live/show.html.heex:358
 #, elixir-autogen, elixir-format
 msgid "Edit relationship"
 msgstr "Editar relación"
@@ -826,7 +826,7 @@ msgstr "Errores"
 msgid "Est. Age"
 msgstr "Edad aprox."
 
-#: lib/web/live/person_live/show.ex:790
+#: lib/web/live/person_live/show.ex:799
 #, elixir-autogen, elixir-format
 msgid "Ex-partner"
 msgstr "Expareja"
@@ -867,17 +867,17 @@ msgstr "Error al desactivar la cuenta."
 msgid "Failed to reactivate account."
 msgstr "Error al reactivar la cuenta."
 
-#: lib/web/live/person_live/show.ex:130
+#: lib/web/live/person_live/show.ex:139
 #, elixir-autogen, elixir-format
 msgid "Failed to remove photo"
 msgstr "Error al eliminar la foto"
 
-#: lib/web/live/person_live/show.ex:288
+#: lib/web/live/person_live/show.ex:297
 #, elixir-autogen, elixir-format
 msgid "Failed to remove relationship"
 msgstr "Error al eliminar la relación"
 
-#: lib/web/live/person_live/show.ex:269
+#: lib/web/live/person_live/show.ex:278
 #, elixir-autogen, elixir-format
 msgid "Failed to update relationship"
 msgstr "Error al actualizar la relación"
@@ -1006,7 +1006,7 @@ msgstr "Nombres de nacimiento"
 msgid "Go back to add members"
 msgstr "Volver para agregar miembros"
 
-#: lib/web/live/person_live/show.html.heex:633
+#: lib/web/live/person_live/show.html.heex:614
 #, elixir-autogen, elixir-format
 msgid "Half"
 msgstr "Medio"
@@ -1065,8 +1065,8 @@ msgstr "Importar desde CSV"
 msgid "In a relationship"
 msgstr "En una relación"
 
-#: lib/web/live/person_live/show.html.heex:190
-#: lib/web/live/person_live/show.html.heex:238
+#: lib/web/live/person_live/show.html.heex:171
+#: lib/web/live/person_live/show.html.heex:219
 #, elixir-autogen, elixir-format
 msgid "In family trees"
 msgstr "En árboles familiares"
@@ -1142,7 +1142,7 @@ msgstr "Idioma"
 msgid "Language updated successfully."
 msgstr "Idioma actualizado correctamente."
 
-#: lib/web/live/person_live/show.ex:791
+#: lib/web/live/person_live/show.ex:800
 #, elixir-autogen, elixir-format
 msgid "Late partner"
 msgstr "Pareja fallecida"
@@ -1244,7 +1244,7 @@ msgstr "Administra tu correo electrónico y configuración de contraseña"
 msgid "Mar"
 msgstr "Mar"
 
-#: lib/web/live/person_live/show.html.heex:585
+#: lib/web/live/person_live/show.html.heex:566
 #, elixir-autogen, elixir-format
 msgid "Marriage"
 msgstr "Matrimonio"
@@ -1254,7 +1254,7 @@ msgstr "Matrimonio"
 msgid "Marriage Details (optional)"
 msgstr "Detalles del matrimonio (opcional)"
 
-#: lib/web/live/person_live/show.html.heex:401
+#: lib/web/live/person_live/show.html.heex:382
 #: lib/web/live/shared/add_relationship_component.ex:384
 #, elixir-autogen, elixir-format
 msgid "Married"
@@ -1374,7 +1374,7 @@ msgstr "Nuevo miembro"
 msgid "New password"
 msgstr "Nueva contraseña"
 
-#: lib/web/live/person_live/show.html.heex:267
+#: lib/web/live/person_live/show.html.heex:248
 #: lib/web/live/shared/person_form_component.html.heex:99
 #, elixir-autogen, elixir-format
 msgid "Nickname"
@@ -1549,12 +1549,12 @@ msgstr "Otros"
 msgid "Page Actions"
 msgstr "Acciones de página"
 
-#: lib/web/live/person_live/show.html.heex:536
+#: lib/web/live/person_live/show.html.heex:517
 #, elixir-autogen, elixir-format
 msgid "Parents & Siblings"
 msgstr "Padres y hermanos"
 
-#: lib/web/live/person_live/show.ex:792
+#: lib/web/live/person_live/show.ex:801
 #, elixir-autogen, elixir-format
 msgid "Partner"
 msgstr "Pareja"
@@ -1600,7 +1600,7 @@ msgid "Photo"
 msgstr "Foto"
 
 #: lib/web/live/family_live/side_panel_component.ex:46
-#: lib/web/live/person_live/show.html.heex:650
+#: lib/web/live/person_live/show.html.heex:631
 #, elixir-autogen, elixir-format
 msgid "Photos"
 msgstr "Fotos"
@@ -1640,22 +1640,22 @@ msgid "Registration coming soon"
 msgstr "Registro disponible pronto"
 
 #: lib/web/live/family_live/show.ex:693
-#: lib/web/live/person_live/show.ex:449
+#: lib/web/live/person_live/show.ex:458
 #, elixir-autogen, elixir-format
 msgid "Relationship added"
 msgstr "Relación agregada"
 
-#: lib/web/live/person_live/show.ex:285
+#: lib/web/live/person_live/show.ex:294
 #, elixir-autogen, elixir-format
 msgid "Relationship removed"
 msgstr "Relación eliminada"
 
-#: lib/web/live/person_live/show.ex:266
+#: lib/web/live/person_live/show.ex:275
 #, elixir-autogen, elixir-format
 msgid "Relationship updated"
 msgstr "Relación actualizada"
 
-#: lib/web/live/person_live/show.html.heex:340
+#: lib/web/live/person_live/show.html.heex:321
 #, elixir-autogen, elixir-format
 msgid "Relationships"
 msgstr "Relaciones"
@@ -1663,8 +1663,8 @@ msgstr "Relaciones"
 #: lib/web/live/account_management_live/edit.ex:285
 #: lib/web/live/account_management_live/new.ex:171
 #: lib/web/live/people_live/index.html.heex:352
-#: lib/web/live/person_live/show.html.heex:574
-#: lib/web/live/person_live/show.html.heex:713
+#: lib/web/live/person_live/show.html.heex:555
+#: lib/web/live/person_live/show.html.heex:694
 #: lib/web/live/shared/person_form_component.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Remove"
@@ -1675,30 +1675,30 @@ msgstr "Eliminar"
 msgid "Remove cover photo"
 msgstr "Eliminar foto de portada"
 
-#: lib/web/live/person_live/show.html.heex:696
+#: lib/web/live/person_live/show.html.heex:69
+#: lib/web/live/person_live/show.html.heex:112
+#: lib/web/live/person_live/show.html.heex:677
 #, elixir-autogen, elixir-format
 msgid "Remove from Family"
 msgstr "Eliminar de la familia"
 
 #: lib/web/live/people_live/index.html.heex:35
 #: lib/web/live/people_live/index.html.heex:306
-#: lib/web/live/person_live/show.html.heex:73
-#: lib/web/live/person_live/show.html.heex:120
 #, elixir-autogen, elixir-format
 msgid "Remove from family"
 msgstr "Eliminar de la familia"
 
-#: lib/web/live/person_live/show.html.heex:387
+#: lib/web/live/person_live/show.html.heex:368
 #, elixir-autogen, elixir-format
 msgid "Remove relationship"
 msgstr "Eliminar relación"
 
-#: lib/web/live/person_live/show.html.heex:572
+#: lib/web/live/person_live/show.html.heex:553
 #, elixir-autogen, elixir-format
 msgid "Remove this parent relationship?"
 msgstr "¿Eliminar esta relación de padre/madre?"
 
-#: lib/web/live/person_live/show.html.heex:385
+#: lib/web/live/person_live/show.html.heex:366
 #, elixir-autogen, elixir-format
 msgid "Remove this relationship?"
 msgstr "¿Eliminar esta relación?"
@@ -1727,7 +1727,7 @@ msgstr "Se seleccionó la misma persona"
 #: lib/web/live/comments/photo_comments_component.ex:190
 #: lib/web/live/family_live/show.html.heex:523
 #: lib/web/live/organization_live/index.html.heex:213
-#: lib/web/live/person_live/show.html.heex:924
+#: lib/web/live/person_live/show.html.heex:905
 #: lib/web/live/shared/person_form_component.html.heex:356
 #, elixir-autogen, elixir-format
 msgid "Save"
@@ -1833,7 +1833,7 @@ msgstr "Selecciona dos personas"
 msgid "Sep"
 msgstr "Sep"
 
-#: lib/web/live/person_live/show.html.heex:429
+#: lib/web/live/person_live/show.html.heex:410
 #: lib/web/live/shared/add_relationship_component.ex:386
 #, elixir-autogen, elixir-format
 msgid "Separated"
@@ -1850,7 +1850,7 @@ msgstr "Configuración"
 msgid "Something went wrong!"
 msgstr "¡Algo salió mal!"
 
-#: lib/web/live/person_live/show.html.heex:346
+#: lib/web/live/person_live/show.html.heex:327
 #, elixir-autogen, elixir-format
 msgid "Spouses & Children"
 msgstr "Cónyuges e hijos"
@@ -1872,7 +1872,7 @@ msgstr "Persona inicial"
 msgid "Status"
 msgstr "Estado"
 
-#: lib/web/live/person_live/show.html.heex:279
+#: lib/web/live/person_live/show.html.heex:260
 #, elixir-autogen, elixir-format
 msgid "Suffix"
 msgstr "Sufijo"
@@ -1888,7 +1888,7 @@ msgstr "Apellido"
 msgid "Surname at birth"
 msgstr "Apellido de nacimiento"
 
-#: lib/web/live/person_live/show.html.heex:703
+#: lib/web/live/person_live/show.html.heex:684
 #, elixir-autogen, elixir-format
 msgid "The person will still exist and can be linked to other families."
 msgstr "La persona seguirá existiendo y podrá vincularse a otras familias."
@@ -1913,7 +1913,7 @@ msgstr "Esta acción no se puede deshacer. Todas sus fotos, relaciones y víncul
 msgid "This person already has 2 parents"
 msgstr "Esta persona ya tiene 2 padres"
 
-#: lib/web/live/person_live/show.ex:887
+#: lib/web/live/person_live/show.ex:896
 #, elixir-autogen, elixir-format
 msgid "This person is deceased."
 msgstr "Esta persona es fallecida."
@@ -1923,7 +1923,7 @@ msgstr "Esta persona es fallecida."
 msgid "This person is living"
 msgstr "Esta persona está viva"
 
-#: lib/web/live/person_live/show.html.heex:740
+#: lib/web/live/person_live/show.html.heex:721
 #, elixir-autogen, elixir-format
 msgid "This will remove them from all families. This cannot be undone."
 msgstr "Esto la eliminará de todas las familias. Esta acción no se puede deshacer."
@@ -1933,7 +1933,7 @@ msgstr "Esto la eliminará de todas las familias. Esta acción no se puede desha
 msgid "Tip: If you prefer passwords, you can enable them in the account settings."
 msgstr "Consejo: Si prefieres usar contraseña, puedes habilitarla en la configuración de tu cuenta."
 
-#: lib/web/live/person_live/show.html.heex:273
+#: lib/web/live/person_live/show.html.heex:254
 #, elixir-autogen, elixir-format
 msgid "Title"
 msgstr "Título"
@@ -2121,7 +2121,7 @@ msgstr "Debes volver a autenticarte para realizar acciones sensibles en tu cuent
 msgid "close"
 msgstr "cerrar"
 
-#: lib/web/live/person_live/show.ex:733
+#: lib/web/live/person_live/show.ex:742
 #, elixir-autogen, elixir-format
 msgid "deceased"
 msgstr "fallecido/a"
@@ -2851,7 +2851,7 @@ msgstr "Migas de pan"
 
 #: lib/web/live/family_live/show.html.heex:353
 #: lib/web/live/family_live/show.html.heex:1228
-#: lib/web/live/person_live/show.html.heex:439
+#: lib/web/live/person_live/show.html.heex:420
 #, elixir-autogen, elixir-format
 msgid "Children"
 msgstr "Hijos"
@@ -3011,34 +3011,28 @@ msgid_plural "%{count} children"
 msgstr[0] "1 hijo"
 msgstr[1] "%{count} hijos"
 
-#: lib/web/live/person_live/show.html.heex:93
+#: lib/web/live/person_live/show.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Convert this person to non-family? They will be excluded from the tree view and relationships."
 msgstr "¿Convertir a esta persona en no familiar? Será excluida del árbol genealógico y las relaciones."
 
-#: lib/web/live/person_live/show.html.heex:330
+#: lib/web/live/person_live/show.html.heex:311
 #, elixir-autogen, elixir-format
 msgid "Convert to family member"
 msgstr "Convertir en familiar"
 
-#: lib/web/live/person_live/show.html.heex:98
-#: lib/web/live/person_live/show.html.heex:133
-#, elixir-autogen, elixir-format
-msgid "Convert to non-family"
-msgstr "Convertir en no familiar"
-
-#: lib/web/live/person_live/show.ex:301
+#: lib/web/live/person_live/show.ex:310
 #, elixir-autogen, elixir-format
 msgid "Converted to family member"
 msgstr "Convertido en familiar"
 
-#: lib/web/live/person_live/show.ex:321
+#: lib/web/live/person_live/show.ex:330
 #, elixir-autogen, elixir-format
 msgid "Converted to non-family"
 msgstr "Convertido en no familiar"
 
-#: lib/web/live/person_live/show.ex:304
-#: lib/web/live/person_live/show.ex:324
+#: lib/web/live/person_live/show.ex:313
+#: lib/web/live/person_live/show.ex:333
 #, elixir-autogen, elixir-format
 msgid "Failed to convert"
 msgstr "Error al convertir"
@@ -3051,7 +3045,7 @@ msgstr "Error al convertir"
 msgid "Non-family"
 msgstr "No familiar"
 
-#: lib/web/live/person_live/show.ex:313
+#: lib/web/live/person_live/show.ex:322
 #, elixir-autogen, elixir-format
 msgid "Remove all relationships before converting"
 msgstr "Elimine todas las relaciones antes de convertir"
@@ -3062,7 +3056,7 @@ msgstr "Elimine todas las relaciones antes de convertir"
 msgid "This person is not a family member (acquaintance)"
 msgstr "Esta persona no es familiar (conocido/a)"
 
-#: lib/web/live/person_live/show.html.heex:322
+#: lib/web/live/person_live/show.html.heex:303
 #, elixir-autogen, elixir-format
 msgid "This person is not a family member."
 msgstr "Esta persona no es familiar."
@@ -3112,32 +3106,32 @@ msgstr ""
 msgid "Creating new person..."
 msgstr "Crear nueva persona"
 
-#: lib/web/live/person_live/show.html.heex:865
+#: lib/web/live/person_live/show.html.heex:846
 #, elixir-autogen, elixir-format
 msgid "Divorce Details"
 msgstr ""
 
-#: lib/web/live/person_live/show.html.heex:801
+#: lib/web/live/person_live/show.html.heex:782
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit Relationship"
 msgstr "Editar relación"
 
-#: lib/web/live/person_live/show.html.heex:834
+#: lib/web/live/person_live/show.html.heex:815
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Marriage Details"
 msgstr "Detalles del matrimonio (opcional)"
 
-#: lib/web/live/person_live/show.html.heex:739
+#: lib/web/live/person_live/show.html.heex:720
 #, elixir-autogen, elixir-format
 msgid "Permanently delete"
 msgstr ""
 
-#: lib/web/live/person_live/show.html.heex:890
+#: lib/web/live/person_live/show.html.heex:871
 #, elixir-autogen, elixir-format
 msgid "Separation Details"
 msgstr ""
 
-#: lib/web/live/person_live/show.html.heex:613
+#: lib/web/live/person_live/show.html.heex:594
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Siblings"
 msgstr "Hermano"
@@ -3195,3 +3189,9 @@ msgstr "Subiendo..."
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Upload Photos"
 msgstr "Subir fotos"
+
+#: lib/web/live/person_live/show.html.heex:84
+#: lib/web/live/person_live/show.html.heex:117
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Convert to Non-family"
+msgstr "Convertir en no familiar"

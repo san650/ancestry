@@ -128,6 +128,8 @@ defmodule Web.PersonLive.ShowTest do
     {:ok, view, _html} =
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
+    # Open kebab menu first, then click remove
+    view |> render_click("toggle_menu")
     view |> element("#remove-from-family-btn") |> render_click()
     view |> element("#confirm-remove-btn") |> render_click()
     assert_redirect(view, ~p"/org/#{org.id}/families/#{family.id}")
@@ -137,6 +139,8 @@ defmodule Web.PersonLive.ShowTest do
     {:ok, view, _html} =
       live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
+    # Open kebab menu first, then click delete
+    view |> render_click("toggle_menu")
     view |> element("#delete-person-btn") |> render_click()
     assert has_element?(view, "#confirm-delete-person-modal")
 
