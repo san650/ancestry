@@ -185,7 +185,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                 <div class="flex items-center gap-2">
                   <button
                     type="submit"
-                    class="px-3 py-1 bg-primary hover:bg-primary/80 text-white text-xs font-medium rounded-md transition-colors"
+                    class="px-3 py-1 bg-cm-coral hover:bg-cm-coral/80 text-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors"
                   >
                     {gettext("Save")}
                   </button>
@@ -193,7 +193,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
                     type="button"
                     phx-click="cancel_edit"
                     phx-target={@myself}
-                    class="px-3 py-1 bg-white/[0.10] hover:bg-white/[0.16] text-white/80 text-xs font-medium rounded-md transition-colors"
+                    class="px-3 py-1 bg-white/[0.10] hover:bg-white/[0.16] text-white/80 font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors"
                   >
                     {gettext("Cancel")}
                   </button>
@@ -282,7 +282,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
           >{Phoenix.HTML.Form.normalize_value("textarea", @form[:text].value)}</textarea>
           <button
             type="submit"
-            class="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 text-white rounded-md transition-colors shrink-0 mb-1"
+            class="h-8 w-8 flex items-center justify-center bg-cm-coral hover:bg-cm-coral/80 text-white rounded-cm transition-colors shrink-0 mb-1"
             title={gettext("Post comment")}
           >
             <.icon name="hero-paper-airplane" class="w-4 h-4" />

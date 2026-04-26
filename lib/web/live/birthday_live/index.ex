@@ -41,14 +41,16 @@ defmodule Web.BirthdayLive.Index do
           >
             <.icon name="hero-arrow-left" class="size-5" />
           </.link>
-          <h1 class="font-cm-display font-bold text-lg text-cm-black">
+          <h1 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider">
             {gettext("Birthdays")}
           </h1>
           <label
             class="ml-auto flex items-center gap-2 cursor-pointer select-none"
             {test_id("show-all-toggle")}
           >
-            <span class="text-xs text-cm-text-muted">{gettext("Show all people")}</span>
+            <span class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+              {gettext("Show all people")}
+            </span>
             <button
               type="button"
               phx-click="toggle_show_all"
@@ -74,7 +76,7 @@ defmodule Web.BirthdayLive.Index do
                 "sticky top-0 z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
                 month.is_past && "opacity-50"
               ]}>
-                <span class="font-cm-display font-bold text-sm text-cm-black">
+                <span class="font-cm-display font-bold text-sm text-cm-indigo uppercase tracking-wider">
                   {month.name}
                 </span>
               </div>
@@ -91,11 +93,11 @@ defmodule Web.BirthdayLive.Index do
                       class="flex items-center gap-2 my-3 px-3"
                       phx-hook="ScrollToToday"
                     >
-                      <div class="flex-1 h-0.5 bg-[#006d35]"></div>
-                      <span class="text-[10px] font-bold text-[#006d35] tracking-wider whitespace-nowrap">
+                      <div class="flex-1 h-0.5 bg-cm-coral"></div>
+                      <span class="font-cm-mono text-[10px] font-bold text-cm-coral uppercase tracking-wider whitespace-nowrap">
                         {gettext("TODAY")} · {format_today(@today)}
                       </span>
-                      <div class="flex-1 h-0.5 bg-[#006d35]"></div>
+                      <div class="flex-1 h-0.5 bg-cm-coral"></div>
                     </div>
                   <% else %>
                     <.link
@@ -103,17 +105,17 @@ defmodule Web.BirthdayLive.Index do
                         ~p"/org/#{@current_scope.organization.id}/people/#{entry.person.id}?from_family=#{@family.id}"
                       }
                       class={[
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg bg-cm-surface/50 mb-1.5 hover:bg-cm-surface transition-colors",
+                        "flex items-center gap-3 px-3 py-2.5 rounded-cm border-2 border-cm-black bg-cm-white mb-1.5 hover:bg-cm-surface transition-colors",
                         entry.is_past && "opacity-45"
                       ]}
                       {test_id("birthday-entry-#{entry.person.id}")}
                     >
                       <%!-- Date box --%>
-                      <div class="flex-shrink-0 bg-cm-surface rounded-lg px-2.5 py-1.5 text-center min-w-[48px]">
-                        <div class="text-lg font-bold text-cm-black leading-none">
+                      <div class="flex-shrink-0 bg-cm-surface rounded-cm border border-cm-border px-2.5 py-1.5 text-center min-w-[48px]">
+                        <div class="font-cm-display text-lg font-bold text-cm-indigo leading-none">
                           {entry.person.birth_day}
                         </div>
-                        <div class="text-[9px] font-semibold text-cm-text-muted uppercase tracking-wider">
+                        <div class="font-cm-mono text-[9px] font-semibold text-cm-text-muted uppercase tracking-wider">
                           {month_abbrev(entry.person.birth_month)}
                         </div>
                       </div>
@@ -139,16 +141,16 @@ defmodule Web.BirthdayLive.Index do
                       </div>
                       <%!-- Name + age --%>
                       <div class="flex-1 min-w-0">
-                        <div class="text-[13px] font-medium text-cm-black truncate">
+                        <div class="font-cm-body text-[13px] font-medium text-cm-black truncate">
                           {Person.display_name(entry.person)}
                           <%= if entry.person.deceased do %>
-                            <span class="text-[10px] font-normal text-cm-text-muted">
+                            <span class="font-cm-mono text-[10px] font-normal text-cm-text-muted">
                               ({deceased_label(entry.person.gender)})
                             </span>
                           <% end %>
                         </div>
                         <%= if entry.age_label do %>
-                          <div class="text-[11px] text-cm-text-muted">
+                          <div class="font-cm-mono text-[10px] text-cm-text-muted">
                             {entry.age_label}
                           </div>
                         <% end %>

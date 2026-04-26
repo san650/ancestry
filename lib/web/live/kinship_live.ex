@@ -222,7 +222,7 @@ defmodule Web.KinshipLive do
     <div class="relative">
       <%= if @person do %>
         <div
-          class="flex items-center gap-3 p-4 rounded-xl bg-cm-surface/50 border border-base-300"
+          class="flex items-center gap-3 p-4 rounded-cm bg-cm-surface/50 border-2 border-cm-black"
           {test_id("kinship-person-#{@side}-selected")}
         >
           <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center overflow-hidden bg-cm-surface">
@@ -236,7 +236,7 @@ defmodule Web.KinshipLive do
               <.icon name="hero-user" class="w-5 h-5 text-cm-black/20" />
             <% end %>
           </div>
-          <span class="font-medium text-cm-black flex-1 truncate">
+          <span class="font-cm-body font-medium text-cm-black flex-1 truncate">
             {Person.display_name(@person)}
           </span>
           <button
@@ -252,7 +252,7 @@ defmodule Web.KinshipLive do
         <button
           id={"kinship-person-#{@side}-toggle-btn"}
           phx-click={"toggle_dropdown_#{@side}"}
-          class="w-full flex items-center gap-3 p-4 rounded-xl border border-dashed border-base-300 text-cm-black/40 hover:border-primary/50 hover:text-primary transition-colors"
+          class="w-full flex items-center gap-3 p-4 rounded-cm border-2 border-dashed border-cm-border text-cm-black/40 hover:border-cm-indigo hover:text-cm-indigo transition-colors"
           {test_id("kinship-person-#{@side}-toggle")}
         >
           <div class="w-10 h-10 rounded-full shrink-0 flex items-center justify-center bg-cm-surface">
@@ -264,7 +264,7 @@ defmodule Web.KinshipLive do
 
       <%= if @dropdown_open do %>
         <div
-          class="absolute z-20 top-full left-0 right-0 mt-2 rounded-xl bg-cm-white border border-base-300 shadow-xl overflow-hidden"
+          class="absolute z-20 top-full left-0 right-0 mt-2 rounded-cm bg-cm-white border-2 border-cm-black overflow-hidden"
           phx-click-away={"toggle_dropdown_#{@side}"}
         >
           <div class="p-2">
@@ -276,7 +276,7 @@ defmodule Web.KinshipLive do
               phx-keyup={"filter_#{@side}"}
               phx-debounce="200"
               phx-mounted={JS.focus()}
-              class="input input-bordered input-sm w-full"
+              class="w-full border-2 border-cm-black rounded-cm px-3 py-1.5 text-sm font-cm-body text-cm-black bg-cm-white focus:outline-none focus:ring-2 focus:ring-cm-indigo/20"
               {test_id("kinship-person-#{@side}-search")}
             />
           </div>
@@ -401,21 +401,23 @@ defmodule Web.KinshipLive do
       <.link
         navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_left.id}", else: "#"}
         class={[
-          "flex items-center gap-2 px-3 py-2 rounded-cm border min-w-0 hover:transition-shadow",
+          "flex items-center gap-2 px-3 py-2 rounded-cm border-2 min-w-0 hover:transition-shadow",
           if(@direction == :vertical, do: "w-full", else: "flex-1"),
           if(@highlight_left,
-            do: "bg-cm-indigo/10 border-cm-indigo/30",
-            else: "bg-cm-surface/50 border-cm-border/20"
+            do: "bg-cm-indigo/10 border-cm-indigo",
+            else: "bg-cm-surface/50 border-cm-black/20"
           )
         ]}
       >
         <.kinship_person_avatar person={@person_left} />
         <div class="min-w-0 flex-1">
-          <p class="font-medium text-sm text-cm-black truncate">
+          <p class="font-cm-body font-medium text-sm text-cm-black truncate">
             {Person.display_name(@person_left)}
           </p>
           <%= if @label_left do %>
-            <p class="text-xs text-cm-text-muted">{@label_left}</p>
+            <p class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+              {@label_left}
+            </p>
           <% end %>
         </div>
       </.link>
@@ -428,21 +430,23 @@ defmodule Web.KinshipLive do
       <.link
         navigate={if @org_id, do: ~p"/org/#{@org_id}/people/#{@person_right.id}", else: "#"}
         class={[
-          "flex items-center gap-2 px-3 py-2 rounded-cm border min-w-0 hover:transition-shadow",
+          "flex items-center gap-2 px-3 py-2 rounded-cm border-2 min-w-0 hover:transition-shadow",
           if(@direction == :vertical, do: "w-full", else: "flex-1"),
           if(@highlight_right,
-            do: "bg-cm-indigo/10 border-cm-indigo/30",
-            else: "bg-cm-surface/50 border-cm-border/20"
+            do: "bg-cm-indigo/10 border-cm-indigo",
+            else: "bg-cm-surface/50 border-cm-black/20"
           )
         ]}
       >
         <.kinship_person_avatar person={@person_right} />
         <div class="min-w-0 flex-1">
-          <p class="font-medium text-sm text-cm-black truncate">
+          <p class="font-cm-body font-medium text-sm text-cm-black truncate">
             {Person.display_name(@person_right)}
           </p>
           <%= if @label_right do %>
-            <p class="text-xs text-cm-text-muted">{@label_right}</p>
+            <p class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+              {@label_right}
+            </p>
           <% end %>
         </div>
       </.link>
@@ -461,23 +465,25 @@ defmodule Web.KinshipLive do
     <.link
       navigate={~p"/org/#{@org_id}/people/#{@person.id}"}
       class={[
-        "flex items-center gap-3 px-3 py-2 rounded-cm border w-full hover:transition-shadow",
+        "flex items-center gap-3 px-3 py-2 rounded-cm border-2 w-full hover:transition-shadow",
         if(@highlight,
-          do: "bg-cm-indigo/10 border-cm-indigo/30",
-          else: "bg-cm-surface/50 border-cm-border/20"
+          do: "bg-cm-indigo/10 border-cm-indigo",
+          else: "bg-cm-surface/50 border-cm-black/20"
         )
       ]}
     >
       <.kinship_person_avatar person={@person} />
       <div class="min-w-0 flex-1">
-        <p class="font-medium text-sm text-cm-black truncate">
+        <p class="font-cm-body font-medium text-sm text-cm-black truncate">
           {Person.display_name(@person)}
         </p>
         <%= if @label do %>
-          <p class="text-xs text-cm-text-muted">{@label}</p>
+          <p class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">{@label}</p>
         <% end %>
         <%= if @extra_label do %>
-          <p class="text-xs text-cm-text-muted">{@extra_label}</p>
+          <p class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
+            {@extra_label}
+          </p>
         <% end %>
       </div>
     </.link>

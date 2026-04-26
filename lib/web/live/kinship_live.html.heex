@@ -47,7 +47,7 @@
     >
       <%!-- Person A --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-cm-text-muted mb-2 block">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2 block">
           {gettext("From")}
         </label>
         <.person_selector
@@ -80,7 +80,7 @@
 
       <%!-- Person B --%>
       <div class="flex-1 min-w-0">
-        <label class="text-xs font-semibold uppercase tracking-wider text-cm-text-muted mb-2 block">
+        <label class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2 block">
           {gettext("To")}
         </label>
         <.person_selector
@@ -102,7 +102,9 @@
             {test_id("kinship-empty-state")}
           >
             <.icon name="hero-arrows-right-left" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("Select two people")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("Select two people")}
+            </p>
             <p class="text-sm mt-1">
               {gettext("Choose Person A and Person B to discover their kinship")}
             </p>
@@ -113,7 +115,9 @@
             {test_id("kinship-same-person")}
           >
             <.icon name="hero-user" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("Same person selected")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("Same person selected")}
+            </p>
             <p class="text-sm mt-1">{gettext("Please select two different people")}</p>
           </div>
         <% match?({:error, :no_common_ancestor}, @result) or match?({:error, :no_relationship}, @result) -> %>
@@ -122,7 +126,9 @@
             {test_id("kinship-no-result")}
           >
             <.icon name="hero-magnifying-glass" class="w-12 h-12 mx-auto mb-3" />
-            <p class="text-lg font-medium">{gettext("No relationship found")}</p>
+            <p class="text-lg font-cm-display text-cm-indigo uppercase tracking-wider">
+              {gettext("No relationship found")}
+            </p>
             <p class="text-sm mt-1">
               {gettext("These two people don't appear to be related within the family tree")}
             </p>
@@ -133,7 +139,7 @@
             <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
-                class="text-3xl font-cm-display font-extrabold text-cm-indigo"
+                class="text-3xl font-cm-display font-extrabold text-cm-indigo uppercase tracking-wider"
                 {test_id("kinship-relationship-label")}
               >
                 {kinship.relationship}
@@ -143,7 +149,7 @@
             <%!-- DNA percentage --%>
             <div class="text-center mb-2">
               <span
-                class="text-sm text-cm-text-muted"
+                class="font-cm-mono text-sm text-cm-text-muted"
                 {test_id("kinship-dna-percentage")}
               >
                 {gettext("~%{percentage}% shared DNA",
@@ -155,7 +161,7 @@
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
-                class="text-base text-cm-text-muted"
+                class="text-base font-cm-body text-cm-text-muted"
                 {test_id("kinship-directional-label")}
               >
                 {gettext("%{person_a} is %{person_b}'s %{relationship}",
@@ -249,7 +255,7 @@
             <%!-- "Times Removed" footnote --%>
             <%= if kinship.steps_a != kinship.steps_b and min(kinship.steps_a, kinship.steps_b) >= 2 do %>
               <div
-                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-cm bg-cm-surface/50 text-xs text-cm-text-muted"
+                class="mt-8 max-w-md mx-auto flex gap-2 p-3 rounded-cm border-2 border-cm-black bg-cm-surface/50 font-cm-mono text-xs text-cm-text-muted"
                 {test_id("kinship-removed-footnote")}
               >
                 <.icon name="hero-information-circle" class="w-4 h-4 shrink-0 mt-0.5" />
@@ -262,7 +268,7 @@
             <% end %>
 
             <%!-- DNA disclaimer --%>
-            <div class="mt-4 text-center text-xs text-cm-text-muted/50">
+            <div class="mt-4 text-center font-cm-mono text-xs text-cm-text-muted/50">
               {gettext("Percentages are approximate and may vary.")}
             </div>
           </div>
@@ -272,7 +278,7 @@
             <%!-- Relationship label --%>
             <div class="text-center mb-2">
               <span
-                class="text-3xl font-cm-display font-extrabold text-cm-indigo"
+                class="text-3xl font-cm-display font-extrabold text-cm-indigo uppercase tracking-wider"
                 {test_id("kinship-relationship-label")}
               >
                 {in_law.relationship}
@@ -282,7 +288,7 @@
             <%!-- "Related by marriage" note --%>
             <div class="text-center mb-2">
               <span
-                class="text-sm text-cm-text-muted"
+                class="font-cm-mono text-sm text-cm-text-muted"
                 {test_id("kinship-in-law-note")}
               >
                 {gettext("Related by marriage")}
@@ -292,7 +298,7 @@
             <%!-- Directional label --%>
             <div class="text-center mb-8">
               <span
-                class="text-base text-cm-text-muted"
+                class="text-base font-cm-body text-cm-text-muted"
                 {test_id("kinship-directional-label")}
               >
                 {gettext("%{person_a} is %{person_b}'s %{relationship}",

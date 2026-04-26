@@ -56,7 +56,7 @@
 
       <%!-- Cover photo section --%>
       <div>
-        <label class="block text-sm font-cm-body font-semibold text-cm-black mb-2">
+        <label class="block font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2">
           {gettext("Cover Photo")}
         </label>
         <%= if @cover_photo do %>
@@ -79,7 +79,7 @@
           <button
             type="button"
             phx-click="open_cover_picker"
-            class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm px-4 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
           >
             <.icon name="hero-photo" class="size-4" /> {gettext("Choose Cover Photo")}
           </button>
@@ -88,7 +88,7 @@
 
       <%!-- Trix editor --%>
       <div>
-        <label class="block text-sm font-cm-body font-semibold text-cm-black mb-2">
+        <label class="block font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted mb-2">
           {gettext("Content")}
         </label>
         <div id="trix-wrapper" phx-hook="TrixEditor" phx-update="ignore">
@@ -110,7 +110,7 @@
       <div class="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          class="inline-flex items-center gap-2 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-6 py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-6 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
           {test_id("memory-save-btn")}
         >
           {if @live_action == :new, do: gettext("Create Memory"), else: gettext("Save Changes")}
@@ -124,7 +124,7 @@
                 ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}"
             )
           }
-          class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm px-6 py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+          class="inline-flex items-center gap-2 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black px-6 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
         >
           {gettext("Cancel")}
         </.link>
@@ -132,7 +132,7 @@
           <button
             type="button"
             phx-click="request_delete"
-            class="ml-auto inline-flex items-center gap-2 text-cm-error hover:text-cm-error/80 text-sm font-cm-body font-semibold transition-colors"
+            class="ml-auto inline-flex items-center gap-2 text-cm-error hover:text-cm-error/80 font-cm-mono text-[10px] font-bold uppercase tracking-wider transition-colors"
             {test_id("memory-delete-btn")}
           >
             <.icon name="hero-trash" class="size-4" /> {gettext("Delete")}
@@ -176,12 +176,15 @@
               </button>
               <h2
                 id="photo-picker-title"
-                class="font-cm-display font-bold text-cm-black truncate"
+                class="font-cm-display font-bold text-cm-indigo uppercase tracking-wider truncate"
               >
                 {@picker_gallery.name}
               </h2>
             <% else %>
-              <h2 id="photo-picker-title" class="font-cm-display font-bold text-cm-black">
+              <h2
+                id="photo-picker-title"
+                class="font-cm-display font-bold text-cm-indigo uppercase tracking-wider"
+              >
                 {if @picker_mode == :cover,
                   do: gettext("Choose Cover Photo"),
                   else: gettext("Insert Photo")}
@@ -215,13 +218,13 @@
                   type="button"
                   phx-click="select_picker_gallery"
                   phx-value-id={gallery.id}
-                  class="group text-left bg-cm-surface rounded-cm overflow-hidden hover:shadow-lg transition-shadow"
+                  class="group text-left bg-cm-white rounded-cm border-2 border-cm-black overflow-hidden hover:bg-cm-surface transition-colors"
                 >
                   <div class="aspect-square bg-cm-surface flex items-center justify-center">
                     <.icon name="hero-photo" class="w-8 h-8 text-cm-text-muted/40" />
                   </div>
                   <div class="p-2">
-                    <p class="text-sm font-cm-body font-semibold text-cm-black truncate">
+                    <p class="font-cm-body text-sm font-semibold text-cm-black truncate">
                       {gallery.name}
                     </p>
                   </div>
@@ -278,7 +281,7 @@
       >
         <h2
           id="delete-memory-title"
-          class="text-xl font-cm-display font-bold text-cm-black mb-2"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
         >
           Delete Memory
         </h2>
@@ -290,14 +293,14 @@
         <div class="flex gap-3">
           <button
             phx-click="confirm_delete"
-            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
             {test_id("confirm-delete-memory-btn")}
           >
             {gettext("Delete")}
           </button>
           <button
             phx-click="cancel_delete"
-            class="flex-1 bg-cm-surface text-cm-black rounded-cm py-2.5 text-sm font-cm-body font-semibold hover:bg-cm-surface transition-colors"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
           >
             {gettext("Cancel")}
           </button>
