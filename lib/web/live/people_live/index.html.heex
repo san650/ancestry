@@ -137,23 +137,23 @@
 
   <%!-- Table — single grid container so header and rows share column sizing --%>
   <div class={[
-    "px-4 pb-8 max-w-4xl mx-auto w-full grid items-center",
+    "px-4 pb-8 max-w-4xl mx-auto w-full border-2 border-cm-black rounded-cm bg-cm-white grid items-center",
     if(@editing,
       do: "grid-cols-[auto_auto_auto_auto_auto_auto_1fr]",
       else: "grid-cols-[auto_auto_auto_auto_auto_1fr]"
     )
   ]}>
     <%!-- Header cells (display:contents so they join the parent grid) --%>
-    <div class="contents text-sm font-medium text-cm-text-muted">
+    <div class="contents font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
       <%= if @editing do %>
-        <div class="px-3 py-2.5 border-b border-cm-border/20"></div>
+        <div class="px-3 py-2.5 border-b-2 border-cm-black"></div>
       <% end %>
-      <div class="px-3 py-2.5 border-b border-cm-border/20"></div>
-      <div class="px-3 py-2.5 border-b border-cm-border/20">{gettext("Name")}</div>
-      <div class="px-3 py-2.5 border-b border-cm-border/20">{gettext("Est. Age")}</div>
-      <div class="px-3 py-2.5 border-b border-cm-border/20">{gettext("Lifespan")}</div>
-      <div class="px-3 py-2.5 border-b border-cm-border/20">{gettext("Links")}</div>
-      <div class="px-3 py-2.5 border-b border-cm-border/20"></div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black"></div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black">{gettext("Name")}</div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black">{gettext("Est. Age")}</div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black">{gettext("Lifespan")}</div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black">{gettext("Links")}</div>
+      <div class="px-3 py-2.5 border-b-2 border-cm-black"></div>
     </div>
 
     <%!-- Stream rows (display:contents so children join parent grid) --%>
@@ -165,10 +165,10 @@
     >
       <div id="people-empty-state" class="hidden only:block col-span-full py-16 text-center">
         <.icon name="hero-users" class="w-12 h-12 mx-auto mb-3 text-cm-text-muted/50" />
-        <p class="text-lg font-medium text-cm-text-muted">
+        <p class="text-lg font-cm-display uppercase tracking-wider text-cm-text-muted">
           {gettext("No people in this family")}
         </p>
-        <p class="text-sm text-cm-text-muted/50 mt-1">
+        <p class="text-sm font-cm-body text-cm-text-muted/50 mt-1">
           <.link
             navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
             class="text-cm-indigo hover:underline"
@@ -209,10 +209,10 @@
 
         <%!-- Photo cell with alive/deceased indicator --%>
         <div class="px-3 py-2.5">
-          <div class="indicator">
+          <div class="relative">
             <%= if person.deceased do %>
               <span
-                class="indicator-item indicator- indicator-end badge badge-xs bg-transparent border-cm-border/20"
+                class="absolute -top-1 -right-1 font-cm-mono text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded-cm bg-cm-surface text-cm-text-muted border border-cm-border z-10"
                 title="Deceased"
               >
                 d.
@@ -238,7 +238,7 @@
             navigate={
               ~p"/org/#{@current_scope.organization.id}/people/#{person.id}?from_family=#{@family.id}"
             }
-            class="font-medium text-cm-black hover:text-cm-indigo truncate block"
+            class="font-cm-body font-medium text-cm-black hover:text-cm-indigo truncate block"
           >
             <%= if person.surname && person.surname != "" do %>
               {person.surname}, {person.given_name}
@@ -247,14 +247,14 @@
             <% end %>
           </.link>
           <%= if person.kind == "acquaintance" do %>
-            <span class="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-cm-surface text-cm-text-muted">
+            <span class="ml-1.5 cm-tag cm-tag-golden">
               {gettext("Non-family")}
             </span>
           <% end %>
         </div>
 
         <%!-- Estimated Age cell --%>
-        <div class="px-3 py-2.5 text-sm text-cm-text-muted">
+        <div class="px-3 py-2.5 text-sm font-cm-body text-cm-text-muted">
           <%= case estimated_age(person) do %>
             <% nil -> %>
               &mdash;
@@ -264,7 +264,7 @@
         </div>
 
         <%!-- Lifespan cell --%>
-        <div class="px-3 py-2.5 text-sm text-cm-text-muted">
+        <div class="px-3 py-2.5 text-sm font-cm-body text-cm-text-muted">
           <%= cond do %>
             <% person.birth_year && person.death_year -> %>
               b. {person.birth_year} &ndash; d. {person.death_year}
@@ -278,7 +278,7 @@
         </div>
 
         <%!-- Links cell --%>
-        <div class="px-3 py-2.5 text-sm" {test_id("people-links-#{person.id}")}>
+        <div class="px-3 py-2.5 text-sm font-cm-body" {test_id("people-links-#{person.id}")}>
           <%= if rel_count > 0 do %>
             <span class="text-cm-text-muted">{rel_count}</span>
           <% else %>
@@ -320,7 +320,7 @@
       <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_remove"></div>
       <div
         id="confirm-remove-modal"
-        class="relative bg-cm-white/80 backdrop-blur-[20px] rounded-t-lg lg:rounded-cm w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
+        class="relative bg-cm-white border-2 border-cm-black rounded-t-lg lg:rounded-cm w-full max-w-none lg:max-w-md mx-0 lg:mx-4 p-8"
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-remove-modal-title"
@@ -331,11 +331,11 @@
       >
         <h2
           id="confirm-remove-modal-title"
-          class="text-xl font-cm-display font-extrabold tracking-tight text-cm-black mb-2"
+          class="text-xl font-cm-display uppercase tracking-wider text-cm-black mb-2"
         >
           Remove from Family
         </h2>
-        <p class="text-cm-text-muted mb-6">
+        <p class="font-cm-body text-cm-text-muted mb-6">
           Remove <span class="font-semibold">{MapSet.size(@selected)}</span>
           {if MapSet.size(@selected) == 1, do: gettext("person"), else: gettext("people")} {gettext(
             "from"
