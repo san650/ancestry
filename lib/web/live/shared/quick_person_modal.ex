@@ -14,7 +14,8 @@ defmodule Web.Shared.QuickPersonModal do
      |> allow_upload(:photo,
        accept: ~w(.jpg .jpeg .png .webp .tif .tiff),
        max_entries: 1,
-       max_file_size: 20 * 1_048_576
+       max_file_size: 20 * 1_048_576,
+       auto_upload: true
      )}
   end
 
