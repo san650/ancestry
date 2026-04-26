@@ -32,43 +32,49 @@ defmodule Web.BirthdayLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-lg mx-auto px-4 py-6">
-        <div class="flex items-center gap-3 mb-6">
-          <.link
-            navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-            class="p-1 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Back to family")}
-          >
-            <.icon name="hero-arrow-left" class="size-5" />
-          </.link>
-          <h1 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider">
-            {gettext("Birthdays")}
-          </h1>
-          <label
-            class="ml-auto flex items-center gap-2 cursor-pointer select-none"
-            {test_id("show-all-toggle")}
-          >
-            <span class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
-              {gettext("Show all people")}
-            </span>
+      <:toolbar>
+        <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+          <div class="flex items-center gap-3">
+            <%!-- Hamburger: mobile only --%>
             <button
               type="button"
-              phx-click="toggle_show_all"
-              role="switch"
-              aria-checked={to_string(@show_all)}
-              class={[
-                "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200",
-                if(@show_all, do: "bg-cm-indigo", else: "bg-cm-text-muted/30")
-              ]}
+              phx-click={toggle_nav_drawer()}
+              class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label={gettext("Open menu")}
             >
-              <span class={[
-                "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5",
-                if(@show_all, do: "translate-x-4 ml-0.5", else: "translate-x-0 ml-0.5")
-              ]} />
+              <.icon name="hero-bars-3" class="size-5" />
             </button>
-          </label>
+            <.breadcrumb
+              items={[
+                %{
+                  label: @current_scope.organization.name,
+                  navigate: ~p"/org/#{@current_scope.organization.id}"
+                },
+                %{
+                  label: @family.name,
+                  navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+                }
+              ]}
+              current={gettext("Birthdays")}
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <.toolbar_button
+              variant={:filter}
+              active={@show_all}
+              phx-click="toggle_show_all"
+              {test_id("show-all-toggle")}
+            >
+              {gettext("Show all")}
+            </.toolbar_button>
+          </div>
         </div>
+      </:toolbar>
 
+      <%!-- Nav drawer (mobile) --%>
+      <.nav_drawer current_scope={@current_scope} />
+
+      <div class="max-w-lg mx-auto px-4 py-6">
         <div id="birthday-calendar">
           <%= for month <- @months do %>
             <div class="mb-6">
