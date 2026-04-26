@@ -14,80 +14,58 @@
           {gettext("Organizations")}
         </h1>
       </div>
-      <div class="flex items-center gap-2">
-        <button
-          type="button"
+      <div class="hidden lg:flex items-center gap-2">
+        <.toolbar_button
+          variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
-          class={[
-            "inline-flex items-center gap-2 rounded-cm px-3 py-2 lg:px-4 lg:py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider transition-colors",
-            if(@selection_mode,
-              do: "bg-cm-indigo text-cm-white border-2 border-cm-indigo",
-              else: "border-2 border-cm-black text-cm-black hover:bg-cm-surface"
-            )
-          ]}
           {test_id("org-index-select-btn")}
         >
-          <.icon name="hero-check-circle" class="w-4 h-4" />
-          <span class="hidden sm:inline">
-            {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
-          </span>
-        </button>
-        <button
-          phx-click="new_organization"
-          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-3 py-2 lg:px-5 lg:py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
-          {test_id("org-new-btn")}
-        >
-          <.icon name="hero-plus" class="w-4 h-4" />
-          <span class="hidden sm:inline">{gettext("New Organization")}</span>
-        </button>
+          {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        </.toolbar_button>
+        <.toolbar_button variant={:primary} phx-click="new_organization" {test_id("org-new-btn")}>
+          {gettext("New Organization")}
+        </.toolbar_button>
       </div>
     </div>
   </:toolbar>
 
   <%!-- Nav drawer (mobile) --%>
   <.nav_drawer current_scope={@current_scope}>
-    <.link
-      href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-    >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
-      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
-    </.link>
+    <:page_actions>
+      <.nav_action
+        label={if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
+      />
+      <.nav_action
+        label={gettext("New Organization")}
+        phx-click={toggle_nav_drawer() |> JS.push("new_organization")}
+      />
+    </:page_actions>
   </.nav_drawer>
 
   <div class="bg-white min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
-      <%= if @selection_mode do %>
-        <div
-          id="selection-bar"
-          class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-cm-black lg:rounded-cm lg:mb-4"
-          {test_id("selection-bar")}
+      <%!-- Selection bar --%>
+      <.selection_bar show={@selection_mode} count={MapSet.size(@selected_ids)}>
+        <%= if can?(@current_scope, :update, Organization) do %>
+          <.toolbar_button
+            variant={:secondary}
+            phx-click="rename_selected"
+            disabled={MapSet.size(@selected_ids) != 1}
+            {test_id("selection-bar-rename-btn")}
+          >
+            {gettext("Rename")}
+          </.toolbar_button>
+        <% end %>
+        <.toolbar_button
+          variant={:primary}
+          phx-click="request_batch_delete"
+          disabled={MapSet.size(@selected_ids) == 0}
+          {test_id("selection-bar-delete-btn")}
         >
-          <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
-            {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
-          </span>
-          <div class="flex items-center gap-2">
-            <%= if MapSet.size(@selected_ids) == 1 and can?(@current_scope, :update, Organization) do %>
-              <button
-                phx-click="rename_selected"
-                class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black border-2 border-cm-black rounded-cm transition-colors hover:bg-cm-surface"
-                {test_id("selection-bar-rename-btn")}
-              >
-                {gettext("Rename")}
-              </button>
-            <% end %>
-            <button
-              phx-click="request_batch_delete"
-              disabled={MapSet.size(@selected_ids) == 0}
-              class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              {test_id("selection-bar-delete-btn")}
-            >
-              {gettext("Delete")}
-            </button>
-          </div>
-        </div>
-      <% end %>
+          {gettext("Delete")}
+        </.toolbar_button>
+      </.selection_bar>
 
       <div
         id="organizations"

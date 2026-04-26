@@ -22,7 +22,7 @@ defmodule Web.FamilyLive.IndexTest do
     expected_path = "/org/#{org.id}/families/new"
 
     assert {:error, {:live_redirect, %{to: ^expected_path}}} =
-             view |> element("#new-family-btn") |> render_click()
+             view |> element(test_id("family-new-btn")) |> render_click()
   end
 
   test "shows empty state when no families", %{conn: conn, org: org} do

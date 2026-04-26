@@ -23,7 +23,7 @@ defmodule Web.GalleryLive.ShowTest do
       live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
     assert html =~ gallery.name
-    assert html =~ "upload-btn"
+    assert html =~ "Upload"
   end
 
   test "shows empty state when no photos", %{
@@ -48,7 +48,7 @@ defmodule Web.GalleryLive.ShowTest do
       live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
     assert has_element?(view, "#photo-grid.masonry-grid")
-    view |> element("#layout-toggle") |> render_click()
+    render_click(view, "toggle_layout")
     assert has_element?(view, "#photo-grid.uniform-grid")
   end
 
@@ -62,9 +62,9 @@ defmodule Web.GalleryLive.ShowTest do
       live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
     refute has_element?(view, "#selection-bar")
-    view |> element("#select-btn") |> render_click()
+    render_click(view, "toggle_select_mode")
     assert has_element?(view, "#selection-bar")
-    view |> element("#select-btn") |> render_click()
+    render_click(view, "toggle_select_mode")
     refute has_element?(view, "#selection-bar")
   end
 
@@ -116,7 +116,7 @@ defmodule Web.GalleryLive.ShowTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       # Enter select mode
-      view |> element("#select-btn") |> render_click()
+      render_click(view, "toggle_select_mode")
       assert has_element?(view, "#selection-bar")
 
       # Click a photo — should select it, not open lightbox
@@ -130,7 +130,7 @@ defmodule Web.GalleryLive.ShowTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
-      view |> element("#select-btn") |> render_click()
+      render_click(view, "toggle_select_mode")
 
       # Select two photos
       view |> element("#photos-#{p1.id}") |> render_click()
@@ -148,7 +148,7 @@ defmodule Web.GalleryLive.ShowTest do
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
       # Enter select mode, select p1 and p3 only
-      view |> element("#select-btn") |> render_click()
+      render_click(view, "toggle_select_mode")
       view |> element("#photos-#{p1.id}") |> render_click()
       view |> element("#photos-#{p3.id}") |> render_click()
       assert has_element?(view, "#selection-bar", "2 selected")
@@ -174,7 +174,7 @@ defmodule Web.GalleryLive.ShowTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
 
-      view |> element("#select-btn") |> render_click()
+      render_click(view, "toggle_select_mode")
       view |> element("#photos-#{p1.id}") |> render_click()
 
       # Request then cancel deletion

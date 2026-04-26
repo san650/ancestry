@@ -89,7 +89,7 @@ defmodule Web.E2E.GalleryUploadTest do
       const file = new File([''], 'photo.jpg', {type: 'image/jpeg'});
       const dt = new DataTransfer();
       dt.items.add(file);
-      document.getElementById('upload-btn').dispatchEvent(
+      document.getElementById('toolbar').dispatchEvent(
         new DragEvent('dragenter', {dataTransfer: dt, bubbles: true, cancelable: true})
       );
     """)

@@ -201,10 +201,15 @@ defmodule Web.CoreComponents do
           "#{base} border-cm-black bg-cm-surface hover:bg-cm-surface-hover"
       end
 
-    assigns = assign(assigns, :variant_classes, variant_classes)
+    rest = assigns.rest
+    is_link = rest[:navigate] || rest[:href] || rest[:patch]
+    assigns = assign(assigns, variant_classes: variant_classes, is_link: is_link)
 
     ~H"""
-    <button type="button" class={@variant_classes} {@rest}>
+    <.link :if={@is_link} class={@variant_classes} {@rest}>
+      {render_slot(@inner_block)}
+    </.link>
+    <button :if={!@is_link} type="button" class={@variant_classes} {@rest}>
       {render_slot(@inner_block)}
     </button>
     """
@@ -288,24 +293,15 @@ defmodule Web.CoreComponents do
 
   def selection_bar(assigns) do
     ~H"""
-    <%!-- Desktop: sticky top bar --%>
     <div
       :if={@show}
       id={@id}
       {test_id("selection-bar")}
-      class="sticky top-0 z-40 hidden lg:flex items-center gap-3 bg-cm-black text-cm-white px-4 py-2 rounded-cm"
-    >
-      <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider">
-        {ngettext("1 selected", "%{count} selected", @count)}
-      </span>
-      <div class="flex items-center gap-2 ml-auto">
-        {render_slot(@inner_block)}
-      </div>
-    </div>
-    <%!-- Mobile: fixed bottom sheet --%>
-    <div
-      :if={@show}
-      class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-cm-black text-cm-white px-4 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+      class={[
+        "z-40 bg-cm-black text-cm-white",
+        "fixed bottom-0 left-0 right-0 px-4 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+        "lg:static lg:rounded-cm lg:mb-4"
+      ]}
     >
       <div class="flex items-center gap-3">
         <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider">

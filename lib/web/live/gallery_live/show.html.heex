@@ -26,52 +26,24 @@
         />
       </div>
 
-      <div class="flex items-center gap-1">
-        <%!-- Select: always visible (primary mobile action) --%>
-        <button
-          id="select-btn"
-          type="button"
+      <div class="flex items-center gap-2">
+        <.toolbar_button
+          variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
-          class={[
-            "p-2 rounded-cm transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
-            if(@selection_mode,
-              do: "bg-cm-indigo text-cm-white",
-              else: "text-cm-text-muted hover:text-cm-black"
-            )
-          ]}
-          aria-label={
-            if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select photos"))
-          }
         >
-          <.icon name="hero-check-circle" class="size-5" />
-        </button>
-
-        <%!-- Desktop-only actions --%>
-        <div class="hidden lg:flex items-center gap-1">
-          <button
-            id="upload-btn"
-            type="button"
-            onclick="document.querySelector('#upload-form [type=file]').click()"
-            class="p-2 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Upload photos")}
+          {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        </.toolbar_button>
+        <.toolbar_button variant={:secondary} phx-click="toggle_layout">
+          {if(@grid_layout == :masonry, do: gettext("Masonry"), else: gettext("Uniform"))}
+        </.toolbar_button>
+        <label class="cursor-pointer">
+          <.toolbar_button
+            variant={:primary}
+            phx-click={JS.dispatch("click", to: "#upload-form input[type=file]")}
           >
-            <.icon name="hero-arrow-up-tray" class="size-5" />
-          </button>
-          <button
-            id="layout-toggle"
-            type="button"
-            phx-click="toggle_layout"
-            class="p-2 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Toggle layout")}
-          >
-            <.icon
-              name={
-                if(@grid_layout == :masonry, do: "hero-squares-2x2", else: "hero-view-columns")
-              }
-              class="size-5"
-            />
-          </button>
-        </div>
+            {gettext("Upload")}
+          </.toolbar_button>
+        </label>
       </div>
     </div>
   </:toolbar>
@@ -80,20 +52,17 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        icon="hero-arrow-up-tray"
-        label={gettext("Upload photos")}
+        label={if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
+      />
+      <.nav_action
+        label={gettext("Upload Photos")}
         phx-click={
           toggle_nav_drawer() |> JS.dispatch("click", to: "#upload-form input[type=file]")
         }
       />
       <.nav_action
-        icon={if(@grid_layout == :masonry, do: "hero-squares-2x2", else: "hero-view-columns")}
-        label={
-          if(@grid_layout == :masonry,
-            do: gettext("Uniform grid"),
-            else: gettext("Masonry layout")
-          )
-        }
+        label={if(@grid_layout == :masonry, do: gettext("Masonry"), else: gettext("Uniform"))}
         phx-click={toggle_nav_drawer() |> JS.push("toggle_layout")}
       />
     </:page_actions>
@@ -131,24 +100,15 @@
     phx-hook=".DragDrop"
     class="max-w-7xl mx-auto"
   >
-    <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
-    <%= if @selection_mode do %>
-      <div
-        id="selection-bar"
-        class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-cm-black lg:text-cm-white lg:rounded-cm lg:px-5 lg:py-3"
+    <.selection_bar show={@selection_mode} count={MapSet.size(@selected_ids)}>
+      <.toolbar_button
+        variant={:primary}
+        phx-click="request_delete_photos"
+        disabled={MapSet.size(@selected_ids) == 0}
       >
-        <span class="text-sm font-cm-body font-medium text-cm-black lg:text-cm-white">
-          {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
-        </span>
-        <button
-          phx-click="request_delete_photos"
-          disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-2 text-sm font-cm-body text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {gettext("Delete")}
-        </button>
-      </div>
-    <% end %>
+        {gettext("Delete")}
+      </.toolbar_button>
+    </.selection_bar>
 
     <Web.Components.PhotoGallery.photo_grid
       id="photo-grid"

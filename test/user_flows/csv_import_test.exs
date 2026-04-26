@@ -33,11 +33,10 @@ defmodule Web.UserFlows.CsvImportTest do
       |> wait_liveview()
       |> assert_has(test_id("family-name"), text: "Import Family")
 
-    # Open meatball menu
+    # Open kebab menu
     conn =
       conn
-      |> click(test_id("meatball-btn"))
-      |> assert_has(test_id("meatball-dropdown"))
+      |> click(test_id("kebab-btn"))
 
     # Click "Import from CSV"
     conn =

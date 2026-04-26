@@ -12,6 +12,7 @@ defmodule Web.FamilyLive.Index do
      |> assign(:selection_mode, false)
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete, false)
+     |> assign(:show_menu, false)
      |> stream(:families, Families.list_families(org_id))}
   end
 
@@ -28,6 +29,14 @@ defmodule Web.FamilyLive.Index do
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete, false)
      |> stream(:families, Families.list_families(org_id), reset: true)}
+  end
+
+  def handle_event("toggle_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, !socket.assigns.show_menu)}
+  end
+
+  def handle_event("close_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, false)}
   end
 
   def handle_event("card_clicked", %{"id" => id}, socket) do
