@@ -326,23 +326,23 @@ defmodule Web.Shared.QuickPersonModal do
   end
 
   defp maybe_process_photo(socket, person) do
-    uploaded =
-      consume_uploaded_entries(socket, :photo, fn %{path: tmp_path}, entry ->
-        uuid = Ecto.UUID.generate()
-        ext = Path.extname(entry.client_name)
-        dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
-        original_path = Ancestry.Storage.store_original(tmp_path, dest_key)
-        {:ok, original_path}
-      end)
+    entries = socket.assigns.uploads.photo.entries
+    all_done? = entries != [] and Enum.all?(entries, & &1.done?)
 
-    case uploaded do
-      [original_path] ->
-        People.update_photo_pending(person, original_path)
-        # Re-fetch to get updated photo_status ("pending")
-        People.get_person!(person.id)
+    if all_done? do
+      [original_path] =
+        consume_uploaded_entries(socket, :photo, fn %{path: tmp_path}, entry ->
+          uuid = Ecto.UUID.generate()
+          ext = Path.extname(entry.client_name)
+          dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
+          original_path = Ancestry.Storage.store_original(tmp_path, dest_key)
+          {:ok, original_path}
+        end)
 
-      [] ->
-        person
+      People.update_photo_pending(person, original_path)
+      People.get_person!(person.id)
+    else
+      person
     end
   end
 
