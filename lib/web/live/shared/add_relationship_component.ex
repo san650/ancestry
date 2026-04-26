@@ -22,7 +22,7 @@ defmodule Web.Shared.AddRelationshipComponent do
   end
 
   def update(%{cancelled: true}, socket) do
-    {:ok, assign(socket, :step, :search)}
+    {:ok, assign(socket, :step, :choose)}
   end
 
   def update(assigns, socket) do
@@ -32,6 +32,7 @@ defmodule Web.Shared.AddRelationshipComponent do
      |> assign(:family, assigns.family)
      |> assign(:relationship_type, assigns.relationship_type)
      |> assign(:partner_id, Map.get(assigns, :partner_id))
+     |> assign(:current_scope, assigns[:current_scope])
      |> assign_new(:step, fn -> :choose end)
      |> assign_new(:search_query, fn -> "" end)
      |> assign_new(:search_results, fn -> [] end)
@@ -106,6 +107,17 @@ defmodule Web.Shared.AddRelationshipComponent do
         "" -> nil
         query -> query
       end
+
+    # Hoist QuickPersonModal to the parent LiveView level so file uploads work.
+    # LiveView uploads break when a component with allow_upload is nested inside
+    # another LiveComponent — the JS client can't find the DOM element.
+    send(
+      self(),
+      {:show_quick_create_from_relationship,
+       prefill_name: prefill,
+       organization_id: socket.assigns.person.organization_id,
+       family_id: socket.assigns.family && socket.assigns.family.id}
+    )
 
     {:noreply,
      socket
@@ -321,24 +333,9 @@ defmodule Web.Shared.AddRelationshipComponent do
           </div>
         <% :quick_create -> %>
           <div id="quick-create-person">
-            <button
-              id="add-rel-back-to-choose-from-quick-create-btn"
-              phx-click="back_to_choose"
-              phx-target={@myself}
-              class="flex items-center gap-1 text-sm text-cm-indigo/70 hover:text-cm-indigo mb-4 transition-colors"
-            >
-              <.icon name="hero-arrow-left" class="w-4 h-4" /> {gettext("Back")}
-            </button>
-
-            <.live_component
-              module={Web.Shared.QuickPersonModal}
-              id="quick-person-modal-relationship"
-              show_acquaintance={false}
-              show_modal_wrapper={false}
-              organization_id={@person.organization_id}
-              family_id={@family && @family.id}
-              prefill_name={@quick_create_prefill_name}
-            />
+            <p class="text-sm text-cm-text-muted text-center py-8">
+              {gettext("Creating new person...")}
+            </p>
           </div>
         <% :metadata -> %>
           <div class="space-y-4">

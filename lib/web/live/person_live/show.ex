@@ -34,6 +34,7 @@ defmodule Web.PersonLive.Show do
      |> assign(:show_quick_person_modal, false)
      |> assign(:pending_tag, nil)
      |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)
      |> assign(:linking_person, false)
      |> assign(:link_search_query, "")
      |> assign(:link_search_results, [])
@@ -181,6 +182,9 @@ defmodule Web.PersonLive.Show do
     {:noreply,
      socket
      |> assign(:adding_relationship, type)
+     |> assign(:show_quick_person_modal, false)
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)
      |> update(:add_rel_key, &(&1 + 1))}
   end
 
@@ -449,6 +453,14 @@ defmodule Web.PersonLive.Show do
     {:noreply, put_flash(socket, :error, message)}
   end
 
+  def handle_info({:show_quick_create_from_relationship, opts}, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_quick_person_modal, true)
+     |> assign(:quick_person_prefill, opts[:prefill_name])
+     |> assign(:quick_person_family_id, opts[:family_id])}
+  end
+
   def handle_info({:person_created, person}, socket) do
     socket =
       case socket.assigns[:pending_tag] do
@@ -481,7 +493,8 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:pending_tag, nil)
      |> assign(:show_quick_person_modal, false)
-     |> assign(:quick_person_prefill, nil)}
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   def handle_info({:quick_person_cancelled}, socket) do
@@ -497,7 +510,8 @@ defmodule Web.PersonLive.Show do
      socket
      |> assign(:pending_tag, nil)
      |> assign(:show_quick_person_modal, false)
-     |> assign(:quick_person_prefill, nil)}
+     |> assign(:quick_person_prefill, nil)
+     |> assign(:quick_person_family_id, nil)}
   end
 
   # --- Private helpers ---

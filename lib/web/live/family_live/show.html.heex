@@ -870,10 +870,21 @@
           person={find_person(@people, @adding_relationship.person_id)}
           family={@family}
           relationship_type={@adding_relationship.type}
+          current_scope={@current_scope}
         />
       </div>
     </div>
   <% end %>
+
+  <.live_component
+    :if={@show_quick_person_modal}
+    module={Web.Shared.QuickPersonModal}
+    id="quick-person-modal"
+    show_acquaintance={false}
+    organization_id={@current_scope.organization.id}
+    family_id={@quick_person_family_id}
+    prefill_name={@quick_person_prefill}
+  />
 
   <%!-- Create Subfamily Modal --%>
   <%= if @show_create_subfamily_modal do %>

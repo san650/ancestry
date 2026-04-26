@@ -51,7 +51,7 @@ defmodule Web.Shared.QuickPersonModal do
       <div>
         <div
           id={@id}
-          class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+          class="fixed inset-0 z-[60] flex items-end lg:items-center justify-center"
           phx-window-keydown="cancel"
           phx-key="Escape"
           phx-target={@myself}

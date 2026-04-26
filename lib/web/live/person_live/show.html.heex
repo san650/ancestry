@@ -679,8 +679,9 @@
       :if={@show_quick_person_modal}
       module={Web.Shared.QuickPersonModal}
       id="quick-person-modal"
-      show_acquaintance={true}
+      show_acquaintance={!@adding_relationship}
       organization_id={@current_scope.organization.id}
+      family_id={assigns[:quick_person_family_id]}
       prefill_name={@quick_person_prefill}
     />
   <% end %>
@@ -778,6 +779,7 @@
           family={@from_family}
           relationship_type={@adding_relationship}
           partner_id={@adding_partner_id}
+          current_scope={@current_scope}
         />
       </div>
     </div>
