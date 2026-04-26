@@ -335,8 +335,8 @@ defmodule Web.Shared.AddRelationshipComponent do
               id="quick-person-modal-relationship"
               show_acquaintance={false}
               show_modal_wrapper={false}
-              organization_id={@family.organization_id}
-              family_id={@family.id}
+              organization_id={@person.organization_id}
+              family_id={@family && @family.id}
               prefill_name={@quick_create_prefill_name}
             />
           </div>
