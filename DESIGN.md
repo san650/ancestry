@@ -16,29 +16,30 @@ Apply these rules to all interface work. Build mobile first, then enhance for de
 
 ### Visual system
 
-- Use a restrained neutral palette:
-  - Primary: `#000000`
-  - On-surface: `#0b1c30`
-  - Background: `#f8f9ff`
-  - Surface low: `#eff4ff`
-  - Surface high: `#dce9ff`
-  - Surface highest: `#d3e4fe`
-- Reserve accent colors for semantics only:
-  - Success: `#006d35`
-  - Warning: `#ffb77d`
-- Do not add decorative “information blue” accents.
-- Prefer tonal layers over heavy dividers.
-- Borders are a fallback. If required, keep them subtle and low contrast.
-- Use `shadow-ds-card` (`0 1px 3px rgba(11,28,48,0.08), 0 4px 12px rgba(11,28,48,0.04)`) for grounded card elevation on index/grid pages with white backgrounds.
-- Reserve `shadow-ds-ambient` (`0 8px 32px rgba(11,28,48,0.06)`) for floating layers: modals, popovers, drawers.
-- Index and grid pages use a white (`bg-white`) page background. Cards use `bg-ds-surface-card` + `shadow-ds-card`.
-- Use sharp or lightly rounded corners. Avoid large radii.
+- Use a bold, high-contrast brutalist palette:
+  - Indigo: `#1E104E` — headers, headings, tag fills
+  - Plum: `#452E5A` — photo placeholders, secondary dark surfaces
+  - Coral: `#FF653F` — primary CTA, accent stripes, active indicators
+  - Golden: `#FFC85C` — highlight tags, badges, secondary CTA
+  - Black: `#000000` — card borders, body text
+  - White: `#FFFFFF` — page backgrounds, card backgrounds
+  - Surface: `#FAFAFA` — toolbar backgrounds, recessed areas
+  - Border: `#E0E0E0` — stat borders, subtle dividers
+  - Text muted: `#999999` — breadcrumbs, metadata
+- Semantic colors for status only:
+  - Error: `#BA1A1A`
+  - Success: `#006D35`
+- Use 2px solid black borders on cards and form inputs. No shadows.
+- Use colored accent borders (coral top-accent on stats, colored left-accent on flash messages).
+- Flat fills, no gradients. 2px border-radius throughout.
+- All CSS variables use the `cm-` prefix (e.g., `--cm-indigo`, `bg-cm-coral`). Defined in `assets/css/palette.css`.
 
 ### Typography
 
-- Use **Manrope** for headings and **Inter** for body text, labels, and tables.
-- Keep hierarchy obvious but avoid oversized mobile headings.
-- Use tighter line height for headings and more relaxed line height for body text.
+- Use **Bebas Neue** for display headings and stat numbers. Always uppercase, always in indigo.
+- Use **Space Grotesk** for body text, card names, form inputs, and subtitles.
+- Use **Space Mono** for metadata, dates, tags, badges, buttons, and breadcrumbs.
+- Keep hierarchy through font contrast: condensed display vs. wide body vs. monospace accents.
 - Body text must be readable on small screens without zoom.
 - Metadata and helper text may be smaller, but must remain legible.
 - In tables, left-align text and right-align numbers.
@@ -66,17 +67,18 @@ Apply these rules to all interface work. Build mobile first, then enhance for de
 ### Components
 
 #### Inputs and controls
-- Prefer clean surfaces and obvious focus states.
-- Avoid heavy outlined fields unless stronger separation is necessary.
-- Subtle borders or bottom strokes are acceptable for controls.
+- Use 2px black borders and 2px radius on all inputs.
+- Focus state: 2px coral border.
+- Labels: Space Mono, 10px, uppercase, muted.
 
 #### Buttons
-- Primary buttons: dark background, light text.
-- Secondary buttons: lighter tonal surface, dark text.
+- Primary buttons: coral background, white text, Space Mono uppercase.
+- Secondary buttons: indigo background, white text, same typography.
+- All buttons are flat (no shadows, no gradients).
 - Keep primary actions visible without hover.
 
 #### Cards and lists
-- Use spacing and background tone instead of divider lines wherever possible.
+- Cards use 2px solid black borders, 2px radius, white background.
 - Surface the primary action directly.
 - Do not hide essential actions or information behind hover.
 
