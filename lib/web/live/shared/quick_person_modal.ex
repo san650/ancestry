@@ -106,13 +106,18 @@ defmodule Web.Shared.QuickPersonModal do
           {gettext("Photo")}
         </label>
         <div class="mt-1">
+          <%!-- The live_file_input MUST stay in the DOM always. Removing it
+               conditionally causes the LiveImgPreview JS hook to crash because
+               it looks up the input by ID via document.getElementById(). --%>
+          <.live_file_input upload={@uploads.photo} class="sr-only" />
+
           <%= if @uploads.photo.entries == [] do %>
             <label
+              for={@uploads.photo.ref}
               class="flex items-center justify-center w-20 h-20 rounded-full border-2 border-dashed border-cm-black/30 cursor-pointer hover:border-cm-black transition-colors"
               {test_id("quick-person-photo-placeholder")}
             >
               <.icon name="hero-camera" class="w-6 h-6 text-cm-text-muted/40" />
-              <.live_file_input upload={@uploads.photo} class="sr-only" />
             </label>
           <% else %>
             <%= for entry <- @uploads.photo.entries do %>

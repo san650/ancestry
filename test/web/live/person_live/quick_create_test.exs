@@ -41,8 +41,10 @@ defmodule Web.PersonLive.QuickCreateTest do
 
     view |> element("#add-parent-btn") |> render_click()
     view |> element("#add-rel-create-new-btn") |> render_click()
+    render(view)
 
-    assert has_element?(view, "#quick-create-person")
+    # QuickPersonModal is now rendered at the LiveView level (not nested)
+    assert has_element?(view, "#quick-person-modal")
     assert has_element?(view, "#quick-person-modal-form")
     refute has_element?(view, "#relationship-search-input")
   end

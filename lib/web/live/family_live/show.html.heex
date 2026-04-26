@@ -844,8 +844,8 @@
     </div>
   <% end %>
 
-  <%!-- Add Relationship Modal (from tree placeholders) --%>
-  <%= if @adding_relationship do %>
+  <%!-- Add Relationship Modal (from tree placeholders) — hidden when quick person modal is open --%>
+  <%= if @adding_relationship && !@show_quick_person_modal do %>
     <div
       class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
       phx-window-keydown="cancel_add_relationship"

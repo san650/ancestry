@@ -760,8 +760,8 @@
     </div>
   <% end %>
 
-  <%!-- Add Relationship Modal --%>
-  <%= if @adding_relationship do %>
+  <%!-- Add Relationship Modal — hidden when quick person modal is open --%>
+  <%= if @adding_relationship && !@show_quick_person_modal do %>
     <div class="fixed inset-0 z-50 flex items-end lg:items-center justify-center">
       <div
         class="absolute inset-0 bg-cm-black/60 backdrop-blur-sm"
