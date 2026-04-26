@@ -46,10 +46,10 @@ defmodule Web.Components.PhotoGallery do
         :for={{id, photo} <- @photos}
         id={id}
         class={[
-          "relative group rounded-cm overflow-hidden bg-cm-surface cursor-pointer",
+          "relative group border-2 border-cm-black rounded-cm overflow-hidden bg-cm-surface cursor-pointer",
           @grid_layout == :masonry && "mb-2 break-inside-avoid",
           if(@selection_mode && MapSet.member?(@selected_ids, photo.id),
-            do: "outline outline-3 outline-cm-indigo outline-offset-2",
+            do: "outline outline-3 outline-cm-coral outline-offset-2",
             else: "outline outline-3 outline-transparent outline-offset-2"
           )
         ]}
@@ -81,12 +81,12 @@ defmodule Web.Components.PhotoGallery do
         <%= if @selection_mode do %>
           <div class={[
             "absolute inset-0 transition-colors",
-            MapSet.member?(@selected_ids, photo.id) && "bg-cm-indigo/30"
+            MapSet.member?(@selected_ids, photo.id) && "bg-cm-coral/30"
           ]}>
             <div class={[
-              "absolute top-2 right-2 w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center",
+              "absolute top-2 right-2 w-6 h-6 rounded-cm border-2 transition-all flex items-center justify-center",
               if(MapSet.member?(@selected_ids, photo.id),
-                do: "bg-cm-indigo border-cm-indigo",
+                do: "bg-cm-coral border-cm-coral",
                 else: "border-white/70 bg-black/20"
               )
             ]}>
@@ -129,24 +129,24 @@ defmodule Web.Components.PhotoGallery do
       phx-window-keydown="lightbox_keydown"
     >
       <%!-- Lightbox top bar --%>
-      <div class="shrink-0 flex items-center justify-between px-4 py-3 text-white">
+      <div class="shrink-0 flex items-center justify-between px-4 py-3 text-cm-white">
         <%!-- Close button --%>
         <button
           type="button"
           phx-click="close_lightbox"
-          class="p-2 hover:bg-white/10 rounded-cm"
+          class="p-2 hover:bg-white/10 rounded-cm font-cm-mono text-cm-white"
           aria-label="Close"
         >
           <.icon name="hero-x-mark" class="size-6" />
         </button>
 
         <%!-- Position indicator: mobile only --%>
-        <span :if={@total_photos > 1} class="text-sm text-white/70 font-cm-body lg:hidden">
-          {@current_index + 1} of {@total_photos}
+        <span :if={@total_photos > 1} class="font-cm-mono text-[10px] text-white/70 lg:hidden">
+          {@current_index + 1} / {@total_photos}
         </span>
 
         <%!-- Desktop: filename --%>
-        <span class="hidden lg:block text-sm text-white/70 font-cm-body truncate max-w-xs">
+        <span class="hidden lg:block font-cm-mono text-[10px] text-white/70 truncate max-w-xs">
           {@selected_photo.original_filename}
         </span>
 
@@ -158,8 +158,8 @@ defmodule Web.Components.PhotoGallery do
             type="button"
             phx-click="toggle_panel"
             class={[
-              "p-2 hover:bg-white/10 rounded-cm",
-              if(@panel_open, do: "text-cm-indigo bg-white/10", else: "text-white/50")
+              "p-2 hover:bg-white/10 rounded-cm font-cm-mono",
+              if(@panel_open, do: "text-cm-coral bg-white/10", else: "text-cm-white/50")
             ]}
             aria-label="Photo info"
           >
@@ -169,7 +169,7 @@ defmodule Web.Components.PhotoGallery do
           <a
             href={Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)}
             download={@selected_photo.original_filename}
-            class="p-2 hover:bg-white/10 rounded-cm hidden lg:block text-white/50 hover:text-white"
+            class="p-2 hover:bg-white/10 rounded-cm hidden lg:block font-cm-mono text-cm-white/50 hover:text-cm-white"
             aria-label="Download"
           >
             <.icon name="hero-arrow-down-tray" class="size-6" />
@@ -190,7 +190,7 @@ defmodule Web.Components.PhotoGallery do
           <%!-- Navigation arrows: desktop only --%>
           <button
             phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowLeft"})}
-            class="hidden lg:block absolute left-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+            class="hidden lg:block absolute left-3 p-3 font-cm-mono text-cm-white/40 hover:text-cm-white hover:bg-white/10 rounded-cm transition-colors z-10"
           >
             <.icon name="hero-chevron-left" class="w-7 h-7" />
           </button>
@@ -206,7 +206,7 @@ defmodule Web.Components.PhotoGallery do
 
           <button
             phx-click={JS.push("lightbox_keydown", value: %{key: "ArrowRight"})}
-            class="hidden lg:block absolute right-3 p-3 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors z-10"
+            class="hidden lg:block absolute right-3 p-3 font-cm-mono text-cm-white/40 hover:text-cm-white hover:bg-white/10 rounded-cm transition-colors z-10"
           >
             <.icon name="hero-chevron-right" class="w-7 h-7" />
           </button>
@@ -214,21 +214,21 @@ defmodule Web.Components.PhotoGallery do
 
         <%= if @panel_open do %>
           <%!-- Info panel: full-screen overlay on mobile, side panel on desktop --%>
-          <%!-- L1 panel base — no border, slightly lifted from the lightbox black backdrop --%>
+          <%!-- L1 panel base — brutalist indigo panel --%>
           <div class={[
-            "fixed inset-0 z-50 flex flex-col bg-black text-white",
+            "fixed inset-0 z-50 flex flex-col bg-cm-indigo/95 text-cm-white font-cm-body",
             "lg:static lg:inset-auto lg:z-auto lg:w-80 lg:shrink-0"
           ]}>
             <div class="flex flex-col h-full bg-white/[0.03] p-2 gap-2">
               <%!-- Panel header — close X, no bottom border --%>
               <div class="flex items-center justify-between px-2 py-2 shrink-0">
-                <h3 class="text-sm font-cm-display font-bold text-white/90">
+                <h3 class="text-sm font-cm-display font-bold text-cm-white/90">
                   {gettext("Photo info")}
                 </h3>
                 <button
                   type="button"
                   phx-click="toggle_panel"
-                  class="p-2 -mr-2 rounded-cm text-white/50 hover:text-white hover:bg-white/[0.10] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
+                  class="p-2 -mr-2 rounded-cm font-cm-mono text-cm-white/50 hover:text-cm-white hover:bg-white/[0.10] min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 lg:p-1.5 flex items-center justify-center"
                   aria-label={gettext("Close info")}
                 >
                   <.icon name="hero-x-mark" class="size-5 lg:w-4 lg:h-4" />
@@ -241,12 +241,12 @@ defmodule Web.Components.PhotoGallery do
                 class="bg-white/[0.06] rounded-cm p-2.5 flex flex-col gap-2 shrink-0 max-h-[30vh] lg:max-h-none overflow-hidden"
               >
                 <div class="flex items-center gap-2 px-1">
-                  <h4 class="text-xs font-cm-display font-bold text-white/90 tracking-wide uppercase">
+                  <h4 class="text-xs font-cm-display font-bold text-cm-white/90 tracking-wide uppercase">
                     {gettext("People")}
                   </h4>
                   <span
                     :if={@photo_people != []}
-                    class="text-[11px] text-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-full"
+                    class="font-cm-mono text-[10px] text-cm-white/50 bg-white/[0.10] px-1.5 py-0.5 rounded-cm"
                   >
                     {length(@photo_people)}
                   </span>
@@ -254,11 +254,11 @@ defmodule Web.Components.PhotoGallery do
 
                 <div id="photo-person-list" class="overflow-y-auto">
                   <%= if @photo_people == [] do %>
-                    <div class="text-center py-5 text-white/50">
-                      <div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/[0.04] mb-2">
-                        <.icon name="hero-user" class="w-4 h-4 text-white/40" />
+                    <div class="text-center py-5 text-cm-white/50">
+                      <div class="inline-flex items-center justify-center w-8 h-8 rounded-cm bg-white/[0.04] mb-2">
+                        <.icon name="hero-user" class="w-4 h-4 text-cm-white/40" />
                       </div>
-                      <p class="text-[12.5px] leading-snug">
+                      <p class="text-[12.5px] font-cm-body leading-snug">
                         <span class="lg:hidden">{gettext("No people tagged yet.")}</span>
                         <span class="hidden lg:inline">
                           {gettext("Click on the photo to tag people")}
@@ -278,7 +278,7 @@ defmodule Web.Components.PhotoGallery do
                             navigate={
                               ~p"/org/#{@current_scope.organization.id}/people/#{pp.person_id}"
                             }
-                            class="flex items-center gap-3 lg:gap-2 flex-1 min-w-0 hover:text-white focus-visible:text-white transition-colors"
+                            class="flex items-center gap-3 lg:gap-2 flex-1 min-w-0 hover:text-cm-white focus-visible:text-cm-white transition-colors"
                           >
                             <%= if pp.person.photo && pp.person.photo_status == "processed" do %>
                               <img
@@ -288,17 +288,17 @@ defmodule Web.Components.PhotoGallery do
                                     :thumbnail
                                   )
                                 }
-                                class="w-7 h-7 lg:w-6 lg:h-6 rounded-full object-cover shrink-0"
+                                class="w-7 h-7 lg:w-6 lg:h-6 rounded-cm object-cover shrink-0"
                               />
                             <% else %>
-                              <div class="w-7 h-7 lg:w-6 lg:h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
+                              <div class="w-7 h-7 lg:w-6 lg:h-6 rounded-cm bg-white/[0.10] flex items-center justify-center shrink-0">
                                 <.icon
                                   name="hero-user"
-                                  class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-white/40"
+                                  class="w-4 h-4 lg:w-3.5 lg:h-3.5 text-cm-white/40"
                                 />
                               </div>
                             <% end %>
-                            <span class="text-sm text-white/85 truncate flex-1">
+                            <span class="text-sm font-cm-body text-cm-white/85 truncate flex-1">
                               {Ancestry.People.Person.display_name(pp.person)}
                             </span>
                           </.link>
@@ -306,7 +306,7 @@ defmodule Web.Components.PhotoGallery do
                             phx-click="untag_person"
                             phx-value-photo-id={pp.photo_id}
                             phx-value-person-id={pp.person_id}
-                            class="p-2 lg:p-1 rounded text-white/40 hover:text-red-400 lg:opacity-0 lg:group-hover:opacity-100 transition-all shrink-0"
+                            class="p-2 lg:p-1 rounded-cm text-cm-white/40 hover:text-cm-coral lg:opacity-0 lg:group-hover:opacity-100 transition-all shrink-0"
                             title={gettext("Remove tag")}
                           >
                             <.icon name="hero-x-mark" class="w-4 h-4 lg:w-3.5 lg:h-3.5" />
@@ -328,12 +328,12 @@ defmodule Web.Components.PhotoGallery do
                           placeholder={gettext("Search people...")}
                           phx-keyup="link_person_search"
                           phx-debounce="300"
-                          class="w-full bg-white/[0.08] border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                          class="w-full bg-white/[0.08] border-2 border-cm-white/20 rounded-cm px-3 py-2 text-sm font-cm-body text-cm-white placeholder-white/40 focus:outline-none focus:border-cm-coral"
                           autofocus
                         />
                         <button
                           phx-click="cancel_link_person"
-                          class="absolute right-2 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 text-cm-white/40 hover:text-cm-white/70"
                         >
                           <.icon name="hero-x-mark" class="w-4 h-4" />
                         </button>
@@ -345,7 +345,7 @@ defmodule Web.Components.PhotoGallery do
                           <button
                             phx-click="link_existing_person"
                             phx-value-person-id={person.id}
-                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-white/[0.08] transition-colors text-left"
+                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-cm hover:bg-white/[0.08] transition-colors text-left"
                           >
                             <%!-- Person avatar (same pattern as tagged people list) --%>
                             <%= if person.photo && person.photo_status == "processed" do %>
@@ -356,14 +356,14 @@ defmodule Web.Components.PhotoGallery do
                                     :thumbnail
                                   )
                                 }
-                                class="w-6 h-6 rounded-full object-cover shrink-0"
+                                class="w-6 h-6 rounded-cm object-cover shrink-0"
                               />
                             <% else %>
-                              <div class="w-6 h-6 rounded-full bg-white/[0.10] flex items-center justify-center shrink-0">
-                                <.icon name="hero-user" class="w-3.5 h-3.5 text-white/40" />
+                              <div class="w-6 h-6 rounded-cm bg-white/[0.10] flex items-center justify-center shrink-0">
+                                <.icon name="hero-user" class="w-3.5 h-3.5 text-cm-white/40" />
                               </div>
                             <% end %>
-                            <span class="text-sm text-white/85 truncate">
+                            <span class="text-sm font-cm-body text-cm-white/85 truncate">
                               {Ancestry.People.Person.display_name(person)}
                             </span>
                           </button>
@@ -372,16 +372,16 @@ defmodule Web.Components.PhotoGallery do
 
                       <%!-- "Create person" sticky footer — outside the scrollable area --%>
                       <%= if String.length(@link_search_query || "") >= 1 do %>
-                        <div class="border-t border-white/10 mt-1 pt-1">
+                        <div class="border-t border-cm-white/10 mt-1 pt-1">
                           <button
                             phx-click="create_person_from_link"
                             phx-value-query={@link_search_query}
-                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-emerald-900/40 transition-colors text-left border border-dashed border-emerald-500/40"
+                            class="flex items-center gap-2 w-full px-2 py-1.5 rounded-cm hover:bg-cm-coral/20 transition-colors text-left border-2 border-dashed border-cm-coral/40"
                           >
-                            <div class="w-6 h-6 rounded-full bg-emerald-900 flex items-center justify-center shrink-0 text-emerald-400 text-sm font-bold">
+                            <div class="w-6 h-6 rounded-cm bg-cm-coral/20 flex items-center justify-center shrink-0 text-cm-coral text-sm font-cm-mono font-bold">
                               +
                             </div>
-                            <span class="text-sm text-emerald-400 truncate">
+                            <span class="text-sm font-cm-body text-cm-coral truncate">
                               {gettext("Create \"%{query}\"...",
                                 query: String.slice(@link_search_query, 0..19)
                               )}
@@ -393,16 +393,16 @@ defmodule Web.Components.PhotoGallery do
                   <% else %>
                     <button
                       phx-click="start_link_person"
-                      class="w-full py-2 rounded-lg border border-dashed border-white/20 text-white/50 hover:text-white/70 hover:border-white/40 transition-colors text-sm flex items-center justify-center gap-1.5"
+                      class="w-full py-2 rounded-cm border-2 border-dashed border-cm-white/20 text-cm-white/50 hover:text-cm-white/70 hover:border-cm-white/40 transition-colors text-sm font-cm-body flex items-center justify-center gap-1.5"
                     >
-                      <span class="text-base">+</span> {gettext("Link person")}
+                      <span class="text-base font-cm-mono">+</span> {gettext("Link person")}
                     </button>
                   <% end %>
                 </div>
 
                 <p
                   :if={!@linking_person}
-                  class="text-center text-white/30 text-[11px] mt-1.5 px-1 hidden lg:block"
+                  class="text-center text-cm-white/30 font-cm-mono text-[10px] mt-1.5 px-1 hidden lg:block"
                 >
                   {gettext("Click on the photo to tag with position")}
                 </p>
@@ -427,7 +427,7 @@ defmodule Web.Components.PhotoGallery do
                   Ancestry.Uploaders.Photo.url({@selected_photo.image, @selected_photo}, :original)
                 }
                 download={@selected_photo.original_filename}
-                class="lg:hidden shrink-0 flex items-center justify-center gap-2 bg-white/[0.10] rounded-cm py-3 text-sm font-cm-body font-semibold text-white/90 hover:bg-white/[0.16] transition-colors"
+                class="lg:hidden shrink-0 flex items-center justify-center gap-2 bg-cm-coral/20 border-2 border-cm-coral/40 rounded-cm py-3 text-sm font-cm-mono font-semibold text-cm-white/90 hover:bg-cm-coral/30 transition-colors"
               >
                 <.icon name="hero-arrow-down-tray" class="size-5" /> {gettext("Download")}
               </a>
@@ -445,8 +445,8 @@ defmodule Web.Components.PhotoGallery do
             class={[
               "shrink-0 w-16 h-16 rounded-cm overflow-hidden border-2 transition-all duration-150",
               if(photo.id == @selected_photo.id,
-                do: "border-white scale-105 shadow-lg",
-                else: "border-transparent opacity-50 hover:opacity-90"
+                do: "border-cm-coral scale-105",
+                else: "border-cm-white/20 opacity-50 hover:opacity-90"
               )
             ]}
           >
@@ -458,7 +458,7 @@ defmodule Web.Components.PhotoGallery do
               />
             <% else %>
               <div class="w-full h-full bg-white/10 flex items-center justify-center">
-                <.icon name="hero-photo" class="w-5 h-5 text-white/30" />
+                <.icon name="hero-photo" class="w-5 h-5 text-cm-white/30" />
               </div>
             <% end %>
           </button>
