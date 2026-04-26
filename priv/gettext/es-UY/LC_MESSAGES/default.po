@@ -35,9 +35,6 @@ msgid "(Common Ancestor)"
 msgstr "(Ancestro común)"
 
 #: lib/web/components/core_components.ex:308
-#: lib/web/live/org_people_live/index.html.heex:127
-#: lib/web/live/people_live/index.html.heex:131
-#: lib/web/live/vault_live/show.html.heex:71
 #, elixir-autogen, elixir-format
 msgid "1 selected"
 msgid_plural "%{count} selected"
@@ -123,7 +120,8 @@ msgstr "Agregar hijo/a"
 msgid "Add Child (Unknown Other Parent)"
 msgstr "Agregar hijo/a (otro padre/madre desconocido)"
 
-#: lib/web/live/vault_live/show.html.heex:47
+#: lib/web/live/vault_live/show.html.heex:45
+#: lib/web/live/vault_live/show.html.heex:74
 #, elixir-autogen, elixir-format
 msgid "Add Memory"
 msgstr "Agregar recuerdo"
@@ -181,7 +179,7 @@ msgstr "Administrador"
 msgid "All galleries and photos will be permanently removed. This cannot be undone."
 msgstr "Todas las galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
 
-#: lib/web/live/vault_live/show.html.heex:205
+#: lib/web/live/vault_live/show.html.heex:221
 #, elixir-autogen, elixir-format
 msgid "All memories will be permanently removed. This cannot be undone."
 msgstr "Todos los recuerdos serán eliminados permanentemente. Esta acción no se puede deshacer."
@@ -337,19 +335,20 @@ msgstr "El archivo CSV está vacío o no tiene filas de datos"
 #: lib/web/live/gallery_live/show.html.heex:361
 #: lib/web/live/memory_live/form.html.heex:129
 #: lib/web/live/memory_live/form.html.heex:305
-#: lib/web/live/org_people_live/index.html.heex:354
+#: lib/web/live/memory_live/show.html.heex:149
+#: lib/web/live/org_people_live/index.html.heex:334
 #: lib/web/live/organization_live/index.html.heex:161
 #: lib/web/live/organization_live/index.html.heex:221
 #: lib/web/live/organization_live/index.html.heex:279
-#: lib/web/live/people_live/index.html.heex:359
+#: lib/web/live/people_live/index.html.heex:335
 #: lib/web/live/person_live/show.html.heex:700
 #: lib/web/live/person_live/show.html.heex:737
 #: lib/web/live/person_live/show.html.heex:912
 #: lib/web/live/shared/add_relationship_component.ex:455
 #: lib/web/live/shared/person_form_component.html.heex:365
 #: lib/web/live/shared/quick_person_modal.ex:284
-#: lib/web/live/vault_live/show.html.heex:221
-#: lib/web/live/vault_live/show.html.heex:273
+#: lib/web/live/vault_live/show.html.heex:237
+#: lib/web/live/vault_live/show.html.heex:289
 #, elixir-autogen, elixir-format
 msgid "Cancel"
 msgstr "Cancelar"
@@ -515,7 +514,7 @@ msgstr "Crear una cuenta"
 msgid "Create new person"
 msgstr "Crear nueva persona"
 
-#: lib/web/live/vault_live/show.html.heex:175
+#: lib/web/live/vault_live/show.html.heex:191
 #, elixir-autogen, elixir-format
 msgid "Create your first memory"
 msgstr "Crea tu primer recuerdo"
@@ -602,14 +601,16 @@ msgstr "Persona predeterminada"
 #: lib/web/live/gallery_live/show.html.heex:355
 #: lib/web/live/memory_live/form.html.heex:138
 #: lib/web/live/memory_live/form.html.heex:299
-#: lib/web/live/org_people_live/index.html.heex:31
-#: lib/web/live/org_people_live/index.html.heex:347
+#: lib/web/live/memory_live/show.html.heex:133
+#: lib/web/live/memory_live/show.html.heex:143
+#: lib/web/live/org_people_live/index.html.heex:109
+#: lib/web/live/org_people_live/index.html.heex:327
 #: lib/web/live/organization_live/index.html.heex:66
 #: lib/web/live/organization_live/index.html.heex:273
 #: lib/web/live/person_live/show.html.heex:731
-#: lib/web/live/vault_live/show.html.heex:79
-#: lib/web/live/vault_live/show.html.heex:215
-#: lib/web/live/vault_live/show.html.heex:267
+#: lib/web/live/vault_live/show.html.heex:96
+#: lib/web/live/vault_live/show.html.heex:231
+#: lib/web/live/vault_live/show.html.heex:283
 #, elixir-autogen, elixir-format
 msgid "Delete"
 msgstr "Eliminar"
@@ -629,7 +630,7 @@ msgstr "¿Eliminar %{count} organizaciones? Todas las familias, galerías y foto
 msgid "Delete 1 family? All galleries and photos will be permanently removed. This cannot be undone."
 msgstr "¿Eliminar 1 familia? Todas las galerías y fotos serán eliminadas permanentemente. Esta acción no se puede deshacer."
 
-#: lib/web/live/vault_live/show.html.heex:255
+#: lib/web/live/vault_live/show.html.heex:271
 #, elixir-autogen, elixir-format
 msgid "Delete 1 memory? This cannot be undone."
 msgid_plural "Delete %{count} memories? This cannot be undone."
@@ -682,7 +683,7 @@ msgstr "Eliminar comentario"
 msgid "Delete families"
 msgstr "Eliminar familias"
 
-#: lib/web/live/org_people_live/index.html.heex:303
+#: lib/web/live/org_people_live/index.html.heex:283
 #, elixir-autogen, elixir-format
 msgid "Delete person"
 msgstr "Eliminar persona"
@@ -691,11 +692,6 @@ msgstr "Eliminar persona"
 #, elixir-autogen, elixir-format
 msgid "Delete this comment?"
 msgstr "¿Eliminar este comentario?"
-
-#: lib/web/live/vault_live/show.html.heex:53
-#, elixir-autogen, elixir-format
-msgid "Delete vault"
-msgstr "Eliminar baúl"
 
 #: lib/web/live/family_live/index.ex:109
 #, elixir-autogen, elixir-format
@@ -726,8 +722,12 @@ msgstr "Divorciado/a"
 
 #: lib/web/live/family_live/show.html.heex:1184
 #: lib/web/live/gallery_live/show.html.heex:297
-#: lib/web/live/org_people_live/index.html.heex:46
-#: lib/web/live/people_live/index.html.heex:50
+#: lib/web/live/org_people_live/index.html.heex:30
+#: lib/web/live/org_people_live/index.html.heex:40
+#: lib/web/live/people_live/index.html.heex:30
+#: lib/web/live/people_live/index.html.heex:40
+#: lib/web/live/vault_live/show.html.heex:36
+#: lib/web/live/vault_live/show.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "Done"
 msgstr "Listo"
@@ -739,9 +739,8 @@ msgstr "Arrastra para subir fotos"
 
 #: lib/web/live/account_management_live/index.ex:194
 #: lib/web/live/account_management_live/show.ex:148
-#: lib/web/live/memory_live/show.html.heex:32
-#: lib/web/live/org_people_live/index.html.heex:48
-#: lib/web/live/people_live/index.html.heex:52
+#: lib/web/live/memory_live/show.html.heex:42
+#: lib/web/live/memory_live/show.html.heex:67
 #: lib/web/live/person_live/show.html.heex:57
 #: lib/web/live/person_live/show.html.heex:107
 #: lib/web/live/person_live/show.html.heex:545
@@ -772,8 +771,8 @@ msgstr "Editar recuerdo"
 msgid "Edit comment"
 msgstr "Editar comentario"
 
-#: lib/web/live/org_people_live/index.html.heex:294
-#: lib/web/live/people_live/index.html.heex:297
+#: lib/web/live/org_people_live/index.html.heex:274
+#: lib/web/live/people_live/index.html.heex:273
 #, elixir-autogen, elixir-format
 msgid "Edit person"
 msgstr "Editar persona"
@@ -821,7 +820,7 @@ msgstr "Detalles del error"
 msgid "Errors"
 msgstr "Errores"
 
-#: lib/web/live/people_live/index.html.heex:153
+#: lib/web/live/people_live/index.html.heex:129
 #, elixir-autogen, elixir-format
 msgid "Est. Age"
 msgstr "Edad aprox."
@@ -835,7 +834,6 @@ msgstr "Expareja"
 #: lib/web/live/gallery_live/show.html.heex:55
 #: lib/web/live/organization_live/index.html.heex:23
 #: lib/web/live/organization_live/index.html.heex:36
-#: lib/web/live/vault_live/show.html.heex:33
 #, elixir-autogen, elixir-format
 msgid "Exit selection"
 msgstr "Salir de selección"
@@ -1001,7 +999,7 @@ msgstr "Nombres"
 msgid "Given names at birth"
 msgstr "Nombres de nacimiento"
 
-#: lib/web/live/people_live/index.html.heex:176
+#: lib/web/live/people_live/index.html.heex:152
 #, elixir-autogen, elixir-format
 msgid "Go back to add members"
 msgstr "Volver para agregar miembros"
@@ -1153,7 +1151,7 @@ msgstr "Pareja fallecida"
 msgid "Leave blank to keep current"
 msgstr "Deja en blanco para mantener la actual"
 
-#: lib/web/live/people_live/index.html.heex:154
+#: lib/web/live/people_live/index.html.heex:130
 #, elixir-autogen, elixir-format
 msgid "Lifespan"
 msgstr "Período de vida"
@@ -1169,8 +1167,8 @@ msgstr "Vincular persona existente"
 msgid "Link existing person"
 msgstr "Vincular persona existente"
 
-#: lib/web/live/org_people_live/index.html.heex:156
-#: lib/web/live/people_live/index.html.heex:155
+#: lib/web/live/org_people_live/index.html.heex:136
+#: lib/web/live/people_live/index.html.heex:131
 #, elixir-autogen, elixir-format
 msgid "Links"
 msgstr "Enlaces"
@@ -1310,8 +1308,8 @@ msgstr "Madre"
 #: lib/web/live/account_management_live/index.ex:129
 #: lib/web/live/account_management_live/show.ex:169
 #: lib/web/live/memory_live/form.html.heex:53
-#: lib/web/live/org_people_live/index.html.heex:148
-#: lib/web/live/people_live/index.html.heex:152
+#: lib/web/live/org_people_live/index.html.heex:128
+#: lib/web/live/people_live/index.html.heex:128
 #, elixir-autogen, elixir-format
 msgid "Name"
 msgstr "Nombre"
@@ -1390,7 +1388,7 @@ msgstr "Aún no hay álbumes en esta familia. Sube fotos a una galería primero.
 msgid "No families yet"
 msgstr "Aún no hay familias"
 
-#: lib/web/live/org_people_live/index.html.heex:96
+#: lib/web/live/org_people_live/index.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "No family"
 msgstr "Sin familia"
@@ -1415,7 +1413,7 @@ msgstr "Sin resultados"
 msgid "No members yet."
 msgstr "Aún no hay miembros."
 
-#: lib/web/live/vault_live/show.html.heex:164
+#: lib/web/live/vault_live/show.html.heex:180
 #, elixir-autogen, elixir-format
 msgid "No memories yet"
 msgstr "Aún no hay recuerdos"
@@ -1435,7 +1433,7 @@ msgstr "Aún no hay organizaciones"
 msgid "No people found"
 msgstr "No se encontraron personas"
 
-#: lib/web/live/people_live/index.html.heex:169
+#: lib/web/live/people_live/index.html.heex:145
 #, elixir-autogen, elixir-format
 msgid "No people in this family"
 msgstr "No hay personas en esta familia"
@@ -1496,11 +1494,13 @@ msgstr "Solo se puede subir un archivo"
 #: lib/web/live/family_live/show.html.heex:10
 #: lib/web/live/gallery_live/show.html.heex:10
 #: lib/web/live/kinship_live.html.heex:10
+#: lib/web/live/memory_live/show.html.heex:10
 #: lib/web/live/org_people_live/index.html.heex:10
 #: lib/web/live/organization_live/index.html.heex:9
 #: lib/web/live/people_live/index.html.heex:10
 #: lib/web/live/person_live/new.html.heex:10
 #: lib/web/live/person_live/show.html.heex:10
+#: lib/web/live/vault_live/show.html.heex:10
 #, elixir-autogen, elixir-format
 msgid "Open menu"
 msgstr "Abrir menú"
@@ -1523,9 +1523,7 @@ msgstr "Nombre de la organización"
 #: lib/web/live/account_management_live/show.ex:200
 #: lib/web/live/family_live/new.html.heex:34
 #: lib/web/live/kinship_live.html.heex:38
-#: lib/web/live/org_people_live/index.html.heex:62
 #: lib/web/live/organization_live/index.html.heex:14
-#: lib/web/live/people_live/index.html.heex:66
 #: lib/web/live/person_live/new.html.heex:38
 #, elixir-autogen, elixir-format
 msgid "Organizations"
@@ -1662,7 +1660,7 @@ msgstr "Relaciones"
 
 #: lib/web/live/account_management_live/edit.ex:285
 #: lib/web/live/account_management_live/new.ex:171
-#: lib/web/live/people_live/index.html.heex:352
+#: lib/web/live/people_live/index.html.heex:328
 #: lib/web/live/person_live/show.html.heex:555
 #: lib/web/live/person_live/show.html.heex:694
 #: lib/web/live/shared/person_form_component.html.heex:33
@@ -1675,6 +1673,7 @@ msgstr "Eliminar"
 msgid "Remove cover photo"
 msgstr "Eliminar foto de portada"
 
+#: lib/web/live/people_live/index.html.heex:109
 #: lib/web/live/person_live/show.html.heex:69
 #: lib/web/live/person_live/show.html.heex:112
 #: lib/web/live/person_live/show.html.heex:677
@@ -1682,8 +1681,7 @@ msgstr "Eliminar foto de portada"
 msgid "Remove from Family"
 msgstr "Eliminar de la familia"
 
-#: lib/web/live/people_live/index.html.heex:35
-#: lib/web/live/people_live/index.html.heex:306
+#: lib/web/live/people_live/index.html.heex:282
 #, elixir-autogen, elixir-format
 msgid "Remove from family"
 msgstr "Eliminar de la familia"
@@ -1778,8 +1776,8 @@ msgstr "Buscar personas"
 
 #: lib/web/components/photo_gallery.ex:328
 #: lib/web/live/family_live/person_selector_component.ex:47
-#: lib/web/live/org_people_live/index.html.heex:80
-#: lib/web/live/people_live/index.html.heex:84
+#: lib/web/live/org_people_live/index.html.heex:60
+#: lib/web/live/people_live/index.html.heex:60
 #, elixir-autogen, elixir-format
 msgid "Search people..."
 msgstr "Buscar personas..."
@@ -1793,8 +1791,14 @@ msgstr "Buscar..."
 #: lib/web/live/family_live/index.html.heex:54
 #: lib/web/live/gallery_live/show.html.heex:34
 #: lib/web/live/gallery_live/show.html.heex:55
+#: lib/web/live/org_people_live/index.html.heex:30
+#: lib/web/live/org_people_live/index.html.heex:40
 #: lib/web/live/organization_live/index.html.heex:23
 #: lib/web/live/organization_live/index.html.heex:36
+#: lib/web/live/people_live/index.html.heex:30
+#: lib/web/live/people_live/index.html.heex:40
+#: lib/web/live/vault_live/show.html.heex:36
+#: lib/web/live/vault_live/show.html.heex:70
 #, elixir-autogen, elixir-format
 msgid "Select"
 msgstr "Seleccionar"
@@ -1810,16 +1814,11 @@ msgstr "Selecciona un miembro de la familia para ver sus ancestros y descendient
 msgid "Select a person..."
 msgstr "Selecciona una persona..."
 
-#: lib/web/live/org_people_live/index.html.heex:119
-#: lib/web/live/people_live/index.html.heex:123
+#: lib/web/live/org_people_live/index.html.heex:101
+#: lib/web/live/people_live/index.html.heex:101
 #, elixir-autogen, elixir-format
 msgid "Select all"
 msgstr "Seleccionar todo"
-
-#: lib/web/live/vault_live/show.html.heex:33
-#, elixir-autogen, elixir-format
-msgid "Select memories"
-msgstr "Seleccionar recuerdos"
 
 #: lib/web/live/kinship_live.html.heex:106
 #, elixir-autogen, elixir-format
@@ -1855,7 +1854,7 @@ msgstr "¡Algo salió mal!"
 msgid "Spouses & Children"
 msgstr "Cónyuges e hijos"
 
-#: lib/web/live/vault_live/show.html.heex:167
+#: lib/web/live/vault_live/show.html.heex:183
 #, elixir-autogen, elixir-format
 msgid "Start capturing your family stories, recipes, and traditions."
 msgstr "Comienza a capturar las historias, recetas y tradiciones de tu familia."
@@ -1893,17 +1892,18 @@ msgstr "Apellido de nacimiento"
 msgid "The person will still exist and can be linked to other families."
 msgstr "La persona seguirá existiendo y podrá vincularse a otras familias."
 
-#: lib/web/live/people_live/index.html.heex:342
+#: lib/web/live/people_live/index.html.heex:318
 #, elixir-autogen, elixir-format
 msgid "They won't be deleted, just detached from this family."
 msgstr "No serán eliminados, solo desvinculados de esta familia."
 
 #: lib/web/live/memory_live/form.html.heex:289
+#: lib/web/live/memory_live/show.html.heex:133
 #, elixir-autogen, elixir-format
 msgid "This cannot be undone."
 msgstr "Esta acción no se puede deshacer."
 
-#: lib/web/live/org_people_live/index.html.heex:337
+#: lib/web/live/org_people_live/index.html.heex:317
 #, elixir-autogen, elixir-format
 msgid "This cannot be undone. All their photos, relationships, and family links will be removed."
 msgstr "Esta acción no se puede deshacer. Todas sus fotos, relaciones y vínculos familiares serán eliminados."
@@ -1972,7 +1972,7 @@ msgstr "Desconocido"
 msgid "Unknown relationship type."
 msgstr "Tipo de relación desconocido."
 
-#: lib/web/live/people_live/index.html.heex:100
+#: lib/web/live/people_live/index.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "Unlinked"
 msgstr "Sin vincular"
@@ -2161,7 +2161,7 @@ msgstr "ej. Verano 2025"
 msgid "e.g. The Smiths"
 msgstr "ej. Los García"
 
-#: lib/web/live/people_live/index.html.heex:340
+#: lib/web/live/people_live/index.html.heex:316
 #, elixir-autogen, elixir-format
 msgid "from"
 msgstr "de"
@@ -2176,14 +2176,14 @@ msgstr "justo ahora"
 msgid "optional"
 msgstr "opcional"
 
-#: lib/web/live/org_people_live/index.html.heex:337
-#: lib/web/live/people_live/index.html.heex:340
+#: lib/web/live/org_people_live/index.html.heex:317
+#: lib/web/live/people_live/index.html.heex:316
 #, elixir-autogen, elixir-format
 msgid "people"
 msgstr "personas"
 
-#: lib/web/live/org_people_live/index.html.heex:337
-#: lib/web/live/people_live/index.html.heex:340
+#: lib/web/live/org_people_live/index.html.heex:317
+#: lib/web/live/people_live/index.html.heex:316
 #, elixir-autogen, elixir-format
 msgid "person"
 msgstr "persona"
@@ -3037,10 +3037,10 @@ msgstr "Convertido en no familiar"
 msgid "Failed to convert"
 msgstr "Error al convertir"
 
-#: lib/web/live/org_people_live/index.html.heex:109
-#: lib/web/live/org_people_live/index.html.heex:245
-#: lib/web/live/people_live/index.html.heex:113
-#: lib/web/live/people_live/index.html.heex:251
+#: lib/web/live/org_people_live/index.html.heex:89
+#: lib/web/live/org_people_live/index.html.heex:225
+#: lib/web/live/people_live/index.html.heex:89
+#: lib/web/live/people_live/index.html.heex:227
 #, elixir-autogen, elixir-format
 msgid "Non-family"
 msgstr "No familiar"
@@ -3195,3 +3195,16 @@ msgstr "Subir fotos"
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Convert to Non-family"
 msgstr "Convertir en no familiar"
+
+#: lib/web/live/memory_live/show.html.heex:54
+#: lib/web/live/memory_live/show.html.heex:73
+#: lib/web/live/memory_live/show.html.heex:130
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Delete Memory"
+msgstr "Eliminar galería"
+
+#: lib/web/live/vault_live/show.html.heex:57
+#: lib/web/live/vault_live/show.html.heex:80
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Delete Vault"
+msgstr "Eliminar baúl"

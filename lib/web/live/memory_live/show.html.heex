@@ -2,6 +2,15 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label={gettext("Open menu")}
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
         <.breadcrumb
           items={[
             %{
@@ -22,17 +31,51 @@
           {test_id("memory-show-name")}
         />
       </div>
-      <.link
+      <div class="hidden lg:flex items-center gap-2">
+        <.toolbar_button
+          variant={:secondary}
+          navigate={
+            ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}/edit"
+          }
+          {test_id("memory-edit-btn")}
+        >
+          {gettext("Edit")}
+        </.toolbar_button>
+        <div class="relative">
+          <.toolbar_button variant={:kebab} phx-click="toggle_menu" />
+          <.kebab_menu show={@show_menu}>
+            <:container_item>
+              <button
+                type="button"
+                phx-click="request_delete"
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10"
+                {test_id("memory-delete-btn")}
+              >
+                {gettext("Delete Memory")}
+              </button>
+            </:container_item>
+          </.kebab_menu>
+        </div>
+      </div>
+    </div>
+  </:toolbar>
+
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        label={gettext("Edit")}
         navigate={
           ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/#{@memory.id}/edit"
         }
-        class="inline-flex items-center gap-1.5 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
-        {test_id("memory-edit-btn")}
-      >
-        <.icon name="hero-pencil" class="size-4" /> {gettext("Edit")}
-      </.link>
-    </div>
-  </:toolbar>
+      />
+      <.nav_action
+        label={gettext("Delete Memory")}
+        danger
+        phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
+      />
+    </:page_actions>
+  </.nav_drawer>
 
   <div class="px-4 py-6 sm:px-6 lg:px-8 max-w-3xl mx-auto">
     <%!-- Cover photo --%>
@@ -63,4 +106,50 @@
       </p>
     </div>
   </div>
+
+  <%!-- Delete Confirmation Modal --%>
+  <%= if @confirm_delete do %>
+    <div
+      class="fixed inset-0 z-50 flex items-end lg:items-center justify-center"
+      phx-window-keydown="cancel_delete"
+      phx-key="Escape"
+    >
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" phx-click="cancel_delete"></div>
+      <div
+        id="confirm-delete-memory-modal"
+        class="relative bg-cm-white border-2 border-cm-black w-full max-w-none lg:max-w-md mx-0 lg:mx-4 rounded-t-lg lg:rounded-cm p-8"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-memory-title"
+        phx-mounted={JS.focus_first()}
+      >
+        <h2
+          id="delete-memory-title"
+          class="text-xl font-cm-display font-bold text-cm-indigo uppercase tracking-wider mb-2"
+        >
+          {gettext("Delete Memory")}
+        </h2>
+        <p class="text-cm-text-muted mb-6 font-cm-body">
+          {gettext("Delete")} <span class="font-semibold">"{@memory.name}"</span>? {gettext(
+            "This cannot be undone."
+          )}
+        </p>
+        <div class="flex gap-3">
+          <button
+            phx-click="confirm_delete"
+            class="flex-1 bg-cm-error text-cm-white rounded-cm py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
+            {test_id("confirm-delete-memory-btn")}
+          >
+            {gettext("Delete")}
+          </button>
+          <button
+            phx-click="cancel_delete"
+            class="flex-1 bg-cm-surface text-cm-black rounded-cm border-2 border-cm-black py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface/80 transition-colors"
+          >
+            {gettext("Cancel")}
+          </button>
+        </div>
+      </div>
+    </div>
+  <% end %>
 </Layouts.app>
