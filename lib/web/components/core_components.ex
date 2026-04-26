@@ -185,20 +185,20 @@ defmodule Web.CoreComponents do
           "#{base} border-cm-coral bg-cm-coral text-cm-white hover:bg-cm-coral-hover"
 
         :secondary ->
-          "#{base} border-cm-black bg-cm-surface hover:bg-cm-surface-hover"
+          "#{base} border-cm-black bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
 
         :toggle_active ->
           "#{base} border-cm-indigo bg-cm-indigo text-cm-white"
 
         :filter ->
           if assigns.active do
-            "#{base} border-cm-gold bg-cm-gold/10"
+            "#{base} border-cm-gold bg-cm-gold/10 text-cm-black"
           else
-            "#{base} border-cm-border bg-cm-surface hover:bg-cm-surface-hover"
+            "#{base} border-cm-border bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
           end
 
         _ ->
-          "#{base} border-cm-black bg-cm-surface hover:bg-cm-surface-hover"
+          "#{base} border-cm-black bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
       end
 
     rest = assigns.rest
