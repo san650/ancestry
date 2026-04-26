@@ -7,9 +7,10 @@ defmodule Web.AccountLive.Login do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="flex flex-col items-center justify-center min-h-[80svh] px-6">
         <div class="w-full max-w-sm">
-          <%!-- Logo --%>
           <div class="flex flex-col items-center pt-16 pb-8 lg:pt-8">
-            <h1 class="font-cm-display text-lg font-bold text-cm-black">{gettext("Log in")}</h1>
+            <h1 class="font-cm-display text-2xl text-cm-indigo uppercase tracking-wider">
+              {gettext("Log in")}
+            </h1>
             <p
               :if={@current_scope}
               class="mt-2 text-sm font-cm-body text-cm-text-muted text-center"
@@ -18,50 +19,50 @@ defmodule Web.AccountLive.Login do
             </p>
           </div>
 
-          <.form
-            :let={f}
-            for={@form}
-            id="login_form_password"
-            action={~p"/accounts/log-in"}
-            phx-submit="submit_password"
-            phx-trigger-action={@trigger_submit}
-          >
-            <div class="flex flex-col gap-4">
-              <.input
-                readonly={!!@current_scope}
-                field={f[:email]}
-                type="email"
-                label={gettext("Email")}
-                autocomplete="username"
-                spellcheck="false"
-                required
-                class="w-full px-4 py-3 bg-cm-white border border-cm-border/20 rounded-cm text-base font-cm-body text-cm-black placeholder:text-cm-text-muted/50 focus:border-cm-indigo focus:ring-1 focus:ring-cm-indigo"
-              />
-              <.input
-                field={@form[:password]}
-                type="password"
-                label={gettext("Password")}
-                autocomplete="current-password"
-                spellcheck="false"
-                class="w-full px-4 py-3 bg-cm-white border border-cm-border/20 rounded-cm text-base font-cm-body text-cm-black placeholder:text-cm-text-muted/50 focus:border-cm-indigo focus:ring-1 focus:ring-cm-indigo"
-              />
+          <div class="cm-card p-6">
+            <.form
+              :let={f}
+              for={@form}
+              id="login_form_password"
+              action={~p"/accounts/log-in"}
+              phx-submit="submit_password"
+              phx-trigger-action={@trigger_submit}
+            >
+              <div class="flex flex-col gap-4">
+                <.input
+                  readonly={!!@current_scope}
+                  field={f[:email]}
+                  type="email"
+                  label={gettext("Email")}
+                  autocomplete="username"
+                  spellcheck="false"
+                  required
+                />
+                <.input
+                  field={@form[:password]}
+                  type="password"
+                  label={gettext("Password")}
+                  autocomplete="current-password"
+                  spellcheck="false"
+                />
 
-              <button
-                type="submit"
-                name={@form[:remember_me].name}
-                value="true"
-                class="w-full py-3 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white font-cm-display font-bold text-sm rounded-cm transition-all hover:brightness-110 focus:ring-2 focus:ring-cm-indigo focus:ring-offset-2 cursor-pointer"
-              >
-                {gettext("Log in and stay logged in")}
-              </button>
-              <button
-                type="submit"
-                class="w-full py-3 bg-cm-surface text-cm-black text-sm font-cm-body font-semibold rounded-cm transition-colors hover:bg-cm-surface cursor-pointer"
-              >
-                {gettext("Log in only this time")}
-              </button>
-            </div>
-          </.form>
+                <button
+                  type="submit"
+                  name={@form[:remember_me].name}
+                  value="true"
+                  class="w-full py-3 bg-cm-indigo text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors hover:bg-cm-indigo-hover focus-visible:ring-2 focus-visible:ring-cm-indigo focus-visible:ring-offset-2 cursor-pointer"
+                >
+                  {gettext("Log in and stay logged in")}
+                </button>
+                <button
+                  type="submit"
+                  class="w-full py-3 border-2 border-cm-black bg-cm-white text-cm-black font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors hover:bg-cm-surface cursor-pointer"
+                >
+                  {gettext("Log in only this time")}
+                </button>
+              </div>
+            </.form>
+          </div>
         </div>
       </div>
     </Layouts.app>

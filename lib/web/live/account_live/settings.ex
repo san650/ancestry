@@ -10,7 +10,7 @@ defmodule Web.AccountLive.Settings do
       <div class="flex items-start justify-center min-h-[70vh] px-4 pt-12">
         <div class="w-full max-w-md space-y-8">
           <div class="text-center">
-            <h1 class="font-cm-display text-lg font-bold text-cm-black">
+            <h1 class="font-cm-display text-2xl text-cm-indigo uppercase tracking-wider">
               {gettext("Account Settings")}
             </h1>
             <p class="mt-2 text-sm font-cm-body text-cm-text-muted">
@@ -18,8 +18,8 @@ defmodule Web.AccountLive.Settings do
             </p>
           </div>
 
-          <div class="bg-cm-white rounded-cm p-6">
-            <h2 class="font-cm-display text-lg font-bold text-cm-black mb-4">
+          <div class="cm-card p-6">
+            <h2 class="font-cm-display text-lg text-cm-indigo uppercase tracking-wider mb-4">
               {gettext("Email")}
             </h2>
             <.form
@@ -39,15 +39,15 @@ defmodule Web.AccountLive.Settings do
               <button
                 type="submit"
                 phx-disable-with={gettext("Changing...")}
-                class="mt-4 px-6 py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
+                class="mt-4 px-6 py-3 bg-cm-indigo text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors hover:bg-cm-indigo-hover cursor-pointer"
               >
                 {gettext("Change Email")}
               </button>
             </.form>
           </div>
 
-          <div class="bg-cm-white rounded-cm p-6">
-            <h2 class="font-cm-display text-lg font-bold text-cm-black mb-4">
+          <div class="cm-card p-6">
+            <h2 class="font-cm-display text-lg text-cm-indigo uppercase tracking-wider mb-4">
               {gettext("Password")}
             </h2>
             <.form
@@ -84,15 +84,15 @@ defmodule Web.AccountLive.Settings do
               <button
                 type="submit"
                 phx-disable-with={gettext("Saving...")}
-                class="mt-4 px-6 py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
+                class="mt-4 px-6 py-3 bg-cm-indigo text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors hover:bg-cm-indigo-hover cursor-pointer"
               >
                 {gettext("Save Password")}
               </button>
             </.form>
           </div>
 
-          <div class="bg-cm-white rounded-cm p-6">
-            <h2 class="font-cm-display text-lg font-bold text-cm-black mb-4">
+          <div class="cm-card p-6">
+            <h2 class="font-cm-display text-lg text-cm-indigo uppercase tracking-wider mb-4">
               {gettext("Language")}
             </h2>
             <.form
@@ -110,7 +110,7 @@ defmodule Web.AccountLive.Settings do
               <button
                 type="submit"
                 phx-disable-with={gettext("Saving...")}
-                class="mt-4 px-6 py-2.5 bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white text-sm font-cm-body font-semibold rounded-cm transition-opacity hover:opacity-90 cursor-pointer"
+                class="mt-4 px-6 py-3 bg-cm-indigo text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm transition-colors hover:bg-cm-indigo-hover cursor-pointer"
               >
                 {gettext("Save Language")}
               </button>

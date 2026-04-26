@@ -1,7 +1,7 @@
 <Layouts.app flash={@flash} current_scope={@current_scope}>
   <div class="flex items-center min-h-[calc(100vh-52px)] px-6 sm:pl-[20%]">
     <div class="flex flex-col gap-6 max-w-xl">
-      <h1 class="font-cm-display text-[2rem] sm:text-[3.5rem] font-extrabold leading-tight text-cm-indigo">
+      <h1 class="font-cm-display text-[2rem] sm:text-[3.5rem] leading-tight text-cm-indigo uppercase tracking-wider">
         {gettext("Organize your family's photos and history.")}
       </h1>
 
@@ -14,7 +14,7 @@
       <div class="flex items-center gap-4 mt-2">
         <a
           href={~p"/accounts/log-in"}
-          class="inline-block bg-gradient-to-b from-cm-indigo to-cm-indigo text-cm-white rounded-cm px-6 py-3 font-cm-body text-sm font-medium hover:brightness-110 transition-all focus-visible:ring-2 focus-visible:ring-cm-indigo focus-visible:ring-offset-2"
+          class="inline-block bg-cm-coral text-cm-white font-cm-mono text-[10px] font-bold uppercase tracking-wider px-6 py-3 rounded-cm hover:bg-cm-coral-hover transition-colors focus-visible:ring-2 focus-visible:ring-cm-coral focus-visible:ring-offset-2"
         >
           {gettext("Log in")}
         </a>
