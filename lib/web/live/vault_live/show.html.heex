@@ -2,6 +2,15 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label={gettext("Open menu")}
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
         <.breadcrumb
           items={[
             %{
@@ -18,68 +27,75 @@
         />
       </div>
 
-      <div class="flex items-center gap-1">
-        <button
-          type="button"
+      <div class="hidden lg:flex items-center gap-2">
+        <.toolbar_button
+          variant={:secondary}
           phx-click="toggle_select_mode"
-          class={[
-            "p-2 rounded-cm transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center",
-            if(@selection_mode,
-              do: "bg-cm-indigo text-cm-white",
-              else: "text-cm-text-muted hover:text-cm-black"
-            )
-          ]}
-          aria-label={
-            if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select memories"))
-          }
           {test_id("memory-select-btn")}
         >
-          <.icon name="hero-check-circle" class="size-5" />
-        </button>
-        <.link
+          {if @selection_mode, do: gettext("Done"), else: gettext("Select")}
+        </.toolbar_button>
+        <.toolbar_button
+          variant={:primary}
           navigate={
             ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
           }
-          class="inline-flex items-center gap-1.5 bg-cm-coral text-cm-white rounded-cm px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity"
           {test_id("vault-add-memory-btn")}
         >
-          <.icon name="hero-plus" class="size-4" />
-          <span class="hidden sm:inline">{gettext("Add Memory")}</span>
-        </.link>
-        <button
-          type="button"
-          phx-click="request_delete_vault"
-          class="p-2 text-cm-text-muted hover:text-cm-black"
-          aria-label={gettext("Delete vault")}
-          {test_id("vault-delete-btn")}
-        >
-          <.icon name="hero-trash" class="size-5" />
-        </button>
+          {gettext("Add Memory")}
+        </.toolbar_button>
+        <div class="relative">
+          <.toolbar_button variant={:kebab} phx-click="toggle_menu" {test_id("vault-kebab-btn")} />
+          <.kebab_menu show={@show_menu}>
+            <:container_item>
+              <button
+                type="button"
+                phx-click="request_delete_vault"
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10"
+                {test_id("vault-delete-btn")}
+              >
+                {gettext("Delete Vault")}
+              </button>
+            </:container_item>
+          </.kebab_menu>
+        </div>
       </div>
     </div>
   </:toolbar>
 
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope}>
+    <:page_actions>
+      <.nav_action
+        label={if @selection_mode, do: gettext("Done"), else: gettext("Select")}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
+      />
+      <.nav_action
+        label={gettext("Add Memory")}
+        navigate={
+          ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}/vaults/#{@vault.id}/memories/new"
+        }
+      />
+      <.nav_action
+        label={gettext("Delete Vault")}
+        danger
+        phx-click={toggle_nav_drawer() |> JS.push("request_delete_vault")}
+      />
+    </:page_actions>
+  </.nav_drawer>
+
   <%!-- Memory cards grid --%>
   <div class="px-4 py-6 sm:px-6 lg:px-8">
-    <%= if @selection_mode do %>
-      <div
-        id="selection-bar"
-        class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t border-cm-border/20 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-0 lg:py-0 lg:mb-4 lg:bg-cm-black lg:text-cm-white lg:rounded-cm lg:px-5 lg:py-3"
-        {test_id("memory-selection-bar")}
+    <.selection_bar count={MapSet.size(@selected_ids)} show={@selection_mode}>
+      <button
+        phx-click="request_delete_memories"
+        disabled={MapSet.size(@selected_ids) == 0}
+        class="px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm bg-cm-error text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+        {test_id("memory-delete-selected-btn")}
       >
-        <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
-          {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
-        </span>
-        <button
-          phx-click="request_delete_memories"
-          disabled={MapSet.size(@selected_ids) == 0}
-          class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-error lg:text-white lg:hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-          {test_id("memory-delete-selected-btn")}
-        >
-          {gettext("Delete")}
-        </button>
-      </div>
-    <% end %>
+        {gettext("Delete")}
+      </button>
+    </.selection_bar>
 
     <%= if @has_memories do %>
       <div

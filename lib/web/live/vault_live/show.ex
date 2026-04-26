@@ -31,6 +31,7 @@ defmodule Web.VaultLive.Show do
      |> assign(:vault, vault)
      |> assign(:has_memories, memories != [])
      |> assign(:confirm_delete_vault, false)
+     |> assign(:show_menu, false)
      |> assign(:selection_mode, false)
      |> assign(:selected_ids, MapSet.new())
      |> assign(:confirm_delete_memories, false)
@@ -40,9 +41,19 @@ defmodule Web.VaultLive.Show do
   @impl true
   def handle_params(_params, _url, socket), do: {:noreply, socket}
 
-  # Selection mode
+  # Menu
 
   @impl true
+  def handle_event("toggle_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, !socket.assigns.show_menu)}
+  end
+
+  def handle_event("close_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, false)}
+  end
+
+  # Selection mode
+
   def handle_event("toggle_select_mode", _, socket) do
     {:noreply,
      socket

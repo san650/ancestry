@@ -8,7 +8,7 @@ defmodule Web.AccountLive.RegistrationTest do
 
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do
-      {:ok, _lv, html} = live(conn, ~p"/accounts/register")
+      {:ok, _lv, html} = live(conn, "/accounts/register")
 
       assert html =~ "Register"
       assert html =~ "Log in"
@@ -18,14 +18,14 @@ defmodule Web.AccountLive.RegistrationTest do
       result =
         conn
         |> log_in_account(insert(:account))
-        |> live(~p"/accounts/register")
+        |> live("/accounts/register")
         |> follow_redirect(conn, ~p"/org")
 
       assert {:ok, _conn} = result
     end
 
     test "renders errors for invalid data", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/register")
+      {:ok, lv, _html} = live(conn, "/accounts/register")
 
       result =
         lv
@@ -39,7 +39,7 @@ defmodule Web.AccountLive.RegistrationTest do
 
   describe "register account" do
     test "creates account but does not log in", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/register")
+      {:ok, lv, _html} = live(conn, "/accounts/register")
 
       email = unique_account_email()
       form = form(lv, "#registration_form", account: %{email: email})
@@ -53,7 +53,7 @@ defmodule Web.AccountLive.RegistrationTest do
     end
 
     test "renders errors for duplicated email", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/register")
+      {:ok, lv, _html} = live(conn, "/accounts/register")
 
       account = insert(:account, %{email: "test@email.com"})
 
@@ -70,7 +70,7 @@ defmodule Web.AccountLive.RegistrationTest do
 
   describe "registration navigation" do
     test "redirects to login page when the Log in button is clicked", %{conn: conn} do
-      {:ok, lv, _html} = live(conn, ~p"/accounts/register")
+      {:ok, lv, _html} = live(conn, "/accounts/register")
 
       {:ok, _login_live, login_html} =
         lv
