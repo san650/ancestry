@@ -150,24 +150,7 @@ defmodule Web.AccountManagementLive.Show do
         </div>
       </:toolbar>
 
-      <.nav_drawer current_scope={@current_scope}>
-        <.link
-          href={~p"/org"}
-          {test_id("nav-organizations")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-        >
-          <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
-          <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
-        </.link>
-        <.link
-          href={~p"/admin/accounts"}
-          {test_id("nav-accounts")}
-          class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-        >
-          <.icon name="hero-users" class="size-5 shrink-0 text-cm-text-muted" />
-          <span class="font-cm-body text-sm">{gettext("Accounts")}</span>
-        </.link>
-      </.nav_drawer>
+      <.nav_drawer current_scope={@current_scope} />
 
       <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="bg-cm-white rounded-cm p-6 border-2 border-cm-black" {test_id("account-detail")}>
