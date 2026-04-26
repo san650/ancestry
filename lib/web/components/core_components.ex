@@ -443,7 +443,7 @@ defmodule Web.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
+    <table class="w-full text-left font-cm-body text-sm">
       <thead>
         <tr>
           <th :for={col <- @col}>{col[:label]}</th>
@@ -490,11 +490,11 @@ defmodule Web.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
+    <ul class="divide-y divide-cm-border">
+      <li :for={item <- @item} class="py-3">
+        <div>
+          <div class="font-cm-body font-bold">{item.title}</div>
+          <div class="font-cm-body">{render_slot(item)}</div>
         </div>
       </li>
     </ul>
