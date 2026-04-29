@@ -42,6 +42,169 @@ defmodule Ancestry.People.PersonGraph.Layout do
 
   @doc false
   # Exposed for testing via __name__ convention.
+  # Walks a family-unit tree top-down and assigns column/row coordinates.
+  # Returns a flat list of placement tuples:
+  #   {:placed_anchor, entry, col, row} — a person occupying (col, row)
+  #   {:separator, col, row}            — an empty cell at (col, row)
+  #
+  # Arguments:
+  #   root_unit  — %Couple{} or %Single{} (root of the half-tree)
+  #   base_row   — row at which root_unit's anchor sits
+  #   direction  — :descendant (children rows = row+1) or :ancestor (children rows = row-1)
+  def __place_half__(root_unit, base_row, direction) do
+    total_width = __width__(root_unit)
+
+    do_place(root_unit, 0, base_row, total_width, direction, [])
+    |> Enum.reverse()
+  end
+
+  # ── Placement private implementation ────────────────────────────────
+
+  # Place a %Couple{} unit within [start_col..start_col+width-1] at `row`.
+  defp do_place(%Couple{} = unit, start_col, row, width, direction, acc) do
+    {lane_width, lane_acc} = place_loose_lane(unit.loose_lane, start_col, row, direction, acc)
+
+    # Compute the remaining range after the loose lane (+ separator if lane present)
+    {remaining_start, remaining_width} =
+      remaining_range(start_col, width, lane_width, unit.loose_lane)
+
+    # Center the couple's 2 cells within the remaining range
+    anchor_a_col = remaining_start + div(remaining_width - 2, 2)
+    anchor_b_col = anchor_a_col + 1
+
+    acc2 =
+      [
+        {:placed_anchor, unit.anchor_a, anchor_a_col, row},
+        {:placed_anchor, unit.anchor_b, anchor_b_col, row}
+        | lane_acc
+      ]
+
+    # Fill the rest of this row (within [start_col..start_col+width-1]) with separators.
+    occupied = MapSet.new([anchor_a_col, anchor_b_col])
+
+    lane_cols =
+      if unit.loose_lane && lane_width > 0 do
+        MapSet.new(start_col..(start_col + lane_width - 1))
+      else
+        MapSet.new()
+      end
+
+    filled = MapSet.union(occupied, lane_cols)
+
+    acc3 =
+      Enum.reduce(start_col..(start_col + width - 1), acc2, fn col, a ->
+        if MapSet.member?(filled, col), do: a, else: [{:separator, col, row} | a]
+      end)
+
+    # Recurse into children on the next row
+    child_row = next_row(row, direction)
+    place_children(unit.children, start_col, child_row, width, direction, acc3)
+  end
+
+  # Place a %Single{anchor: nil} (solo group) — no anchor cell, just lay out children.
+  defp do_place(%Single{anchor: nil, children: kids}, start_col, row, width, direction, acc) do
+    # No anchor on this row — all cells are separators.
+    acc2 =
+      Enum.reduce(start_col..(start_col + width - 1), acc, fn col, a ->
+        [{:separator, col, row} | a]
+      end)
+
+    child_row = next_row(row, direction)
+    place_children(kids, start_col, child_row, width, direction, acc2)
+  end
+
+  # Place a %Single{} unit with a real anchor.
+  defp do_place(%Single{} = unit, start_col, row, width, direction, acc) do
+    {lane_width, lane_acc} = place_loose_lane(unit.loose_lane, start_col, row, direction, acc)
+
+    {remaining_start, remaining_width} =
+      remaining_range(start_col, width, lane_width, unit.loose_lane)
+
+    # Single anchor centered (floor) within remaining range
+    anchor_col = remaining_start + div(remaining_width - 1, 2)
+
+    acc2 = [{:placed_anchor, unit.anchor, anchor_col, row} | lane_acc]
+
+    # Fill remaining row cells with separators
+    occupied = MapSet.new([anchor_col])
+
+    lane_cols =
+      if unit.loose_lane && lane_width > 0 do
+        MapSet.new(start_col..(start_col + lane_width - 1))
+      else
+        MapSet.new()
+      end
+
+    filled = MapSet.union(occupied, lane_cols)
+
+    acc3 =
+      Enum.reduce(start_col..(start_col + width - 1), acc2, fn col, a ->
+        if MapSet.member?(filled, col), do: a, else: [{:separator, col, row} | a]
+      end)
+
+    child_row = next_row(row, direction)
+    place_children(unit.children, start_col, child_row, width, direction, acc3)
+  end
+
+  # Place the loose lane units left-to-right within [start_col..start_col+lane_width-1].
+  # Returns {lane_width, updated_acc}.
+  defp place_loose_lane(nil, _start_col, _row, _direction, acc), do: {0, acc}
+  defp place_loose_lane(%LooseLane{units: []}, _start_col, _row, _direction, acc), do: {0, acc}
+
+  defp place_loose_lane(%LooseLane{units: units}, start_col, row, direction, acc) do
+    lane_width = __width__(%LooseLane{units: units})
+    {_final_col, final_acc} = place_units_in_row(units, start_col, row, direction, acc)
+    {lane_width, final_acc}
+  end
+
+  # Lay out a list of units left-to-right on `row`, with one separator between adjacent units.
+  # Returns {next_available_col, updated_acc}.
+  defp place_units_in_row([], current_col, _row, _direction, acc), do: {current_col, acc}
+
+  defp place_units_in_row([unit | rest], current_col, row, direction, acc) do
+    unit_width = __width__(unit)
+    acc2 = do_place(unit, current_col, row, unit_width, direction, acc)
+
+    case rest do
+      [] ->
+        {current_col + unit_width, acc2}
+
+      _ ->
+        # Emit inter-unit separator then continue
+        sep_col = current_col + unit_width
+        acc3 = [{:separator, sep_col, row} | acc2]
+        place_units_in_row(rest, sep_col + 1, row, direction, acc3)
+    end
+  end
+
+  # Place the children of a unit in the given row, left-to-right with separators between.
+  # children_start_col is the leftmost column owned by the parent.
+  defp place_children([], _start_col, _child_row, _parent_width, _direction, acc), do: acc
+
+  defp place_children(children, start_col, child_row, _parent_width, direction, acc) do
+    {_final_col, final_acc} = place_units_in_row(children, start_col, child_row, direction, acc)
+    final_acc
+  end
+
+  # Compute the remaining start column and width after accounting for a loose lane.
+  # If no lane (or zero-width lane): remaining = full range.
+  # If lane present: remaining_start = start_col + lane_width + 1 (lane + separator)
+  defp remaining_range(start_col, total_width, lane_width, loose_lane) do
+    if loose_lane && lane_width > 0 do
+      remaining_start = start_col + lane_width + 1
+      remaining_width = total_width - lane_width - 1
+      {remaining_start, remaining_width}
+    else
+      {start_col, total_width}
+    end
+  end
+
+  # Compute the next row given a direction.
+  defp next_row(row, :descendant), do: row + 1
+  defp next_row(row, :ancestor), do: row - 1
+
+  @doc false
+  # Exposed for testing via __name__ convention.
   # Computes the width (in grid columns) for a family unit.
   # Width rules:
   #   - Leaf %Single{} = 1, leaf %Couple{} = 2

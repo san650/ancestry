@@ -762,6 +762,237 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     end
   end
 
+  describe "__place_half__/3" do
+    test "single anchor at floor center (width 1, col 0)" do
+      # %Single{anchor: person, children: []}
+      # width = 1, start_col = 0
+      # anchor sits at floor_center = 0 + div(1-1, 2) = 0
+      anchor_entry = %{
+        person: make_person(1, "Solo"),
+        gen: 0,
+        duplicated: false,
+        focus: true,
+        has_more_up: false,
+        has_more_down: false
+      }
+
+      unit = %Single{anchor: anchor_entry, children: []}
+
+      placements = Layout.__place_half__(unit, 0, :descendant)
+
+      assert [{:placed_anchor, ^anchor_entry, 0, 0}] = placements
+    end
+
+    test "couple over three children: anchor at cols [1, 2]; kids at cols 0, 2, 4" do
+      # width(couple) = max(2, 1+1+1+1+1) = max(2, 5) = 5
+      # cols [0..4], remaining_start=0, remaining_width=5
+      # anchor_a_col = 0 + div(5-2, 2) = 0 + 1 = 1
+      # anchor_b_col = 2
+      # children on row 1 at cols: child0 at col 0, sep at 1, child1 at 2, sep at 3, child2 at 4
+      a = make_entry(10, 0)
+      b = make_entry(11, 0)
+      c1 = make_entry(1, -1)
+      c2 = make_entry(2, -1)
+      c3 = make_entry(3, -1)
+
+      unit = %Couple{
+        anchor_a: a,
+        anchor_b: b,
+        children: [
+          %Single{anchor: c1, children: []},
+          %Single{anchor: c2, children: []},
+          %Single{anchor: c3, children: []}
+        ],
+        loose_lane: nil
+      }
+
+      placements = Layout.__place_half__(unit, 0, :descendant)
+
+      # Expect anchor_a at (1,0), anchor_b at (2,0), separators at (0,0),(3,0),(4,0)
+      # Children on row 1: c1 at (0,1), sep at (1,1), c2 at (2,1), sep at (3,1), c3 at (4,1)
+      assert_placement(placements, {:placed_anchor, a, 1, 0})
+      assert_placement(placements, {:placed_anchor, b, 2, 0})
+      assert_placement(placements, {:separator, 0, 0})
+      assert_placement(placements, {:separator, 3, 0})
+      assert_placement(placements, {:separator, 4, 0})
+      assert_placement(placements, {:placed_anchor, c1, 0, 1})
+      assert_placement(placements, {:separator, 1, 1})
+      assert_placement(placements, {:placed_anchor, c2, 2, 1})
+      assert_placement(placements, {:separator, 3, 1})
+      assert_placement(placements, {:placed_anchor, c3, 4, 1})
+      assert length(placements) == 10
+    end
+
+    test "couple over two children: width 3, anchor at [0, 1], kids at cols 0 and 2" do
+      # width(couple) = max(2, 1+1+1) = max(2,3) = 3
+      # cols [0..2], remaining_start=0, remaining_width=3
+      # anchor_a_col = 0 + div(3-2, 2) = 0 + 0 = 0
+      # anchor_b_col = 1
+      # children on row 1: c1 at col 0, sep at 1, c2 at col 2
+      a = make_entry(10, 0)
+      b = make_entry(11, 0)
+      c1 = make_entry(1, -1)
+      c2 = make_entry(2, -1)
+
+      unit = %Couple{
+        anchor_a: a,
+        anchor_b: b,
+        children: [
+          %Single{anchor: c1, children: []},
+          %Single{anchor: c2, children: []}
+        ],
+        loose_lane: nil
+      }
+
+      placements = Layout.__place_half__(unit, 0, :descendant)
+
+      assert_placement(placements, {:placed_anchor, a, 0, 0})
+      assert_placement(placements, {:placed_anchor, b, 1, 0})
+      assert_placement(placements, {:separator, 2, 0})
+      assert_placement(placements, {:placed_anchor, c1, 0, 1})
+      assert_placement(placements, {:separator, 1, 1})
+      assert_placement(placements, {:placed_anchor, c2, 2, 1})
+      assert length(placements) == 6
+    end
+
+    test "loose lane on the left of primary couple" do
+      # ex_partner single (width=1) + separator + primary couple (width=2) = total 4
+      # Lane at col 0; separator at col 1; primary anchor_a at col 2, anchor_b at col 3
+      # No children on primary, no children on loose lane unit.
+      ex = make_entry(99, 0)
+      a = make_entry(10, 0)
+      b = make_entry(11, 0)
+
+      lane_unit = %Single{anchor: ex, children: []}
+      lane = %LooseLane{units: [lane_unit]}
+
+      unit = %Couple{
+        anchor_a: a,
+        anchor_b: b,
+        children: [],
+        loose_lane: lane
+      }
+
+      placements = Layout.__place_half__(unit, 0, :descendant)
+
+      # Lane occupies col 0 (placed_anchor for ex at row 0)
+      # Separator at col 1, row 0 (loose-lane separator)
+      # Primary anchor_a at col 2, anchor_b at col 3
+      assert_placement(placements, {:placed_anchor, ex, 0, 0})
+      assert_placement(placements, {:separator, 1, 0})
+      assert_placement(placements, {:placed_anchor, a, 2, 0})
+      assert_placement(placements, {:placed_anchor, b, 3, 0})
+      assert length(placements) == 4
+    end
+
+    test "ancestor direction: children sit at row - 1" do
+      # Couple at base_row=0, direction=:ancestor
+      # Father, Mother on row 0
+      # Grandpa, Grandma on row -1
+      father = make_entry(2, 1)
+      mother = make_entry(3, 1)
+      grandpa = make_entry(4, 2)
+      grandma = make_entry(5, 2)
+
+      gp_couple = %Couple{anchor_a: grandpa, anchor_b: grandma, children: [], loose_lane: nil}
+
+      unit = %Couple{
+        anchor_a: father,
+        anchor_b: mother,
+        children: [gp_couple],
+        loose_lane: nil
+      }
+
+      placements = Layout.__place_half__(unit, 0, :ancestor)
+
+      # width(gp_couple) = 2; children_width = 2; parent_width = max(2,2) = 2
+      # parent anchor at cols [0,1] (remaining_width=2, anchor_a = 0 + div(0,2) = 0)
+      # children go on row -1
+      assert_placement(placements, {:placed_anchor, father, 0, 0})
+      assert_placement(placements, {:placed_anchor, mother, 1, 0})
+      assert_placement(placements, {:placed_anchor, grandpa, 0, -1})
+      assert_placement(placements, {:placed_anchor, grandma, 1, -1})
+      assert length(placements) == 4
+    end
+
+    test "two sibling sub-families separated by separator" do
+      # parent %Couple{ children: [Couple_A (width 3), Couple_B (width 2)] }
+      # Couple_A has two single children: children_width(2 singles) = 1+1+1 = 3 → width = max(2,3) = 3
+      # Couple_B is a leaf couple: width = 2
+      # children_width([Couple_A, Couple_B]) = 3 + 1 + 2 = 6
+      # parent width = max(2, 6) = 6
+      # On row 0: anchor_a_col = 0 + div(6-2, 2) = 0 + 2 = 2, anchor_b_col = 3
+      # Separators on row 0: cols 0, 1, 4, 5
+      # Children on row 1:
+      #   Couple_A (width 3) at start_col=0: anchor at cols [0,1], separator at col 2
+      #   sep between siblings at col 3
+      #   Couple_B (width 2) at start_col=4: anchor at cols [4,5], no extra separators
+      # Row 2: Couple_A's two children, each width 1, with a separator between them
+      #   c_kid1 at col 0, sep at col 1, c_kid2 at col 2
+      pa = make_entry(100, 0)
+      pb = make_entry(101, 0)
+      a1 = make_entry(10, -1)
+      a2 = make_entry(11, -1)
+      b1 = make_entry(20, -1)
+      b2 = make_entry(21, -1)
+      # Two children so couple_a width = max(2, 1+1+1) = 3
+      ca_child1 = make_entry(30, -2)
+      ca_child2 = make_entry(31, -2)
+
+      couple_a = %Couple{
+        anchor_a: a1,
+        anchor_b: a2,
+        children: [
+          %Single{anchor: ca_child1, children: []},
+          %Single{anchor: ca_child2, children: []}
+        ],
+        loose_lane: nil
+      }
+
+      couple_b = %Couple{
+        anchor_a: b1,
+        anchor_b: b2,
+        children: [],
+        loose_lane: nil
+      }
+
+      unit = %Couple{
+        anchor_a: pa,
+        anchor_b: pb,
+        children: [couple_a, couple_b],
+        loose_lane: nil
+      }
+
+      placements = Layout.__place_half__(unit, 0, :descendant)
+
+      # Row 0 — parent anchor centered in [0..5]
+      assert_placement(placements, {:placed_anchor, pa, 2, 0})
+      assert_placement(placements, {:placed_anchor, pb, 3, 0})
+      assert_placement(placements, {:separator, 0, 0})
+      assert_placement(placements, {:separator, 1, 0})
+      assert_placement(placements, {:separator, 4, 0})
+      assert_placement(placements, {:separator, 5, 0})
+
+      # Row 1 — Couple_A occupies [0..2]: anchor at [0,1], separator at col 2
+      assert_placement(placements, {:placed_anchor, a1, 0, 1})
+      assert_placement(placements, {:placed_anchor, a2, 1, 1})
+      assert_placement(placements, {:separator, 2, 1})
+
+      # Row 1 — inter-sibling separator between Couple_A and Couple_B
+      assert_placement(placements, {:separator, 3, 1})
+
+      # Row 1 — Couple_B occupies [4..5]: anchor at [4,5]
+      assert_placement(placements, {:placed_anchor, b1, 4, 1})
+      assert_placement(placements, {:placed_anchor, b2, 5, 1})
+
+      # Row 2 — Couple_A's two children laid out in [0..2]
+      # ca_child1 at col 0, sep at col 1, ca_child2 at col 2
+      assert_placement(placements, {:placed_anchor, ca_child1, 0, 2})
+      assert_placement(placements, {:separator, 1, 2})
+      assert_placement(placements, {:placed_anchor, ca_child2, 2, 2})
+    end
+  end
+
   # ── Test helpers ──────────────────────────────────────────────────────
 
   defp make_person(id, name, gender \\ nil) do
@@ -820,5 +1051,23 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     }
 
     %{state | edges: state.edges ++ [edge]}
+  end
+
+  # Build a minimal Phase-1 entry map for placement tests (no state needed).
+  defp make_entry(id, gen) do
+    %{
+      person: make_person(id, "Person#{id}"),
+      gen: gen,
+      duplicated: false,
+      has_more_up: false,
+      has_more_down: false,
+      focus: false
+    }
+  end
+
+  # Assert that `placements` contains the given tuple exactly once.
+  defp assert_placement(placements, expected) do
+    assert Enum.member?(placements, expected),
+           "Expected #{inspect(expected)} in placements, got:\n#{inspect(placements, pretty: true)}"
   end
 end
