@@ -42,6 +42,69 @@ defmodule Ancestry.People.PersonGraph.Layout do
 
   @doc false
   # Exposed for testing via __name__ convention.
+  # Computes the width (in grid columns) for a family unit.
+  # Width rules:
+  #   - Leaf %Single{} = 1, leaf %Couple{} = 2
+  #   - %Single{anchor: nil} (solo group) = children_width (no floor)
+  #   - %Single{} with kids = max(1, children_width(kids))
+  #   - %Couple{} with kids = max(2, children_width(kids))
+  #   - When loose_lane is set: add 1 (separator) + width(loose_lane) to primary width
+  #   - %LooseLane{} = sum of unit widths + (count - 1) separators
+  def __width__(%LooseLane{units: []}), do: 0
+
+  def __width__(%LooseLane{units: [only]}), do: __width__(only)
+
+  def __width__(%LooseLane{units: units}) do
+    Enum.sum(Enum.map(units, &__width__/1)) + length(units) - 1
+  end
+
+  def __width__(%Single{anchor: nil, children: kids}) do
+    children_width(kids)
+  end
+
+  def __width__(%Single{children: [], loose_lane: nil}), do: 1
+
+  def __width__(%Single{children: [], loose_lane: lane}) do
+    lane_w = __width__(lane)
+    if lane_w == 0, do: 1, else: 1 + 1 + lane_w
+  end
+
+  def __width__(%Single{children: kids, loose_lane: nil}) do
+    max(1, children_width(kids))
+  end
+
+  def __width__(%Single{children: kids, loose_lane: lane}) do
+    primary_w = max(1, children_width(kids))
+    lane_w = __width__(lane)
+    if lane_w == 0, do: primary_w, else: primary_w + 1 + lane_w
+  end
+
+  def __width__(%Couple{children: [], loose_lane: nil}), do: 2
+
+  def __width__(%Couple{children: [], loose_lane: lane}) do
+    lane_w = __width__(lane)
+    if lane_w == 0, do: 2, else: 2 + 1 + lane_w
+  end
+
+  def __width__(%Couple{children: kids, loose_lane: nil}) do
+    max(2, children_width(kids))
+  end
+
+  def __width__(%Couple{children: kids, loose_lane: lane}) do
+    primary_w = max(2, children_width(kids))
+    lane_w = __width__(lane)
+    if lane_w == 0, do: primary_w, else: primary_w + 1 + lane_w
+  end
+
+  defp children_width([]), do: 0
+  defp children_width([only]), do: __width__(only)
+
+  defp children_width([first | rest]) do
+    __width__(first) + 1 + children_width(rest)
+  end
+
+  @doc false
+  # Exposed for testing via __name__ convention.
   # Builds the descendant-side family-unit tree rooted at the focus's primary
   # couple (or single) unit. Walks gen ≤ 0 entries from Phase 1.
   def __build_descendant_tree__(state, focus_id) do

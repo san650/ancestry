@@ -620,6 +620,148 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     end
   end
 
+  describe "__width__/1" do
+    test "leaf single is 1" do
+      single = %Single{anchor: %{person: %{id: 1}}, children: []}
+      assert Layout.__width__(single) == 1
+    end
+
+    test "leaf couple is 2" do
+      couple = %Couple{
+        anchor_a: %{person: %{id: 1}},
+        anchor_b: %{person: %{id: 2}},
+        children: []
+      }
+
+      assert Layout.__width__(couple) == 2
+    end
+
+    test "couple with three child leaves: max(2, 5) = 5" do
+      c1 = %Single{anchor: %{person: %{id: 1}}, children: []}
+      c2 = %Single{anchor: %{person: %{id: 2}}, children: []}
+      c3 = %Single{anchor: %{person: %{id: 3}}, children: []}
+
+      couple = %Couple{
+        anchor_a: %{person: %{id: 10}},
+        anchor_b: %{person: %{id: 11}},
+        children: [c1, c2, c3]
+      }
+
+      # children_width([c1, c2, c3]) = 1 + 1 + 1 + 1 + 1 = 5 (separators between siblings)
+      # width(couple) = max(2, 5) = 5
+      assert Layout.__width__(couple) == 5
+    end
+
+    test "couple with two child leaves: max(2, 3) = 3" do
+      c1 = %Single{anchor: %{person: %{id: 1}}, children: []}
+      c2 = %Single{anchor: %{person: %{id: 2}}, children: []}
+
+      couple = %Couple{
+        anchor_a: %{person: %{id: 10}},
+        anchor_b: %{person: %{id: 11}},
+        children: [c1, c2]
+      }
+
+      # children_width([c1, c2]) = 1 + 1 + 1 = 3
+      # width(couple) = max(2, 3) = 3
+      assert Layout.__width__(couple) == 3
+    end
+
+    test "two sibling couples (each with 2 children) under parent couple: max(2, 7) = 7" do
+      # Each child couple has 2 leaf children.
+      # width(child_couple_A) = max(2, 1 + 1 + 1) = 3
+      # width(child_couple_B) = max(2, 1 + 1 + 1) = 3
+      # children_width([A, B]) = 3 + 1 + 3 = 7 (one separator between sibling units)
+      # width(parent_couple) = max(2, 7) = 7
+      leaf = fn id -> %Single{anchor: %{person: %{id: id}}, children: []} end
+
+      child_a = %Couple{
+        anchor_a: %{person: %{id: 10}},
+        anchor_b: %{person: %{id: 11}},
+        children: [leaf.(1), leaf.(2)]
+      }
+
+      child_b = %Couple{
+        anchor_a: %{person: %{id: 20}},
+        anchor_b: %{person: %{id: 21}},
+        children: [leaf.(3), leaf.(4)]
+      }
+
+      parent = %Couple{
+        anchor_a: %{person: %{id: 100}},
+        anchor_b: %{person: %{id: 101}},
+        children: [child_a, child_b]
+      }
+
+      assert Layout.__width__(parent) == 7
+    end
+
+    test "loose lane width includes 1 separator between primary and lane" do
+      # Primary single (leaf, width=1) with a loose lane containing one leaf single (width=1).
+      # total = 1 (primary) + 1 (separator) + 1 (lane) = 3
+      lane = %LooseLane{units: [%Single{anchor: %{person: %{id: 99}}, children: []}]}
+      single = %Single{anchor: %{person: %{id: 1}}, children: [], loose_lane: lane}
+      assert Layout.__width__(single) == 3
+    end
+
+    test "loose lane single unit width equals that unit's width" do
+      # A LooseLane with a single leaf couple has width = 2.
+      lane = %LooseLane{
+        units: [
+          %Couple{
+            anchor_a: %{person: %{id: 1}},
+            anchor_b: %{person: %{id: 2}},
+            children: []
+          }
+        ]
+      }
+
+      # No primary unit here — testing LooseLane directly.
+      # width(%LooseLane{units: [u]}) = width(u) = 2
+      primary = %Single{anchor: %{person: %{id: 10}}, children: [], loose_lane: lane}
+
+      # primary width = max(1, 0) = 1; total = 1 + 1 + 2 = 4
+      assert Layout.__width__(primary) == 4
+    end
+
+    test "asymmetric ancestor: missing side contributes anchor only — max(2, 2) = 2" do
+      # Couple{father, mother, children: [father_grandparents_couple]}
+      # The father-grandparents couple is a leaf couple (width=2).
+      # children_width([gp_couple]) = 2
+      # width(parent_couple) = max(2, 2) = 2
+      gp_couple = %Couple{
+        anchor_a: %{person: %{id: 4}},
+        anchor_b: %{person: %{id: 5}},
+        children: []
+      }
+
+      parent_couple = %Couple{
+        anchor_a: %{person: %{id: 2}},
+        anchor_b: %{person: %{id: 3}},
+        children: [gp_couple]
+      }
+
+      assert Layout.__width__(parent_couple) == 2
+    end
+
+    test "solo group (Single with anchor: nil) width equals children_width" do
+      # %Single{anchor: nil} is a solo group — width = children_width(kids), no floor at 1.
+      c1 = %Single{anchor: %{person: %{id: 1}}, children: []}
+      c2 = %Single{anchor: %{person: %{id: 2}}, children: []}
+      solo = %Single{anchor: nil, children: [c1, c2]}
+
+      # children_width([c1, c2]) = 1 + 1 + 1 = 3
+      assert Layout.__width__(solo) == 3
+    end
+
+    test "empty loose lane has zero width and no separator is added" do
+      lane = %LooseLane{units: []}
+      single = %Single{anchor: %{person: %{id: 1}}, children: [], loose_lane: lane}
+      # lane width = 0, so no separator added; total = max(1, 0) = 1
+      assert Layout.__width__(single) == 1
+    end
+  end
+
   # ── Test helpers ──────────────────────────────────────────────────────
 
   defp make_person(id, name, gender \\ nil) do
