@@ -48,7 +48,7 @@ defmodule Web.Layouts do
 
   def app(assigns) do
     ~H"""
-    <div class="min-h-screen">
+    <div class="min-h-screen" style="--toolbar-height: 57px">
       <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2 bg-cm-indigo border-b-[3px] border-cm-coral">
         <div class="flex-1">
           <a href="/org" class="flex-1 flex w-fit items-center gap-3">

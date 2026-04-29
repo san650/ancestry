@@ -33,7 +33,7 @@ defmodule Web.BirthdayLive.Index do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <:toolbar>
-        <div class="max-w-7xl mx-auto flex items-center justify-between py-3">
+        <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
           <div class="flex items-center gap-3">
             <%!-- Hamburger: mobile only --%>
             <button
@@ -79,7 +79,7 @@ defmodule Web.BirthdayLive.Index do
           <%= for month <- @months do %>
             <div class="mb-6">
               <div class={[
-                "sticky top-0 z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
+                "sticky top-[var(--toolbar-height)] z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
                 month.is_past && "opacity-50"
               ]}>
                 <span class="font-cm-display font-bold text-sm text-cm-indigo uppercase tracking-wider">
@@ -106,62 +106,75 @@ defmodule Web.BirthdayLive.Index do
                       <div class="flex-1 h-0.5 bg-cm-coral"></div>
                     </div>
                   <% else %>
-                    <.link
-                      navigate={
-                        ~p"/org/#{@current_scope.organization.id}/people/#{entry.person.id}?from_family=#{@family.id}"
-                      }
+                    <div
                       class={[
-                        "flex items-center gap-3 px-3 py-2.5 rounded-cm border-2 border-cm-black bg-cm-white mb-1.5 hover:bg-cm-surface transition-colors",
+                        "flex items-start gap-3 px-3 py-2.5 rounded-cm border-2 border-cm-black bg-cm-white mb-1.5",
                         entry.is_past && "opacity-45"
                       ]}
-                      {test_id("birthday-entry-#{entry.person.id}")}
+                      {test_id("birthday-day-#{entry.birth_month}-#{entry.birth_day}")}
                     >
                       <%!-- Date box --%>
                       <div class="flex-shrink-0 bg-cm-surface rounded-cm border border-cm-border px-2.5 py-1.5 text-center min-w-[48px]">
                         <div class="font-cm-display text-lg font-bold text-cm-indigo leading-none">
-                          {entry.person.birth_day}
+                          {entry.birth_day}
                         </div>
                         <div class="font-cm-mono text-[9px] font-semibold text-cm-text-muted uppercase tracking-wider">
-                          {month_abbrev(entry.person.birth_month)}
+                          {month_abbrev(entry.birth_month)}
                         </div>
                       </div>
-                      <%!-- Avatar --%>
-                      <div class="w-9 h-9 rounded-full bg-cm-surface flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <%= if entry.person.photo && entry.person.photo_status == "processed" do %>
-                          <img
-                            src={
-                              Ancestry.Uploaders.PersonPhoto.url(
-                                {entry.person.photo, entry.person},
-                                :thumbnail
-                              )
+                      <%!-- People (one row per person, each navigates to their show page) --%>
+                      <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+                        <%= for person_entry <- entry.people do %>
+                          <.link
+                            navigate={
+                              ~p"/org/#{@current_scope.organization.id}/people/#{person_entry.person.id}?from_family=#{@family.id}"
                             }
-                            alt={Person.display_name(entry.person)}
-                            class="w-full h-full object-cover"
-                          />
-                        <% else %>
-                          <.icon
-                            name="hero-user"
-                            class={["w-4 h-4", gender_icon_class(entry.person.gender)]}
-                          />
+                            class="flex items-center gap-3 -mx-1 px-1 py-1 rounded-cm hover:bg-cm-surface transition-colors"
+                            {test_id("birthday-entry-#{person_entry.person.id}")}
+                          >
+                            <%!-- Avatar --%>
+                            <div class="w-9 h-9 rounded-full bg-cm-surface flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <%= if person_entry.person.photo && person_entry.person.photo_status == "processed" do %>
+                                <img
+                                  src={
+                                    Ancestry.Uploaders.PersonPhoto.url(
+                                      {person_entry.person.photo, person_entry.person},
+                                      :thumbnail
+                                    )
+                                  }
+                                  alt={Person.display_name(person_entry.person)}
+                                  class="w-full h-full object-cover"
+                                />
+                              <% else %>
+                                <.icon
+                                  name="hero-user"
+                                  class={[
+                                    "w-4 h-4",
+                                    gender_icon_class(person_entry.person.gender)
+                                  ]}
+                                />
+                              <% end %>
+                            </div>
+                            <%!-- Name + age --%>
+                            <div class="flex-1 min-w-0">
+                              <div class="font-cm-body text-[13px] font-medium text-cm-black truncate">
+                                {Person.display_name(person_entry.person)}
+                                <%= if person_entry.person.deceased do %>
+                                  <span class="font-cm-mono text-[10px] font-normal text-cm-text-muted">
+                                    ({deceased_label(person_entry.person.gender)})
+                                  </span>
+                                <% end %>
+                              </div>
+                              <%= if person_entry.age_label do %>
+                                <div class="font-cm-mono text-[10px] text-cm-text-muted">
+                                  {person_entry.age_label}
+                                </div>
+                              <% end %>
+                            </div>
+                          </.link>
                         <% end %>
                       </div>
-                      <%!-- Name + age --%>
-                      <div class="flex-1 min-w-0">
-                        <div class="font-cm-body text-[13px] font-medium text-cm-black truncate">
-                          {Person.display_name(entry.person)}
-                          <%= if entry.person.deceased do %>
-                            <span class="font-cm-mono text-[10px] font-normal text-cm-text-muted">
-                              ({deceased_label(entry.person.gender)})
-                            </span>
-                          <% end %>
-                        </div>
-                        <%= if entry.age_label do %>
-                          <div class="font-cm-mono text-[10px] text-cm-text-muted">
-                            {entry.age_label}
-                          </div>
-                        <% end %>
-                      </div>
-                    </.link>
+                    </div>
                   <% end %>
                 <% end %>
               <% end %>
@@ -209,22 +222,29 @@ defmodule Web.BirthdayLive.Index do
   end
 
   defp build_entries(people, month_num, today) do
-    entries =
-      Enum.map(people, fn person ->
-        is_past = birthday_is_past?(person.birth_month, person.birth_day, today)
+    day_groups =
+      people
+      |> Enum.group_by(& &1.birth_day)
+      |> Enum.sort_by(fn {day, _} -> day end)
+      |> Enum.map(fn {day, day_people} ->
+        birth_month = hd(day_people).birth_month
 
         %{
-          person: person,
-          is_past: is_past,
-          age_label: age_label(person, today)
+          birth_day: day,
+          birth_month: birth_month,
+          is_past: birthday_is_past?(birth_month, day, today),
+          people:
+            Enum.map(day_people, fn person ->
+              %{person: person, age_label: age_label(person, today)}
+            end)
         }
       end)
 
     if month_num == today.month do
-      {past, future} = Enum.split_with(entries, & &1.is_past)
+      {past, future} = Enum.split_with(day_groups, & &1.is_past)
       past ++ [:today_marker] ++ future
     else
-      entries
+      day_groups
     end
   end
 
