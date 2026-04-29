@@ -3,6 +3,7 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
 
   alias Ancestry.People.PersonGraph.Layout
   alias Ancestry.People.PersonGraph.Layout.{Couple, Single, LooseLane}
+  alias Ancestry.People.GraphNode
 
   describe "compute/2" do
     test "returns an empty triple for an empty state" do
@@ -1184,6 +1185,363 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     end
   end
 
+  describe "__materialize__/1" do
+    test "empty placements yields {[], 0, 0}" do
+      assert {[], 0, 0} = Layout.__materialize__([])
+    end
+
+    test "normalizes rows so min row becomes 0" do
+      # A placement where rows include negatives (-2, -1, 0)
+      # After normalization: min_row = -2, shift = +2, so rows become 0, 1, 2
+      entry = make_materialize_entry(1, "Focus", focus: true)
+
+      placements = [
+        {:placed_anchor, entry, 0, 0},
+        {:separator, 1, -1},
+        {:separator, 0, -2}
+      ]
+
+      {nodes, _grid_cols, _grid_rows} = Layout.__materialize__(placements)
+
+      person_node = Enum.find(nodes, &(&1.type == :person))
+      assert person_node.row == 2
+
+      # Row 0 (was -2) and row 1 (was -1) should also appear
+      rows = nodes |> Enum.map(& &1.row) |> Enum.uniq() |> Enum.sort()
+      assert 0 in rows
+      assert 1 in rows
+      assert 2 in rows
+    end
+
+    test "computes grid_cols and grid_rows correctly" do
+      # 3 columns wide (cols 0, 1, 2), 2 rows tall (rows 0, 1)
+      entry_a = make_materialize_entry(1, "A", focus: true)
+      entry_b = make_materialize_entry(2, "B")
+
+      placements = [
+        {:placed_anchor, entry_a, 0, 0},
+        {:placed_anchor, entry_b, 2, 1}
+      ]
+
+      {_nodes, grid_cols, grid_rows} = Layout.__materialize__(placements)
+
+      # max_col = 2 → grid_cols = 3
+      assert grid_cols == 3
+      # max_row = 1 → grid_rows = 2
+      assert grid_rows == 2
+    end
+
+    test "fills equalizing separators across the grid_cols x grid_rows rectangle" do
+      # 2 person placements: (0,0) and (1,0) — one row, two cols
+      # No missing cells, but confirm separators fill missing positions
+      # Placements: (0,0) and (2,0) — col 1 row 0 is missing → separator added
+      entry_a = make_materialize_entry(1, "A", focus: true)
+      entry_b = make_materialize_entry(2, "B")
+
+      placements = [
+        {:placed_anchor, entry_a, 0, 0},
+        {:placed_anchor, entry_b, 2, 0}
+      ]
+
+      {nodes, grid_cols, grid_rows} = Layout.__materialize__(placements)
+
+      # grid is 3 cols x 1 row = 3 cells total
+      assert grid_cols == 3
+      assert grid_rows == 1
+      assert length(nodes) == 3
+
+      # There should be exactly one separator at (1, 0)
+      sep = Enum.find(nodes, &(&1.type == :separator and &1.col == 1 and &1.row == 0))
+      assert sep != nil
+    end
+
+    test "fills equalizing separators for multi-row grid" do
+      # Row 0: col 0 placed_anchor, col 1 missing
+      # Row 1: col 1 placed_anchor, col 0 missing
+      # After fill: 4 total nodes
+      entry_a = make_materialize_entry(1, "A", focus: true)
+      entry_b = make_materialize_entry(2, "B")
+
+      placements = [
+        {:placed_anchor, entry_a, 0, 0},
+        {:placed_anchor, entry_b, 1, 1}
+      ]
+
+      {nodes, grid_cols, grid_rows} = Layout.__materialize__(placements)
+
+      assert grid_cols == 2
+      assert grid_rows == 2
+      assert length(nodes) == 4
+    end
+
+    test "person nodes have correct id, focus, duplicated fields" do
+      entry = make_materialize_entry(42, "Alice", focus: true)
+
+      placements = [{:placed_anchor, entry, 0, 0}]
+
+      {nodes, _, _} = Layout.__materialize__(placements)
+
+      person_node = Enum.find(nodes, &(&1.type == :person))
+      assert %GraphNode{} = person_node
+      assert person_node.id == "person-42"
+      assert person_node.col == 0
+      assert person_node.row == 0
+      assert person_node.focus == true
+      assert person_node.duplicated == false
+      assert person_node.has_more_up == false
+      assert person_node.has_more_down == false
+    end
+
+    test "duplicated person gets -dup suffix on id" do
+      entry = make_materialize_entry(7, "Bob", duplicated: true)
+
+      placements = [{:placed_anchor, entry, 0, 0}]
+
+      {nodes, _, _} = Layout.__materialize__(placements)
+
+      person_node = Enum.find(nodes, &(&1.type == :person))
+      assert person_node.id == "person-7-dup"
+      assert person_node.duplicated == true
+    end
+
+    test "separator nodes have sep-{row}-{col} id format" do
+      placements = [{:separator, 3, 0}]
+
+      {nodes, _, _} = Layout.__materialize__(placements)
+
+      # The explicit separator at (3, 0)
+      sep = Enum.find(nodes, &(&1.type == :separator and &1.col == 3 and &1.row == 0))
+      assert sep != nil
+      assert sep.id == "sep-0-3"
+    end
+
+    test "separator id uses normalized row" do
+      # Placement at row -1; after normalization (min_row=-1) becomes row 0
+      placements = [{:separator, 2, -1}]
+
+      {nodes, _, _} = Layout.__materialize__(placements)
+
+      sep = Enum.find(nodes, &(&1.type == :separator))
+      assert sep.row == 0
+      assert sep.id == "sep-0-2"
+    end
+
+    test "rows with negative values are shifted so min_row = 0" do
+      # Three rows: -2, -1, 0 → normalized to 0, 1, 2
+      focus = make_materialize_entry(1, "Focus", focus: true)
+      parent = make_materialize_entry(2, "Parent")
+      grandparent = make_materialize_entry(3, "GrandParent")
+
+      placements = [
+        {:placed_anchor, focus, 0, 0},
+        {:placed_anchor, parent, 0, -1},
+        {:placed_anchor, grandparent, 0, -2}
+      ]
+
+      {nodes, grid_cols, grid_rows} = Layout.__materialize__(placements)
+
+      assert grid_cols == 1
+      assert grid_rows == 3
+
+      rows = nodes |> Enum.map(& &1.row) |> Enum.sort()
+      assert rows == [0, 1, 2]
+
+      focus_node = Enum.find(nodes, &(&1.id == "person-1"))
+      assert focus_node.row == 2
+
+      parent_node = Enum.find(nodes, &(&1.id == "person-2"))
+      assert parent_node.row == 1
+
+      gp_node = Enum.find(nodes, &(&1.id == "person-3"))
+      assert gp_node.row == 0
+    end
+  end
+
+  describe "compute/2 end-to-end" do
+    test "returns {[], 0, 0} for empty state" do
+      state = %{entries: %{}, edges: [], visited: %{}, graph: nil, focus_id: nil}
+      assert {[], 0, 0} = Layout.compute(state, nil)
+    end
+
+    test "single focus with no parents, no children, no partners: 1x1 grid" do
+      focus = make_person(1, "Solo")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+
+      {nodes, grid_cols, grid_rows} = Layout.compute(state, 1)
+
+      assert grid_cols == 1
+      assert grid_rows == 1
+      assert length(nodes) == 1
+      [node] = nodes
+      assert %GraphNode{type: :person, focus: true, id: "person-1"} = node
+    end
+
+    test "focus couple with no children: 2x1 grid" do
+      focus = make_person(1, "Focus")
+      partner = make_person(2, "Partner")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(partner, 0)
+        |> add_couple_edge_helper(1, 2, :current_partner)
+
+      {nodes, grid_cols, grid_rows} = Layout.compute(state, 1)
+
+      assert grid_cols == 2
+      assert grid_rows == 1
+
+      person_ids = nodes |> Enum.filter(&(&1.type == :person)) |> Enum.map(& &1.id)
+      assert "person-1" in person_ids
+      assert "person-2" in person_ids
+    end
+
+    test "focus with parents: parents on row 0, focus on row 1" do
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      {nodes, grid_cols, grid_rows} = Layout.compute(state, 1)
+
+      # 2 generations: parents (row 0) + focus (row 1)
+      assert grid_rows == 2
+      assert grid_cols >= 2
+
+      focus_node = Enum.find(nodes, &(&1.id == "person-1"))
+      father_node = Enum.find(nodes, &(&1.id == "person-2"))
+      mother_node = Enum.find(nodes, &(&1.id == "person-3"))
+
+      assert focus_node.row > father_node.row
+      assert father_node.row == mother_node.row
+      assert focus_node.focus == true
+    end
+
+    test "v2 mockup scenario: Grandparents → Alice & Bob → 3+2 grandchildren, focus = A2" do
+      # People:
+      # Gen 2 (grandparents): Grandpa (1), Grandma (2)
+      # Gen 1: Alice (3), Adam (4), Bob (5), Beth (6)
+      # Gen 0: A1 (7), A2 (8, focus), A3 (9), B1 (10), B2 (11)
+      #
+      # Ancestor path for A2:
+      #   A2's parents = Adam (4) + Alice (3)
+      #   Alice's parents = Grandpa (1) + Grandma (2)
+      #   Adam has no parents in state
+      #
+      # NOTE: Bob, Beth, B1, B2 are in the state entries and connected via edges,
+      # but are not on A2's direct ancestor line. We include them as lateral entries
+      # at gen 1 and gen 0 so the algorithm can include them as laterals.
+
+      grandpa = make_person(1, "Grandpa")
+      grandma = make_person(2, "Grandma")
+      alice = make_person(3, "Alice")
+      adam = make_person(4, "Adam")
+      bob = make_person(5, "Bob")
+      beth = make_person(6, "Beth")
+      a1 = make_person(7, "A1")
+      a2 = make_person(8, "A2")
+      a3 = make_person(9, "A3")
+      b1 = make_person(10, "B1")
+      b2 = make_person(11, "B2")
+
+      state =
+        empty_state(8)
+        # Gen 2
+        |> add_entry_helper(grandpa, 2)
+        |> add_entry_helper(grandma, 2)
+        # Gen 1
+        |> add_entry_helper(alice, 1)
+        |> add_entry_helper(adam, 1)
+        |> add_entry_helper(bob, 1)
+        |> add_entry_helper(beth, 1)
+        # Gen 0
+        |> add_entry_helper(a1, 0)
+        |> add_entry_helper(a2, 0, focus: true)
+        |> add_entry_helper(a3, 0)
+        |> add_entry_helper(b1, 0)
+        |> add_entry_helper(b2, 0)
+        # Couple edges
+        |> add_couple_edge_helper(1, 2, :current_partner)
+        |> add_couple_edge_helper(4, 3, :current_partner)
+        |> add_couple_edge_helper(5, 6, :current_partner)
+        # Parent-child: Grandpa+Grandma → Alice
+        |> add_parent_child_edge_helper(1, 3)
+        |> add_parent_child_edge_helper(2, 3)
+        # Parent-child: Grandpa+Grandma → Bob
+        |> add_parent_child_edge_helper(1, 5)
+        |> add_parent_child_edge_helper(2, 5)
+        # Parent-child: Adam+Alice → A1, A2, A3
+        |> add_parent_child_edge_helper(4, 7)
+        |> add_parent_child_edge_helper(3, 7)
+        |> add_parent_child_edge_helper(4, 8)
+        |> add_parent_child_edge_helper(3, 8)
+        |> add_parent_child_edge_helper(4, 9)
+        |> add_parent_child_edge_helper(3, 9)
+        # Parent-child: Bob+Beth → B1, B2
+        |> add_parent_child_edge_helper(5, 10)
+        |> add_parent_child_edge_helper(6, 10)
+        |> add_parent_child_edge_helper(5, 11)
+        |> add_parent_child_edge_helper(6, 11)
+
+      {nodes, grid_cols, grid_rows} = Layout.compute(state, 8)
+
+      # Must produce a non-empty grid
+      assert grid_cols > 0
+      assert grid_rows > 0
+
+      person_nodes = Enum.filter(nodes, &(&1.type == :person))
+
+      # Focus A2 (id=8) must be in the output with focus: true
+      a2_node = Enum.find(person_nodes, &(&1.id == "person-8"))
+      assert a2_node != nil
+      assert a2_node.focus == true
+
+      # All nodes have non-negative rows (normalization applied)
+      assert Enum.all?(nodes, &(&1.row >= 0))
+      assert Enum.all?(nodes, &(&1.col >= 0))
+
+      # Adam and Alice must be on the same row (they're a couple)
+      adam_node = Enum.find(person_nodes, &(&1.id == "person-4"))
+      alice_node = Enum.find(person_nodes, &(&1.id == "person-3"))
+
+      if adam_node && alice_node do
+        assert adam_node.row == alice_node.row
+      end
+
+      # Grandpa and Grandma must be on the same row (they're a couple)
+      grandpa_node = Enum.find(person_nodes, &(&1.id == "person-1"))
+      grandma_node = Enum.find(person_nodes, &(&1.id == "person-2"))
+
+      if grandpa_node && grandma_node do
+        assert grandpa_node.row == grandma_node.row
+      end
+
+      # Parents must be on a row above A2 (lower row number = higher on screen = ancestor)
+      if adam_node do
+        assert adam_node.row < a2_node.row
+      end
+
+      # Grandparents must be on a row above parents
+      if grandpa_node && adam_node do
+        assert grandpa_node.row < adam_node.row
+      end
+
+      # Grid must be fully populated (no missing cells): total cells = grid_cols * grid_rows
+      assert length(nodes) == grid_cols * grid_rows
+    end
+  end
+
   # ── Test helpers ──────────────────────────────────────────────────────
 
   defp make_person(id, name, gender \\ nil) do
@@ -1272,5 +1630,17 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
   defp assert_placement(placements, expected) do
     assert Enum.member?(placements, expected),
            "Expected #{inspect(expected)} in placements, got:\n#{inspect(placements, pretty: true)}"
+  end
+
+  # Build a minimal entry for __materialize__ tests.
+  defp make_materialize_entry(id, name, opts \\ []) do
+    %{
+      person: make_person(id, name),
+      gen: 0,
+      duplicated: Keyword.get(opts, :duplicated, false),
+      has_more_up: Keyword.get(opts, :has_more_up, false),
+      has_more_down: Keyword.get(opts, :has_more_down, false),
+      focus: Keyword.get(opts, :focus, false)
+    }
   end
 end

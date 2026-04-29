@@ -24,6 +24,8 @@ defmodule Ancestry.People.PersonGraph.Layout do
     defstruct units: []
   end
 
+  alias Ancestry.People.GraphNode
+
   @doc """
   Computes the layout for the given Phase-1 state.
 
@@ -35,9 +37,107 @@ defmodule Ancestry.People.PersonGraph.Layout do
     {[], 0, 0}
   end
 
-  def compute(_state, _focus_id) do
-    # Real implementation arrives in Tasks 3-7.
+  def compute(state, focus_id) do
+    desc_tree = __build_descendant_tree__(state, focus_id)
+    anc_tree = __build_ancestor_tree__(state, focus_id)
+
+    desc_placements =
+      if desc_tree, do: __place_half__(desc_tree, 0, :descendant), else: []
+
+    anc_placements =
+      if anc_tree, do: __place_half__(anc_tree, 0, :ancestor), else: []
+
+    merged = __merge_halves__(desc_placements, anc_placements)
+    __materialize__(merged)
+  end
+
+  @doc false
+  # Exposed for testing via __name__ convention.
+  # Converts merged placements into a flat list of %GraphNode{} structs,
+  # computing grid_cols and grid_rows, and filling equalizing separators.
+  #
+  # Returns {nodes, grid_cols, grid_rows}.
+  def __materialize__([]) do
     {[], 0, 0}
+  end
+
+  def __materialize__(placements) do
+    # 1. Find min_row and normalize so all rows are non-negative
+    rows =
+      Enum.map(placements, fn
+        {:placed_anchor, _entry, _col, row} -> row
+        {:separator, _col, row} -> row
+      end)
+
+    min_row = Enum.min(rows)
+    shift = -min_row
+
+    normalized =
+      Enum.map(placements, fn
+        {:placed_anchor, entry, col, row} -> {:placed_anchor, entry, col, row + shift}
+        {:separator, col, row} -> {:separator, col, row + shift}
+      end)
+
+    # 2. Compute grid dimensions
+    cols_after =
+      Enum.map(normalized, fn
+        {:placed_anchor, _entry, col, _row} -> col
+        {:separator, col, _row} -> col
+      end)
+
+    rows_after =
+      Enum.map(normalized, fn
+        {:placed_anchor, _entry, _col, row} -> row
+        {:separator, _col, row} -> row
+      end)
+
+    grid_cols = Enum.max(cols_after) + 1
+    grid_rows = Enum.max(rows_after) + 1
+
+    # 3. Convert placements to GraphNode structs
+    filled_set =
+      MapSet.new(normalized, fn
+        {:placed_anchor, _entry, col, row} -> {col, row}
+        {:separator, col, row} -> {col, row}
+      end)
+
+    explicit_nodes = Enum.map(normalized, &placement_to_node/1)
+
+    # 4. Fill equalizing separators for every unfilled cell in the grid
+    equalizer_nodes =
+      for col <- 0..(grid_cols - 1),
+          row <- 0..(grid_rows - 1),
+          not MapSet.member?(filled_set, {col, row}) do
+        %GraphNode{id: "sep-#{row}-#{col}", type: :separator, col: col, row: row}
+      end
+
+    nodes = explicit_nodes ++ equalizer_nodes
+
+    {nodes, grid_cols, grid_rows}
+  end
+
+  # Convert a single normalized placement tuple to a %GraphNode{}.
+  defp placement_to_node({:placed_anchor, entry, col, row}) do
+    id =
+      if entry.duplicated,
+        do: "person-#{entry.person.id}-dup",
+        else: "person-#{entry.person.id}"
+
+    %GraphNode{
+      id: id,
+      type: :person,
+      col: col,
+      row: row,
+      person: entry.person,
+      focus: entry.focus,
+      duplicated: entry.duplicated,
+      has_more_up: entry.has_more_up,
+      has_more_down: entry.has_more_down
+    }
+  end
+
+  defp placement_to_node({:separator, col, row}) do
+    %GraphNode{id: "sep-#{row}-#{col}", type: :separator, col: col, row: row}
   end
 
   @doc false
