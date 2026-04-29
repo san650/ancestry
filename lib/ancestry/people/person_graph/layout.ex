@@ -41,8 +41,15 @@ defmodule Ancestry.People.PersonGraph.Layout do
     desc_tree = __build_descendant_tree__(state, focus_id)
     anc_tree = __build_ancestor_tree__(state, focus_id)
 
+    # Gap 2 fix: find focus's siblings at gen 0 and place them alongside
+    # the focus's primary unit on the same row.
     desc_placements =
-      if desc_tree, do: __place_half__(desc_tree, 0, :descendant), else: []
+      if desc_tree do
+        sibling_subtrees = build_sibling_subtrees(state, focus_id)
+        place_focus_row_with_siblings(desc_tree, sibling_subtrees)
+      else
+        []
+      end
 
     anc_placements =
       if anc_tree, do: __place_half__(anc_tree, 0, :ancestor), else: []
@@ -446,7 +453,8 @@ defmodule Ancestry.People.PersonGraph.Layout do
   # Returns nil if the focus has no known parents.
   def __build_ancestor_tree__(state, focus_id) do
     parent_entries = find_parent_entries(state, focus_id)
-    build_ancestor_root(parent_entries, state)
+    visited = MapSet.new()
+    build_ancestor_root(parent_entries, state, visited)
   end
 
   # ── Ancestor tree private implementation ────────────────────────────
@@ -456,37 +464,41 @@ defmodule Ancestry.People.PersonGraph.Layout do
   defp find_parent_entries(state, focus_id) do
     focus_node_id = "person-#{focus_id}"
 
-    parent_ids =
-      state.edges
-      |> Enum.filter(fn edge ->
+    parent_edges =
+      Enum.filter(state.edges, fn edge ->
         edge.type == :parent_child and edge.to_id == focus_node_id
       end)
-      |> Enum.map(fn edge -> extract_id(edge.from_id) end)
-      |> Enum.reject(&is_nil/1)
 
-    # Retrieve entries for these parent IDs at any gen >= 1
-    Enum.flat_map(parent_ids, fn pid ->
-      state.entries
-      |> Enum.flat_map(fn {_gen, entries} -> entries end)
-      |> Enum.filter(fn e -> e.person.id == pid end)
-      |> Enum.take(1)
+    Enum.flat_map(parent_edges, fn edge ->
+      parent_id = extract_id(edge.from_id)
+      from_dup = String.ends_with?(edge.from_id, "-dup")
+      all_entries = Enum.flat_map(state.entries, fn {_gen, entries} -> entries end)
+
+      entry =
+        Enum.find(all_entries, fn e -> e.person.id == parent_id and e.duplicated == from_dup end) ||
+          Enum.find(all_entries, fn e -> e.person.id == parent_id end)
+
+      if entry, do: [entry], else: []
     end)
   end
 
   # Build the root ancestor unit (focus's parents' unit).
-  defp build_ancestor_root([], _state), do: nil
+  # Gap 1 fix: thread a `visited` MapSet of already-placed person IDs to prevent
+  # the same ancestor being emitted twice when reached via multiple paths
+  # (pedigree collapse).
+  defp build_ancestor_root([], _state, _visited), do: nil
 
-  defp build_ancestor_root([single_parent], state) do
+  defp build_ancestor_root([single_parent], state, visited) do
     # One parent: %Single{} with children = upward subtree of that parent
-    children = build_ancestor_unit(single_parent, :left, state)
+    {children, _visited2} = build_ancestor_unit(single_parent, :left, state, visited)
     %Single{anchor: single_parent, children: List.wrap(children) |> Enum.reject(&is_nil/1)}
   end
 
-  defp build_ancestor_root([_p1, _p2] = parents, state) do
+  defp build_ancestor_root([_p1, _p2] = parents, state, visited) do
     {entry_a, entry_b} = order_parents_by_couple_edge(parents, state)
 
-    subtree_a = build_ancestor_unit(entry_a, :left, state)
-    subtree_b = build_ancestor_unit(entry_b, :right, state)
+    {subtree_a, visited2} = build_ancestor_unit(entry_a, :left, state, visited)
+    {subtree_b, _visited3} = build_ancestor_unit(entry_b, :right, state, visited2)
 
     children =
       [subtree_a, subtree_b]
@@ -495,9 +507,9 @@ defmodule Ancestry.People.PersonGraph.Layout do
     %Couple{anchor_a: entry_a, anchor_b: entry_b, children: children}
   end
 
-  defp build_ancestor_root(parents, state) do
+  defp build_ancestor_root(parents, state, visited) do
     # More than 2 parents: take the first two (shouldn't happen in valid data)
-    parents |> Enum.take(2) |> build_ancestor_root(state)
+    parents |> Enum.take(2) |> build_ancestor_root(state, visited)
   end
 
   # Order two parent entries by looking for a couple edge between them.
@@ -528,56 +540,76 @@ defmodule Ancestry.People.PersonGraph.Layout do
   end
 
   # Build the ancestor unit for a single parent entry.
-  # Returns a %Couple{} or %Single{} representing this parent's own parents,
-  # or nil if no grandparents are known (or if parent is duplicated).
-  # `side` is :left or :right — controls where laterals are placed in children.
-  defp build_ancestor_unit(parent_entry, side, state) do
-    # Duplicated entries are leaves — do not recurse upward
-    if parent_entry.duplicated do
-      nil
-    else
-      grandparent_entries = find_parent_entries(state, parent_entry.person.id)
-      build_grandparent_unit(parent_entry, grandparent_entries, side, state)
+  # Returns `{subtree_or_nil, updated_visited}`.
+  # Gap 1 fix: if the person is already in `visited`, treat as a leaf (return nil)
+  # to prevent the same ancestor being placed twice in pedigree-collapse scenarios.
+  defp build_ancestor_unit(parent_entry, side, state, visited) do
+    person_id = parent_entry.person.id
+
+    cond do
+      # Duplicated entries are leaves — do not recurse upward
+      parent_entry.duplicated ->
+        {nil, visited}
+
+      # Already placed in another branch (pedigree collapse) — skip to prevent dup
+      MapSet.member?(visited, person_id) ->
+        {nil, visited}
+
+      true ->
+        visited2 = MapSet.put(visited, person_id)
+        grandparent_entries = find_parent_entries(state, person_id)
+        build_grandparent_unit(parent_entry, grandparent_entries, side, state, visited2)
     end
   end
 
-  defp build_grandparent_unit(_parent_entry, [], _side, _state), do: nil
+  defp build_grandparent_unit(_parent_entry, [], _side, _state, visited), do: {nil, visited}
 
-  defp build_grandparent_unit(parent_entry, [single_gp], side, state) do
-    # One grandparent: recursively build their ancestor unit
-    gp_children = build_ancestor_unit(single_gp, side, state)
-    laterals = find_lateral_siblings(single_gp, parent_entry.person.id, state)
-    lateral_units = build_lateral_units(laterals, state)
+  defp build_grandparent_unit(parent_entry, [single_gp], side, state, visited) do
+    # Pedigree collapse: if grandparent already placed in another subtree, skip.
+    if MapSet.member?(visited, single_gp.person.id) do
+      {nil, visited}
+    else
+      {gp_children, visited2} = build_ancestor_unit(single_gp, side, state, visited)
+      laterals = find_lateral_siblings(single_gp, parent_entry.person.id, state)
+      lateral_units = build_lateral_units(laterals, state)
 
-    children =
-      arrange_laterals(lateral_units, List.wrap(gp_children) |> Enum.reject(&is_nil/1), side)
+      children =
+        arrange_laterals(lateral_units, List.wrap(gp_children) |> Enum.reject(&is_nil/1), side)
 
-    %Single{anchor: single_gp, children: children}
+      {%Single{anchor: single_gp, children: children}, visited2}
+    end
   end
 
-  defp build_grandparent_unit(parent_entry, [_gp1, _gp2] = gp_entries, side, state) do
+  defp build_grandparent_unit(parent_entry, [_gp1, _gp2] = gp_entries, side, state, visited) do
     {gp_a, gp_b} = order_parents_by_couple_edge(gp_entries, state)
 
-    # Recursively build each grandparent's own ancestors
-    subtree_a = build_ancestor_unit(gp_a, :left, state)
-    subtree_b = build_ancestor_unit(gp_b, :right, state)
+    # Pedigree collapse: if both grandparents already placed in another subtree, skip.
+    cond do
+      MapSet.member?(visited, gp_a.person.id) and MapSet.member?(visited, gp_b.person.id) ->
+        {nil, visited}
 
-    deeper_subtrees =
-      [subtree_a, subtree_b]
-      |> Enum.reject(&is_nil/1)
+      true ->
+        {subtree_a, visited2} = build_ancestor_unit(gp_a, :left, state, visited)
+        {subtree_b, visited3} = build_ancestor_unit(gp_b, :right, state, visited2)
 
-    # Find laterals: other children of (gp_a, gp_b) that are NOT the direct-line parent
-    laterals = find_joint_lateral_siblings(gp_a, gp_b, parent_entry.person.id, state)
-    lateral_units = build_lateral_units(laterals, state)
+        deeper_subtrees =
+          [subtree_a, subtree_b]
+          |> Enum.reject(&is_nil/1)
 
-    children = arrange_laterals(lateral_units, deeper_subtrees, side)
+        laterals = find_joint_lateral_siblings(gp_a, gp_b, parent_entry.person.id, state)
+        lateral_units = build_lateral_units(laterals, state)
 
-    %Couple{anchor_a: gp_a, anchor_b: gp_b, children: children}
+        children = arrange_laterals(lateral_units, deeper_subtrees, side)
+
+        {%Couple{anchor_a: gp_a, anchor_b: gp_b, children: children}, visited3}
+    end
   end
 
-  defp build_grandparent_unit(parent_entry, gp_entries, side, state) do
+  defp build_grandparent_unit(parent_entry, gp_entries, side, state, visited) do
     # More than 2: take first two
-    gp_entries |> Enum.take(2) |> then(&build_grandparent_unit(parent_entry, &1, side, state))
+    gp_entries
+    |> Enum.take(2)
+    |> then(&build_grandparent_unit(parent_entry, &1, side, state, visited))
   end
 
   # Find lateral siblings of `direct_child_id` among children of `gp_entry`
@@ -585,6 +617,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
   defp find_lateral_siblings(gp_entry, direct_child_id, state) do
     gp_node_id = "person-#{gp_entry.person.id}"
     child_gen = gp_entry.gen - 1
+    direct_ancestors = compute_direct_ancestors(state, state.focus_id)
 
     child_ids =
       state.edges
@@ -594,6 +627,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
       |> Enum.map(fn edge -> extract_id(edge.to_id) end)
       |> Enum.reject(&is_nil/1)
       |> Enum.reject(&(&1 == direct_child_id))
+      |> Enum.reject(&MapSet.member?(direct_ancestors, {&1, child_gen}))
 
     Enum.flat_map(child_ids, fn cid ->
       case find_entry(state, cid, child_gen) do
@@ -607,30 +641,123 @@ defmodule Ancestry.People.PersonGraph.Layout do
   defp find_joint_lateral_siblings(gp_a, gp_b, direct_child_id, state) do
     child_gen = gp_a.gen - 1
     child_entries = Map.get(state.entries, child_gen, [])
+    direct_ancestors = compute_direct_ancestors(state, state.focus_id)
 
     Enum.filter(child_entries, fn entry ->
       cid = entry.person.id
 
       cid != direct_child_id and
+        not MapSet.member?(direct_ancestors, {cid, child_gen}) and
         has_parent_edge?(state, gp_a.person.id, cid) and
         has_parent_edge?(state, gp_b.person.id, cid)
     end)
   end
 
-  # Build lateral units. Laterals are leaves in the ancestor tree.
-  # If a lateral has a current partner at the same gen, build a %Couple{} leaf;
-  # otherwise build a %Single{} leaf.
+  # Build a shallow lateral unit: anchor + current partner (if any) + joint
+  # children that aren't already in the direct lineage. No further recursion —
+  # cousins appear as leaves (their grandchildren are not shown).
   defp build_lateral_units(laterals, state) do
+    direct_ancestors = compute_direct_ancestors(state, state.focus_id)
+
     laterals
     |> sort_laterals_by_birth_year()
     |> Enum.map(fn lat_entry ->
-      partner_entry = find_current_partner(lat_entry.person.id, lat_entry.gen, state)
-
-      case partner_entry do
-        nil -> %Single{anchor: lat_entry, children: []}
-        partner -> %Couple{anchor_a: lat_entry, anchor_b: partner, children: []}
-      end
+      build_shallow_lateral_unit(lat_entry, state, direct_ancestors)
     end)
+  end
+
+  defp build_shallow_lateral_unit(lat_entry, state, direct_ancestors) do
+    lat_id = lat_entry.person.id
+    lat_gen = lat_entry.gen
+    child_gen = lat_gen - 1
+    current_partner = find_current_partner(lat_id, lat_gen, state)
+
+    children =
+      case current_partner do
+        nil ->
+          state.entries
+          |> Map.get(child_gen, [])
+          |> Enum.filter(fn ce ->
+            has_parent_edge?(state, lat_id, ce.person.id) and
+              not MapSet.member?(direct_ancestors, {ce.person.id, child_gen}) and
+              not ce.duplicated
+          end)
+
+        partner ->
+          find_joint_children(lat_id, partner.person.id, child_gen, state)
+          |> Enum.reject(fn ce ->
+            MapSet.member?(direct_ancestors, {ce.person.id, child_gen}) or ce.duplicated
+          end)
+      end
+
+    child_units =
+      Enum.map(children, fn ce -> %Single{anchor: ce, children: []} end)
+
+    case current_partner do
+      nil -> %Single{anchor: lat_entry, children: child_units}
+      partner -> %Couple{anchor_a: lat_entry, anchor_b: partner, children: child_units}
+    end
+  end
+
+  # Returns a MapSet of {person_id, gen} tuples for everyone reachable
+  # upward from focus via :parent_child edges. Tracking gen lets us
+  # distinguish a person who is a direct ancestor at one gen from a
+  # different entry of the same person at a different gen (e.g., Type 4
+  # uncle: dup at gen 1 is direct, original at gen 2 is lateral).
+  defp compute_direct_ancestors(state, focus_id) do
+    focus_g = focus_gen(state, focus_id)
+    initial = MapSet.new([{focus_id, focus_g}])
+    do_walk_ancestors(state, [{focus_id, "person-#{focus_id}"}], initial)
+  end
+
+  defp do_walk_ancestors(_state, [], acc), do: acc
+
+  defp do_walk_ancestors(state, [{_pid, node_id} | rest], acc) do
+    parent_pairs =
+      state.edges
+      |> Enum.filter(fn e -> e.type == :parent_child and e.to_id == node_id end)
+      |> Enum.flat_map(fn e ->
+        parent_id = extract_id(e.from_id)
+        from_dup = String.ends_with?(e.from_id, "-dup")
+
+        case lookup_entry_gen(state, parent_id, from_dup) do
+          nil -> []
+          parent_gen -> [{parent_id, parent_gen, e.from_id}]
+        end
+      end)
+
+    new_pairs =
+      Enum.reject(parent_pairs, fn {pid, gen, _} ->
+        MapSet.member?(acc, {pid, gen})
+      end)
+
+    acc2 =
+      Enum.reduce(new_pairs, acc, fn {pid, gen, _}, a ->
+        MapSet.put(a, {pid, gen})
+      end)
+
+    next_queue = Enum.map(new_pairs, fn {pid, _, node_id} -> {pid, node_id} end)
+    do_walk_ancestors(state, next_queue ++ rest, acc2)
+  end
+
+  defp focus_gen(state, focus_id) do
+    state.entries
+    |> Enum.flat_map(fn {_gen, entries} -> entries end)
+    |> Enum.find(fn e -> e.person.id == focus_id and e.focus end)
+    |> case do
+      nil -> 0
+      entry -> entry.gen
+    end
+  end
+
+  defp lookup_entry_gen(state, person_id, duplicated) do
+    all_entries = Enum.flat_map(state.entries, fn {_gen, entries} -> entries end)
+
+    matching =
+      Enum.find(all_entries, fn e -> e.person.id == person_id and e.duplicated == duplicated end) ||
+        Enum.find(all_entries, fn e -> e.person.id == person_id end)
+
+    if matching, do: matching.gen, else: nil
   end
 
   # Sort laterals by birth year (nils last).
@@ -650,6 +777,71 @@ defmodule Ancestry.People.PersonGraph.Layout do
 
   defp arrange_laterals(lateral_units, deeper_subtrees, :right) do
     deeper_subtrees ++ lateral_units
+  end
+
+  # ── Gap 2: Focus siblings ──────────────────────────────────────────────
+  #
+  # Find focus's siblings: gen-0 entries (other than focus itself) that share
+  # at least one parent_child edge from focus's own parents.
+  defp build_sibling_subtrees(state, focus_id) do
+    focus_node_id = "person-#{focus_id}"
+
+    # IDs of focus's parents (from parent_child edges pointing TO focus)
+    parent_ids =
+      state.edges
+      |> Enum.filter(fn edge ->
+        edge.type == :parent_child and edge.to_id == focus_node_id
+      end)
+      |> Enum.map(fn edge -> extract_id(edge.from_id) end)
+      |> Enum.reject(&is_nil/1)
+      |> MapSet.new()
+
+    # Gen-0 entries that are not the focus and share at least one parent with focus
+    sibling_entries =
+      state.entries
+      |> Map.get(0, [])
+      |> Enum.reject(fn e -> e.person.id == focus_id or e.duplicated end)
+      |> Enum.filter(fn e ->
+        sibling_node_id = "person-#{e.person.id}"
+
+        Enum.any?(state.edges, fn edge ->
+          edge.type == :parent_child and
+            edge.to_id == sibling_node_id and
+            MapSet.member?(parent_ids, extract_id(edge.from_id))
+        end)
+      end)
+
+    # Build a full descendant subtree for each sibling
+    Enum.map(sibling_entries, fn sib_entry ->
+      build_descendant_unit(sib_entry.person.id, sib_entry, state)
+    end)
+  end
+
+  # Place the focus's primary unit alongside sibling subtrees on row 0.
+  # Layout: [left_siblings... SEP focus_unit SEP right_siblings...]
+  # All siblings are placed on the left of focus (deterministic: ordered as
+  # they appear in state.entries[0], which reflects insertion/traversal order).
+  # Returns a flat list of placement tuples.
+  defp place_focus_row_with_siblings(focus_tree, []) do
+    __place_half__(focus_tree, 0, :descendant)
+  end
+
+  defp place_focus_row_with_siblings(focus_tree, sibling_subtrees) do
+    # All siblings go to the LEFT of the focus unit.
+    # Build a combined list: [sibling_1, ..., sibling_n, focus_tree]
+    all_units = sibling_subtrees ++ [focus_tree]
+
+    # Compute total width: each unit's width + inter-unit separators
+    total_width =
+      Enum.sum(Enum.map(all_units, &__width__/1)) + length(all_units) - 1
+
+    # Place all units left-to-right on row 0 as a :descendant layout
+    {_final_col, placements_rev} =
+      place_units_in_row(all_units, 0, 0, :descendant, [])
+
+    _ = total_width
+
+    Enum.reverse(placements_rev)
   end
 
   # ── Private implementation ───────────────────────────────────────────
