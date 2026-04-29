@@ -724,8 +724,8 @@ Replace `layout_grid/2`'s body with one call to `Layout.compute/2`. Move `fix_ha
 
 - [ ] **Step 1: Read existing PersonGraph tests to identify column-position assertions**
 
-Run: `grep -n "col:" test/ancestry/people/person_graph_test.exs`
-Read each match. Tests that assert specific `col` values on focus, parents, children will likely need updating.
+Run: `grep -nE '\.col|grid_cols|grid_rows' test/ancestry/people/person_graph_test.exs`
+Read each match. Existing tests use `&.col` field access on nodes and assert specific `grid_cols` / `grid_rows` numbers. Both styles need updating: relative-position assertions (e.g., `mom.col == dad.col + 1`) generally stay; absolute `grid_cols == 7` style assertions will need new expected numbers from the new layout.
 
 - [ ] **Step 2: Replace layout_grid/2's body**
 
@@ -737,7 +737,9 @@ defp layout_grid(state, focus_id) do
 end
 ```
 
-Move `fix_has_more_indicators/2` and `reorder_partners/2` into `Layout` (called from inside `compute/2` as the first thing). Drop `make_node_id/4`, `extract_person_id/1`, `build_partner_map/1`, `reorder_generation/2`, `find_partner_entries/4`, `rebuild_generation/4`, `reinsert_separators/2`, `build_partner_groups/4` if they're now unused. Verify with `mix compile --warnings-as-errors`.
+Move `fix_has_more_indicators/2` and `reorder_partners/2` into `Layout` (called from inside `compute/2` as the first thing). Drop `make_node_id/4`, `build_partner_map/1`, `reorder_generation/2`, `find_partner_entries/4`, `rebuild_generation/4`, `reinsert_separators/2`, `build_partner_groups/4` if they're now unused. Verify with `mix compile --warnings-as-errors`.
+
+> **Keep `extract_person_id/1` in PersonGraph** — it's still called from `fix_cross_gen_ancestors/2` (Phase 1) which is unchanged. If Layout also needs it, duplicate it as a private helper there rather than removing the original.
 
 - [ ] **Step 3: Update existing PersonGraph tests**
 
