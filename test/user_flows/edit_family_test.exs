@@ -22,6 +22,7 @@ defmodule Web.UserFlows.EditFamilyTest do
     # Click Edit — modal should appear
     conn =
       conn
+      |> click(test_id("kebab-btn"))
       |> click(test_id("family-edit-btn"))
       |> assert_has(test_id("family-edit-form"))
 

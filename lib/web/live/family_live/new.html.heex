@@ -25,15 +25,7 @@
   </:toolbar>
 
   <%!-- Nav drawer (mobile) --%>
-  <.nav_drawer current_scope={@current_scope}>
-    <.link
-      href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-    >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
-      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
-    </.link>
-  </.nav_drawer>
+  <.nav_drawer current_scope={@current_scope} />
 
   <div class="max-w-lg mx-auto mt-8 px-4">
     <div class="cm-card p-6">

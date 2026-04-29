@@ -94,10 +94,9 @@ defmodule Web.UserFlows.BirthdayCalendarTest do
       |> PhoenixTest.visit(~p"/org/#{org.id}/families/#{family.id}")
       |> wait_liveview()
 
-    # Open meatball menu and click birthdays
+    # Click birthdays toolbar button
     conn =
       conn
-      |> click(test_id("meatball-btn"))
       |> click(test_id("family-birthdays-btn"))
       |> wait_liveview()
 

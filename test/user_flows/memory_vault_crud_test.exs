@@ -133,6 +133,7 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
     # Delete the vault
     conn =
       conn
+      |> click(test_id("vault-kebab-btn"))
       |> click(test_id("vault-delete-btn"))
       |> assert_has("#confirm-delete-vault-modal")
       |> click(test_id("confirm-delete-vault-btn"))
@@ -262,6 +263,7 @@ defmodule Web.UserFlows.MemoryVaultCrudTest do
     # Delete the vault
     conn =
       conn
+      |> click(test_id("vault-kebab-btn"))
       |> click(test_id("vault-delete-btn"))
       |> assert_has("#confirm-delete-vault-modal")
       |> click(test_id("confirm-delete-vault-btn"))

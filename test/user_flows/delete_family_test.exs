@@ -32,6 +32,7 @@ defmodule Web.UserFlows.DeleteFamilyTest do
     # Click Delete — confirmation modal should appear
     conn =
       conn
+      |> click(test_id("kebab-btn"))
       |> click(test_id("family-delete-btn"))
       |> assert_has(test_id("family-delete-modal"))
 

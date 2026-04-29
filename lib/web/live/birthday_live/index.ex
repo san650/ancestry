@@ -32,48 +32,54 @@ defmodule Web.BirthdayLive.Index do
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="max-w-lg mx-auto px-4 py-6">
-        <div class="flex items-center gap-3 mb-6">
-          <.link
-            navigate={~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"}
-            class="p-1 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Back to family")}
-          >
-            <.icon name="hero-arrow-left" class="size-5" />
-          </.link>
-          <h1 class="font-cm-display font-bold text-lg text-cm-indigo uppercase tracking-wider">
-            {gettext("Birthdays")}
-          </h1>
-          <label
-            class="ml-auto flex items-center gap-2 cursor-pointer select-none"
-            {test_id("show-all-toggle")}
-          >
-            <span class="font-cm-mono text-[10px] uppercase tracking-wider text-cm-text-muted">
-              {gettext("Show all people")}
-            </span>
+      <:toolbar>
+        <div class="max-w-full mx-auto flex items-center justify-between py-3 px-4">
+          <div class="flex items-center gap-3">
+            <%!-- Hamburger: mobile only --%>
             <button
               type="button"
-              phx-click="toggle_show_all"
-              role="switch"
-              aria-checked={to_string(@show_all)}
-              class={[
-                "relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200",
-                if(@show_all, do: "bg-cm-indigo", else: "bg-cm-text-muted/30")
-              ]}
+              phx-click={toggle_nav_drawer()}
+              class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+              aria-label={gettext("Open menu")}
             >
-              <span class={[
-                "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 mt-0.5",
-                if(@show_all, do: "translate-x-4 ml-0.5", else: "translate-x-0 ml-0.5")
-              ]} />
+              <.icon name="hero-bars-3" class="size-5" />
             </button>
-          </label>
+            <.breadcrumb
+              items={[
+                %{
+                  label: @current_scope.organization.name,
+                  navigate: ~p"/org/#{@current_scope.organization.id}"
+                },
+                %{
+                  label: @family.name,
+                  navigate: ~p"/org/#{@current_scope.organization.id}/families/#{@family.id}"
+                }
+              ]}
+              current={gettext("Birthdays")}
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            <.toolbar_button
+              variant={:filter}
+              active={@show_all}
+              phx-click="toggle_show_all"
+              {test_id("show-all-toggle")}
+            >
+              {gettext("Show all")}
+            </.toolbar_button>
+          </div>
         </div>
+      </:toolbar>
 
+      <%!-- Nav drawer (mobile) --%>
+      <.nav_drawer current_scope={@current_scope} />
+
+      <div class="max-w-lg mx-auto px-4 py-6">
         <div id="birthday-calendar">
           <%= for month <- @months do %>
             <div class="mb-6">
               <div class={[
-                "sticky top-0 z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
+                "sticky top-[var(--toolbar-height)] z-10 py-2 px-3 bg-cm-surface/80 backdrop-blur-sm border-b border-cm-border/30 mb-2",
                 month.is_past && "opacity-50"
               ]}>
                 <span class="font-cm-display font-bold text-sm text-cm-indigo uppercase tracking-wider">
@@ -100,62 +106,75 @@ defmodule Web.BirthdayLive.Index do
                       <div class="flex-1 h-0.5 bg-cm-coral"></div>
                     </div>
                   <% else %>
-                    <.link
-                      navigate={
-                        ~p"/org/#{@current_scope.organization.id}/people/#{entry.person.id}?from_family=#{@family.id}"
-                      }
+                    <div
                       class={[
-                        "flex items-center gap-3 px-3 py-2.5 rounded-cm border-2 border-cm-black bg-cm-white mb-1.5 hover:bg-cm-surface transition-colors",
+                        "flex items-start gap-3 px-3 py-2.5 rounded-cm border-2 border-cm-black bg-cm-white mb-1.5",
                         entry.is_past && "opacity-45"
                       ]}
-                      {test_id("birthday-entry-#{entry.person.id}")}
+                      {test_id("birthday-day-#{entry.birth_month}-#{entry.birth_day}")}
                     >
                       <%!-- Date box --%>
                       <div class="flex-shrink-0 bg-cm-surface rounded-cm border border-cm-border px-2.5 py-1.5 text-center min-w-[48px]">
                         <div class="font-cm-display text-lg font-bold text-cm-indigo leading-none">
-                          {entry.person.birth_day}
+                          {entry.birth_day}
                         </div>
                         <div class="font-cm-mono text-[9px] font-semibold text-cm-text-muted uppercase tracking-wider">
-                          {month_abbrev(entry.person.birth_month)}
+                          {month_abbrev(entry.birth_month)}
                         </div>
                       </div>
-                      <%!-- Avatar --%>
-                      <div class="w-9 h-9 rounded-full bg-cm-surface flex items-center justify-center overflow-hidden flex-shrink-0">
-                        <%= if entry.person.photo && entry.person.photo_status == "processed" do %>
-                          <img
-                            src={
-                              Ancestry.Uploaders.PersonPhoto.url(
-                                {entry.person.photo, entry.person},
-                                :thumbnail
-                              )
+                      <%!-- People (one row per person, each navigates to their show page) --%>
+                      <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+                        <%= for person_entry <- entry.people do %>
+                          <.link
+                            navigate={
+                              ~p"/org/#{@current_scope.organization.id}/people/#{person_entry.person.id}?from_family=#{@family.id}"
                             }
-                            alt={Person.display_name(entry.person)}
-                            class="w-full h-full object-cover"
-                          />
-                        <% else %>
-                          <.icon
-                            name="hero-user"
-                            class={["w-4 h-4", gender_icon_class(entry.person.gender)]}
-                          />
+                            class="flex items-center gap-3 -mx-1 px-1 py-1 rounded-cm hover:bg-cm-surface transition-colors"
+                            {test_id("birthday-entry-#{person_entry.person.id}")}
+                          >
+                            <%!-- Avatar --%>
+                            <div class="w-9 h-9 rounded-full bg-cm-surface flex items-center justify-center overflow-hidden flex-shrink-0">
+                              <%= if person_entry.person.photo && person_entry.person.photo_status == "processed" do %>
+                                <img
+                                  src={
+                                    Ancestry.Uploaders.PersonPhoto.url(
+                                      {person_entry.person.photo, person_entry.person},
+                                      :thumbnail
+                                    )
+                                  }
+                                  alt={Person.display_name(person_entry.person)}
+                                  class="w-full h-full object-cover"
+                                />
+                              <% else %>
+                                <.icon
+                                  name="hero-user"
+                                  class={[
+                                    "w-4 h-4",
+                                    gender_icon_class(person_entry.person.gender)
+                                  ]}
+                                />
+                              <% end %>
+                            </div>
+                            <%!-- Name + age --%>
+                            <div class="flex-1 min-w-0">
+                              <div class="font-cm-body text-[13px] font-medium text-cm-black truncate">
+                                {Person.display_name(person_entry.person)}
+                                <%= if person_entry.person.deceased do %>
+                                  <span class="font-cm-mono text-[10px] font-normal text-cm-text-muted">
+                                    ({deceased_label(person_entry.person.gender)})
+                                  </span>
+                                <% end %>
+                              </div>
+                              <%= if person_entry.age_label do %>
+                                <div class="font-cm-mono text-[10px] text-cm-text-muted">
+                                  {person_entry.age_label}
+                                </div>
+                              <% end %>
+                            </div>
+                          </.link>
                         <% end %>
                       </div>
-                      <%!-- Name + age --%>
-                      <div class="flex-1 min-w-0">
-                        <div class="font-cm-body text-[13px] font-medium text-cm-black truncate">
-                          {Person.display_name(entry.person)}
-                          <%= if entry.person.deceased do %>
-                            <span class="font-cm-mono text-[10px] font-normal text-cm-text-muted">
-                              ({deceased_label(entry.person.gender)})
-                            </span>
-                          <% end %>
-                        </div>
-                        <%= if entry.age_label do %>
-                          <div class="font-cm-mono text-[10px] text-cm-text-muted">
-                            {entry.age_label}
-                          </div>
-                        <% end %>
-                      </div>
-                    </.link>
+                    </div>
                   <% end %>
                 <% end %>
               <% end %>
@@ -203,22 +222,29 @@ defmodule Web.BirthdayLive.Index do
   end
 
   defp build_entries(people, month_num, today) do
-    entries =
-      Enum.map(people, fn person ->
-        is_past = birthday_is_past?(person.birth_month, person.birth_day, today)
+    day_groups =
+      people
+      |> Enum.group_by(& &1.birth_day)
+      |> Enum.sort_by(fn {day, _} -> day end)
+      |> Enum.map(fn {day, day_people} ->
+        birth_month = hd(day_people).birth_month
 
         %{
-          person: person,
-          is_past: is_past,
-          age_label: age_label(person, today)
+          birth_day: day,
+          birth_month: birth_month,
+          is_past: birthday_is_past?(birth_month, day, today),
+          people:
+            Enum.map(day_people, fn person ->
+              %{person: person, age_label: age_label(person, today)}
+            end)
         }
       end)
 
     if month_num == today.month do
-      {past, future} = Enum.split_with(entries, & &1.is_past)
+      {past, future} = Enum.split_with(day_groups, & &1.is_past)
       past ++ [:today_marker] ++ future
     else
-      entries
+      day_groups
     end
   end
 

@@ -11,18 +11,18 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
   # And the hamburger menu is visible
   #
   # When they tap the hamburger
-  # Then the nav drawer slides in with Organizations and Accounts links
+  # Then the nav drawer slides in with Settings, Accounts, and Log out links
   #
-  # When they tap Organizations
+  # When they tap the logo
   # Then they navigate to the org index
   #
   # Given an admin on the account show page (mobile)
   # When they tap the hamburger
-  # Then the nav drawer has Organizations and Accounts links
+  # Then the nav drawer has Settings and Accounts links
   #
   # Given an admin on the new account page (mobile)
   # When they tap the hamburger
-  # Then the nav drawer has Organizations and Accounts links
+  # Then the nav drawer has Settings and Accounts links
 
   setup do
     org = insert(:organization, name: "Test Org")
@@ -52,16 +52,16 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
       |> click(test_id("hamburger-menu"))
       |> assert_has("aside#nav-drawer")
 
-    # Drawer should have Organizations and Accounts links
+    # Drawer should have Settings and Accounts links in the account section
     conn =
       conn
-      |> assert_has(test_id("nav-organizations"), text: "Organizations")
+      |> assert_has(test_id("nav-settings"), text: "Settings")
       |> assert_has(test_id("nav-accounts"), text: "Accounts")
 
-    # Tap Organizations — navigate away
+    # Tap logo — navigate to organizations
     conn =
       conn
-      |> click(test_id("nav-organizations"))
+      |> click(test_id("nav-logo"))
       |> wait_liveview()
 
     # Should be on the organizations page
@@ -91,10 +91,10 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
     # Hamburger should be visible, back arrow hidden on mobile
     conn = assert_has(conn, test_id("hamburger-menu"))
 
-    # Tap hamburger — drawer should have both links
+    # Tap hamburger — drawer should have Settings and Accounts links
     conn
     |> click(test_id("hamburger-menu"))
-    |> assert_has(test_id("nav-organizations"), text: "Organizations")
+    |> assert_has(test_id("nav-settings"), text: "Settings")
     |> assert_has(test_id("nav-accounts"), text: "Accounts")
   end
 
@@ -112,7 +112,7 @@ defmodule Web.UserFlows.AccountManagementMobileTest do
     # Tap hamburger
     conn
     |> click(test_id("hamburger-menu"))
-    |> assert_has(test_id("nav-organizations"), text: "Organizations")
+    |> assert_has(test_id("nav-settings"), text: "Settings")
     |> assert_has(test_id("nav-accounts"), text: "Accounts")
   end
 end

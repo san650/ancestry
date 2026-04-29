@@ -15,38 +15,34 @@
         </h1>
       </div>
       <div class="hidden lg:flex items-center gap-2">
-        <button
-          type="button"
+        <.toolbar_button
+          variant={if(@selection_mode, do: :toggle_active, else: :secondary)}
           phx-click="toggle_select_mode"
-          class={[
-            "inline-flex items-center gap-2 rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider transition-colors",
-            if(@selection_mode,
-              do: "bg-cm-indigo text-cm-white",
-              else: "border-2 border-cm-black text-cm-black hover:bg-cm-surface"
-            )
-          ]}
           {test_id("family-index-select-btn")}
         >
-          <.icon name="hero-check-circle" class="w-4 h-4" />
-          <span>
-            {if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
-          </span>
-        </button>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/people"}
-          class="inline-flex items-center gap-2 border-2 border-cm-black text-cm-black rounded-cm px-4 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-surface transition-colors"
-          {test_id("org-people-btn")}
-        >
-          <.icon name="hero-users" class="w-4 h-4" /> {gettext("People")}
-        </.link>
-        <.link
-          id="new-family-btn"
+          {if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
+        </.toolbar_button>
+        <.toolbar_button
+          variant={:primary}
           navigate={~p"/org/#{@current_scope.organization.id}/families/new"}
-          class="inline-flex items-center gap-2 bg-cm-coral text-cm-white rounded-cm px-5 py-2.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider hover:bg-cm-coral-hover transition-colors"
           {test_id("family-new-btn")}
         >
           {gettext("New Family")}
-        </.link>
+        </.toolbar_button>
+        <div class="relative">
+          <.toolbar_button variant={:kebab} phx-click="toggle_menu" {test_id("kebab-btn")} />
+          <.kebab_menu show={@show_menu}>
+            <:item>
+              <.link
+                navigate={~p"/org/#{@current_scope.organization.id}/people"}
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-black hover:bg-cm-surface"
+                {test_id("org-people-btn")}
+              >
+                {gettext("People")}
+              </.link>
+            </:item>
+          </.kebab_menu>
+        </div>
       </div>
     </div>
   </:toolbar>
@@ -55,58 +51,33 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        icon="hero-check-circle"
-        label={if(@selection_mode, do: gettext("Exit selection"), else: gettext("Select"))}
+        label={if(@selection_mode, do: gettext("Done"), else: gettext("Select"))}
         phx-click={toggle_nav_drawer() |> JS.push("toggle_select_mode")}
       />
       <.nav_action
-        icon="hero-users"
         label={gettext("People")}
-        phx-click={
-          toggle_nav_drawer()
-          |> JS.navigate(~p"/org/#{@current_scope.organization.id}/people")
-        }
+        navigate={~p"/org/#{@current_scope.organization.id}/people"}
       />
       <.nav_action
-        icon="hero-plus"
-        label={gettext("New family")}
-        phx-click={
-          toggle_nav_drawer()
-          |> JS.navigate(~p"/org/#{@current_scope.organization.id}/families/new")
-        }
+        label={gettext("New Family")}
+        navigate={~p"/org/#{@current_scope.organization.id}/families/new"}
       />
     </:page_actions>
-    <.link
-      href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-    >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
-      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
-    </.link>
   </.nav_drawer>
 
   <div class="bg-white min-h-screen">
     <div id="family-index-root" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <%!-- Selection bar: fixed bottom on mobile, inline on desktop --%>
-      <%= if @selection_mode do %>
-        <div
-          id="selection-bar"
-          class="fixed bottom-0 left-0 right-0 z-30 bg-cm-white border-t-2 border-cm-black px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] flex items-center justify-between lg:static lg:border-t-0 lg:px-5 lg:py-3 lg:bg-cm-indigo lg:rounded-cm lg:mb-4"
-          {test_id("selection-bar")}
+      <%!-- Selection bar --%>
+      <.selection_bar show={@selection_mode} count={MapSet.size(@selected_ids)}>
+        <button
+          phx-click="request_batch_delete"
+          disabled={MapSet.size(@selected_ids) == 0}
+          class="px-3 py-1.5 rounded-cm font-cm-mono text-[10px] font-bold uppercase tracking-wider bg-cm-error text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+          {test_id("selection-bar-delete-btn")}
         >
-          <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-black lg:text-cm-white">
-            {ngettext("1 selected", "%{count} selected", MapSet.size(@selected_ids))}
-          </span>
-          <button
-            phx-click="request_batch_delete"
-            disabled={MapSet.size(@selected_ids) == 0}
-            class="px-3 py-2 font-cm-mono text-[10px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10 rounded-cm transition-colors lg:bg-cm-coral lg:text-cm-white lg:hover:bg-cm-coral-hover disabled:opacity-40 disabled:cursor-not-allowed"
-            {test_id("selection-bar-delete-btn")}
-          >
-            {gettext("Delete")}
-          </button>
-        </div>
-      <% end %>
+          {gettext("Delete")}
+        </button>
+      </.selection_bar>
 
       <div
         id="families"

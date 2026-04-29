@@ -52,55 +52,49 @@
         />
       </div>
 
-      <div class="flex items-center gap-1">
-        <%!-- Desktop actions --%>
-        <div class="hidden lg:flex items-center gap-1">
-          <button
-            type="button"
-            id="edit-person-btn"
-            phx-click="edit"
-            class="p-2 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Edit person")}
-          >
-            <.icon name="hero-pencil-square" class="size-5" />
-          </button>
-          <%= if @from_family do %>
-            <button
-              type="button"
-              id="remove-from-family-btn"
-              phx-click="request_remove"
-              class="p-2 text-cm-text-muted hover:text-cm-black"
-              aria-label={gettext("Remove from family")}
-            >
-              <.icon name="hero-link-slash" class="size-5" />
-            </button>
-          <% end %>
-          <button
-            type="button"
-            id="delete-person-btn"
-            phx-click="request_delete"
-            class="p-2 text-cm-text-muted hover:text-cm-black"
-            aria-label={gettext("Delete person")}
-          >
-            <.icon name="hero-trash" class="size-5" />
-          </button>
-          <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
-            <button
-              type="button"
-              id="convert-to-acquaintance-btn"
-              phx-click="convert_to_acquaintance"
-              data-confirm={
-                gettext(
-                  "Convert this person to non-family? They will be excluded from the tree view and relationships."
-                )
-              }
-              class="p-2 text-cm-text-muted hover:text-cm-black"
-              aria-label={gettext("Convert to non-family")}
-              {test_id("convert-to-acquaintance-btn")}
-            >
-              <.icon name="hero-user-minus" class="size-5" />
-            </button>
-          <% end %>
+      <div class="hidden lg:flex items-center gap-2">
+        <.toolbar_button id="edit-person-btn" variant={:secondary} phx-click="edit">
+          {gettext("Edit")}
+        </.toolbar_button>
+        <div class="relative">
+          <.toolbar_button variant={:kebab} phx-click="toggle_menu" />
+          <.kebab_menu show={@show_menu}>
+            <:item :if={@from_family}>
+              <button
+                type="button"
+                id="remove-from-family-btn"
+                phx-click="request_remove"
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-black hover:bg-cm-surface"
+              >
+                {gettext("Remove from Family")}
+              </button>
+            </:item>
+            <:item :if={not Ancestry.People.Person.acquaintance?(@person)}>
+              <button
+                type="button"
+                phx-click="convert_to_acquaintance"
+                data-confirm={
+                  gettext(
+                    "Convert this person to non-family? They will be excluded from the tree view and relationships."
+                  )
+                }
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-black hover:bg-cm-surface"
+                {test_id("convert-to-acquaintance-btn")}
+              >
+                {gettext("Convert to Non-family")}
+              </button>
+            </:item>
+            <:container_item>
+              <button
+                type="button"
+                id="delete-person-btn"
+                phx-click="request_delete"
+                class="block w-full text-left px-4 py-2.5 font-cm-mono text-[11px] font-bold uppercase tracking-wider text-cm-error hover:bg-cm-error/10"
+              >
+                {gettext("Delete Person")}
+              </button>
+            </:container_item>
+          </.kebab_menu>
         </div>
       </div>
     </div>
@@ -110,38 +104,25 @@
   <.nav_drawer current_scope={@current_scope}>
     <:page_actions>
       <.nav_action
-        icon="hero-pencil-square"
         label={gettext("Edit")}
         phx-click={toggle_nav_drawer() |> JS.push("edit")}
       />
-      <%= if @from_family do %>
-        <.nav_action
-          icon="hero-link-slash"
-          label={gettext("Remove from family")}
-          phx-click={toggle_nav_drawer() |> JS.push("request_remove")}
-        />
-      <% end %>
       <.nav_action
-        icon="hero-trash"
-        label={gettext("Delete person")}
+        :if={@from_family}
+        label={gettext("Remove from Family")}
+        phx-click={toggle_nav_drawer() |> JS.push("request_remove")}
+      />
+      <.nav_action
+        :if={not Ancestry.People.Person.acquaintance?(@person)}
+        label={gettext("Convert to Non-family")}
+        phx-click={toggle_nav_drawer() |> JS.push("convert_to_acquaintance")}
+      />
+      <.nav_action
+        label={gettext("Delete Person")}
         danger
         phx-click={toggle_nav_drawer() |> JS.push("request_delete")}
       />
-      <%= unless Ancestry.People.Person.acquaintance?(@person) do %>
-        <.nav_action
-          icon="hero-user-minus"
-          label={gettext("Convert to non-family")}
-          phx-click={toggle_nav_drawer() |> JS.push("convert_to_acquaintance")}
-        />
-      <% end %>
     </:page_actions>
-    <.link
-      navigate={~p"/org/#{@current_scope.organization.id}"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-    >
-      <.icon name="hero-building-office" class="size-5 shrink-0 text-cm-text-muted" />
-      <span class="font-cm-body text-sm">{@current_scope.organization.name}</span>
-    </.link>
   </.nav_drawer>
 
   <%= if @editing do %>

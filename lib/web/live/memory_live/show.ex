@@ -43,9 +43,38 @@ defmodule Web.MemoryLive.Show do
      |> assign(:family, family)
      |> assign(:vault, vault)
      |> assign(:memory, memory)
-     |> assign(:rendered_content, rendered_content)}
+     |> assign(:rendered_content, rendered_content)
+     |> assign(:show_menu, false)
+     |> assign(:confirm_delete, false)}
   end
 
   @impl true
   def handle_params(_params, _url, socket), do: {:noreply, socket}
+
+  @impl true
+  def handle_event("toggle_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, !socket.assigns.show_menu)}
+  end
+
+  def handle_event("close_menu", _, socket) do
+    {:noreply, assign(socket, :show_menu, false)}
+  end
+
+  def handle_event("request_delete", _, socket) do
+    {:noreply, assign(socket, :confirm_delete, true)}
+  end
+
+  def handle_event("cancel_delete", _, socket) do
+    {:noreply, assign(socket, :confirm_delete, false)}
+  end
+
+  def handle_event("confirm_delete", _, socket) do
+    {:ok, _} = Memories.delete_memory(socket.assigns.memory)
+
+    {:noreply,
+     push_navigate(socket,
+       to:
+         ~p"/org/#{socket.assigns.current_scope.organization.id}/families/#{socket.assigns.family.id}/vaults/#{socket.assigns.vault.id}"
+     )}
+  end
 end

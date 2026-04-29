@@ -65,6 +65,7 @@ defmodule Web.UserFlows.OrgManagePeopleTest do
       conn
       |> visit(~p"/org/#{org.id}")
       |> wait_liveview()
+      |> click(test_id("kebab-btn"))
       |> click(test_id("org-people-btn"))
       |> wait_liveview()
 

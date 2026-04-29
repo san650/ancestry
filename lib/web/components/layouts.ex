@@ -48,10 +48,10 @@ defmodule Web.Layouts do
 
   def app(assigns) do
     ~H"""
-    <div class="min-h-screen">
+    <div class="min-h-screen" style="--toolbar-height: 57px">
       <header class="hidden lg:flex items-center px-4 sm:px-6 lg:px-8 py-2 bg-cm-indigo border-b-[3px] border-cm-coral">
         <div class="flex-1">
-          <a href="/" class="flex-1 flex w-fit items-center gap-3">
+          <a href="/org" class="flex-1 flex w-fit items-center gap-3">
             <div class="w-9 h-9 border-[2.5px] border-cm-white rounded-cm flex items-center justify-center">
               <span class="font-cm-display text-cm-white text-lg leading-none">A</span>
             </div>
@@ -121,56 +121,12 @@ defmodule Web.Layouts do
         </div>
       <% end %>
 
-      <main class="min-h-100 pb-16 lg:pb-0">
+      <main class="min-h-100">
         {render_slot(@inner_block)}
       </main>
 
-      <.bottom_nav current_scope={@current_scope} />
-
       <.flash_group flash={@flash} />
     </div>
-    """
-  end
-
-  # Mobile bottom navigation bar. Only renders when current_scope with an organization is available.
-  # Hidden on desktop (lg:hidden) where the header nav is used instead.
-  attr :current_scope, :map, default: nil
-
-  defp bottom_nav(assigns) do
-    ~H"""
-    <%= if @current_scope && @current_scope.account && @current_scope.organization do %>
-      <nav class="fixed bottom-0 left-0 right-0 bg-cm-white border-t border-cm-border z-40 flex lg:hidden">
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}"}
-          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
-        >
-          <.icon name="hero-home-solid" class="w-5 h-5 mx-auto mb-1" />
-          {gettext("Families")}
-        </.link>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}/people"}
-          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
-        >
-          <.icon name="hero-users-solid" class="w-5 h-5 mx-auto mb-1" />
-          {gettext("People")}
-        </.link>
-        <.link
-          navigate={~p"/org/#{@current_scope.organization.id}"}
-          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
-        >
-          <.icon name="hero-photo-solid" class="w-5 h-5 mx-auto mb-1" />
-          {gettext("Gallery")}
-        </.link>
-        <button
-          type="button"
-          phx-click={toggle_nav_drawer()}
-          class="flex-1 text-center py-2 font-cm-mono text-[8px] uppercase tracking-wider text-cm-text-muted"
-        >
-          <.icon name="hero-bars-3-solid" class="w-5 h-5 mx-auto mb-1" />
-          {gettext("More")}
-        </button>
-      </nav>
-    <% end %>
     """
   end
 

@@ -38,6 +38,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
     # Open Edit modal
     conn =
       conn
+      |> click(test_id("kebab-btn"))
       |> click(test_id("family-edit-btn"))
       |> assert_has(test_id("family-edit-form"))
       |> assert_has(test_id("default-person-picker"))
@@ -77,6 +78,7 @@ defmodule Web.UserFlows.DefaultPersonTest do
     # Open Edit modal again and clear default
     conn =
       conn
+      |> click(test_id("kebab-btn"))
       |> click(test_id("family-edit-btn"))
       |> assert_has(test_id("default-person-picker"))
       |> click(test_id("default-person-none"))

@@ -130,6 +130,8 @@ defmodule Web.UserFlows.AcquaintancePersonTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
+      # Open kebab menu to reveal convert button
+      view |> render_click("toggle_menu")
       assert has_element?(view, test_id("convert-to-acquaintance-btn"))
     end
 
@@ -142,6 +144,8 @@ defmodule Web.UserFlows.AcquaintancePersonTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
+      # Open kebab menu first, then click convert
+      view |> render_click("toggle_menu")
       view |> element(test_id("convert-to-acquaintance-btn")) |> render_click()
 
       html = render(view)
@@ -162,6 +166,8 @@ defmodule Web.UserFlows.AcquaintancePersonTest do
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/people/#{person.id}?from_family=#{family.id}")
 
+      # Open kebab menu first, then click convert
+      view |> render_click("toggle_menu")
       view |> element(test_id("convert-to-acquaintance-btn")) |> render_click()
 
       assert render(view) =~ "Remove all relationships"

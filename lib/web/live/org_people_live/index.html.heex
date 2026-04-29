@@ -21,46 +21,26 @@
           current={gettext("People")}
         />
       </div>
-      <div class="flex items-center gap-2">
-        <%= if @editing && MapSet.size(@selected) > 0 do %>
-          <button
-            phx-click="request_delete"
-            class="inline-flex items-center gap-1.5 bg-cm-error text-cm-white rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold hover:opacity-90 transition-opacity"
-            {test_id("org-people-delete-btn")}
-          >
-            <.icon name="hero-trash" class="w-4 h-4" /> {gettext("Delete")}
-          </button>
-        <% end %>
-        <button
+      <div class="hidden lg:flex items-center gap-2">
+        <.toolbar_button
+          variant={if(@editing, do: :toggle_active, else: :secondary)}
           phx-click="toggle_edit"
-          class={[
-            "inline-flex items-center gap-1.5 rounded-cm px-3 py-1.5 text-sm font-cm-body font-semibold",
-            if(@editing,
-              do: "bg-cm-indigo text-cm-white",
-              else: "bg-cm-surface text-cm-black hover:bg-cm-surface transition-colors"
-            )
-          ]}
           {test_id("org-people-edit-btn")}
         >
-          <%= if @editing do %>
-            {gettext("Done")}
-          <% else %>
-            <.icon name="hero-pencil" class="w-4 h-4" /> {gettext("Edit")}
-          <% end %>
-        </button>
+          {if @editing, do: gettext("Done"), else: gettext("Select")}
+        </.toolbar_button>
       </div>
     </div>
   </:toolbar>
 
   <%!-- Nav drawer (mobile) --%>
   <.nav_drawer current_scope={@current_scope}>
-    <.link
-      href={~p"/org"}
-      class="flex items-center gap-3 w-full px-2 py-3 text-left rounded-cm min-h-[44px] text-cm-black hover:bg-cm-surface transition-colors"
-    >
-      <.icon name="hero-building-office-2" class="size-5 shrink-0 text-cm-text-muted" />
-      <span class="font-cm-body text-sm">{gettext("Organizations")}</span>
-    </.link>
+    <:page_actions>
+      <.nav_action
+        label={if @editing, do: gettext("Done"), else: gettext("Select")}
+        phx-click={toggle_nav_drawer() |> JS.push("toggle_edit")}
+      />
+    </:page_actions>
   </.nav_drawer>
 
   <%!-- Search box + No family chip --%>
@@ -93,7 +73,7 @@
         ]}
         {test_id("org-people-no-family-chip")}
       >
-        <.icon name="hero-exclamation-triangle-mini" class="w-4 h-4" /> {gettext("No family")}
+        {gettext("No family")}
       </button>
       <button
         phx-click="toggle_acquaintance"
@@ -106,30 +86,30 @@
         ]}
         {test_id("org-people-acquaintance-chip")}
       >
-        <.icon name="hero-user-minus-mini" class="w-4 h-4" /> {gettext("Non-family")}
+        {gettext("Non-family")}
       </button>
     </div>
   </div>
 
-  <%!-- Select all / deselect all bar --%>
-  <%= if @editing do %>
-    <div class="px-4 pb-2 max-w-4xl mx-auto w-full">
-      <div class="flex items-center gap-3 text-sm text-cm-text-muted">
-        <button phx-click="select_all" class="text-cm-indigo hover:underline">
-          {gettext("Select all")}
-        </button>
-        <span class="text-cm-text-muted/50">|</span>
-        <button phx-click="deselect_all" class="text-cm-indigo hover:underline">
-          Deselect all
-        </button>
-        <%= if MapSet.size(@selected) > 0 do %>
-          <span class="text-cm-text-muted ml-auto">
-            {ngettext("1 selected", "%{count} selected", MapSet.size(@selected))}
-          </span>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
+  <%!-- Selection bar --%>
+  <div class="px-4 max-w-4xl mx-auto w-full">
+    <.selection_bar count={MapSet.size(@selected)} show={@editing}>
+      <button
+        phx-click="select_all"
+        class="px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm text-cm-white hover:bg-cm-white/10 transition-colors"
+      >
+        {gettext("Select all")}
+      </button>
+      <button
+        phx-click="request_delete"
+        disabled={MapSet.size(@selected) == 0}
+        class="px-3 py-1.5 font-cm-mono text-[10px] font-bold uppercase tracking-wider rounded-cm bg-cm-error text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+        {test_id("org-people-delete-btn")}
+      >
+        {gettext("Delete")}
+      </button>
+    </.selection_bar>
+  </div>
 
   <%!-- Table --%>
   <div class={[

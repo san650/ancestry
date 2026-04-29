@@ -26,6 +26,8 @@ defmodule Web.CoreComponents do
   use Phoenix.Component
   use Gettext, backend: Web.Gettext
 
+  import Web.Helpers.TestHelpers
+
   alias Phoenix.LiveView.JS
 
   @doc """
@@ -128,6 +130,189 @@ defmodule Web.CoreComponents do
       </button>
       """
     end
+  end
+
+  @doc """
+  Renders a toolbar button with multiple visual variants for toolbars and action bars.
+
+  ## Variants
+
+    * `:primary` — coral background, white text (create/upload actions)
+    * `:secondary` — black border, surface background (select/edit/toggle)
+    * `:toggle_active` — indigo background, white text (active segmented toggle)
+    * `:filter` — border with optional gold highlight when `active` is true
+    * `:kebab` — square button with vertical three-dot icon
+
+  ## Examples
+
+      <.toolbar_button variant={:primary} phx-click="upload">Upload</.toolbar_button>
+      <.toolbar_button variant={:kebab} phx-click="toggle_menu" />
+      <.toolbar_button variant={:filter} active={@filter_on} phx-click="toggle_filter">
+        Date
+      </.toolbar_button>
+  """
+  attr :variant, :atom, default: :secondary
+  attr :active, :boolean, default: false
+
+  attr :rest, :global,
+    include: ~w(phx-click navigate href disabled patch method download name value)
+
+  slot :inner_block
+
+  def toolbar_button(%{variant: :kebab} = assigns) do
+    ~H"""
+    <button
+      type="button"
+      class="inline-flex items-center justify-center w-8 h-8 border-2 border-cm-black rounded-cm bg-cm-surface hover:bg-cm-surface-hover transition-colors cursor-pointer"
+      {@rest}
+    >
+      <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor" aria-hidden="true">
+        <circle cx="2" cy="2" r="1.5" />
+        <circle cx="2" cy="8" r="1.5" />
+        <circle cx="2" cy="14" r="1.5" />
+      </svg>
+    </button>
+    """
+  end
+
+  def toolbar_button(assigns) do
+    base =
+      "font-cm-mono text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-cm border-2 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+
+    variant_classes =
+      case assigns.variant do
+        :primary ->
+          "#{base} border-cm-coral bg-cm-coral text-cm-white hover:bg-cm-coral-hover"
+
+        :secondary ->
+          "#{base} border-cm-black bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
+
+        :toggle_active ->
+          "#{base} border-cm-indigo bg-cm-indigo text-cm-white"
+
+        :filter ->
+          if assigns.active do
+            "#{base} border-cm-gold bg-cm-gold/10 text-cm-black"
+          else
+            "#{base} border-cm-border bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
+          end
+
+        _ ->
+          "#{base} border-cm-black bg-cm-surface text-cm-black hover:bg-cm-surface-hover"
+      end
+
+    rest = assigns.rest
+    is_link = rest[:navigate] || rest[:href] || rest[:patch]
+    assigns = assign(assigns, variant_classes: variant_classes, is_link: is_link)
+
+    ~H"""
+    <.link :if={@is_link} class={@variant_classes} {@rest}>
+      {render_slot(@inner_block)}
+    </.link>
+    <button :if={!@is_link} type="button" class={@variant_classes} {@rest}>
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
+
+  @doc """
+  Renders a dropdown menu that appears below a kebab (three-dot) button.
+
+  Uses a simple slot-based approach where call sites render their own styled
+  buttons/links inside the slots.
+
+  ## Slots
+
+    * `item` — regular action items rendered above the separator
+    * `container_item` — edit/delete actions rendered below the separator
+
+  A visual separator is shown only when both slots have content.
+
+  ## Examples
+
+      <.kebab_menu show={@show_menu} id="gallery-menu">
+        <:item>
+          <button phx-click="select_all" class="w-full text-left px-3 py-2 text-sm">
+            Select All
+          </button>
+        </:item>
+        <:container_item>
+          <button phx-click="delete" class="w-full text-left px-3 py-2 text-sm text-cm-error">
+            Delete
+          </button>
+        </:container_item>
+      </.kebab_menu>
+  """
+  attr :show, :boolean, required: true
+  attr :id, :string, default: "kebab-menu"
+
+  slot :item
+  slot :container_item
+
+  def kebab_menu(assigns) do
+    ~H"""
+    <div
+      :if={@show}
+      id={@id}
+      class="absolute right-0 top-full mt-1 w-56 bg-cm-white rounded-cm border-2 border-cm-black py-1 z-50"
+      phx-click-away="close_menu"
+    >
+      <div :for={item <- @item}>
+        {render_slot(item)}
+      </div>
+      <div :if={@item != [] && @container_item != []} class="border-t border-cm-border my-1" />
+      <div :for={container_item <- @container_item}>
+        {render_slot(container_item)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a dual-mode selection toolbar that appears when items are selected.
+
+  On desktop, renders as a sticky black bar at the top of the content area.
+  On mobile, renders as a fixed bottom sheet with safe-area padding.
+
+  Both modes display a selection counter and action buttons provided via the
+  inner block slot.
+
+  ## Examples
+
+      <.selection_bar count={length(@selected)} show={@selected != []}>
+        <.toolbar_button variant={:primary} phx-click="delete_selected">
+          Delete
+        </.toolbar_button>
+      </.selection_bar>
+  """
+  attr :count, :integer, required: true
+  attr :show, :boolean, required: true
+  attr :id, :string, default: "selection-bar"
+
+  slot :inner_block, required: true
+
+  def selection_bar(assigns) do
+    ~H"""
+    <div
+      :if={@show}
+      id={@id}
+      {test_id("selection-bar")}
+      class={[
+        "z-40 bg-cm-black text-cm-white",
+        "fixed bottom-0 left-0 right-0 px-4 py-2 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+        "lg:static lg:rounded-cm lg:mb-4"
+      ]}
+    >
+      <div class="flex items-center gap-3">
+        <span class="font-cm-mono text-[10px] font-bold uppercase tracking-wider">
+          {ngettext("1 selected", "%{count} selected", @count)}
+        </span>
+        <div class="flex items-center gap-2 ml-auto">
+          {render_slot(@inner_block)}
+        </div>
+      </div>
+    </div>
+    """
   end
 
   @doc """

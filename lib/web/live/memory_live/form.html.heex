@@ -2,6 +2,15 @@
   <:toolbar>
     <div class="flex items-center justify-between px-4 py-2 bg-cm-surface sm:px-6 lg:px-8">
       <div class="flex items-center gap-2 min-w-0">
+        <%!-- Hamburger: mobile only --%>
+        <button
+          type="button"
+          phx-click={toggle_nav_drawer()}
+          class="p-2 -ml-2 text-cm-text-muted hover:text-cm-black lg:hidden min-w-[44px] min-h-[44px] flex items-center justify-center"
+          aria-label={gettext("Open menu")}
+        >
+          <.icon name="hero-bars-3" class="size-5" />
+        </button>
         <.breadcrumb
           items={
             [
@@ -37,6 +46,9 @@
       </div>
     </div>
   </:toolbar>
+
+  <%!-- Nav drawer (mobile) --%>
+  <.nav_drawer current_scope={@current_scope} />
 
   <div class="px-4 py-6 sm:px-6 lg:px-8 max-w-3xl mx-auto">
     <.form

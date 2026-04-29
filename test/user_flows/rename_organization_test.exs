@@ -20,7 +20,7 @@ defmodule Web.UserFlows.RenameOrganizationTest do
   # Then a validation error is shown
   #
   # When multiple orgs are selected
-  # Then the "Rename" button is not shown
+  # Then the "Rename" button is disabled
   #
   # When a non-admin enters selection mode
   # Then the "Rename" button is not shown
@@ -118,7 +118,7 @@ defmodule Web.UserFlows.RenameOrganizationTest do
     assert_has(conn, "p", text: "can't be blank")
   end
 
-  test "rename button hidden when multiple orgs selected", %{conn: conn, org: org, org2: org2} do
+  test "rename button disabled when multiple orgs selected", %{conn: conn, org: org, org2: org2} do
     conn = log_in_e2e(conn)
 
     conn =
@@ -131,7 +131,7 @@ defmodule Web.UserFlows.RenameOrganizationTest do
       |> click(test_id("org-card-#{org2.id}"))
       |> wait_liveview()
 
-    refute_has(conn, test_id("selection-bar-rename-btn"))
+    assert_has(conn, test_id("selection-bar-rename-btn") <> "[disabled]")
   end
 
   test "rename button hidden for non-admin", %{conn: conn, org: org} do

@@ -48,7 +48,7 @@ defmodule Web.FamilyLive.ShowTest do
   test "updates family name", %{conn: conn, family: family, org: org} do
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
     render_async(view)
-    view |> element("#edit-family-btn") |> render_click()
+    render_click(view, "edit")
 
     view
     |> form("#edit-family-form", family: %{name: "Updated Name"})
@@ -60,7 +60,7 @@ defmodule Web.FamilyLive.ShowTest do
   test "deletes family and redirects to index", %{conn: conn, family: family, org: org} do
     {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
     render_async(view)
-    view |> element("#delete-family-btn") |> render_click()
+    render_click(view, "request_delete")
     assert has_element?(view, "#confirm-delete-family-modal")
 
     view |> element("#confirm-delete-family-modal [phx-click='confirm_delete']") |> render_click()
