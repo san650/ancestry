@@ -134,7 +134,13 @@ The full tree is built in two halves rooted at the focus row:
   child* in the family-unit tree is `A`'s parents' couple unit at generation
   `N+1`, and the *right child* is `B`'s parents' couple unit. Lateral siblings
   expanded by `other:` become additional child units of the relevant
-  generation's couple unit (alongside the direct-line child).
+  generation's couple unit, *positioned to the left of the direct-line child
+  unit* (consistent ordering so connectors don't cross between rows).
+
+**Loose lane recursion.** Loose lanes can appear at any descendant generation
+where a person has multiple partner groups (ex / previous / solo + current),
+not just at the focus row. They do not appear in the ancestor tree (ancestors
+do not branch by partner group in this view).
 
 Dup stubs are leaves: their entry has `duplicated: true` and no upward
 traversal in Phase 1, so they appear in the family-unit tree as 1-cell
@@ -172,14 +178,36 @@ Walk the tree, accumulating `current_col`. For each unit:
 3. Recurse into child units, advancing `current_col` left-to-right; insert
    separator nodes between adjacent units and between cluster boundaries and
    the centered anchor.
-4. Lateral siblings: each lateral sibling unit sits next to (typically left
-   of) the direct-line child unit, before the separator.
+4. Lateral siblings: each lateral sibling unit sits **to the left** of the
+   direct-line child unit, separated by one cluster separator, in
+   birth-year order among themselves.
 
-After both halves of the tree (descendant + ancestor) are laid out, **rebase
-columns** so the focus row's primary couple cluster aligns with focus's
-parents' couple at gen 1 directly above. The ancestor side uses the
-focus-couple column position as its bottom anchor; the descendant side uses
-it as its top anchor. The grid total `grid_cols` is the union of both halves.
+**Rebasing the two halves.** After the descendant tree and the ancestor tree
+are independently laid out, they share the focus row as their seam. The
+focus's *primary couple unit* in the descendant tree provides the anchor:
+its column position is fixed, and the ancestor tree's focus-parents-couple
+slides horizontally so that it sits directly above (focus, current_partner).
+
+Worked example. Suppose the descendant tree places `(focus, current)` at
+columns `[8, 9]`. The ancestor tree was laid out with widths `Wa = 4` (Father's
+half-tree) and `Wb = 6` (Mother's half-tree). The ancestor tree's parent
+couple `(Father, Mother)` would naturally sit at columns `[Wa - 1, Wa]` =
+`[3, 4]` *within the ancestor tree's local coordinate system*. To rebase:
+
+- Compute shift `delta = 8 - 3 = 5` (so Father lands at col 8 above focus).
+- Add `delta` to every ancestor-tree column.
+- New ancestor-tree columns: Father at 8, Mother at 9, Father's half-tree
+  occupies cols `[5, 8]`, Mother's half-tree occupies cols `[9, 14]`.
+- Final `grid_cols` = `max(descendant_max_col, ancestor_max_col + delta) + 1`.
+- If the shift produces negative columns (descendant tree narrower than the
+  left half of the ancestor tree), shift *both* halves rightward by the
+  required amount instead, and recompute `grid_cols`.
+
+Asymmetric cases follow the same rule: e.g., when Mother has no ancestors
+(`Wb = 0`), the ancestor tree is entirely Father's half plus the (Father,
+Mother) couple at the bottom; rebasing aligns Father with focus's column.
+Mother visually lines up under whichever ancestor cell happens to share her
+column — accepted concession of Option B.
 
 ### Phase 2D: Materialize nodes
 
@@ -189,9 +217,11 @@ Convert the placed units back into `%GraphNode{}` and separator nodes:
   the existing entry's `focus`, `duplicated`, `has_more_up`, `has_more_down`.
 - Each separator slot in the cluster layout → `%GraphNode{type: :separator,
   id: "sep-#{row}-#{col}", col: ..., row: ...}`.
-- Equalizing separators (any unfilled cell in any row, after the cluster
-  layout completes) → additional `%GraphNode{type: :separator}` to make every
-  cell coordinate present.
+- Equalizing separators: each row is independently filled out to the global
+  `grid_cols` width by adding `%GraphNode{type: :separator}` cells at every
+  unfilled `(col, row)` coordinate. Every cell in the `grid_cols × grid_rows`
+  rectangle ends up represented (preserves today's invariant — the
+  `graph_component` template iterates all nodes including separators).
 
 ### Cycle types and edge cases (free via Phase 1)
 
