@@ -993,6 +993,197 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     end
   end
 
+  describe "__merge_halves__/2" do
+    test "positive shift: focus at cols [8, 9], anc parent couple originally at cols [3, 4]" do
+      # Descendant placements: focus couple at cols [8, 9], row 0, plus a child at col 8, row 1
+      # Ancestor placements: parent couple at cols [3, 4], row 0, plus grandparents at cols [0, 1], row -1
+      # delta = 8 - 3 = 5 → shift ancestors right by 5 (descendants stay)
+      # After merge: parent couple at cols [8, 9], row -1; grandparents at cols [5, 6], row -2
+      focus_entry = make_merge_entry(1, "Focus", 0, focus: true)
+      partner_entry = make_merge_entry(2, "Partner", 0)
+      child_entry = make_merge_entry(3, "Child", -1)
+      father_entry = make_merge_entry(4, "Father", 1)
+      mother_entry = make_merge_entry(5, "Mother", 1)
+      gp_pat_entry = make_merge_entry(6, "GrandpaPaternal", 2)
+      gm_pat_entry = make_merge_entry(7, "GrandmaPaternal", 2)
+
+      desc_placements = [
+        {:placed_anchor, focus_entry, 8, 0},
+        {:placed_anchor, partner_entry, 9, 0},
+        {:placed_anchor, child_entry, 8, 1}
+      ]
+
+      anc_placements = [
+        {:placed_anchor, father_entry, 3, 0},
+        {:placed_anchor, mother_entry, 4, 0},
+        {:placed_anchor, gp_pat_entry, 0, -1},
+        {:placed_anchor, gm_pat_entry, 1, -1}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      # Desc placements unchanged
+      assert_placement(merged, {:placed_anchor, focus_entry, 8, 0})
+      assert_placement(merged, {:placed_anchor, partner_entry, 9, 0})
+      assert_placement(merged, {:placed_anchor, child_entry, 8, 1})
+
+      # Anc placements: shifted right by 5 AND shifted down by -1
+      # Father: col 3+5=8, row 0-1=-1
+      assert_placement(merged, {:placed_anchor, father_entry, 8, -1})
+      # Mother: col 4+5=9, row 0-1=-1
+      assert_placement(merged, {:placed_anchor, mother_entry, 9, -1})
+      # Grandpa: col 0+5=5, row -1-1=-2
+      assert_placement(merged, {:placed_anchor, gp_pat_entry, 5, -2})
+      # Grandma: col 1+5=6, row -1-1=-2
+      assert_placement(merged, {:placed_anchor, gm_pat_entry, 6, -2})
+
+      assert length(merged) == 7
+    end
+
+    test "negative shift: focus at col 1, anc parent couple at cols [3, 4]" do
+      # desc focus at col 1 (simulating a couple where focus is anchor_a at col 1)
+      # anc parent couple at cols [3, 4]
+      # delta = 1 - 3 = -2 → shift descendants right by 2
+      # After merge: focus at col 3, parent couple at cols [3, 4], row -1
+      focus_entry = make_merge_entry(1, "Focus", 0, focus: true)
+      partner_entry = make_merge_entry(2, "Partner", 0)
+      child_entry = make_merge_entry(3, "Child", -1)
+      father_entry = make_merge_entry(4, "Father", 1)
+      mother_entry = make_merge_entry(5, "Mother", 1)
+
+      desc_placements = [
+        {:placed_anchor, focus_entry, 1, 0},
+        {:placed_anchor, partner_entry, 2, 0},
+        {:placed_anchor, child_entry, 1, 1}
+      ]
+
+      anc_placements = [
+        {:placed_anchor, father_entry, 3, 0},
+        {:placed_anchor, mother_entry, 4, 0}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      # delta = 1 - 3 = -2 → desc shift by +2 (descendants move right)
+      assert_placement(merged, {:placed_anchor, focus_entry, 3, 0})
+      assert_placement(merged, {:placed_anchor, partner_entry, 4, 0})
+      assert_placement(merged, {:placed_anchor, child_entry, 3, 1})
+
+      # Anc placements stay at their col, shifted to row -1
+      assert_placement(merged, {:placed_anchor, father_entry, 3, -1})
+      assert_placement(merged, {:placed_anchor, mother_entry, 4, -1})
+
+      assert length(merged) == 5
+    end
+
+    test "no shift needed: focus col equals anc parent col (delta = 0)" do
+      # Focus couple at cols [0, 1], parent couple also at cols [0, 1]
+      # delta = 0 → no shift, ancestors just get row -1
+      focus_entry = make_merge_entry(1, "Focus", 0, focus: true)
+      partner_entry = make_merge_entry(2, "Partner", 0)
+      father_entry = make_merge_entry(4, "Father", 1)
+      mother_entry = make_merge_entry(5, "Mother", 1)
+
+      desc_placements = [
+        {:placed_anchor, focus_entry, 0, 0},
+        {:placed_anchor, partner_entry, 1, 0}
+      ]
+
+      anc_placements = [
+        {:placed_anchor, father_entry, 0, 0},
+        {:placed_anchor, mother_entry, 1, 0}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      # Desc placements unchanged
+      assert_placement(merged, {:placed_anchor, focus_entry, 0, 0})
+      assert_placement(merged, {:placed_anchor, partner_entry, 1, 0})
+
+      # Anc placements: no col shift, row shifted by -1
+      assert_placement(merged, {:placed_anchor, father_entry, 0, -1})
+      assert_placement(merged, {:placed_anchor, mother_entry, 1, -1})
+
+      assert length(merged) == 4
+    end
+
+    test "single focus (no current partner): focus col aligns with anc parent couple anchor_a col" do
+      # Focus is a Single at col 0. Ancestor parent couple at cols [0, 1].
+      # delta = 0 → no shift. Parents land at row -1.
+      focus_entry = make_merge_entry(1, "Focus", 0, focus: true)
+      father_entry = make_merge_entry(4, "Father", 1)
+      mother_entry = make_merge_entry(5, "Mother", 1)
+
+      # Single focus at col 0
+      desc_placements = [
+        {:placed_anchor, focus_entry, 0, 0}
+      ]
+
+      # Parent couple at cols [0, 1]
+      anc_placements = [
+        {:placed_anchor, father_entry, 0, 0},
+        {:placed_anchor, mother_entry, 1, 0}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      # Focus unchanged at col 0, row 0
+      assert_placement(merged, {:placed_anchor, focus_entry, 0, 0})
+
+      # Father at col 0, row -1; Mother at col 1, row -1
+      assert_placement(merged, {:placed_anchor, father_entry, 0, -1})
+      assert_placement(merged, {:placed_anchor, mother_entry, 1, -1})
+
+      assert length(merged) == 3
+    end
+
+    test "separators are also shifted correctly" do
+      # Desc: focus at col 3, separator at col 2. Anc: parent single at col 5, separator at col 2.
+      # delta = 3 - 5 = -2 → shift descendants right by 2; anc shifted only by row -1
+      focus_entry = make_merge_entry(1, "Focus", 0, focus: true)
+      father_entry = make_merge_entry(4, "Father", 1)
+
+      desc_placements = [
+        {:placed_anchor, focus_entry, 3, 0},
+        {:separator, 2, 0}
+      ]
+
+      anc_placements = [
+        {:placed_anchor, father_entry, 5, 0},
+        {:separator, 2, 0}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      # delta = 3 - 5 = -2 → desc shift +2
+      assert_placement(merged, {:placed_anchor, focus_entry, 5, 0})
+      assert_placement(merged, {:separator, 4, 0})
+
+      # Anc stay at their cols, just row -1 applied
+      assert_placement(merged, {:placed_anchor, father_entry, 5, -1})
+      assert_placement(merged, {:separator, 2, -1})
+
+      assert length(merged) == 4
+    end
+
+    test "empty desc_placements: ancestor placements shifted to row -1 at col 0" do
+      # When desc_placements is empty, focus_col defaults to 0.
+      # If anc parent is at col 0, delta = 0, no col shift, row -1.
+      father_entry = make_merge_entry(4, "Father", 1)
+
+      desc_placements = []
+
+      anc_placements = [
+        {:placed_anchor, father_entry, 0, 0}
+      ]
+
+      merged = Layout.__merge_halves__(desc_placements, anc_placements)
+
+      assert_placement(merged, {:placed_anchor, father_entry, 0, -1})
+      assert length(merged) == 1
+    end
+  end
+
   # ── Test helpers ──────────────────────────────────────────────────────
 
   defp make_person(id, name, gender \\ nil) do
@@ -1062,6 +1253,18 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
       has_more_up: false,
       has_more_down: false,
       focus: false
+    }
+  end
+
+  # Build a minimal entry map for __merge_halves__ tests.
+  defp make_merge_entry(id, name, gen, opts \\ []) do
+    %{
+      person: make_person(id, name),
+      gen: gen,
+      duplicated: false,
+      has_more_up: false,
+      has_more_down: false,
+      focus: Keyword.get(opts, :focus, false)
     }
   end
 

@@ -268,6 +268,69 @@ defmodule Ancestry.People.PersonGraph.Layout do
 
   @doc false
   # Exposed for testing via __name__ convention.
+  # Merges descendant placements and ancestor placements into a single coordinate system.
+  #
+  # Both halves were independently laid out with __place_half__/3 starting at base_row 0.
+  # This function:
+  #   1. Finds the focus person's column in desc_placements (anchor_a of focus couple, or focus single).
+  #   2. Finds the ancestor root couple/single's leftmost column at row 0 in anc_placements.
+  #   3. Computes delta = desc_focus_col - anc_parent_col.
+  #   4. If delta >= 0: shift ancestor placements right by delta. Descendants stay.
+  #      If delta < 0: shift descendant placements right by -delta. Ancestors stay.
+  #   5. Shifts every ancestor placement's row by -1 (so parents land at row -1 above focus).
+  #   6. Returns the combined list.
+  def __merge_halves__(desc_placements, anc_placements) do
+    desc_focus_col = focus_col(desc_placements)
+    anc_parent_col = anc_parent_col(anc_placements)
+    delta = desc_focus_col - anc_parent_col
+
+    {shifted_desc, shifted_anc} =
+      if delta >= 0 do
+        # Shift ancestors right by delta; descendants unchanged
+        anc_shifted = Enum.map(anc_placements, &shift_placement(&1, delta, -1))
+        {desc_placements, anc_shifted}
+      else
+        # Shift descendants right by -delta; ancestors unchanged (only row shift)
+        desc_shifted = Enum.map(desc_placements, &shift_placement(&1, -delta, 0))
+        anc_shifted = Enum.map(anc_placements, &shift_placement(&1, 0, -1))
+        {desc_shifted, anc_shifted}
+      end
+
+    shifted_desc ++ shifted_anc
+  end
+
+  # Find the column of the focus person in desc_placements.
+  # The focus entry has focus: true. Returns the column of the focus anchor,
+  # defaulting to 0 if not found.
+  defp focus_col(desc_placements) do
+    Enum.find_value(desc_placements, 0, fn
+      {:placed_anchor, %{focus: true}, col, _row} -> col
+      _ -> nil
+    end)
+  end
+
+  # Find the leftmost column of the ancestor root unit's anchor at row 0.
+  # This is the minimum column among all :placed_anchor tuples at row 0.
+  # Defaults to 0 if none found.
+  defp anc_parent_col(anc_placements) do
+    anc_placements
+    |> Enum.filter(fn
+      {:placed_anchor, _entry, _col, 0} -> true
+      _ -> false
+    end)
+    |> Enum.map(fn {:placed_anchor, _entry, col, _row} -> col end)
+    |> Enum.min(fn -> 0 end)
+  end
+
+  # Shift a placement tuple by (dcol, drow).
+  defp shift_placement({:placed_anchor, entry, col, row}, dcol, drow),
+    do: {:placed_anchor, entry, col + dcol, row + drow}
+
+  defp shift_placement({:separator, col, row}, dcol, drow),
+    do: {:separator, col + dcol, row + drow}
+
+  @doc false
+  # Exposed for testing via __name__ convention.
   # Builds the descendant-side family-unit tree rooted at the focus's primary
   # couple (or single) unit. Walks gen ≤ 0 entries from Phase 1.
   def __build_descendant_tree__(state, focus_id) do
