@@ -233,6 +233,393 @@ defmodule Ancestry.People.PersonGraph.LayoutTest do
     end
   end
 
+  describe "__build_ancestor_tree__/2 (via direct call)" do
+    test "focus with no parents returns nil" do
+      focus = make_person(1, "Focus")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+
+      assert nil == Layout.__build_ancestor_tree__(state, 1)
+    end
+
+    test "focus with single parent returns a %Single{}" do
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_parent_child_edge_helper(2, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      assert %Single{} = result
+      assert result.anchor.person.id == 2
+      assert result.children == []
+    end
+
+    test "two-generation symmetric ancestors" do
+      # Focus has Father + Mother.
+      # Father has Grandpa-pat + Grandma-pat.
+      # Mother has Grandpa-mat + Grandma-mat.
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "Grandpa-pat")
+      gm_pat = make_person(5, "Grandma-pat")
+      gp_mat = make_person(6, "Grandpa-mat")
+      gm_mat = make_person(7, "Grandma-mat")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_entry_helper(gp_mat, 2)
+        |> add_entry_helper(gm_mat, 2)
+        # Father + Mother are a couple
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        # Father's parents
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        # Mother's parents
+        |> add_couple_edge_helper(6, 7, :current_partner)
+        |> add_parent_child_edge_helper(6, 3)
+        |> add_parent_child_edge_helper(7, 3)
+        # Focus's parents
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      # Top-level: Father+Mother couple
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+
+      # Two subtrees: paternal grandparents and maternal grandparents
+      assert length(result.children) == 2
+      [pat, mat] = result.children
+
+      assert %Couple{} = pat
+      assert pat.anchor_a.person.id == 4
+      assert pat.anchor_b.person.id == 5
+      assert pat.children == []
+
+      assert %Couple{} = mat
+      assert mat.anchor_a.person.id == 6
+      assert mat.anchor_b.person.id == 7
+      assert mat.children == []
+    end
+
+    test "asymmetric depth — only Father has parents" do
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "Grandpa-pat")
+      gm_pat = make_person(5, "Grandma-pat")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+
+      # Only one subtree: paternal side
+      assert length(result.children) == 1
+      [pat] = result.children
+
+      assert %Couple{} = pat
+      assert pat.anchor_a.person.id == 4
+      assert pat.anchor_b.person.id == 5
+      assert pat.children == []
+    end
+
+    test "lateral sibling on the LEFT side parent goes to the left of direct-line child" do
+      # Father has sibling Uncle at gen 1. Father's parents = (GP-pat, GM-pat) at gen 2.
+      # Focus's parents = Father + Mother.
+      # Mother has no parents visible.
+      # Expected: GP-pat+GM-pat couple has children = [Uncle_unit, Father's-upward-subtree]
+      # Uncle is LEFT of the direct-line because he's a lateral of the LEFT parent (Father).
+      # BUT in the ancestor tree, Father IS the direct-line, so:
+      # The parent-couple (GP+GM) has children = [Uncle_unit, <direct-line child, which is empty since Father doesn't recurse further>]
+      # Actually: Father doesn't have a separate subtree; the recursion builds GP+GM as Father's ancestor unit.
+      # So the children of GP+GM couple = [Uncle_unit] to the left of the direct-line slot (empty since Father has no further ancestors).
+      # Correction: since Father IS the entry that anchors the GP+GM couple, Father has NO separate child-unit entry in the children list.
+      # The children list contains only laterals (siblings of Father = children of GP+GM other than Father).
+      # Uncle is a lateral of Father, so he goes to the LEFT (before the direct-line child slot).
+      # In the ancestor tree, the "children" of a parent-couple are: laterals + (optionally) deeper subtrees.
+      # But the parent-couple represents the parent's own parents. So Father's parent-couple = GP+GM, and
+      # the children of that %Couple{} are the OTHER children of GP+GM that are NOT Father (i.e., Uncle).
+      # Uncle is a lateral of the LEFT parent (Father), so Uncle appears to the LEFT.
+      # The result at the top level is Father+Mother couple, where Father's subtree = GP+GM couple (with Uncle lateral).
+      # Mother has no parents => only Father's subtree in the children list.
+
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "Grandpa-pat")
+      gm_pat = make_person(5, "Grandma-pat")
+      uncle = make_person(8, "Uncle")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_entry_helper(uncle, 1)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        |> add_parent_child_edge_helper(4, 8)
+        |> add_parent_child_edge_helper(5, 8)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      # Top-level: Father + Mother couple
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+
+      # Father's subtree is a Couple (GP-pat + GM-pat) with Uncle as a left lateral
+      assert length(result.children) == 1
+      [father_subtree] = result.children
+
+      assert %Couple{} = father_subtree
+      assert father_subtree.anchor_a.person.id == 4
+      assert father_subtree.anchor_b.person.id == 5
+
+      # Uncle is a lateral of Father (left parent), so he appears BEFORE the direct-line slot
+      # The children list of GP+GM couple: [Uncle_unit] (Father has no further upward subtree visible)
+      assert length(father_subtree.children) == 1
+      [uncle_unit] = father_subtree.children
+      assert %Single{} = uncle_unit
+      assert uncle_unit.anchor.person.id == 8
+    end
+
+    test "lateral sibling on the RIGHT side parent goes to the right" do
+      # Mother has sibling Aunt at gen 1. Mother's parents = (GP-mat, GM-mat) at gen 2.
+      # Focus's parents = Father + Mother.
+      # Father has no parents visible.
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_mat = make_person(6, "Grandpa-mat")
+      gm_mat = make_person(7, "Grandma-mat")
+      aunt = make_person(9, "Aunt")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_mat, 2)
+        |> add_entry_helper(gm_mat, 2)
+        |> add_entry_helper(aunt, 1)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_couple_edge_helper(6, 7, :current_partner)
+        |> add_parent_child_edge_helper(6, 3)
+        |> add_parent_child_edge_helper(7, 3)
+        |> add_parent_child_edge_helper(6, 9)
+        |> add_parent_child_edge_helper(7, 9)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      # Top-level: Father + Mother couple
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+
+      # Father has no parents => no Father subtree.
+      # Mother's subtree is a Couple (GP-mat + GM-mat) with Aunt as a right lateral.
+      assert length(result.children) == 1
+      [mother_subtree] = result.children
+
+      assert %Couple{} = mother_subtree
+      assert mother_subtree.anchor_a.person.id == 6
+      assert mother_subtree.anchor_b.person.id == 7
+
+      # Aunt is a lateral of Mother (right parent), so she appears AFTER the direct-line slot
+      assert length(mother_subtree.children) == 1
+      [aunt_unit] = mother_subtree.children
+      assert %Single{} = aunt_unit
+      assert aunt_unit.anchor.person.id == 9
+    end
+
+    test "both sides have laterals — left lateral left of direct-line, right lateral right" do
+      # Father has Uncle (lateral), Mother has Aunt (lateral).
+      # Both Father and Mother have parents (grandparents).
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "Grandpa-pat")
+      gm_pat = make_person(5, "Grandma-pat")
+      gp_mat = make_person(6, "Grandpa-mat")
+      gm_mat = make_person(7, "Grandma-mat")
+      uncle = make_person(8, "Uncle")
+      aunt = make_person(9, "Aunt")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_entry_helper(gp_mat, 2)
+        |> add_entry_helper(gm_mat, 2)
+        |> add_entry_helper(uncle, 1)
+        |> add_entry_helper(aunt, 1)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_couple_edge_helper(6, 7, :current_partner)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        |> add_parent_child_edge_helper(4, 8)
+        |> add_parent_child_edge_helper(5, 8)
+        |> add_parent_child_edge_helper(6, 3)
+        |> add_parent_child_edge_helper(7, 3)
+        |> add_parent_child_edge_helper(6, 9)
+        |> add_parent_child_edge_helper(7, 9)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+      assert length(result.children) == 2
+
+      [pat_subtree, mat_subtree] = result.children
+
+      # Father's subtree (left): GP-pat + GM-pat, with Uncle lateral to the LEFT
+      assert %Couple{} = pat_subtree
+      assert pat_subtree.anchor_a.person.id == 4
+      assert pat_subtree.anchor_b.person.id == 5
+      assert length(pat_subtree.children) == 1
+      [uncle_unit] = pat_subtree.children
+      assert uncle_unit.anchor.person.id == 8
+
+      # Mother's subtree (right): GP-mat + GM-mat, with Aunt lateral to the RIGHT
+      assert %Couple{} = mat_subtree
+      assert mat_subtree.anchor_a.person.id == 6
+      assert mat_subtree.anchor_b.person.id == 7
+      assert length(mat_subtree.children) == 1
+      [aunt_unit] = mat_subtree.children
+      assert aunt_unit.anchor.person.id == 9
+    end
+
+    test "duplicated parent is a leaf — no upward subtree" do
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "Grandpa-pat")
+      gm_pat = make_person(5, "Grandma-pat")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        # Father is duplicated at gen 1
+        |> add_entry_helper(father, 1, duplicated: true)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        # Father's parents (would be reachable but Father is duplicated → should not recurse)
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      assert %Couple{} = result
+      # anchor_a is Father (duplicated), anchor_b is Mother
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_a.duplicated == true
+      assert result.anchor_b.person.id == 3
+      # No children — Father is duplicated (leaf), Mother has no parents
+      assert result.children == []
+    end
+
+    test "three-generation deep ancestry recurses correctly" do
+      focus = make_person(1, "Focus")
+      father = make_person(2, "Father")
+      mother = make_person(3, "Mother")
+      gp_pat = make_person(4, "GP-pat")
+      gm_pat = make_person(5, "GM-pat")
+      ggp_pat = make_person(10, "GGP-pat")
+      ggm_pat = make_person(11, "GGM-pat")
+
+      state =
+        empty_state(1)
+        |> add_entry_helper(focus, 0, focus: true)
+        |> add_entry_helper(father, 1)
+        |> add_entry_helper(mother, 1)
+        |> add_entry_helper(gp_pat, 2)
+        |> add_entry_helper(gm_pat, 2)
+        |> add_entry_helper(ggp_pat, 3)
+        |> add_entry_helper(ggm_pat, 3)
+        |> add_couple_edge_helper(2, 3, :current_partner)
+        |> add_couple_edge_helper(4, 5, :current_partner)
+        |> add_couple_edge_helper(10, 11, :current_partner)
+        |> add_parent_child_edge_helper(2, 1)
+        |> add_parent_child_edge_helper(3, 1)
+        |> add_parent_child_edge_helper(4, 2)
+        |> add_parent_child_edge_helper(5, 2)
+        |> add_parent_child_edge_helper(10, 4)
+        |> add_parent_child_edge_helper(11, 4)
+
+      result = Layout.__build_ancestor_tree__(state, 1)
+
+      assert %Couple{} = result
+      assert result.anchor_a.person.id == 2
+      assert result.anchor_b.person.id == 3
+      assert length(result.children) == 1
+
+      [father_subtree] = result.children
+      assert %Couple{} = father_subtree
+      assert father_subtree.anchor_a.person.id == 4
+      assert father_subtree.anchor_b.person.id == 5
+      assert length(father_subtree.children) == 1
+
+      [ggp_subtree] = father_subtree.children
+      assert %Couple{} = ggp_subtree
+      assert ggp_subtree.anchor_a.person.id == 10
+      assert ggp_subtree.anchor_b.person.id == 11
+      assert ggp_subtree.children == []
+    end
+  end
+
   # ── Test helpers ──────────────────────────────────────────────────────
 
   defp make_person(id, name, gender \\ nil) do

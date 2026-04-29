@@ -49,6 +49,220 @@ defmodule Ancestry.People.PersonGraph.Layout do
     build_descendant_unit(focus_id, focus_entry, state)
   end
 
+  @doc false
+  # Exposed for testing via __name__ convention.
+  # Builds the ancestor-side family-unit tree for the focus person.
+  # Returns the focus's parents' couple/single unit (gen 1), with children
+  # being the upward subtrees (grandparents, great-grandparents, etc.).
+  # Returns nil if the focus has no known parents.
+  def __build_ancestor_tree__(state, focus_id) do
+    parent_entries = find_parent_entries(state, focus_id)
+    build_ancestor_root(parent_entries, state)
+  end
+
+  # ── Ancestor tree private implementation ────────────────────────────
+
+  # Find all parent entries for a given focus person (via :parent_child edges
+  # pointing TO the focus, from parents at gen 1).
+  defp find_parent_entries(state, focus_id) do
+    focus_node_id = "person-#{focus_id}"
+
+    parent_ids =
+      state.edges
+      |> Enum.filter(fn edge ->
+        edge.type == :parent_child and edge.to_id == focus_node_id
+      end)
+      |> Enum.map(fn edge -> extract_id(edge.from_id) end)
+      |> Enum.reject(&is_nil/1)
+
+    # Retrieve entries for these parent IDs at any gen >= 1
+    Enum.flat_map(parent_ids, fn pid ->
+      state.entries
+      |> Enum.flat_map(fn {_gen, entries} -> entries end)
+      |> Enum.filter(fn e -> e.person.id == pid end)
+      |> Enum.take(1)
+    end)
+  end
+
+  # Build the root ancestor unit (focus's parents' unit).
+  defp build_ancestor_root([], _state), do: nil
+
+  defp build_ancestor_root([single_parent], state) do
+    # One parent: %Single{} with children = upward subtree of that parent
+    children = build_ancestor_unit(single_parent, :left, state)
+    %Single{anchor: single_parent, children: List.wrap(children) |> Enum.reject(&is_nil/1)}
+  end
+
+  defp build_ancestor_root([_p1, _p2] = parents, state) do
+    {entry_a, entry_b} = order_parents_by_couple_edge(parents, state)
+
+    subtree_a = build_ancestor_unit(entry_a, :left, state)
+    subtree_b = build_ancestor_unit(entry_b, :right, state)
+
+    children =
+      [subtree_a, subtree_b]
+      |> Enum.reject(&is_nil/1)
+
+    %Couple{anchor_a: entry_a, anchor_b: entry_b, children: children}
+  end
+
+  defp build_ancestor_root(parents, state) do
+    # More than 2 parents: take the first two (shouldn't happen in valid data)
+    parents |> Enum.take(2) |> build_ancestor_root(state)
+  end
+
+  # Order two parent entries by looking for a couple edge between them.
+  # The `from_id` person becomes anchor_a (left), `to_id` becomes anchor_b (right).
+  # Falls back to insertion order if no couple edge found.
+  defp order_parents_by_couple_edge([p1, p2], state) do
+    p1_node = "person-#{p1.person.id}"
+    p2_node = "person-#{p2.person.id}"
+
+    couple_edge =
+      Enum.find(state.edges, fn edge ->
+        edge.type in [:current_partner, :previous_partner] and
+          ((edge.from_id == p1_node and edge.to_id == p2_node) or
+             (edge.from_id == p2_node and edge.to_id == p1_node))
+      end)
+
+    case couple_edge do
+      nil ->
+        {p1, p2}
+
+      edge ->
+        if extract_id(edge.from_id) == p1.person.id do
+          {p1, p2}
+        else
+          {p2, p1}
+        end
+    end
+  end
+
+  # Build the ancestor unit for a single parent entry.
+  # Returns a %Couple{} or %Single{} representing this parent's own parents,
+  # or nil if no grandparents are known (or if parent is duplicated).
+  # `side` is :left or :right — controls where laterals are placed in children.
+  defp build_ancestor_unit(parent_entry, side, state) do
+    # Duplicated entries are leaves — do not recurse upward
+    if parent_entry.duplicated do
+      nil
+    else
+      grandparent_entries = find_parent_entries(state, parent_entry.person.id)
+      build_grandparent_unit(parent_entry, grandparent_entries, side, state)
+    end
+  end
+
+  defp build_grandparent_unit(_parent_entry, [], _side, _state), do: nil
+
+  defp build_grandparent_unit(parent_entry, [single_gp], side, state) do
+    # One grandparent: recursively build their ancestor unit
+    gp_children = build_ancestor_unit(single_gp, side, state)
+    laterals = find_lateral_siblings(single_gp, parent_entry.person.id, state)
+    lateral_units = build_lateral_units(laterals, state)
+
+    children =
+      arrange_laterals(lateral_units, List.wrap(gp_children) |> Enum.reject(&is_nil/1), side)
+
+    %Single{anchor: single_gp, children: children}
+  end
+
+  defp build_grandparent_unit(parent_entry, [_gp1, _gp2] = gp_entries, side, state) do
+    {gp_a, gp_b} = order_parents_by_couple_edge(gp_entries, state)
+
+    # Recursively build each grandparent's own ancestors
+    subtree_a = build_ancestor_unit(gp_a, :left, state)
+    subtree_b = build_ancestor_unit(gp_b, :right, state)
+
+    deeper_subtrees =
+      [subtree_a, subtree_b]
+      |> Enum.reject(&is_nil/1)
+
+    # Find laterals: other children of (gp_a, gp_b) that are NOT the direct-line parent
+    laterals = find_joint_lateral_siblings(gp_a, gp_b, parent_entry.person.id, state)
+    lateral_units = build_lateral_units(laterals, state)
+
+    children = arrange_laterals(lateral_units, deeper_subtrees, side)
+
+    %Couple{anchor_a: gp_a, anchor_b: gp_b, children: children}
+  end
+
+  defp build_grandparent_unit(parent_entry, gp_entries, side, state) do
+    # More than 2: take first two
+    gp_entries |> Enum.take(2) |> then(&build_grandparent_unit(parent_entry, &1, side, state))
+  end
+
+  # Find lateral siblings of `direct_child_id` among children of `gp_entry`
+  # (for the single-grandparent case).
+  defp find_lateral_siblings(gp_entry, direct_child_id, state) do
+    gp_node_id = "person-#{gp_entry.person.id}"
+    child_gen = gp_entry.gen - 1
+
+    child_ids =
+      state.edges
+      |> Enum.filter(fn edge ->
+        edge.type == :parent_child and edge.from_id == gp_node_id
+      end)
+      |> Enum.map(fn edge -> extract_id(edge.to_id) end)
+      |> Enum.reject(&is_nil/1)
+      |> Enum.reject(&(&1 == direct_child_id))
+
+    Enum.flat_map(child_ids, fn cid ->
+      case find_entry(state, cid, child_gen) do
+        nil -> []
+        entry -> [entry]
+      end
+    end)
+  end
+
+  # Find lateral siblings of `direct_child_id` among joint children of (gp_a, gp_b).
+  defp find_joint_lateral_siblings(gp_a, gp_b, direct_child_id, state) do
+    child_gen = gp_a.gen - 1
+    child_entries = Map.get(state.entries, child_gen, [])
+
+    Enum.filter(child_entries, fn entry ->
+      cid = entry.person.id
+
+      cid != direct_child_id and
+        has_parent_edge?(state, gp_a.person.id, cid) and
+        has_parent_edge?(state, gp_b.person.id, cid)
+    end)
+  end
+
+  # Build lateral units. Laterals are leaves in the ancestor tree.
+  # If a lateral has a current partner at the same gen, build a %Couple{} leaf;
+  # otherwise build a %Single{} leaf.
+  defp build_lateral_units(laterals, state) do
+    laterals
+    |> sort_laterals_by_birth_year()
+    |> Enum.map(fn lat_entry ->
+      partner_entry = find_current_partner(lat_entry.person.id, lat_entry.gen, state)
+
+      case partner_entry do
+        nil -> %Single{anchor: lat_entry, children: []}
+        partner -> %Couple{anchor_a: lat_entry, anchor_b: partner, children: []}
+      end
+    end)
+  end
+
+  # Sort laterals by birth year (nils last).
+  defp sort_laterals_by_birth_year(laterals) do
+    Enum.sort_by(laterals, fn lat ->
+      by = lat.person.birth_year
+      {is_nil(by), by || 0}
+    end)
+  end
+
+  # Arrange laterals around deeper subtrees based on side.
+  # :left  → laterals go BEFORE the deeper subtrees
+  # :right → laterals go AFTER the deeper subtrees
+  defp arrange_laterals(lateral_units, deeper_subtrees, :left) do
+    lateral_units ++ deeper_subtrees
+  end
+
+  defp arrange_laterals(lateral_units, deeper_subtrees, :right) do
+    deeper_subtrees ++ lateral_units
+  end
+
   # ── Private implementation ───────────────────────────────────────────
 
   # Build the family unit for a given person (by id + entry) at their generation.
