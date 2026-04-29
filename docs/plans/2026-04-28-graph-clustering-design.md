@@ -134,8 +134,13 @@ The full tree is built in two halves rooted at the focus row:
   child* in the family-unit tree is `A`'s parents' couple unit at generation
   `N+1`, and the *right child* is `B`'s parents' couple unit. Lateral siblings
   expanded by `other:` become additional child units of the relevant
-  generation's couple unit, *positioned to the left of the direct-line child
-  unit* (consistent ordering so connectors don't cross between rows).
+  generation's couple unit, positioned on the *outside* of the direct-line
+  child: laterals of a left-side parent go to the **left** of the direct-line
+  child; laterals of a right-side parent go to the **right** (mirror-symmetric
+  with the parent-A-left / parent-B-right decision). This keeps each parent
+  on the inside edge of their half-tree, so the focus row's couple seam
+  remains aligned at `[Wa - 1, Wa]` in the ancestor tree's local
+  coordinates.
 
 **Loose lane recursion.** Loose lanes can appear at any descendant generation
 where a person has multiple partner groups (ex / previous / solo + current),
@@ -178,9 +183,10 @@ Walk the tree, accumulating `current_col`. For each unit:
 3. Recurse into child units, advancing `current_col` left-to-right; insert
    separator nodes between adjacent units and between cluster boundaries and
    the centered anchor.
-4. Lateral siblings: each lateral sibling unit sits **to the left** of the
-   direct-line child unit, separated by one cluster separator, in
-   birth-year order among themselves.
+4. Lateral siblings: each lateral sibling unit sits on the **outside** of
+   the direct-line child unit (left for a left-side parent, right for a
+   right-side parent), separated by one cluster separator, in birth-year
+   order among themselves.
 
 **Rebasing the two halves.** After the descendant tree and the ancestor tree
 are independently laid out, they share the focus row as their seam. The
@@ -203,6 +209,14 @@ couple `(Father, Mother)` would naturally sit at columns `[Wa - 1, Wa]` =
   left half of the ancestor tree), shift *both* halves rightward by the
   required amount instead, and recompute `grid_cols`.
 
+  Worked negative-shift example. Suppose `(focus, current)` is at columns
+  `[1, 2]` and the ancestor tree has `Wa = 4`, `Wb = 2`. Father naturally
+  sits at local col 3, so naive `delta = 1 - 3 = -2`. Apply the fallback:
+  shift the descendant tree rightward by 2 instead. Now focus is at col 3,
+  Father at col 3 directly above. Mother at col 4. Ancestor tree at cols
+  `[0, 5]`, descendant tree at cols `[3, ...]`, `grid_cols` reflects the
+  union.
+
 Asymmetric cases follow the same rule: e.g., when Mother has no ancestors
 (`Wb = 0`), the ancestor tree is entirely Father's half plus the (Father,
 Mother) couple at the bottom; rebasing aligns Father with focus's column.
@@ -222,6 +236,9 @@ Convert the placed units back into `%GraphNode{}` and separator nodes:
   unfilled `(col, row)` coordinate. Every cell in the `grid_cols × grid_rows`
   rectangle ends up represented (preserves today's invariant — the
   `graph_component` template iterates all nodes including separators).
+- Separator ids follow `"sep-#{row}-#{col}"`. Cluster separators and
+  equalizing separators share the same id format because they live at
+  disjoint `(row, col)` coordinates by construction — no collisions.
 
 ### Cycle types and edge cases (free via Phase 1)
 
