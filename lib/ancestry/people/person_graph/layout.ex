@@ -56,7 +56,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
   defp build_descendant_unit(person_id, person_entry, state) do
     # Duplicated entries are always leaves
     if person_entry.duplicated do
-      %Single{anchor: person_entry, children: [], loose_lane: nil}
+      %Single{anchor: person_entry, children: []}
     else
       person_gen = person_entry.gen
       current_partner_entry = find_current_partner(person_id, person_gen, state)
@@ -95,7 +95,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
             build_descendant_unit(child_entry.person.id, child_entry, state)
           end)
 
-        %Single{anchor: nil, children: solo_child_units, loose_lane: nil}
+        %Single{anchor: nil, children: solo_child_units}
       end
 
     all_loose_units = loose_units ++ if(solo_unit, do: [solo_unit], else: [])
@@ -149,7 +149,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
             build_descendant_unit(child_entry.person.id, child_entry, state)
           end)
 
-        %Single{anchor: nil, children: solo_child_units, loose_lane: nil}
+        %Single{anchor: nil, children: solo_child_units}
       end
 
     all_loose_units = loose_units ++ if(solo_unit, do: [solo_unit], else: [])
@@ -184,7 +184,7 @@ defmodule Ancestry.People.PersonGraph.Layout do
 
       ex_child_ids = Enum.map(ex_joint_children, & &1.person.id)
 
-      unit = %Single{anchor: ex_entry, children: ex_child_units, loose_lane: nil}
+      unit = %Single{anchor: ex_entry, children: ex_child_units}
       {units ++ [unit], all_ex_child_ids ++ ex_child_ids}
     end)
   end
