@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a family photo gallery web application built with Phoenix LiveView.
 
-**OTP app:** `:ancestry`
+## Claude Code Persona
+
+Read `PERSONA.md` file to define the Claude Code Persona
 
 ## Commands
 
@@ -16,6 +18,8 @@ This is a family photo gallery web application built with Phoenix LiveView.
 - `iex -S mix phx.server` — start dev server
 
 ## Architecture
+
+**OTP app:** `:ancestry`
 
 **Module naming:** The web layer is namespaced as `Web` (not `AncestryWeb`). This is intentional — `phx.new` was generated with `--module Web` to keep templates and aliases shorter. Business logic lives under `Ancestry.*`.
 
