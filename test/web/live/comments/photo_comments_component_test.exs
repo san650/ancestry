@@ -3,7 +3,6 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
   import Phoenix.LiveViewTest
 
-  alias Ancestry.Comments
   alias Ancestry.Families
   alias Ancestry.Galleries
 
