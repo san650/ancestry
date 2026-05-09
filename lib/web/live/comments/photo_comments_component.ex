@@ -123,15 +123,14 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   def handle_event("delete_comment", %{"id" => id}, socket) do
-    comment = Comments.get_photo_comment!(id)
-    account = socket.assigns.current_scope.account
+    command =
+      Ancestry.Commands.DeletePhotoComment.new!(%{
+        photo_comment_id: String.to_integer(id)
+      })
 
-    if comment.account_id == account.id or account.role == :admin do
-      {:ok, _} = Comments.delete_photo_comment(comment)
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
+    socket.assigns.current_scope
+    |> Ancestry.Bus.dispatch(command)
+    |> handle_dispatch_result(socket)
   end
 
   defp clear_edit_state_on_success({:noreply, socket}) do
