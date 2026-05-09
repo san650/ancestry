@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a family photo gallery web application built with Phoenix LiveView.
 
-**OTP app:** `:ancestry`
+## Claude Code Persona
+
+Read `PERSONA.md` file to define the Claude Code Persona
 
 ## Commands
 
@@ -16,6 +18,8 @@ This is a family photo gallery web application built with Phoenix LiveView.
 - `iex -S mix phx.server` — start dev server
 
 ## Architecture
+
+**OTP app:** `:ancestry`
 
 **Module naming:** The web layer is namespaced as `Web` (not `AncestryWeb`). This is intentional — `phx.new` was generated with `--module Web` to keep templates and aliases shorter. Business logic lives under `Ancestry.*`.
 
@@ -79,6 +83,42 @@ lib/
 - `/org/:org_id/people` — all people in the organization
 
 **Important schema/table mismatches:** the `Person` schema maps to the `persons` table (not `people`), and `AccountToken` maps to `accounts_tokens`. Keep this in mind when writing raw SQL.
+
+## Command/Handler Architecture (Bus)
+
+State-mutating operations dispatch through `Ancestry.Bus.dispatch/2`. Each mutation is a plain `Ancestry.Commands.*` struct that points at a `Ancestry.Handlers.*Handler` returning an `Ecto.Multi`. The dispatcher checks Permit class-level authz, prepends an audit-row insert, runs the transaction, and fires post-commit `:__effects__` (e.g. PubSub broadcasts).
+
+**Spec:** `docs/plans/2026-05-07-command-handler-foundation.md` for the full design.
+
+**Command naming convention:**
+- Container relationships: `Add{Entity}To{Container}` / `Remove{Entity}From{Container}` (e.g. `AddPhotoToGallery`, `RemovePhotoFromGallery`, `AddCommentToPhoto`).
+- Pure entity update: `Update{Entity}` (e.g. `UpdatePhotoComment`).
+- Idiomatic verbs allowed when natural (e.g. `TagPersonInPhoto`, `UntagPersonFromPhoto`).
+
+**Validation:** hybrid. Command-level `new/1` returns `{:ok, %Command{}}` or `{:error, %Ecto.Changeset{}}` validating shape. Entity-level changesets run inside the handler's `Multi`.
+
+**Authorization:** Permit class-level rules in `Ancestry.Permissions` are checked by the dispatcher before the handler runs. Record-level rules (e.g. owner-only edits) live in a handler `Multi.run(:authorize, ...)` step that returns `{:error, :unauthorized}`. **Never** scatter `account.role == :admin` checks across LiveViews or contexts.
+
+**Audit log:** `audit_log` table receives one row per **successful** dispatch via an in-transaction `Multi.insert(:__audit__, ...)`. Denormalized snapshots of account/organization names + emails — no FKs. Failures (validation, authz, exceptions) flow through `:telemetry` events and `Logger` metadata only — they do not write audit rows.
+
+**Side effects:** handlers append a `Multi.run(:__effects__, fn _, _ -> {:ok, [{:broadcast, topic, msg}, ...]} end)` step. The dispatcher fires the list after the transaction commits. **Never** call `Phoenix.PubSub.broadcast/3` directly from a handler — use the effects list.
+
+**Error taxonomy:** dispatcher returns `{:ok, primary}` or one of:
+- `{:error, :unauthorized}`
+- `{:error, :validation, %Ecto.Changeset{}}`
+- `{:error, :not_found}`
+- `{:error, :conflict, term}`
+- `{:error, :handler, term}`
+
+LiveViews route results through a shared `handle_dispatch_result/2` that maps each tag to a flash or form update. New handlers must fit one of these tags.
+
+**Non-transactional side effects (S3, external APIs):** perform them **before** `Bus.dispatch/2` (pre-flight in the LiveView/caller). On DB failure the external work is left in place — orphaned S3 objects are accepted. Cleanup of orphans is a separate lifecycle concern, not the dispatcher's responsibility.
+
+**Workers do NOT dispatch through the Bus.** `ProcessPhotoJob` and similar Oban workers call `Ancestry.Galleries.update_photo_processed/2` (and equivalent context functions) directly. Reason: workers have no human scope, and the audit log is keyed on `account_id NOT NULL`. Worker-driven state changes will be audited via a separate sink if the need arises.
+
+**External IDs:** prefixed format `{prefix}-{uuid}`. All prefixes registered in `Ancestry.Prefixes`. Currently wired: `cmd-` for command IDs, `req-` for HTTP requests (set by `Web.PrefixedRequestIdPlug`). Add new prefixes to the registry, never inline.
+
+**Mutation context modules:** when a context's mutations are migrated to the Bus, the context drops to **queries only** (e.g. `Ancestry.Comments` after the migration only exposes `list_*`, `get_*!`, `change_*`). Mutations are not duplicated.
 
 ## Authentication
 
