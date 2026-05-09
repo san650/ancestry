@@ -23,7 +23,7 @@ Use `setup` blocks to create shared records; return them as map keys so tests re
 
 ```elixir
 setup do
-  {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
+  gallery = insert(:gallery, name: "Test")
   %{gallery: gallery}
 end
 

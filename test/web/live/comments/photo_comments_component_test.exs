@@ -334,12 +334,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   end
 
   defp gallery_fixture(family, attrs \\ %{}) do
-    {:ok, gallery} =
-      attrs
-      |> Enum.into(%{name: "Test Gallery", family_id: family.id})
-      |> Galleries.create_gallery()
+    attrs = Enum.into(attrs, %{name: "Test Gallery", family_id: family.id})
 
-    gallery
+    %Ancestry.Galleries.Gallery{}
+    |> Ancestry.Galleries.Gallery.changeset(attrs)
+    |> Ancestry.Repo.insert!()
   end
 
   defp photo_fixture(gallery) do

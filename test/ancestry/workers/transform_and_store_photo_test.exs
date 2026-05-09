@@ -9,7 +9,7 @@ defmodule Ancestry.Workers.TransformAndStorePhotoTest do
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
+    gallery = insert(:gallery, name: "Test", family: family)
 
     tmp_dir = Path.join(System.tmp_dir!(), "photo_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(tmp_dir)

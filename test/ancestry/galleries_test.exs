@@ -26,24 +26,6 @@ defmodule Ancestry.GalleriesTest do
       assert Galleries.get_gallery!(gallery.id) == gallery
     end
 
-    test "create_gallery/1 with valid data creates a gallery", %{family: family} do
-      assert {:ok, %Gallery{} = gallery} =
-               Galleries.create_gallery(%{name: "Vacation 2025", family_id: family.id})
-
-      assert gallery.name == "Vacation 2025"
-    end
-
-    test "create_gallery/1 with blank name returns error changeset", %{family: family} do
-      assert {:error, %Ecto.Changeset{}} =
-               Galleries.create_gallery(%{name: "", family_id: family.id})
-    end
-
-    test "delete_gallery/1 deletes the gallery", %{family: family} do
-      gallery = gallery_fixture(%{family_id: family.id})
-      assert {:ok, %Gallery{}} = Galleries.delete_gallery(gallery)
-      assert_raise Ecto.NoResultsError, fn -> Galleries.get_gallery!(gallery.id) end
-    end
-
     test "change_gallery/2 returns a gallery changeset", %{family: family} do
       gallery = gallery_fixture(%{family_id: family.id})
       assert %Ecto.Changeset{} = Galleries.change_gallery(gallery)
@@ -52,7 +34,7 @@ defmodule Ancestry.GalleriesTest do
 
   describe "photos" do
     setup %{family: family} do
-      {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
+      gallery = insert(:gallery, name: "Test", family: family)
       %{gallery: gallery}
     end
 
@@ -151,7 +133,7 @@ defmodule Ancestry.GalleriesTest do
       gallery: gallery,
       family: family
     } do
-      {:ok, other_gallery} = Galleries.create_gallery(%{name: "Other", family_id: family.id})
+      other_gallery = insert(:gallery, name: "Other", family: family)
 
       {:ok, _photo} =
         Galleries.create_photo(%{
@@ -168,7 +150,7 @@ defmodule Ancestry.GalleriesTest do
 
   describe "photo_people" do
     setup %{family: family, org: org} do
-      {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
+      gallery = insert(:gallery, name: "Test", family: family)
 
       {:ok, photo} =
         Galleries.create_photo(%{
@@ -265,7 +247,7 @@ defmodule Ancestry.GalleriesTest do
 
   describe "list_photos_for_person/1" do
     setup %{family: family} do
-      {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
+      gallery = insert(:gallery, name: "Test Gallery", family: family)
       {:ok, person} = People.create_person(family, %{given_name: "Alice", surname: "Smith"})
       %{gallery: gallery, person: person}
     end
@@ -321,11 +303,10 @@ defmodule Ancestry.GalleriesTest do
   end
 
   def gallery_fixture(attrs \\ %{}) do
-    {:ok, gallery} =
-      attrs
-      |> Enum.into(%{name: "Test Gallery"})
-      |> Galleries.create_gallery()
+    attrs = Enum.into(attrs, %{name: "Test Gallery"})
 
-    gallery
+    %Gallery{}
+    |> Gallery.changeset(attrs)
+    |> Ancestry.Repo.insert!()
   end
 end

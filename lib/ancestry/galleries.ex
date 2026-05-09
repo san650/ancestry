@@ -11,18 +11,8 @@ defmodule Ancestry.Galleries do
 
   def get_gallery!(id), do: Repo.get!(Gallery, id)
 
-  def create_gallery(attrs \\ %{}) do
-    %Gallery{}
-    |> Gallery.changeset(attrs)
-    |> Repo.insert()
-  end
-
   def change_gallery(%Gallery{} = gallery, attrs \\ %{}) do
     Gallery.changeset(gallery, attrs)
-  end
-
-  def delete_gallery(%Gallery{} = gallery) do
-    Repo.delete(gallery)
   end
 
   def list_photos(gallery_id) do

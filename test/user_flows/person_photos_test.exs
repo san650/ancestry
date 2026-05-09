@@ -21,7 +21,7 @@ defmodule Web.UserFlows.PersonPhotosTest do
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Summer 2024", family_id: family.id})
+    gallery = insert(:gallery, name: "Summer 2024", family: family)
     {:ok, person} = People.create_person(family, %{given_name: "Alice", surname: "Smith"})
 
     {:ok, photo1} =

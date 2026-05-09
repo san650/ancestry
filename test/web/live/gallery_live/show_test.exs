@@ -9,7 +9,7 @@ defmodule Web.GalleryLive.ShowTest do
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
+    gallery = insert(:gallery, name: "Test Gallery", family: family)
     %{gallery: gallery, family: family, org: org}
   end
 

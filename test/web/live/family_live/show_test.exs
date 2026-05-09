@@ -32,7 +32,7 @@ defmodule Web.FamilyLive.ShowTest do
   end
 
   test "shows family galleries", %{conn: conn, family: family, org: org} do
-    {:ok, _} = Galleries.create_gallery(%{name: "Summer 2025", family_id: family.id})
+    insert(:gallery, name: "Summer 2025", family: family)
     {:ok, view, html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
     render_async(view)
     assert html =~ "Summer 2025"
@@ -101,7 +101,7 @@ defmodule Web.FamilyLive.ShowTest do
     end
 
     test "deletes a gallery after confirmation", %{conn: conn, family: family, org: org} do
-      {:ok, gallery} = Galleries.create_gallery(%{name: "To Delete", family_id: family.id})
+      gallery = insert(:gallery, name: "To Delete", family: family)
       {:ok, view, _html} = live(conn, ~p"/org/#{org.id}/families/#{family.id}")
       render_async(view)
 
