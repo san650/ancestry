@@ -155,4 +155,29 @@ defmodule Web.UserFlows.AuditLogTest do
     |> wait_liveview()
     |> assert_has("[role='alert']", text: "permission")
   end
+
+  test "detail page shows full record and correlated rows", %{conn: conn} do
+    cid = "req-#{Ecto.UUID.generate()}"
+    a = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:00])
+    b = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:01])
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log/#{a.id}")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-detail"), text: a.command_id)
+    |> assert_has(test_id("audit-detail"), text: cid)
+    |> assert_has(test_id("related-event-#{b.id}"))
+  end
+
+  test "detail page shows 'No related events' when alone", %{conn: conn} do
+    cid = "req-solo-#{Ecto.UUID.generate()}"
+    row = insert(:audit_log, correlation_id: cid)
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log/#{row.id}")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-detail"), text: "No related events")
+  end
 end

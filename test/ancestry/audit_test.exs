@@ -59,6 +59,18 @@ defmodule Ancestry.AuditTest do
     end
   end
 
+  describe "get_entry!/1" do
+    test "returns the row" do
+      row = insert(:audit_log)
+      assert %Ancestry.Audit.Log{} = found = Audit.get_entry!(row.id)
+      assert found.id == row.id
+    end
+
+    test "raises when not found" do
+      assert_raise Ecto.NoResultsError, fn -> Audit.get_entry!(-1) end
+    end
+  end
+
   describe "list_correlated_entries/1" do
     test "returns sibling rows in chronological order, including the focal row" do
       cid = "req-#{Ecto.UUID.generate()}"

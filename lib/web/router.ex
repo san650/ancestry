@@ -56,6 +56,7 @@ defmodule Web.Router do
       live "/admin/accounts/:id", AccountManagementLive.Show, :show
       live "/admin/accounts/:id/edit", AccountManagementLive.Edit, :edit
       live "/admin/audit-log", AuditLogLive.Index, :index
+      live "/admin/audit-log/:id", AuditLogLive.Show, :show
     end
 
     scope "/org/:org_id" do

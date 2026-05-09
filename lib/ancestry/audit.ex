@@ -39,6 +39,9 @@ defmodule Ancestry.Audit do
 
   defp apply_cursor(query, _filters), do: query
 
+  @doc "Fetches a single audit log entry by id. Raises Ecto.NoResultsError when missing."
+  def get_entry!(id), do: Repo.get!(Log, id)
+
   @doc "Every row sharing `correlation_id`, oldest first."
   def list_correlated_entries(correlation_id) when is_binary(correlation_id) do
     Log
