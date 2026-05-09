@@ -14,7 +14,7 @@ defmodule Ancestry.Bus do
   def dispatch_envelope(%Envelope{command: %module{}} = env) do
     Logger.metadata(
       command_id: env.command_id,
-      correlation_id: env.correlation_id,
+      correlation_ids: env.correlation_ids,
       command_module: inspect(module)
     )
 
@@ -100,7 +100,7 @@ defmodule Ancestry.Bus do
   defp base_metadata(env) do
     %{
       command_id: env.command_id,
-      correlation_id: env.correlation_id,
+      correlation_ids: env.correlation_ids,
       command_module: inspect(env.command.__struct__),
       account_id: env.scope.account.id,
       organization_id: scope_org_id(env.scope)
