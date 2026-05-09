@@ -86,6 +86,21 @@ defmodule Ancestry.Bus.StepTest do
     assert cmd_id == env.command_id
   end
 
+  test "audit/2 writes handler-supplied metadata into payload.metadata" do
+    env = envelope()
+
+    multi =
+      Step.new(env)
+      |> Step.put(:photo, %{id: 42})
+      |> Step.audit(&audit_metadata/1)
+      |> Step.no_effects()
+
+    assert {:ok, %{audit: row}} = Ancestry.Repo.transaction(multi)
+    assert row.payload["metadata"] == %{photo_id: 42}
+  end
+
+  defp audit_metadata(%{photo: photo}), do: %{photo_id: photo.id}
+
   test "no_effects/1 appends an :effects step returning []" do
     env = envelope()
     multi = env |> Step.new() |> Step.no_effects()
