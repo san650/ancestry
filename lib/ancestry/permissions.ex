@@ -2,6 +2,7 @@ defmodule Ancestry.Permissions do
   @moduledoc "Defines who can do what. Pattern matches on Scope."
   use Permit.Permissions, actions_module: Ancestry.Actions
 
+  alias Ancestry.Audit.Log, as: AuditLog
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Families.Family
   alias Ancestry.Galleries.{Gallery, Photo}
@@ -18,6 +19,7 @@ defmodule Ancestry.Permissions do
     |> all(Gallery)
     |> all(Photo)
     |> all(PhotoComment)
+    |> all(AuditLog)
   end
 
   def can(%Scope{account: %Account{role: :editor, id: id}}) do
