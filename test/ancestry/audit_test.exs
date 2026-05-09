@@ -58,4 +58,61 @@ defmodule Ancestry.AuditTest do
       assert row.id == second.id
     end
   end
+
+  describe "list_correlated_entries/1" do
+    test "returns sibling rows in chronological order, including the focal row" do
+      cid = "req-#{Ecto.UUID.generate()}"
+      a = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:00])
+      b = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:01])
+      _other = insert(:audit_log, correlation_id: "req-other-#{Ecto.UUID.generate()}")
+
+      ids = Audit.list_correlated_entries(cid) |> Enum.map(& &1.id)
+      assert ids == [a.id, b.id]
+    end
+
+    test "returns single row when no siblings" do
+      cid = "req-solo-#{Ecto.UUID.generate()}"
+      only = insert(:audit_log, correlation_id: cid)
+
+      assert [row] = Audit.list_correlated_entries(cid)
+      assert row.id == only.id
+    end
+  end
+
+  describe "list_audit_accounts/1" do
+    test "returns DISTINCT %{id, email} tuples" do
+      acc = insert(:account, email: "a@example.com")
+      insert(:audit_log, account_id: acc.id, account_email: acc.email)
+      insert(:audit_log, account_id: acc.id, account_email: acc.email)
+
+      assert [%{id: id, email: "a@example.com"}] = Audit.list_audit_accounts(%{})
+      assert id == acc.id
+    end
+
+    test "scopes to organization_id when provided" do
+      org_a = insert(:organization)
+      org_b = insert(:organization)
+      acc_a = insert(:account, email: "a@x.com")
+      acc_b = insert(:account, email: "b@x.com")
+
+      insert(:audit_log,
+        account_id: acc_a.id,
+        account_email: acc_a.email,
+        organization_id: org_a.id
+      )
+
+      insert(:audit_log,
+        account_id: acc_b.id,
+        account_email: acc_b.email,
+        organization_id: org_b.id
+      )
+
+      assert [%{id: id}] = Audit.list_audit_accounts(%{organization_id: org_a.id})
+      assert id == acc_a.id
+    end
+
+    test "returns [] when no rows" do
+      assert [] = Audit.list_audit_accounts(%{})
+    end
+  end
 end
