@@ -180,4 +180,29 @@ defmodule Web.UserFlows.AuditLogTest do
     |> wait_liveview()
     |> assert_has(test_id("audit-detail"), text: "No related events")
   end
+
+  test "nav shows admin audit-log link to admin", %{conn: conn} do
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/accounts")
+    |> wait_liveview()
+    |> assert_has(test_id("nav-audit-log-admin"))
+  end
+
+  test "nav shows org audit-log link inside org context", %{conn: conn, org_a: org_a} do
+    conn
+    |> log_in_e2e(role: :admin, organization_ids: [org_a.id])
+    |> visit(~p"/org/#{org_a.id}")
+    |> wait_liveview()
+    |> assert_has(test_id("nav-audit-log-org"))
+  end
+
+  test "nav hides audit-log links from editor", %{conn: conn, org_a: org_a} do
+    conn
+    |> log_in_e2e(role: :editor, organization_ids: [org_a.id])
+    |> visit(~p"/org/#{org_a.id}")
+    |> wait_liveview()
+    |> refute_has(test_id("nav-audit-log-admin"))
+    |> refute_has(test_id("nav-audit-log-org"))
+  end
 end
