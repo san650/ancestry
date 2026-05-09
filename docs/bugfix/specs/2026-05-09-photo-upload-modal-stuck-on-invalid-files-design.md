@@ -102,13 +102,17 @@ defp settled?(uploads, entry),
 
 ### `process_uploads/1`
 
-Insert two snapshots and a cancel pass before the existing
-`consume_uploaded_entries/3`:
+Snapshot per-entry and form-level errors, cancel invalid entries, then
+run the existing consume+dispatch loop. Order matters: snapshots must
+run **before** the cancel pass (cancelling clears `:too_many_files`
+form-level errors and removes entries from `uploads.entries`).
 
 ```elixir
 defp process_uploads(socket) do
+  gallery = socket.assigns.gallery
   uploads = socket.assigns.uploads.photos
 
+  # 1. Snapshot per-entry validation errors *before* cancelling.
   invalid_results =
     for entry <- uploads.entries,
         not entry.done?,
@@ -117,17 +121,48 @@ defp process_uploads(socket) do
       %{name: entry.client_name, status: :error, error: format_errors(errs)}
     end
 
+  # 2. Snapshot form-level errors (e.g. :too_many_files) *before* cancelling.
   form_results =
     for err <- upload_errors(uploads) do
       %{name: gettext("Upload"), status: :error, error: upload_error_to_string(err)}
     end
 
+  # 3. Cancel invalid entries so consume_uploaded_entries only sees valid ones.
   socket =
     Enum.reduce(uploads.entries, socket, fn entry, acc ->
       if entry.done?, do: acc, else: cancel_upload(acc, :photos, entry.ref)
     end)
 
-  # … existing consume_uploaded_entries + Bus.dispatch loop …
+  # 4. Existing consume+dispatch loop — unchanged body, only the surrounding
+  #    glue moves.
+  results =
+    consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
+      # … sha256, dedup, store_original_bytes, Bus.dispatch as today …
+    end)
+
+  {uploaded, errored} =
+    Enum.split_with(results, fn
+      {:ok, _} -> true
+      {:duplicate, _} -> true
+      {:error, _} -> false
+    end)
+
+  uploaded_photos =
+    Enum.flat_map(uploaded, fn
+      {:ok, photo} -> [photo]
+      {:duplicate, _} -> []
+    end)
+
+  ok_results =
+    Enum.map(uploaded, fn
+      {:ok, photo} -> %{name: photo.original_filename, status: :ok}
+      {:duplicate, name} -> %{name: name, status: :ok}
+    end)
+
+  dispatch_error_results =
+    Enum.map(errored, fn {:error, name} ->
+      %{name: name, status: :error, error: gettext("Upload failed")}
+    end)
 
   upload_results =
     invalid_results ++ form_results ++ ok_results ++ dispatch_error_results
@@ -143,6 +178,20 @@ end
 defp format_errors(errs),
   do: errs |> Enum.map(&upload_error_to_string/1) |> Enum.join("; ")
 ```
+
+`format_errors/1` joins multiple errors per entry with `"; "`. The
+modal renders `file.error` as plain text inside a `<p>`, so a joined
+string renders cleanly.
+
+### Re-entrancy
+
+`cancel_upload/3` removes the cancelled entry from `uploads.entries`
+and may emit a progress event. Because `process_uploads/1` is only
+called when every remaining entry is settled, the re-entered
+`handle_progress/3` will either find an empty `entries` list (no-op
+branch) or a strict subset still satisfying `Enum.all?(settled?)` —
+no infinite loop, no double-processing because consumed entries are
+removed from `uploads.entries` by `consume_uploaded_entries/3` itself.
 
 ### Existing code preserved
 
@@ -173,7 +222,10 @@ the existing happy-path test:
 | all-invalid batch finalises the modal | upload one `.txt` | no `Photo`, no `audit_log` row, `assigns.upload_results` has one error row, modal reaches "complete" state |
 | too-many-files surfaces a form-level error row | upload 51 valid files | 50 photos persisted, `assigns.upload_results` contains a form-level `:too_many_files` error row |
 
-Each test asserts the modal finalised by checking `upload_results != []`.
+Each test asserts the modal finalised by rendering it and matching
+`render(view) =~ "Upload complete"` (the header text changes from
+"Uploading photos…" to "Upload complete" / "Upload complete with
+errors" when `upload_results != []`).
 
 ## Files changed
 
