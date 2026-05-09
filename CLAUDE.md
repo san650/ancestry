@@ -120,6 +120,12 @@ LiveViews route results through a shared `handle_dispatch_result/2` that maps ea
 
 **Mutation context modules:** when a context's mutations are migrated to the Bus, the context drops to **queries only** (e.g. `Ancestry.Comments` after the migration only exposes `list_*`, `get_*!`, `change_*`). Mutations are not duplicated.
 
+**Handler conventions (strict):**
+- **Never** inline anonymous functions inside `Ecto.Multi` operations. Every step references a named private function. Applies to **all** Multi operations: `insert`, `update`, `delete`, `run`, and any function-shape argument (e.g. `Multi.delete(:photo, &take_loaded/1)`, not `Multi.delete(:photo, fn %{load: p} -> p end)`). The `build_multi/1` body should read as a clear sequence of named steps.
+- **Never** call `Phoenix.PubSub.broadcast/3`, Waffle uploader functions, HTTP clients, or other non-transactional side-effects from inside a Multi step. Append them to the `:__effects__` list — the dispatcher fires them post-commit.
+- **Never** rescue exceptions inside a handler. Let the dispatcher's transaction rollback handle errors. Return `{:error, tag}` from a `Multi.run` step for known failure shapes (`:not_found`, `:unauthorized`, `{:conflict, _}`).
+- Each handler module's public surface is exactly `build_multi/1`. Helpers are `defp`.
+
 ## Authentication
 
 Auth is built on top of `phx.gen.auth`, with `Account` (not `User`) as the principal:
