@@ -19,6 +19,7 @@ defmodule Ancestry.Audit do
     Log
     |> apply_filter(:organization_id, filters)
     |> apply_filter(:account_id, filters)
+    |> apply_filter(:correlation_id, filters)
     |> apply_cursor(filters)
     |> order_by([l], desc: l.inserted_at, desc: l.id)
     |> limit(^limit)
@@ -31,6 +32,10 @@ defmodule Ancestry.Audit do
   defp apply_filter(query, :account_id, %{account_id: id}) when not is_nil(id),
     do: where(query, [l], l.account_id == ^id)
 
+  defp apply_filter(query, :correlation_id, %{correlation_id: id})
+       when is_binary(id) and id != "",
+       do: where(query, [l], ^id in l.correlation_ids)
+
   defp apply_filter(query, _key, _filters), do: query
 
   defp apply_cursor(query, %{before: {ts, id}}) when not is_nil(ts) and not is_nil(id) do
@@ -42,10 +47,14 @@ defmodule Ancestry.Audit do
   @doc "Fetches a single audit log entry by id. Raises Ecto.NoResultsError when missing."
   def get_entry!(id), do: Repo.get!(Log, id)
 
-  @doc "Every row sharing `correlation_id`, oldest first."
-  def list_correlated_entries(correlation_id) when is_binary(correlation_id) do
+  @doc "Every row containing `correlation_id`, oldest first."
+  def list_correlated_entries(correlation_id) when is_binary(correlation_id),
+    do: list_correlated_entries_for([correlation_id])
+
+  @doc "Every row whose `correlation_ids` overlaps any of `ids`, oldest first."
+  def list_correlated_entries_for(ids) when is_list(ids) do
     Log
-    |> where([l], l.correlation_id == ^correlation_id)
+    |> where([l], fragment("? && ?", l.correlation_ids, ^ids))
     |> order_by([l], asc: l.inserted_at, asc: l.id)
     |> Repo.all()
   end

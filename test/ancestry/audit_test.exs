@@ -74,9 +74,9 @@ defmodule Ancestry.AuditTest do
   describe "list_correlated_entries/1" do
     test "returns sibling rows in chronological order, including the focal row" do
       cid = "req-#{Ecto.UUID.generate()}"
-      a = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:00])
-      b = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:01])
-      _other = insert(:audit_log, correlation_id: "req-other-#{Ecto.UUID.generate()}")
+      a = insert(:audit_log, correlation_ids: [cid], inserted_at: ~N[2026-05-09 10:00:00])
+      b = insert(:audit_log, correlation_ids: [cid], inserted_at: ~N[2026-05-09 10:00:01])
+      _other = insert(:audit_log, correlation_ids: ["req-other-#{Ecto.UUID.generate()}"])
 
       ids = Audit.list_correlated_entries(cid) |> Enum.map(& &1.id)
       assert ids == [a.id, b.id]
@@ -84,10 +84,45 @@ defmodule Ancestry.AuditTest do
 
     test "returns single row when no siblings" do
       cid = "req-solo-#{Ecto.UUID.generate()}"
-      only = insert(:audit_log, correlation_id: cid)
+      only = insert(:audit_log, correlation_ids: [cid])
 
       assert [row] = Audit.list_correlated_entries(cid)
       assert row.id == only.id
+    end
+
+    test "matches when the queried id is one of several" do
+      cid = "bch-#{Ecto.UUID.generate()}"
+      match = insert(:audit_log, correlation_ids: [cid, "req-other"])
+      _miss = insert(:audit_log, correlation_ids: ["req-other"])
+
+      assert [row] = Audit.list_correlated_entries(cid)
+      assert row.id == match.id
+    end
+  end
+
+  describe "list_correlated_entries_for/1" do
+    test "returns rows overlapping any id" do
+      a = insert(:audit_log, correlation_ids: ["bch-1"])
+      b = insert(:audit_log, correlation_ids: ["req-1", "bch-2"])
+      _miss = insert(:audit_log, correlation_ids: ["req-2"])
+
+      ids =
+        Audit.list_correlated_entries_for(["bch-1", "bch-2"])
+        |> Enum.map(& &1.id)
+        |> Enum.sort()
+
+      assert ids == Enum.sort([a.id, b.id])
+    end
+  end
+
+  describe "list_entries/2 with :correlation_id" do
+    test "filters by single correlation_id" do
+      cid = "bch-#{Ecto.UUID.generate()}"
+      match = insert(:audit_log, correlation_ids: [cid, "req-x"])
+      _miss = insert(:audit_log, correlation_ids: ["req-y"])
+
+      assert [row] = Audit.list_entries(%{correlation_id: cid})
+      assert row.id == match.id
     end
   end
 
