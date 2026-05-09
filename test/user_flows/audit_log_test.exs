@@ -112,4 +112,16 @@ defmodule Web.UserFlows.AuditLogTest do
     |> assert_has(test_id("audit-row-#{last_row.id}"))
     |> refute_has(test_id("audit-load-more"))
   end
+
+  test "clicking a row expands its full payload", %{conn: conn, row_a: a} do
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> click(test_id("audit-row-#{a.id}"))
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-expanded-#{a.id}"))
+    |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.command_id)
+    |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.correlation_id)
+  end
 end

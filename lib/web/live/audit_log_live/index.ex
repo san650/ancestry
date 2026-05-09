@@ -25,7 +25,6 @@ defmodule Web.AuditLogLive.Index do
     {:ok,
      socket
      |> assign(:page_title, gettext("Audit log"))
-     |> assign(:expanded_id, nil)
      |> assign(:filters, %{})
      |> assign(:cursor, nil)
      |> assign(:has_more?, false)
@@ -64,13 +63,6 @@ defmodule Web.AuditLogLive.Index do
   end
 
   @impl true
-  def handle_event("toggle", %{"id" => id}, socket) do
-    id = String.to_integer(id)
-    next = if socket.assigns.expanded_id == id, do: nil, else: id
-    {:noreply, assign(socket, :expanded_id, next)}
-  end
-
-  @impl true
   def handle_event("load_more", _, socket) do
     filters = Map.put(socket.assigns.filters, :before, socket.assigns.cursor)
     rows = Audit.list_entries(filters, @limit)
@@ -97,7 +89,7 @@ defmodule Web.AuditLogLive.Index do
           accounts={@accounts}
           filters={@filters}
         />
-        <Components.audit_table stream={@streams.entries} expanded_id={@expanded_id} />
+        <Components.audit_table stream={@streams.entries} />
         <Components.viewport_sentinel has_more?={@has_more?} />
       </div>
     </Layouts.app>
