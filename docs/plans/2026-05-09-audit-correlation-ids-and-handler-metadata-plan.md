@@ -6,7 +6,7 @@
 
 **Goal:** Replace `audit_log.correlation_id` (text) with `correlation_ids` (text[]); reshape `audit_log.payload` jsonb to `{arguments, metadata}`; extend `Step.audit/2` so handlers can contribute metadata; add `bch-` prefix and group batch photo uploads under one `bch-…` correlation id; render thumbnails in the audit-log UI for `AddPhotoToGallery` rows.
 
-**Architecture:** Schema-then-callers cascade. Database first (migration), then the producer side (`Envelope`, `Bus`, `Audit.Log`, `Step`), then the writer (`AddPhotoToGalleryHandler` and the gallery-upload call site), finally the reader UI (`AuditLogLive.*`). Each task ends green so we never carry a broken tree across commits.
+**Architecture:** Schema-then-callers cascade. Database first (migration), then the producer side (`Envelope`, `Bus`, `Audit.Log`, `Step`), then the writer (`AddPhotoToGalleryHandler` and the gallery-upload call site), finally the reader UI (`AuditLogLive.*`). Tasks 2–5 form an **atomic cascade** — they share a single commit because the migration removes `audit_log.correlation_id` and the schema/`Envelope`/`Bus` field rename has to land in the same commit to keep the tree green. Tasks 2.x ↔ 5.x stage with `git add` only; the single commit lives at the end of Task 5. Every other task ends green individually.
 
 **Tech Stack:** Elixir, Phoenix LiveView, Ecto + Postgres, Oban, ex_machina, PhoenixTest (E2E).
 
@@ -133,14 +133,13 @@ mix ecto.dump
 ```
 Then confirm `priv/repo/structure.sql` shows `correlation_ids text[] NOT NULL DEFAULT '{}'`, no `correlation_id` column, GIN index on `correlation_ids`.
 
-- [ ] **Step 2.4: Commit**
+- [ ] **Step 2.4: Stage only — do NOT commit yet**
 
 ```bash
 git add priv/repo/migrations/*_audit_log_correlation_ids_and_payload_shape.exs priv/repo/structure.sql
-git commit -m "Migrate audit_log to correlation_ids array + nested payload shape"
 ```
 
-> Note: from this point compiles will fail until Task 5 lands. Push through to Task 5 in one go on a working branch.
+> The tree compiles broken from here until Task 5 — that's why Tasks 2–5 share a single commit at the end of Task 5. Do not run `mix test` or commit between these tasks.
 
 ---
 
@@ -241,18 +240,14 @@ defmodule Ancestry.Bus.Envelope do
 end
 ```
 
-- [ ] **Step 3.5: Re-run envelope tests**
+- [ ] **Step 3.5: Skip running tests — tree-wide compile is still broken**
 
-```bash
-mix test test/ancestry/bus/envelope_test.exs
-```
-Expected: PASS.
+The Envelope tests in isolation will pass once Task 5 lands. Don't run `mix test` until then.
 
-- [ ] **Step 3.6: Commit**
+- [ ] **Step 3.6: Stage only**
 
 ```bash
 git add lib/ancestry/bus/envelope.ex test/ancestry/bus/envelope_test.exs
-git commit -m "Envelope.correlation_ids: plural list, additive merge with request id"
 ```
 
 ---
@@ -270,19 +265,13 @@ In `dispatch_envelope/1` (the Logger.metadata block), change the line `correlati
 
 In `base_metadata/1`, change `correlation_id: env.correlation_id,` to `correlation_ids: env.correlation_ids,`.
 
-- [ ] **Step 4.2: Compile**
-
-```bash
-mix compile --warnings-as-errors
-```
-Expected: clean compile (provided Tasks 3 done).
-
-- [ ] **Step 4.3: Commit**
+- [ ] **Step 4.2: Stage only**
 
 ```bash
 git add lib/ancestry/bus.ex
-git commit -m "Bus: read env.correlation_ids; emit plural Logger/telemetry key"
 ```
+
+(Compile will still fail because `Audit.Log` writes the old field. Task 5 closes the loop.)
 
 ---
 
@@ -388,7 +377,7 @@ def audit_log_factory do
   %Ancestry.Audit.Log{
     command_id: sequence(:audit_command_id, &"cmd-#{&1}-#{Ecto.UUID.generate()}"),
     correlation_ids:
-      sequence(:audit_correlation_ids, &[<<"req-">> <> "#{&1}-#{Ecto.UUID.generate()}"]),
+      sequence(:audit_correlation_ids, &["req-#{&1}-#{Ecto.UUID.generate()}"]),
     command_module: "Ancestry.Commands.AddCommentToPhoto",
     account_id: sequence(:audit_account_id, & &1),
     account_name: "Tester",
@@ -403,20 +392,35 @@ def audit_log_factory do
 end
 ```
 
-- [ ] **Step 5.5: Run all the affected tests**
+- [ ] **Step 5.5: Compile + run the producer-side tests**
 
 ```bash
-mix test test/ancestry/audit/log_test.exs test/ancestry/audit_test.exs test/ancestry/bus/envelope_test.exs
+mix compile --warnings-as-errors
+mix test test/ancestry/audit/log_test.exs test/ancestry/bus/envelope_test.exs
 ```
-Expected: log_test passes; `audit_test.exs` may still fail (Task 7 fixes), envelope test passes.
+Expected: compile clean; both files PASS. (`test/ancestry/audit_test.exs` is fixed in Task 7 — leave it for now.)
 
 > If any test passes empty-list `correlation_ids` factory overrides, ex_machina applies them after the changeset, so they're fine — the changeset validation only runs on writes through `Log.changeset_from`.
 
-- [ ] **Step 5.6: Commit**
+- [ ] **Step 5.6: Combined commit for Tasks 2–5 (the schema cascade)**
 
 ```bash
 git add lib/ancestry/audit/log.ex test/support/factory.ex test/ancestry/audit/log_test.exs
-git commit -m "Audit.Log: correlation_ids array + nested payload shape (arguments/metadata)"
+git commit -m "$(cat <<'EOF'
+Audit log: migrate correlation_id (text) to correlation_ids (text[])
+
+Bundles migration + Envelope rewrite + Bus dispatcher update + Audit.Log
+schema/changeset/factory because the migration removes the old column —
+the producer side has to rename in the same commit to keep the tree green.
+
+- New audit_log.correlation_ids text[] (GIN-indexed); old singular column dropped.
+- audit_log.payload reshaped to {"arguments": ..., "metadata": ...}.
+- Envelope.wrap/3 returns a plural list, additively merging supplied ids
+  with Logger.metadata[:request_id] and falling back to a fresh req- id.
+- Audit.Log.changeset_from/2 accepts a metadata map and writes the nested
+  payload shape, with validate_length(:correlation_ids, min: 1).
+EOF
+)"
 ```
 
 ---
@@ -809,8 +813,8 @@ end
 attr :entry, :map, required: true
 
 def metadata_cell(%{entry: %{command_module: "Ancestry.Commands.AddPhotoToGallery"} = entry} = assigns) do
-  photo_id = entry.payload["metadata"]["photo_id"]
-  assigns = assign(assigns, :photo, photo_id && Ancestry.Galleries.get_photo(photo_id))
+  photo = lookup_photo(entry.payload["metadata"]["photo_id"])
+  assigns = assign(assigns, :photo, photo)
   ~H"""
   <%= cond do %>
     <% is_nil(@photo) -> %>
@@ -825,9 +829,21 @@ def metadata_cell(%{entry: %{command_module: "Ancestry.Commands.AddPhotoToGaller
 end
 
 def metadata_cell(assigns), do: ~H""
+
+# Returns nil-or-Photo with :gallery preloaded — Waffle's storage_dir/2
+# requires scope.gallery.family_id, so the preload is mandatory before
+# building a thumbnail URL.
+defp lookup_photo(nil), do: nil
+
+defp lookup_photo(photo_id) do
+  case Ancestry.Repo.get(Ancestry.Galleries.Photo, photo_id) do
+    nil -> nil
+    photo -> Ancestry.Repo.preload(photo, :gallery)
+  end
+end
 ```
 
-> Verify `Ancestry.Galleries.get_photo/1` exists; if not, use `Repo.get(Ancestry.Galleries.Photo, photo_id)`. Verify the Waffle URL helper signature against `lib/ancestry/uploaders/photo.ex`.
+> `Ancestry.Galleries.get_photo!/1` raises on miss; we want a nil-tolerant lookup, so the component uses `Repo.get/2` directly. Waffle's `storage_dir/2` (`lib/ancestry/uploaders/photo.ex:37-39`) reads `scope.gallery.family_id` — preloading `:gallery` is required for the URL helper.
 
 - [ ] **Step 11.4: Place `<.metadata_cell entry={row} />` in the row template**
 
