@@ -1,4 +1,4 @@
-defmodule Ancestry.Commands.DeletePhotoComment do
+defmodule Ancestry.Commands.RemoveCommentFromPhoto do
   @moduledoc """
   Command to delete an existing photo comment. Record-level
   authorization (owner-or-admin) is enforced inside the handler.
@@ -30,7 +30,7 @@ defmodule Ancestry.Commands.DeletePhotoComment do
   def new!(attrs), do: struct!(__MODULE__, attrs)
 
   @impl true
-  def handled_by, do: Ancestry.Handlers.DeletePhotoCommentHandler
+  def handled_by, do: Ancestry.Handlers.RemoveCommentFromPhotoHandler
 
   @impl true
   def primary_step, do: :photo_comment

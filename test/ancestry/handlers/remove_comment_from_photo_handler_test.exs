@@ -1,13 +1,13 @@
-defmodule Ancestry.Handlers.DeletePhotoCommentHandlerTest do
+defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandlerTest do
   use Ancestry.DataCase, async: false
 
   import Ancestry.Factory
 
   alias Ancestry.Bus
   alias Ancestry.Bus.Envelope
-  alias Ancestry.Commands.DeletePhotoComment
+  alias Ancestry.Commands.RemoveCommentFromPhoto
   alias Ancestry.Comments.PhotoComment
-  alias Ancestry.Handlers.DeletePhotoCommentHandler
+  alias Ancestry.Handlers.RemoveCommentFromPhotoHandler
 
   setup do
     organization = insert(:organization)
@@ -31,12 +31,12 @@ defmodule Ancestry.Handlers.DeletePhotoCommentHandlerTest do
 
   test "build_multi/1 deletes the comment for the owner",
        %{owner_scope: scope, comment: comment} do
-    cmd = DeletePhotoComment.new!(%{photo_comment_id: comment.id})
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
     env = Envelope.wrap(scope, cmd)
 
     {:ok, changes} =
       env
-      |> DeletePhotoCommentHandler.build_multi()
+      |> RemoveCommentFromPhotoHandler.build_multi()
       |> Ancestry.Repo.transaction()
 
     assert %PhotoComment{} = changes.photo_comment
@@ -47,13 +47,13 @@ defmodule Ancestry.Handlers.DeletePhotoCommentHandlerTest do
   end
 
   test "Bus.dispatch returns :not_found for missing comment", %{owner_scope: scope} do
-    cmd = DeletePhotoComment.new!(%{photo_comment_id: -1})
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: -1})
     assert {:error, :not_found} = Bus.dispatch(scope, cmd)
   end
 
   test "Bus.dispatch returns :unauthorized for a non-owner non-admin",
        %{other_scope: scope, comment: comment} do
-    cmd = DeletePhotoComment.new!(%{photo_comment_id: comment.id})
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
     assert {:error, :unauthorized} = Bus.dispatch(scope, cmd)
     assert Ancestry.Repo.get(PhotoComment, comment.id)
   end
@@ -61,7 +61,7 @@ defmodule Ancestry.Handlers.DeletePhotoCommentHandlerTest do
   test "Bus.dispatch broadcasts :comment_deleted to subscribers",
        %{owner_scope: scope, comment: comment, photo: photo} do
     Phoenix.PubSub.subscribe(Ancestry.PubSub, "photo_comments:#{photo.id}")
-    cmd = DeletePhotoComment.new!(%{photo_comment_id: comment.id})
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
 
     assert {:ok, %PhotoComment{}} = Bus.dispatch(scope, cmd)
     assert_receive {:comment_deleted, %PhotoComment{id: id}}, 500
@@ -69,7 +69,7 @@ defmodule Ancestry.Handlers.DeletePhotoCommentHandlerTest do
   end
 
   test "admin can delete any comment", %{admin_scope: scope, comment: comment} do
-    cmd = DeletePhotoComment.new!(%{photo_comment_id: comment.id})
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
     assert {:ok, %PhotoComment{}} = Bus.dispatch(scope, cmd)
     assert is_nil(Ancestry.Repo.get(PhotoComment, comment.id))
   end

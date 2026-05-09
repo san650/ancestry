@@ -9,7 +9,7 @@ defmodule Web.UserFlows.PhotoCommentsDeleteTest do
   Given a comment authored by the logged-in account
   When the user clicks the delete button
   Then the comment is removed
-  And an audit_log row is written for `Ancestry.Commands.DeletePhotoComment`
+  And an audit_log row is written for `Ancestry.Commands.RemoveCommentFromPhoto`
   """
 
   use Web.ConnCase, async: false
@@ -59,7 +59,7 @@ defmodule Web.UserFlows.PhotoCommentsDeleteTest do
     assert is_nil(Repo.get(PhotoComment, comment.id))
 
     assert [row] = Repo.all(Log)
-    assert row.command_module == "Ancestry.Commands.DeletePhotoComment"
+    assert row.command_module == "Ancestry.Commands.RemoveCommentFromPhoto"
     assert row.payload["photo_comment_id"] == comment.id
   end
 end

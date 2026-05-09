@@ -124,7 +124,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   def handle_event("delete_comment", %{"id" => id}, socket) do
     command =
-      Ancestry.Commands.DeletePhotoComment.new!(%{
+      Ancestry.Commands.RemoveCommentFromPhoto.new!(%{
         photo_comment_id: String.to_integer(id)
       })
 

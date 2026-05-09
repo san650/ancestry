@@ -1,6 +1,6 @@
-defmodule Ancestry.Handlers.DeletePhotoCommentHandler do
+defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandler do
   @moduledoc """
-  Handles `Ancestry.Commands.DeletePhotoComment`. Loads the target
+  Handles `Ancestry.Commands.RemoveCommentFromPhoto`. Loads the target
   comment with its account preloaded, enforces the owner-or-admin
   record-level rule, deletes the row, and emits the broadcast effect
   with the preloaded snapshot so subscribers can update their views.
