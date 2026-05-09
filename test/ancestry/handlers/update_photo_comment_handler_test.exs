@@ -29,19 +29,16 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandlerTest do
      admin_scope: %Ancestry.Identity.Scope{account: admin, organization: organization}}
   end
 
-  test "build_multi/1 updates the comment when run by the owner",
+  test "handle/1 updates the comment when run by the owner",
        %{owner_scope: scope, comment: comment} do
     cmd = UpdatePhotoComment.new!(%{photo_comment_id: comment.id, text: "after"})
     env = Envelope.wrap(scope, cmd)
 
-    {:ok, changes} =
-      env
-      |> UpdatePhotoCommentHandler.build_multi()
-      |> Ancestry.Repo.transaction()
+    {:ok, changes} = UpdatePhotoCommentHandler.handle(env)
 
-    assert %PhotoComment{text: "after"} = changes.photo_comment
-    assert %PhotoComment{account: %Ancestry.Identity.Account{}} = changes.preloaded
-    assert [{:broadcast, topic, {:comment_updated, _}}] = changes.__effects__
+    assert %PhotoComment{text: "after"} = changes.updated_comment
+    assert %PhotoComment{account: %Ancestry.Identity.Account{}} = changes.comment
+    assert [{:broadcast, topic, {:comment_updated, _}}] = changes.effects
     assert topic == "photo_comments:#{comment.photo_id}"
   end
 

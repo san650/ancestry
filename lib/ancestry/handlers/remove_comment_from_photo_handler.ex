@@ -1,47 +1,51 @@
 defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandler do
   @moduledoc """
-  Handles `Ancestry.Commands.RemoveCommentFromPhoto`. Loads the target
-  comment with its account preloaded, enforces the owner-or-admin
-  record-level rule, deletes the row, and emits the broadcast effect
-  with the preloaded snapshot so subscribers can update their views.
+  Handles `Ancestry.Commands.RemoveCommentFromPhoto`: authorize + load
+  with account preloaded + delete + broadcast.
   """
 
   use Ancestry.Bus.Handler
 
-  alias Ancestry.Bus.Envelope
+  alias Ancestry.Bus.Step
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Repo
 
   @impl true
-  def build_multi(%Envelope{command: cmd, scope: scope}) do
-    Multi.new()
-    |> Multi.put(:command, cmd)
-    |> Multi.put(:scope, scope)
-    |> Multi.run(:load, &load_with_account/2)
-    |> Multi.run(:authorize, &authorize/2)
-    |> Multi.delete(:photo_comment, fn %{load: c} -> c end)
-    |> Multi.run(:__effects__, &compute_effects/2)
+  def handle(envelope) do
+    envelope |> to_transaction() |> Repo.transaction()
   end
 
-  defp load_with_account(_repo, %{command: %{photo_comment_id: id}}) do
-    case Repo.get(PhotoComment, id) do
-      nil -> {:error, :not_found}
-      c -> {:ok, Repo.preload(c, :account)}
+  defp to_transaction(envelope) do
+    Step.new(envelope)
+    |> Step.run(:authorized_comment, &authorize_comment_deletion/2)
+    |> Step.run(:comment, &remove_authorized_comment/2)
+    |> Step.audit()
+    |> Step.effects(&broadcast_deletion/2)
+  end
+
+  defp authorize_comment_deletion(repo, %{envelope: envelope}) do
+    %{command: command, scope: scope} = envelope
+
+    case repo.get(PhotoComment, command.photo_comment_id) do
+      nil ->
+        {:error, :not_found}
+
+      comment ->
+        comment = repo.preload(comment, :account)
+
+        if comment.account_id == scope.account.id or scope.account.role == :admin do
+          {:ok, comment}
+        else
+          {:error, :unauthorized}
+        end
     end
   end
 
-  defp authorize(_repo, %{scope: scope, load: comment}) do
-    if comment.account_id == scope.account.id or scope.account.role == :admin do
-      {:ok, :authorized}
-    else
-      {:error, :unauthorized}
-    end
+  defp remove_authorized_comment(repo, %{authorized_comment: comment}) do
+    repo.delete(comment)
   end
 
-  defp compute_effects(_repo, %{photo_comment: c, load: loaded}) do
-    {:ok,
-     [
-       {:broadcast, "photo_comments:#{c.photo_id}", {:comment_deleted, loaded}}
-     ]}
+  defp broadcast_deletion(_repo, %{authorized_comment: comment}) do
+    {:ok, [{:broadcast, "photo_comments:#{comment.photo_id}", {:comment_deleted, comment}}]}
   end
 end

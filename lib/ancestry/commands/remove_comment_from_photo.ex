@@ -33,7 +33,7 @@ defmodule Ancestry.Commands.RemoveCommentFromPhoto do
   def handled_by, do: Ancestry.Handlers.RemoveCommentFromPhotoHandler
 
   @impl true
-  def primary_step, do: :photo_comment
+  def primary_step, do: :comment
 
   @impl true
   def permission, do: {:delete, PhotoComment}

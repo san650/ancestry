@@ -1,17 +1,17 @@
 defmodule Ancestry.Bus.Handler do
   @moduledoc """
-  Behaviour for command handlers. A handler returns the `Ecto.Multi`
-  describing the persistence work for a command. The `Ancestry.Bus`
-  dispatcher prepends the audit row insertion, runs the transaction,
-  and fires post-commit effects.
+  Behaviour for command handlers. A handler exposes `handle/1` which
+  runs the transaction and returns the result map (on success) or an
+  Ecto.Multi error tuple (on failure).
   """
 
-  @callback build_multi(Ancestry.Bus.Envelope.t()) :: Ecto.Multi.t()
+  @callback handle(Ancestry.Bus.Envelope.t()) ::
+              {:ok, map()}
+              | {:error, atom() | term(), term(), map()}
 
   defmacro __using__(_opts) do
     quote do
       @behaviour Ancestry.Bus.Handler
-      alias Ecto.Multi
     end
   end
 end

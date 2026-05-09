@@ -13,8 +13,8 @@ defmodule Ancestry.Commands.RemoveCommentFromPhotoTest do
     assert {"can't be blank", _} = cs.errors[:photo_comment_id]
   end
 
-  test "primary_step/0 == :photo_comment" do
-    assert RemoveCommentFromPhoto.primary_step() == :photo_comment
+  test "primary_step/0 == :comment" do
+    assert RemoveCommentFromPhoto.primary_step() == :comment
   end
 
   test "permission/0 == {:delete, PhotoComment}" do

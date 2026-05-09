@@ -2,8 +2,8 @@ defmodule Ancestry.BusTest do
   use Ancestry.DataCase, async: false
 
   alias Ancestry.Bus
+  alias Ancestry.Bus.Step
   alias Ancestry.Audit.Log
-  alias Ecto.Multi
 
   defmodule NoopCommand do
     use Ancestry.Bus.Command
@@ -34,56 +34,98 @@ defmodule Ancestry.BusTest do
 
   defmodule NoopHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(%Ancestry.Bus.Envelope{command: cmd}) do
-      Multi.new()
-      |> Multi.put(:result, %{label: cmd.label, ok: true})
-      |> Multi.run(:__effects__, fn _, _ -> {:ok, []} end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
+    end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.put(:result, %{label: envelope.command.label, ok: true})
+      |> Step.audit()
+      |> Step.no_effects()
     end
   end
 
   defmodule NotFoundHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(_env) do
-      Multi.new()
-      |> Multi.run(:boom, fn _, _ -> {:error, :not_found} end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
     end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.run(:boom, &not_found/2)
+      |> Step.audit()
+      |> Step.no_effects()
+    end
+
+    defp not_found(_repo, _changes), do: {:error, :not_found}
   end
 
   defmodule ChangesetHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(_env) do
-      Multi.new()
-      |> Multi.run(:cs, fn _, _ ->
-        cs = %Ecto.Changeset{data: %{}, types: %{}, valid?: false, action: :validate}
-        {:error, Ecto.Changeset.add_error(cs, :base, "bad")}
-      end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
+    end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.run(:cs, &changeset_error/2)
+      |> Step.audit()
+      |> Step.no_effects()
+    end
+
+    defp changeset_error(_repo, _changes) do
+      cs = %Ecto.Changeset{data: %{}, types: %{}, valid?: false, action: :validate}
+      {:error, Ecto.Changeset.add_error(cs, :base, "bad")}
     end
   end
 
   defmodule UnauthorizedStepHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(_env) do
-      Multi.new()
-      |> Multi.run(:authz, fn _, _ -> {:error, :unauthorized} end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
     end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.run(:authz, &unauthorized/2)
+      |> Step.audit()
+      |> Step.no_effects()
+    end
+
+    defp unauthorized(_repo, _changes), do: {:error, :unauthorized}
   end
 
   defmodule HandlerErrorHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(_env) do
-      Multi.new()
-      |> Multi.run(:weird, fn _, _ -> {:error, :something_else} end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
     end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.run(:weird, &something_else/2)
+      |> Step.audit()
+      |> Step.no_effects()
+    end
+
+    defp something_else(_repo, _changes), do: {:error, :something_else}
   end
 
   for {mod_name, handler} <- [
@@ -171,14 +213,22 @@ defmodule Ancestry.BusTest do
 
   defmodule BroadcastingHandler do
     use Ancestry.Bus.Handler
+    alias Ancestry.Repo
 
     @impl true
-    def build_multi(%Ancestry.Bus.Envelope{command: cmd}) do
-      Multi.new()
-      |> Multi.put(:result, cmd)
-      |> Multi.run(:__effects__, fn _, _ ->
-        {:ok, [{:broadcast, "bus-test:#{cmd.label}", {:hello, cmd.label}}]}
-      end)
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
+    end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.put(:result, envelope.command)
+      |> Step.audit()
+      |> Step.effects(&broadcast_label/2)
+    end
+
+    defp broadcast_label(_repo, %{result: cmd}) do
+      {:ok, [{:broadcast, "bus-test:#{cmd.label}", {:hello, cmd.label}}]}
     end
   end
 

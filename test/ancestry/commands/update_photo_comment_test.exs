@@ -21,8 +21,8 @@ defmodule Ancestry.Commands.UpdatePhotoCommentTest do
     assert {"should be at most %{count} character(s)", _} = cs.errors[:text]
   end
 
-  test "primary_step/0 == :preloaded" do
-    assert UpdatePhotoComment.primary_step() == :preloaded
+  test "primary_step/0 == :comment" do
+    assert UpdatePhotoComment.primary_step() == :comment
   end
 
   test "permission/0 == {:update, PhotoComment}" do

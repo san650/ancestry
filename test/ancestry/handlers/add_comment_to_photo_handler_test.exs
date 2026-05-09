@@ -19,20 +19,17 @@ defmodule Ancestry.Handlers.AddCommentToPhotoHandlerTest do
     {:ok, scope: scope, photo: photo}
   end
 
-  test "build_multi/1 inserts the comment, preloads :account, computes broadcast effect",
+  test "handle/1 inserts the comment, preloads :account, computes broadcast effect",
        %{scope: scope, photo: photo} do
     cmd = AddCommentToPhoto.new!(%{photo_id: photo.id, text: "wow"})
     env = Envelope.wrap(scope, cmd)
 
-    {:ok, changes} =
-      env
-      |> AddCommentToPhotoHandler.build_multi()
-      |> Ancestry.Repo.transaction()
+    {:ok, changes} = AddCommentToPhotoHandler.handle(env)
 
-    assert %PhotoComment{text: "wow", account_id: id} = changes.photo_comment
+    assert %PhotoComment{text: "wow", account_id: id} = changes.inserted_comment
     assert id == scope.account.id
-    assert %PhotoComment{account: %Ancestry.Identity.Account{}} = changes.preloaded
-    assert [{:broadcast, topic, {:comment_created, _}}] = changes.__effects__
+    assert %PhotoComment{account: %Ancestry.Identity.Account{}} = changes.comment
+    assert [{:broadcast, topic, {:comment_created, _}}] = changes.effects
     assert topic == "photo_comments:#{photo.id}"
   end
 

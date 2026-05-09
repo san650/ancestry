@@ -34,7 +34,7 @@ defmodule Ancestry.Commands.UpdatePhotoComment do
   def handled_by, do: Ancestry.Handlers.UpdatePhotoCommentHandler
 
   @impl true
-  def primary_step, do: :preloaded
+  def primary_step, do: :comment
 
   @impl true
   def permission, do: {:update, PhotoComment}

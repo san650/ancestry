@@ -4,10 +4,8 @@ defmodule Ancestry.Bus do
   with authorization, audit-row insertion, and post-commit effects.
   """
 
-  alias Ancestry.{Authorization, Repo}
-  alias Ancestry.Audit
+  alias Ancestry.Authorization
   alias Ancestry.Bus.Envelope
-  alias Ecto.Multi
   require Logger
 
   def dispatch(scope, command, opts \\ []),
@@ -48,17 +46,12 @@ defmodule Ancestry.Bus do
   end
 
   defp run(env, module) do
-    multi =
-      env
-      |> module.handled_by().build_multi()
-      |> Multi.insert(:__audit__, fn _ -> Audit.Log.changeset_from(env) end)
-
-    case Repo.transaction(multi) do
+    case module.handled_by().handle(env) do
       {:ok, changes} ->
-        Enum.each(changes[:__effects__] || [], &run_effect/1)
+        Enum.each(changes[:effects] || [], &run_effect/1)
         {:ok, Map.fetch!(changes, module.primary_step())}
 
-      {:error, _step, %Ecto.Changeset{} = cs, _} ->
+      {:error, _step, %Ecto.Changeset{} = cs, _changes} ->
         {:error, :validation, cs}
 
       {:error, _step, :not_found, _} ->

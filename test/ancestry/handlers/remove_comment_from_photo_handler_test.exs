@@ -29,19 +29,16 @@ defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandlerTest do
      admin_scope: %Ancestry.Identity.Scope{account: admin, organization: organization}}
   end
 
-  test "build_multi/1 deletes the comment for the owner",
+  test "handle/1 deletes the comment for the owner",
        %{owner_scope: scope, comment: comment} do
     cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
     env = Envelope.wrap(scope, cmd)
 
-    {:ok, changes} =
-      env
-      |> RemoveCommentFromPhotoHandler.build_multi()
-      |> Ancestry.Repo.transaction()
+    {:ok, changes} = RemoveCommentFromPhotoHandler.handle(env)
 
-    assert %PhotoComment{} = changes.photo_comment
+    assert %PhotoComment{} = changes.comment
     assert is_nil(Ancestry.Repo.get(PhotoComment, comment.id))
-    assert [{:broadcast, topic, {:comment_deleted, broadcast_comment}}] = changes.__effects__
+    assert [{:broadcast, topic, {:comment_deleted, broadcast_comment}}] = changes.effects
     assert topic == "photo_comments:#{comment.photo_id}"
     assert %Ancestry.Identity.Account{} = broadcast_comment.account
   end

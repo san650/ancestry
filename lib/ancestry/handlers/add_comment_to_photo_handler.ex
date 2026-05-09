@@ -1,40 +1,42 @@
 defmodule Ancestry.Handlers.AddCommentToPhotoHandler do
   @moduledoc """
-  Handles `Ancestry.Commands.AddCommentToPhoto` by inserting a
-  `PhotoComment`, preloading its account, and computing the
-  `:comment_created` broadcast effect.
+  Handles `Ancestry.Commands.AddCommentToPhoto`: insert the comment,
+  preload its account, audit, broadcast its creation.
   """
 
   use Ancestry.Bus.Handler
 
-  alias Ancestry.Bus.Envelope
+  alias Ancestry.Bus.Step
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Repo
 
   @impl true
-  def build_multi(%Envelope{command: cmd, scope: scope}) do
-    Multi.new()
-    |> Multi.put(:command, cmd)
-    |> Multi.put(:scope, scope)
-    |> Multi.insert(:photo_comment, &insert_comment/1)
-    |> Multi.run(:preloaded, &preload_account/2)
-    |> Multi.run(:__effects__, &compute_effects/2)
+  def handle(envelope) do
+    envelope |> to_transaction() |> Repo.transaction()
   end
 
-  defp insert_comment(%{command: cmd, scope: scope}) do
+  defp to_transaction(envelope) do
+    Step.new(envelope)
+    |> Step.insert(:inserted_comment, &add_comment_to_photo/1)
+    |> Step.run(:comment, &preload_comment_account/2)
+    |> Step.audit()
+    |> Step.effects(&broadcast_creation/2)
+  end
+
+  defp add_comment_to_photo(%{envelope: envelope}) do
+    %{command: command, scope: scope} = envelope
+
     %PhotoComment{}
-    |> PhotoComment.changeset(%{text: cmd.text})
-    |> Ecto.Changeset.put_change(:photo_id, cmd.photo_id)
+    |> PhotoComment.changeset(%{text: command.text})
+    |> Ecto.Changeset.put_change(:photo_id, command.photo_id)
     |> Ecto.Changeset.put_change(:account_id, scope.account.id)
   end
 
-  defp preload_account(_repo, %{photo_comment: c}),
-    do: {:ok, Repo.preload(c, :account)}
+  defp preload_comment_account(repo, %{inserted_comment: comment}) do
+    {:ok, repo.preload(comment, :account)}
+  end
 
-  defp compute_effects(_repo, %{preloaded: c}) do
-    {:ok,
-     [
-       {:broadcast, "photo_comments:#{c.photo_id}", {:comment_created, c}}
-     ]}
+  defp broadcast_creation(_repo, %{comment: comment}) do
+    {:ok, [{:broadcast, "photo_comments:#{comment.photo_id}", {:comment_created, comment}}]}
   end
 end
