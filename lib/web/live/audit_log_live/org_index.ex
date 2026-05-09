@@ -3,6 +3,7 @@ defmodule Web.AuditLogLive.OrgIndex do
 
   alias Ancestry.Audit
   alias Web.AuditLogLive.Components
+  alias Web.AuditLogLive.Shared
 
   @limit 50
 
@@ -36,14 +37,14 @@ defmodule Web.AuditLogLive.OrgIndex do
 
     filters =
       %{organization_id: org_id}
-      |> maybe_put(:account_id, parse_int(params["account_id"]))
+      |> Shared.maybe_put(:account_id, Shared.parse_int(params["account_id"]))
 
     rows = Audit.list_entries(filters, @limit)
 
     {:noreply,
      socket
      |> assign(:filters, filters)
-     |> assign(:cursor, cursor_from(rows))
+     |> assign(:cursor, Shared.cursor_from(rows))
      |> assign(:has_more?, length(rows) == @limit)
      |> stream(:entries, rows, reset: true)}
   end
@@ -74,13 +75,13 @@ defmodule Web.AuditLogLive.OrgIndex do
 
     {:noreply,
      socket
-     |> assign(:cursor, cursor_from(rows) || socket.assigns.cursor)
+     |> assign(:cursor, Shared.cursor_from(rows) || socket.assigns.cursor)
      |> assign(:has_more?, length(rows) == @limit)}
   end
 
   @impl true
   def handle_info({:audit_logged, row}, socket) do
-    if matches_filters?(row, socket.assigns.filters) do
+    if Shared.matches_filters?(row, socket.assigns.filters) do
       {:noreply, stream_insert(socket, :entries, row, at: 0)}
     else
       {:noreply, socket}
@@ -106,23 +107,5 @@ defmodule Web.AuditLogLive.OrgIndex do
       </div>
     </Layouts.app>
     """
-  end
-
-  defp maybe_put(map, _key, nil), do: map
-  defp maybe_put(map, key, val), do: Map.put(map, key, val)
-
-  defp parse_int(nil), do: nil
-  defp parse_int(""), do: nil
-  defp parse_int(s) when is_binary(s), do: String.to_integer(s)
-
-  defp cursor_from([]), do: nil
-  defp cursor_from(rows), do: rows |> List.last() |> then(&{&1.inserted_at, &1.id})
-
-  defp matches_filters?(row, filters) do
-    Enum.all?(filters, fn
-      {:organization_id, id} -> row.organization_id == id
-      {:account_id, id} -> row.account_id == id
-      {:before, _} -> true
-    end)
   end
 end
