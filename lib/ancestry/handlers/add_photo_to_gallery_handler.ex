@@ -20,7 +20,7 @@ defmodule Ancestry.Handlers.AddPhotoToGalleryHandler do
     Step.new(envelope)
     |> Step.insert(:inserted_photo, &add_photo_to_gallery/1)
     |> Step.run(:photo, &preload_photo_gallery/2)
-    |> Step.enqueue(:worker, &transform_and_store_photo/1)
+    |> Step.enqueue(:transform_job, &transform_and_store_photo/1)
     |> Step.audit()
     |> Step.no_effects()
   end
