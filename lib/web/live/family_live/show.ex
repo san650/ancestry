@@ -314,21 +314,30 @@ defmodule Web.FamilyLive.Show do
   end
 
   def handle_event("save_gallery", %{"gallery" => params}, socket) do
-    params = Map.put(params, "family_id", socket.assigns.family.id)
+    attrs = Map.put(params, "family_id", socket.assigns.family.id)
 
-    case Galleries.create_gallery(params) do
-      {:ok, _gallery} ->
-        galleries = Galleries.list_galleries(socket.assigns.family.id)
-        metrics = Metrics.compute(socket.assigns.family.id)
+    case Ancestry.Commands.AddGalleryToFamily.new(attrs) do
+      {:ok, command} ->
+        case Ancestry.Bus.dispatch(socket.assigns.current_scope, command) do
+          {:ok, _gallery} ->
+            galleries = Galleries.list_galleries(socket.assigns.family.id)
+            metrics = Metrics.compute(socket.assigns.family.id)
 
-        {:noreply,
-         socket
-         |> assign(:show_new_gallery_modal, false)
-         |> assign(:galleries, galleries)
-         |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+            {:noreply,
+             socket
+             |> assign(:show_new_gallery_modal, false)
+             |> assign(:galleries, galleries)
+             |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+
+          {:error, :validation, changeset} ->
+            {:noreply, assign(socket, :gallery_form, to_form(changeset, as: :gallery))}
+
+          error ->
+            handle_dispatch_result(error, socket)
+        end
 
       {:error, changeset} ->
-        {:noreply, assign(socket, :gallery_form, to_form(changeset))}
+        {:noreply, assign(socket, :gallery_form, to_form(changeset, as: :gallery))}
     end
   end
 
@@ -342,15 +351,22 @@ defmodule Web.FamilyLive.Show do
 
   def handle_event("confirm_delete_gallery", _, socket) do
     gallery = socket.assigns.confirm_delete_gallery
-    {:ok, _} = Galleries.delete_gallery(gallery)
-    galleries = Galleries.list_galleries(socket.assigns.family.id)
-    metrics = Metrics.compute(socket.assigns.family.id)
+    command = Ancestry.Commands.RemoveGalleryFromFamily.new!(%{gallery_id: gallery.id})
 
-    {:noreply,
-     socket
-     |> assign(:confirm_delete_gallery, nil)
-     |> assign(:galleries, galleries)
-     |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+    case Ancestry.Bus.dispatch(socket.assigns.current_scope, command) do
+      {:ok, _} ->
+        galleries = Galleries.list_galleries(socket.assigns.family.id)
+        metrics = Metrics.compute(socket.assigns.family.id)
+
+        {:noreply,
+         socket
+         |> assign(:confirm_delete_gallery, nil)
+         |> assign(:galleries, galleries)
+         |> assign(:metrics, Phoenix.LiveView.AsyncResult.ok(metrics))}
+
+      error ->
+        handle_dispatch_result(error, assign(socket, :confirm_delete_gallery, nil))
+    end
   end
 
   # Vault management
