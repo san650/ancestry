@@ -3,8 +3,9 @@ defmodule Ancestry.GalleriesTest do
 
   alias Ancestry.Families
   alias Ancestry.Galleries
-  alias Ancestry.Galleries.Gallery
+  alias Ancestry.Galleries.{Gallery, PhotoPerson}
   alias Ancestry.People
+  alias Ancestry.Repo
 
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
@@ -93,67 +94,6 @@ defmodule Ancestry.GalleriesTest do
       %{gallery: gallery, photo: photo, person: person}
     end
 
-    test "tag_person_in_photo/4 creates a photo_person record", %{photo: photo, person: person} do
-      assert {:ok, photo_person} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.3)
-      assert photo_person.photo_id == photo.id
-      assert photo_person.person_id == person.id
-      assert photo_person.x == 0.5
-      assert photo_person.y == 0.3
-    end
-
-    test "tag_person_in_photo/4 creates a photo_person with nil coordinates", %{
-      photo: photo,
-      person: person
-    } do
-      assert {:ok, photo_person} = Galleries.tag_person_in_photo(photo.id, person.id, nil, nil)
-      assert photo_person.photo_id == photo.id
-      assert photo_person.person_id == person.id
-      assert photo_person.x == nil
-      assert photo_person.y == nil
-    end
-
-    test "tag_person_in_photo/4 upserts coordinates on an existing nil-coordinate tag", %{
-      photo: photo,
-      person: person
-    } do
-      assert {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, nil, nil)
-      assert {:ok, updated} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.5)
-      assert updated.x == 0.5
-      assert updated.y == 0.5
-
-      # Verify only one record exists
-      assert length(Galleries.list_photo_people(photo.id)) == 1
-    end
-
-    test "tag_person_in_photo/4 upserts coordinates on an existing positioned tag", %{
-      photo: photo,
-      person: person
-    } do
-      assert {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.3, 0.3)
-      assert {:ok, updated} = Galleries.tag_person_in_photo(photo.id, person.id, 0.7, 0.8)
-      assert updated.x == 0.7
-      assert updated.y == 0.8
-
-      # Verify only one record exists
-      assert length(Galleries.list_photo_people(photo.id)) == 1
-    end
-
-    test "tag_person_in_photo/4 validates coordinate bounds", %{photo: photo, person: person} do
-      assert {:error, changeset} = Galleries.tag_person_in_photo(photo.id, person.id, 1.5, -0.1)
-      assert errors_on(changeset).x
-      assert errors_on(changeset).y
-    end
-
-    test "untag_person_from_photo/2 removes the tag", %{photo: photo, person: person} do
-      {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.3)
-      assert :ok = Galleries.untag_person_from_photo(photo.id, person.id)
-      assert Galleries.list_photo_people(photo.id) == []
-    end
-
-    test "untag_person_from_photo/2 is a no-op when not tagged", %{photo: photo, person: person} do
-      assert :ok = Galleries.untag_person_from_photo(photo.id, person.id)
-    end
-
     test "list_photo_people/1 returns tagged people with preloaded person", %{
       photo: photo,
       person: person,
@@ -162,8 +102,8 @@ defmodule Ancestry.GalleriesTest do
       {:ok, person2} =
         Ancestry.People.create_person_without_family(org, %{given_name: "Bob", surname: "Jones"})
 
-      {:ok, _} = Galleries.tag_person_in_photo(photo.id, person.id, 0.5, 0.3)
-      {:ok, _} = Galleries.tag_person_in_photo(photo.id, person2.id, 0.8, 0.6)
+      Repo.insert!(%PhotoPerson{photo_id: photo.id, person_id: person.id, x: 0.5, y: 0.3})
+      Repo.insert!(%PhotoPerson{photo_id: photo.id, person_id: person2.id, x: 0.8, y: 0.6})
 
       result = Galleries.list_photo_people(photo.id)
       assert length(result) == 2
@@ -192,9 +132,9 @@ defmodule Ancestry.GalleriesTest do
       # Pending photo — should not appear
       photo3 = insert(:photo, gallery: gallery, status: "pending", original_filename: "test3.jpg")
 
-      {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
-      {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.3)
-      {:ok, _} = Galleries.tag_person_in_photo(photo3.id, person.id, 0.1, 0.1)
+      Repo.insert!(%PhotoPerson{photo_id: photo1.id, person_id: person.id, x: 0.5, y: 0.5})
+      Repo.insert!(%PhotoPerson{photo_id: photo2.id, person_id: person.id, x: 0.3, y: 0.3})
+      Repo.insert!(%PhotoPerson{photo_id: photo3.id, person_id: person.id, x: 0.1, y: 0.1})
 
       result = Galleries.list_photos_for_person(person.id)
 

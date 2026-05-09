@@ -3,8 +3,9 @@ defmodule Web.UserFlows.PersonPhotosTest do
   import Phoenix.LiveViewTest
 
   alias Ancestry.Families
-  alias Ancestry.Galleries
+  alias Ancestry.Galleries.PhotoPerson
   alias Ancestry.People
+  alias Ancestry.Repo
 
   # Given a person tagged in processed photos across galleries
   # When the user visits the person show page
@@ -29,8 +30,8 @@ defmodule Web.UserFlows.PersonPhotosTest do
     photo2 =
       insert(:photo, gallery: gallery, status: "processed", original_filename: "sunset.jpg")
 
-    {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
-    {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.7)
+    Repo.insert!(%PhotoPerson{photo_id: photo1.id, person_id: person.id, x: 0.5, y: 0.5})
+    Repo.insert!(%PhotoPerson{photo_id: photo2.id, person_id: person.id, x: 0.3, y: 0.7})
 
     %{family: family, person: person, photo1: photo1, photo2: photo2, org: org}
   end
