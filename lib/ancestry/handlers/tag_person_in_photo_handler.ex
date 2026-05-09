@@ -23,7 +23,7 @@ defmodule Ancestry.Handlers.TagPersonInPhotoHandler do
 
   defp to_transaction(envelope) do
     Step.new(envelope)
-    |> Step.insert(:photo_person, &tag_person_in_photo/1, @upsert_opts)
+    |> Step.insert(:photo_person, &tag_person_in_photo/1)
     |> Step.audit()
     |> Step.no_effects()
   end
@@ -31,9 +31,12 @@ defmodule Ancestry.Handlers.TagPersonInPhotoHandler do
   defp tag_person_in_photo(%{envelope: envelope}) do
     cmd = envelope.command
 
-    PhotoPerson.changeset(
-      %PhotoPerson{photo_id: cmd.photo_id, person_id: cmd.person_id},
-      %{x: cmd.x, y: cmd.y}
-    )
+    changeset =
+      PhotoPerson.changeset(
+        %PhotoPerson{photo_id: cmd.photo_id, person_id: cmd.person_id},
+        %{x: cmd.x, y: cmd.y}
+      )
+
+    {changeset, @upsert_opts}
   end
 end

@@ -14,8 +14,17 @@ defmodule Ancestry.Bus.Step do
   end
 
   defdelegate put(multi, name, value), to: Multi
-  defdelegate insert(multi, name, changeset_or_fun), to: Multi
-  defdelegate insert(multi, name, changeset_or_fun, opts), to: Multi
+
+  @doc """
+  Append an insert step. The function receives the Multi changes map and must
+  return either an `Ecto.Changeset` or a `{changeset, opts}` tuple. When a
+  tuple is returned the opts are forwarded to `Repo.insert/2` (e.g. for
+  `on_conflict` upserts).
+  """
+  def insert(multi, name, fun) when is_function(fun, 1) do
+    Multi.run(multi, name, &run_insert(&1, &2, fun))
+  end
+
   defdelegate update(multi, name, changeset_or_fun), to: Multi
   defdelegate delete(multi, name, struct_or_fun), to: Multi
   defdelegate run(multi, name, fun), to: Multi
@@ -35,4 +44,11 @@ defmodule Ancestry.Bus.Step do
 
   defp create_audit_log(%{envelope: envelope}), do: Log.changeset_from(envelope)
   defp empty_effects(_repo, _changes), do: {:ok, []}
+
+  defp run_insert(repo, changes, fun) do
+    case fun.(changes) do
+      {%Ecto.Changeset{} = changeset, opts} -> repo.insert(changeset, opts)
+      %Ecto.Changeset{} = changeset -> repo.insert(changeset)
+    end
+  end
 end

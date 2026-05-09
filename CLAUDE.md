@@ -106,7 +106,7 @@ State-mutating operations dispatch through `Ancestry.Bus.dispatch/2`. Each mutat
 ```
 Step.new(envelope)                 # Multi.new |> Multi.put(:envelope, envelope)
 Step.put(name, value)              # passthrough to Multi
-Step.insert(name, fun [, opts])    # passthrough to Multi
+Step.insert(name, fun)             # fun returns changeset or {changeset, opts}
 Step.update(name, fun)             # passthrough to Multi
 Step.delete(name, fun)             # passthrough to Multi
 Step.run(name, fun)                # passthrough to Multi
