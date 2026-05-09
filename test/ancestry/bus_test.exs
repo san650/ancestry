@@ -43,6 +43,71 @@ defmodule Ancestry.BusTest do
     end
   end
 
+  defmodule NotFoundHandler do
+    use Ancestry.Bus.Handler
+
+    @impl true
+    def build_multi(_env) do
+      Multi.new()
+      |> Multi.run(:boom, fn _, _ -> {:error, :not_found} end)
+    end
+  end
+
+  defmodule ChangesetHandler do
+    use Ancestry.Bus.Handler
+
+    @impl true
+    def build_multi(_env) do
+      Multi.new()
+      |> Multi.run(:cs, fn _, _ ->
+        cs = %Ecto.Changeset{data: %{}, types: %{}, valid?: false, action: :validate}
+        {:error, Ecto.Changeset.add_error(cs, :base, "bad")}
+      end)
+    end
+  end
+
+  defmodule UnauthorizedStepHandler do
+    use Ancestry.Bus.Handler
+
+    @impl true
+    def build_multi(_env) do
+      Multi.new()
+      |> Multi.run(:authz, fn _, _ -> {:error, :unauthorized} end)
+    end
+  end
+
+  defmodule HandlerErrorHandler do
+    use Ancestry.Bus.Handler
+
+    @impl true
+    def build_multi(_env) do
+      Multi.new()
+      |> Multi.run(:weird, fn _, _ -> {:error, :something_else} end)
+    end
+  end
+
+  for {mod_name, handler} <- [
+        {NotFoundCommand, NotFoundHandler},
+        {ChangesetCommand, ChangesetHandler},
+        {UnauthorizedCommand, UnauthorizedStepHandler},
+        {HandlerErrorCommand, HandlerErrorHandler}
+      ] do
+    defmodule mod_name do
+      use Ancestry.Bus.Command
+      defstruct []
+      @impl true
+      def new(_), do: {:ok, %__MODULE__{}}
+      @impl true
+      def new!(_), do: %__MODULE__{}
+      @impl true
+      def handled_by, do: unquote(handler)
+      @impl true
+      def primary_step, do: :result
+      @impl true
+      def permission, do: {:read, Ancestry.Identity.Account}
+    end
+  end
+
   setup do
     {:ok, account} =
       %Ancestry.Identity.Account{
@@ -67,5 +132,24 @@ defmodule Ancestry.BusTest do
     assert row.command_module == "Ancestry.BusTest.NoopCommand"
     assert row.account_id == scope.account.id
     assert row.payload == %{"label" => "hello"}
+  end
+
+  test "classifies :not_found from a Multi step", %{scope: scope} do
+    assert {:error, :not_found} = Bus.dispatch(scope, NotFoundCommand.new!(%{}))
+    assert Ancestry.Repo.all(Log) == []
+  end
+
+  test "classifies a changeset failure as :validation", %{scope: scope} do
+    assert {:error, :validation, %Ecto.Changeset{}} =
+             Bus.dispatch(scope, ChangesetCommand.new!(%{}))
+  end
+
+  test "classifies :unauthorized from a Multi step", %{scope: scope} do
+    assert {:error, :unauthorized} = Bus.dispatch(scope, UnauthorizedCommand.new!(%{}))
+  end
+
+  test "classifies unrecognized handler errors as :handler", %{scope: scope} do
+    assert {:error, :handler, :something_else} =
+             Bus.dispatch(scope, HandlerErrorCommand.new!(%{}))
   end
 end
