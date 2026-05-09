@@ -256,6 +256,47 @@ defmodule Ancestry.BusTest do
     assert_receive {:hello, "greeting"}, 500
   end
 
+  defmodule WaffleDeleteHandler do
+    use Ancestry.Bus.Handler
+    alias Ancestry.Repo
+
+    @impl true
+    def handle(envelope) do
+      envelope |> to_transaction() |> Repo.transaction()
+    end
+
+    defp to_transaction(envelope) do
+      Step.new(envelope)
+      |> Step.put(:result, %Ancestry.Galleries.Photo{image: nil})
+      |> Step.audit()
+      |> Step.effects(&clean_up_storage/2)
+    end
+
+    defp clean_up_storage(_repo, %{result: photo}) do
+      {:ok, [{:waffle_delete, photo}]}
+    end
+  end
+
+  defmodule WaffleDeleteCommand do
+    use Ancestry.Bus.Command
+    defstruct []
+    @impl true
+    def new(_), do: {:ok, %__MODULE__{}}
+    @impl true
+    def new!(_), do: %__MODULE__{}
+    @impl true
+    def handled_by, do: WaffleDeleteHandler
+    @impl true
+    def primary_step, do: :result
+    @impl true
+    def permission, do: {:read, Ancestry.Identity.Account}
+  end
+
+  test "fires :waffle_delete effects after commit (no-op when image is nil)", %{scope: scope} do
+    cmd = WaffleDeleteCommand.new!(%{})
+    assert {:ok, %Ancestry.Galleries.Photo{}} = Bus.dispatch(scope, cmd)
+  end
+
   test "returns {:error, :unauthorized} when Permit denies" do
     {:ok, viewer} =
       %Ancestry.Identity.Account{

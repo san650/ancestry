@@ -74,6 +74,12 @@ defmodule Ancestry.Bus do
   defp run_effect({:broadcast, topic, msg}),
     do: Phoenix.PubSub.broadcast(Ancestry.PubSub, topic, msg)
 
+  defp run_effect({:waffle_delete, %Ancestry.Galleries.Photo{image: img} = photo})
+       when not is_nil(img),
+       do: Ancestry.Uploaders.Photo.delete({img, photo})
+
+  defp run_effect({:waffle_delete, _}), do: :ok
+
   defp base_metadata(env) do
     %{
       command_id: env.command_id,
