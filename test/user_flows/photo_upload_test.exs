@@ -155,4 +155,42 @@ defmodule Web.UserFlows.PhotoUploadTest do
     assert Repo.all(Photo) == []
     assert Repo.all(Log) == []
   end
+
+  test "too-many-files surfaces form-level error row",
+       %{conn: conn, org: org, family: family, gallery: gallery} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
+    contents = File.read!("test/fixtures/test_image.jpg")
+
+    # max_entries is 50 in mount/3; 51 entries trips :too_many_files.
+    files =
+      for i <- 1..51 do
+        %{
+          name: "p#{i}.jpg",
+          # Vary one byte so each file has a unique sha256.
+          content: contents <> <<i>>,
+          type: "image/jpeg"
+        }
+      end
+
+    upload = file_input(view, "#upload-form", :photos, files)
+
+    # preflight_upload sends :allow_upload to the LiveView channel, which
+    # registers entries server-side. With 51 entries against max 50, the
+    # form-level :too_many_files error is set on the LiveView but
+    # preflight may still return :ok with the per-entry refs.
+    preflight_upload(upload)
+
+    # Trigger validate so maybe_finalize runs and finalises the modal.
+    render_change(view, "validate", %{})
+
+    assigns = :sys.get_state(view.pid).socket.assigns
+
+    assert assigns.show_upload_modal == true
+
+    assert Enum.any?(assigns.upload_results, fn r ->
+             r.status == :error and r.name == "Upload"
+           end)
+  end
 end

@@ -75,8 +75,10 @@ defmodule Web.GalleryLive.Show do
     end
   end
 
-  defp settled?(uploads, entry),
-    do: entry.done? or upload_errors(uploads, entry) != []
+  defp settled?(uploads, entry) do
+    entry.done? or upload_errors(uploads, entry) != [] or
+      upload_errors(uploads) != []
+  end
 
   @impl true
   def handle_event("validate", _params, socket), do: maybe_finalize(socket)
