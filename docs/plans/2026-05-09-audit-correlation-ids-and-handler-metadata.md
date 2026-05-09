@@ -348,7 +348,14 @@ The three new UI building blocks:
 
 `Web.AuditLogLive.Show` shows a single "Related events" panel containing every other row that shares **any** of this entry's `correlation_ids`, sorted by `inserted_at` ascending. Each related row renders the same chip strip so the reader sees which id(s) connected it. One panel, one scroll — the chips do the disambiguation.
 
-Implementation: a new `Audit.list_correlated_entries_for/1` (plural input) that runs a single query:
+Two related functions live side-by-side, used at distinct call sites:
+
+- `Audit.list_correlated_entries/1` — singular `correlation_id` argument, returns rows containing that one id. Used by chip deep-links (each chip is one id).
+- `Audit.list_correlated_entries_for/1` — list of correlation ids, returns rows whose `correlation_ids` overlap any of the given ids (Postgres `&&`). Used by the detail-page related-events panel where the entry itself carries multiple ids.
+
+The singular form is rewritten in terms of the plural form internally so we maintain one canonical implementation.
+
+Implementation of the plural form:
 
 ```elixir
 def list_correlated_entries_for(ids) when is_list(ids) do
@@ -359,7 +366,7 @@ def list_correlated_entries_for(ids) when is_list(ids) do
 end
 ```
 
-Postgres `&&` (array overlap) uses the GIN index. The existing singular `list_correlated_entries/1` stays — it's used by the chip-link target — and is rewritten in terms of `_for/1` for free.
+Postgres `&&` (array overlap) uses the GIN index.
 
 ### Filter URL state
 
@@ -375,7 +382,9 @@ The filter form input is hidden by default but a deep-link from a chip populates
 Three integration points need updating so the new filter actually flows end-to-end:
 
 - `lib/web/live/audit_log_live/index.ex` `parse_filters/1` (~line 110) — add a `Shared.maybe_put(:correlation_id, params["correlation_id"])` call. The `handle_event("filter", ...)` clause in `index.ex` already passes the form params through unfiltered, so no guard change there.
-- `lib/web/live/audit_log_live/org_index.ex:58` — the `Map.take(["account_id"])` guard explicitly drops unknown form keys; extend it to `Map.take(["account_id", "correlation_id"])`. Without this, deep-links from chips on the org-scoped page silently drop the filter.
+- `lib/web/live/audit_log_live/org_index.ex` — two changes:
+  - `handle_params/3` (~line 38) — extend the filter-building chain with `Shared.maybe_put(:correlation_id, params["correlation_id"])` so URL-supplied ids actually reach the query.
+  - `handle_event("filter", ...)` (~line 58) — extend `Map.take(["account_id"])` to `Map.take(["account_id", "correlation_id"])` so submitted form values reach the URL. Without this, deep-links from chips on the org-scoped page silently drop the filter.
 - `lib/web/live/audit_log_live/shared.ex` `matches_filters?/2` (~line 14) — add a `{:correlation_id, id} -> id in row.correlation_ids` branch. Without it, the live PubSub `{:audit_logged, row}` handler will insert rows into the stream regardless of the active correlation filter.
 
 ## Tests
