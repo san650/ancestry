@@ -312,4 +312,69 @@ defmodule Ancestry.BusTest do
     assert {:error, :unauthorized} = Bus.dispatch(viewer_scope, cmd)
     assert Ancestry.Repo.all(Log) == []
   end
+
+  describe "audit broadcast" do
+    test "broadcasts on global topic when dispatch succeeds", %{scope: scope} do
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "audit_log")
+
+      {:ok, cmd} = NoopCommand.new(%{label: "broadcast-test"})
+      assert {:ok, _} = Bus.dispatch(scope, cmd)
+
+      assert_receive {:audit_logged, %Log{} = row}, 1_000
+      assert row.account_id == scope.account.id
+      assert row.command_module == "Ancestry.BusTest.NoopCommand"
+      assert row.payload[:label] == "broadcast-test"
+    end
+
+    test "broadcasts on org topic when scope has an organization" do
+      organization = insert(:organization)
+
+      {:ok, account} =
+        %Ancestry.Identity.Account{
+          email: "broadcast-org@example.com",
+          name: "Org Admin",
+          role: :admin,
+          hashed_password: Bcrypt.hash_pwd_salt("password")
+        }
+        |> Ancestry.Repo.insert()
+
+      scope = %Ancestry.Identity.Scope{account: account, organization: organization}
+
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "audit_log:org:#{organization.id}")
+
+      {:ok, cmd} = NoopCommand.new(%{label: "org-test"})
+      assert {:ok, _} = Bus.dispatch(scope, cmd)
+
+      assert_receive {:audit_logged, %Log{} = row}, 1_000
+      assert row.organization_id == organization.id
+    end
+
+    test "no broadcast when authorization is denied" do
+      {:ok, viewer} =
+        %Ancestry.Identity.Account{
+          email: "viewer-broadcast@example.com",
+          name: "Viewer",
+          role: :viewer,
+          hashed_password: Bcrypt.hash_pwd_salt("password")
+        }
+        |> Ancestry.Repo.insert()
+
+      viewer_scope = %Ancestry.Identity.Scope{account: viewer, organization: nil}
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "audit_log")
+
+      cmd = DeniedCommand.new!(%{})
+      assert {:error, :unauthorized} = Bus.dispatch(viewer_scope, cmd)
+
+      refute_receive {:audit_logged, _}, 200
+    end
+
+    test "no broadcast when handler step fails (:not_found)", %{scope: scope} do
+      Phoenix.PubSub.subscribe(Ancestry.PubSub, "audit_log")
+
+      cmd = NotFoundCommand.new!(%{})
+      assert {:error, :not_found} = Bus.dispatch(scope, cmd)
+
+      refute_receive {:audit_logged, _}, 200
+    end
+  end
 end

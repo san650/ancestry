@@ -48,6 +48,7 @@ defmodule Ancestry.Bus do
   defp run(env, module) do
     case module.handled_by().handle(env) do
       {:ok, changes} ->
+        broadcast_audit(changes[:audit])
         Enum.each(changes[:effects] || [], &run_effect/1)
         {:ok, Map.fetch!(changes, module.primary_step())}
 
@@ -69,6 +70,22 @@ defmodule Ancestry.Bus do
       {:error, _step, other, _} ->
         {:error, :handler, other}
     end
+  end
+
+  defp broadcast_audit(nil), do: :ok
+
+  defp broadcast_audit(%Ancestry.Audit.Log{} = row) do
+    Phoenix.PubSub.broadcast(Ancestry.PubSub, "audit_log", {:audit_logged, row})
+
+    if row.organization_id do
+      Phoenix.PubSub.broadcast(
+        Ancestry.PubSub,
+        "audit_log:org:#{row.organization_id}",
+        {:audit_logged, row}
+      )
+    end
+
+    :ok
   end
 
   defp run_effect({:broadcast, topic, msg}),
