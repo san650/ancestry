@@ -18,6 +18,11 @@ defmodule Ancestry.Identity.Scope do
 
   alias Ancestry.Identity.Account
 
+  @type t :: %__MODULE__{
+          account: term() | nil,
+          organization: term() | nil
+        }
+
   defstruct account: nil, organization: nil
 
   @doc """
