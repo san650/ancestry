@@ -1,4 +1,4 @@
-defmodule Ancestry.Workers.ProcessPhotoJob do
+defmodule Ancestry.Workers.TransformAndStorePhoto do
   use Oban.Worker, queue: :photos, max_attempts: 3
 
   alias Ancestry.Galleries

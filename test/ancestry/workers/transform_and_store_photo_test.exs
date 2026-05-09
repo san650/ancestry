@@ -1,8 +1,8 @@
-defmodule Ancestry.Workers.ProcessPhotoJobTest do
+defmodule Ancestry.Workers.TransformAndStorePhotoTest do
   use Ancestry.DataCase, async: false
   use Oban.Testing, repo: Ancestry.Repo
 
-  alias Ancestry.Workers.ProcessPhotoJob
+  alias Ancestry.Workers.TransformAndStorePhoto
   alias Ancestry.Families
   alias Ancestry.Galleries
 
@@ -35,7 +35,7 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
   } do
     Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{gallery.id}")
 
-    assert :ok = perform_job(ProcessPhotoJob, %{photo_id: photo.id})
+    assert :ok = perform_job(TransformAndStorePhoto, %{photo_id: photo.id})
 
     updated = Galleries.get_photo!(photo.id)
     assert updated.status == "processed"
@@ -55,7 +55,8 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
     # Delete the file so the job will fail to process it
     File.rm!(photo.original_path)
 
-    assert {:error, _reason} = ProcessPhotoJob.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
+    assert {:error, _reason} =
+             TransformAndStorePhoto.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
 
     updated = Galleries.get_photo!(photo.id)
     assert updated.status == "failed"

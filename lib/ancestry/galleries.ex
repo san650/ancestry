@@ -38,7 +38,8 @@ defmodule Ancestry.Galleries do
 
   def create_photo(attrs \\ %{}) do
     with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
-         {:ok, _job} <- Oban.insert(Ancestry.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
+         {:ok, _job} <-
+           Oban.insert(Ancestry.Workers.TransformAndStorePhoto.new(%{photo_id: photo.id})) do
       {:ok, Repo.preload(photo, :gallery)}
     end
   end
