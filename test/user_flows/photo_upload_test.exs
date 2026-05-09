@@ -66,6 +66,10 @@ defmodule Web.UserFlows.PhotoUploadTest do
     assert photo_row.gallery_id == gallery.id
     assert photo_row.original_filename == "photo1.jpg"
 
+    # Inline Oban mode runs TransformAndStorePhoto immediately on commit;
+    # the photo lands in :processed (or :failed for malformed bytes).
+    assert photo_row.status in ["processed", "failed"]
+
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
     assert row.payload["gallery_id"] == gallery.id
