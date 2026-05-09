@@ -6,6 +6,7 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
 
   use Ancestry.Bus.Handler
 
+  alias Ancestry.Authorization
   alias Ancestry.Bus.Step
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Repo
@@ -32,11 +33,9 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
         {:error, :not_found}
 
       comment ->
-        if comment.account_id == scope.account.id or scope.account.role == :admin do
-          {:ok, comment}
-        else
-          {:error, :unauthorized}
-        end
+        if Authorization.can?(scope, :update, comment),
+          do: {:ok, comment},
+          else: {:error, :unauthorized}
     end
   end
 

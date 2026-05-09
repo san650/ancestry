@@ -6,6 +6,7 @@ defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandler do
 
   use Ancestry.Bus.Handler
 
+  alias Ancestry.Authorization
   alias Ancestry.Bus.Step
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Repo
@@ -33,11 +34,9 @@ defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandler do
       comment ->
         comment = repo.preload(comment, :account)
 
-        if comment.account_id == scope.account.id or scope.account.role == :admin do
-          {:ok, comment}
-        else
-          {:error, :unauthorized}
-        end
+        if Authorization.can?(scope, :delete, comment),
+          do: {:ok, comment},
+          else: {:error, :unauthorized}
     end
   end
 

@@ -20,14 +20,17 @@ defmodule Ancestry.Permissions do
     |> all(PhotoComment)
   end
 
-  def can(%Scope{account: %Account{role: :editor}}) do
+  def can(%Scope{account: %Account{role: :editor, id: id}}) do
     permit()
     |> read(Organization)
     |> all(Family)
     |> all(Person)
     |> all(Gallery)
     |> all(Photo)
-    |> all(PhotoComment)
+    |> read(PhotoComment)
+    |> create(PhotoComment)
+    |> update(PhotoComment, account_id: id)
+    |> delete(PhotoComment, account_id: id)
   end
 
   def can(%Scope{account: %Account{role: :viewer}}) do
