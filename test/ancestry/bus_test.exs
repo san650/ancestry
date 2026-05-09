@@ -152,4 +152,36 @@ defmodule Ancestry.BusTest do
     assert {:error, :handler, :something_else} =
              Bus.dispatch(scope, HandlerErrorCommand.new!(%{}))
   end
+
+  defmodule DeniedCommand do
+    use Ancestry.Bus.Command
+    defstruct []
+
+    @impl true
+    def new(_), do: {:ok, %__MODULE__{}}
+    @impl true
+    def new!(_), do: %__MODULE__{}
+    @impl true
+    def handled_by, do: Ancestry.BusTest.NoopHandler
+    @impl true
+    def primary_step, do: :result
+    @impl true
+    def permission, do: {:delete, Ancestry.Organizations.Organization}
+  end
+
+  test "returns {:error, :unauthorized} when Permit denies" do
+    {:ok, viewer} =
+      %Ancestry.Identity.Account{
+        email: "viewer-bus-test@example.com",
+        name: "Viewer",
+        role: :viewer,
+        hashed_password: Bcrypt.hash_pwd_salt("password")
+      }
+      |> Ancestry.Repo.insert()
+
+    viewer_scope = %Ancestry.Identity.Scope{account: viewer, organization: nil}
+    cmd = DeniedCommand.new!(%{})
+    assert {:error, :unauthorized} = Bus.dispatch(viewer_scope, cmd)
+    assert Ancestry.Repo.all(Log) == []
+  end
 end
