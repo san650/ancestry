@@ -243,8 +243,8 @@ msgstr ""
 msgid "Are you sure you want to reactivate %{email}? They will be able to log in again."
 msgstr ""
 
-#: lib/web/components/layouts.ex:171
-#: lib/web/components/layouts.ex:183
+#: lib/web/components/layouts.ex:193
+#: lib/web/components/layouts.ex:205
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr ""
@@ -294,9 +294,9 @@ msgstr ""
 msgid "Birth surname"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:733
 #: lib/web/live/person_live/show.ex:741
-#: lib/web/live/person_live/show.ex:747
+#: lib/web/live/person_live/show.ex:749
+#: lib/web/live/person_live/show.ex:755
 #, elixir-autogen, elixir-format
 msgid "Born"
 msgstr ""
@@ -311,7 +311,7 @@ msgstr ""
 msgid "CSV file"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:507
+#: lib/web/live/family_live/show.ex:523
 #, elixir-autogen, elixir-format
 msgid "CSV file is empty or has no data rows"
 msgstr ""
@@ -452,12 +452,12 @@ msgid_plural "Could not delete %{count} organizations. Try again."
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/web/live/family_live/show.ex:510
+#: lib/web/live/family_live/show.ex:526
 #, elixir-autogen, elixir-format
 msgid "Could not parse CSV file"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:504
+#: lib/web/live/family_live/show.ex:520
 #, elixir-autogen, elixir-format
 msgid "Could not parse CSV file: %{error}"
 msgstr ""
@@ -578,9 +578,9 @@ msgstr ""
 msgid "Dec"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:735
-#: lib/web/live/person_live/show.ex:753
-#: lib/web/live/person_live/show.ex:758
+#: lib/web/live/person_live/show.ex:743
+#: lib/web/live/person_live/show.ex:761
+#: lib/web/live/person_live/show.ex:766
 #, elixir-autogen, elixir-format
 msgid "Deceased"
 msgstr ""
@@ -826,7 +826,7 @@ msgstr ""
 msgid "Est. Age"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:799
+#: lib/web/live/person_live/show.ex:807
 #, elixir-autogen, elixir-format
 msgid "Ex-partner"
 msgstr ""
@@ -841,7 +841,7 @@ msgstr ""
 msgid "Failed to create relationship"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:586
+#: lib/web/live/family_live/show.ex:602
 #, elixir-autogen, elixir-format
 msgid "Failed to create subfamily"
 msgstr ""
@@ -905,7 +905,7 @@ msgstr ""
 
 #: lib/web/live/account_management_live/edit.ex:430
 #: lib/web/live/account_management_live/new.ex:223
-#: lib/web/live/family_live/show.ex:755
+#: lib/web/live/family_live/show.ex:771
 #, elixir-autogen, elixir-format
 msgid "File is too large (max 10MB)"
 msgstr ""
@@ -922,13 +922,13 @@ msgstr ""
 msgid "File too large (max 20MB)"
 msgstr ""
 
-#: lib/web/live/gallery_live/show.ex:372
+#: lib/web/live/gallery_live/show.ex:427
 #, elixir-autogen, elixir-format
 msgid "File too large (max 300MB)"
 msgstr ""
 
 #: lib/web/live/family_live/new.ex:53
-#: lib/web/live/gallery_live/show.ex:373
+#: lib/web/live/gallery_live/show.ex:428
 #: lib/web/live/shared/person_form_component.ex:33
 #: lib/web/live/shared/quick_person_modal.ex:377
 #, elixir-autogen, elixir-format
@@ -1133,7 +1133,7 @@ msgstr ""
 msgid "Language updated successfully."
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:800
+#: lib/web/live/person_live/show.ex:808
 #, elixir-autogen, elixir-format
 msgid "Late partner"
 msgstr ""
@@ -1199,8 +1199,8 @@ msgstr ""
 msgid "Log me in only this time"
 msgstr ""
 
-#: lib/web/components/layouts.ex:105
-#: lib/web/components/nav_drawer.ex:124
+#: lib/web/components/layouts.ex:127
+#: lib/web/components/nav_drawer.ex:150
 #, elixir-autogen, elixir-format
 msgid "Log out"
 msgstr ""
@@ -1462,7 +1462,7 @@ msgstr ""
 msgid "Oct"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:756
+#: lib/web/live/family_live/show.ex:772
 #, elixir-autogen, elixir-format
 msgid "Only .csv files are accepted"
 msgstr ""
@@ -1473,7 +1473,7 @@ msgstr ""
 msgid "Only one avatar allowed"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:757
+#: lib/web/live/family_live/show.ex:773
 #, elixir-autogen, elixir-format
 msgid "Only one file can be uploaded"
 msgstr ""
@@ -1544,7 +1544,7 @@ msgstr ""
 msgid "Parents & Siblings"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:801
+#: lib/web/live/person_live/show.ex:809
 #, elixir-autogen, elixir-format
 msgid "Partner"
 msgstr ""
@@ -1629,7 +1629,7 @@ msgstr ""
 msgid "Registration coming soon"
 msgstr ""
 
-#: lib/web/live/family_live/show.ex:693
+#: lib/web/live/family_live/show.ex:709
 #: lib/web/live/person_live/show.ex:458
 #, elixir-autogen, elixir-format
 msgid "Relationship added"
@@ -1830,13 +1830,13 @@ msgstr ""
 msgid "Separated"
 msgstr ""
 
-#: lib/web/components/layouts.ex:96
+#: lib/web/components/layouts.ex:118
 #: lib/web/components/nav_drawer.ex:99
 #, elixir-autogen, elixir-format
 msgid "Settings"
 msgstr ""
 
-#: lib/web/components/layouts.ex:178
+#: lib/web/components/layouts.ex:200
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr ""
@@ -1905,7 +1905,7 @@ msgstr ""
 msgid "This person already has 2 parents"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:896
+#: lib/web/live/person_live/show.ex:904
 #, elixir-autogen, elixir-format
 msgid "This person is deceased."
 msgstr ""
@@ -1942,7 +1942,7 @@ msgstr ""
 msgid "Too many files (max 1)"
 msgstr ""
 
-#: lib/web/live/gallery_live/show.ex:374
+#: lib/web/live/gallery_live/show.ex:429
 #, elixir-autogen, elixir-format
 msgid "Too many files (max 50)"
 msgstr ""
@@ -1985,14 +1985,15 @@ msgid "Upload complete with errors"
 msgstr ""
 
 #: lib/web/live/family_live/new.ex:55
-#: lib/web/live/family_live/show.ex:758
-#: lib/web/live/gallery_live/show.ex:375
+#: lib/web/live/family_live/show.ex:774
+#: lib/web/live/gallery_live/show.ex:430
 #: lib/web/live/shared/person_form_component.ex:35
 #: lib/web/live/shared/quick_person_modal.ex:379
 #, elixir-autogen, elixir-format
 msgid "Upload error: %{error}"
 msgstr ""
 
+#: lib/web/live/gallery_live/show.ex:400
 #: lib/web/live/gallery_live/show.html.heex:237
 #, elixir-autogen, elixir-format
 msgid "Upload failed"
@@ -2029,7 +2030,7 @@ msgstr ""
 msgid "Viewer"
 msgstr ""
 
-#: lib/web/components/layouts.ex:166
+#: lib/web/components/layouts.ex:188
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr ""
@@ -2088,6 +2089,9 @@ msgstr ""
 #: lib/web/live/account_management_live/index.ex:16
 #: lib/web/live/account_management_live/new.ex:18
 #: lib/web/live/account_management_live/show.ex:16
+#: lib/web/live/audit_log_live/index.ex:20
+#: lib/web/live/audit_log_live/org_index.ex:29
+#: lib/web/live/audit_log_live/show.ex:16
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to access this page"
 msgstr ""
@@ -2113,7 +2117,7 @@ msgstr ""
 msgid "close"
 msgstr ""
 
-#: lib/web/live/person_live/show.ex:742
+#: lib/web/live/person_live/show.ex:750
 #, elixir-autogen, elixir-format
 msgid "deceased"
 msgstr ""
@@ -3167,6 +3171,7 @@ msgstr ""
 msgid "Uniform"
 msgstr ""
 
+#: lib/web/live/gallery_live/show.ex:336
 #: lib/web/live/gallery_live/show.html.heex:44
 #, elixir-autogen, elixir-format
 msgid "Upload"
@@ -3219,4 +3224,83 @@ msgstr ""
 #: lib/web/bus_ui.ex:22
 #, elixir-autogen, elixir-format
 msgid "That item no longer exists."
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:100
+#: lib/web/live/audit_log_live/show.ex:53
+#, elixir-autogen, elixir-format
+msgid "Account"
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:106
+#, elixir-autogen, elixir-format
+msgid "All accounts"
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:88
+#, elixir-autogen, elixir-format
+msgid "All organizations"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:31
+#: lib/web/live/audit_log_live/show.ex:45
+#, elixir-autogen, elixir-format
+msgid "Audit entry"
+msgstr ""
+
+#: lib/web/components/layouts.ex:96
+#: lib/web/components/nav_drawer.ex:124
+#: lib/web/live/audit_log_live/index.ex:30
+#: lib/web/live/audit_log_live/index.ex:96
+#: lib/web/live/audit_log_live/org_index.ex:20
+#: lib/web/live/audit_log_live/org_index.ex:97
+#, elixir-autogen, elixir-format
+msgid "Audit log"
+msgstr ""
+
+#: lib/web/components/layouts.ex:106
+#: lib/web/components/nav_drawer.ex:136
+#, elixir-autogen, elixir-format
+msgid "Audit log (org)"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:57
+#, elixir-autogen, elixir-format
+msgid "Command"
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:133
+#, elixir-autogen, elixir-format
+msgid "Load more"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:73
+#, elixir-autogen, elixir-format
+msgid "No related events"
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:49
+#, elixir-autogen, elixir-format
+msgid "Open"
+msgstr ""
+
+#: lib/web/live/audit_log_live/components.ex:82
+#: lib/web/live/audit_log_live/show.ex:55
+#, elixir-autogen, elixir-format
+msgid "Organization"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:63
+#, elixir-autogen, elixir-format
+msgid "Payload"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:71
+#, elixir-autogen, elixir-format
+msgid "Related events"
+msgstr ""
+
+#: lib/web/live/audit_log_live/show.ex:49
+#, elixir-autogen, elixir-format
+msgid "Timestamp"
 msgstr ""
