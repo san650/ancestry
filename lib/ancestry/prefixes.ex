@@ -16,7 +16,8 @@ defmodule Ancestry.Prefixes do
     gallery: "gal",
     family: "fam",
     person: "per",
-    comment: "com"
+    comment: "com",
+    batch: "bch"
   }
 
   values = Map.values(@prefixes)
