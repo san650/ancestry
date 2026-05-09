@@ -75,21 +75,35 @@ template.
 
 ## Implementation
 
-### `handle_progress/3`
+### Two finalize entry points
+
+`handle_progress/3` fires only when an entry's bytes are uploading. For
+batches that contain *no valid entries at all* (all-invalid drop, or
+over-`max_entries` where every entry is rejected), no progress event
+ever fires and the modal would still hang. The validate event, on the
+other hand, fires every time the file input changes (selection,
+drag-drop). Both events therefore call into the same finalize helper:
 
 ```elixir
-defp handle_progress(:photos, _entry, socket) do
+def handle_event("validate", _params, socket), do: maybe_finalize(socket)
+
+defp handle_progress(:photos, _entry, socket), do: maybe_finalize(socket)
+
+defp maybe_finalize(socket) do
   uploads = socket.assigns.uploads.photos
   entries = uploads.entries
+  form_errors = upload_errors(uploads)
 
   socket =
-    if not socket.assigns.show_upload_modal and entries != [] do
+    if not socket.assigns.show_upload_modal and
+         (entries != [] or form_errors != []) do
       assign(socket, :show_upload_modal, true)
     else
       socket
     end
 
-  if entries != [] and Enum.all?(entries, &settled?(uploads, &1)) do
+  if (entries != [] or form_errors != []) and
+       Enum.all?(entries, &settled?(uploads, &1)) do
     process_uploads(socket)
   else
     {:noreply, socket}
@@ -99,6 +113,11 @@ end
 defp settled?(uploads, entry),
   do: entry.done? or upload_errors(uploads, entry) != []
 ```
+
+Note: form-level errors (e.g. `:too_many_files`) can exist with no
+entries in the queue (LiveView refuses to admit them), so the modal
+must open and the gate must trip on `form_errors != []` even when
+`entries == []`.
 
 ### `process_uploads/1`
 
