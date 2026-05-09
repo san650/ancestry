@@ -1,28 +1,29 @@
-defmodule Ancestry.Workers.ProcessPhotoJobTest do
+defmodule Ancestry.Workers.TransformAndStorePhotoTest do
   use Ancestry.DataCase, async: false
   use Oban.Testing, repo: Ancestry.Repo
 
-  alias Ancestry.Workers.ProcessPhotoJob
+  alias Ancestry.Workers.TransformAndStorePhoto
   alias Ancestry.Families
   alias Ancestry.Galleries
 
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Test", family_id: family.id})
+    gallery = insert(:gallery, name: "Test", family: family)
 
     tmp_dir = Path.join(System.tmp_dir!(), "photo_test_#{System.unique_integer([:positive])}")
     File.mkdir_p!(tmp_dir)
     original_path = Path.join(tmp_dir, "photo.jpg")
     File.cp!(Path.join(__DIR__, "../../fixtures/test_image.jpg"), original_path)
 
-    {:ok, photo} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
+    photo =
+      insert(:photo,
+        gallery: gallery,
         original_path: original_path,
         original_filename: "test_image.jpg",
-        content_type: "image/jpeg"
-      })
+        content_type: "image/jpeg",
+        status: "pending"
+      )
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 
@@ -35,7 +36,7 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
   } do
     Phoenix.PubSub.subscribe(Ancestry.PubSub, "gallery:#{gallery.id}")
 
-    assert :ok = perform_job(ProcessPhotoJob, %{photo_id: photo.id})
+    assert :ok = perform_job(TransformAndStorePhoto, %{photo_id: photo.id})
 
     updated = Galleries.get_photo!(photo.id)
     assert updated.status == "processed"
@@ -55,7 +56,8 @@ defmodule Ancestry.Workers.ProcessPhotoJobTest do
     # Delete the file so the job will fail to process it
     File.rm!(photo.original_path)
 
-    assert {:error, _reason} = ProcessPhotoJob.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
+    assert {:error, _reason} =
+             TransformAndStorePhoto.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
 
     updated = Galleries.get_photo!(photo.id)
     assert updated.status == "failed"

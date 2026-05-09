@@ -52,26 +52,36 @@ defmodule Web.GalleryLive.Show do
   @impl true
   def handle_params(_params, _url, socket), do: {:noreply, socket}
 
-  defp handle_progress(:photos, _entry, socket) do
-    entries = socket.assigns.uploads.photos.entries
-    all_done? = entries != [] and Enum.all?(entries, & &1.done?)
+  defp handle_progress(:photos, _entry, socket), do: maybe_finalize(socket)
+
+  defp maybe_finalize(socket) do
+    uploads = socket.assigns.uploads.photos
+    entries = uploads.entries
+    form_errors = upload_errors(uploads)
 
     socket =
-      if not socket.assigns.show_upload_modal and entries != [] do
+      if not socket.assigns.show_upload_modal and
+           (entries != [] or form_errors != []) do
         assign(socket, :show_upload_modal, true)
       else
         socket
       end
 
-    if all_done? do
+    if (entries != [] or form_errors != []) and
+         Enum.all?(entries, &settled?(uploads, &1)) do
       process_uploads(socket)
     else
       {:noreply, socket}
     end
   end
 
+  defp settled?(uploads, entry) do
+    entry.done? or upload_errors(uploads, entry) != [] or
+      upload_errors(uploads) != []
+  end
+
   @impl true
-  def handle_event("validate", _params, socket), do: {:noreply, socket}
+  def handle_event("validate", _params, socket), do: maybe_finalize(socket)
 
   def handle_event("toggle_layout", _, socket) do
     new_layout = if socket.assigns.grid_layout == :masonry, do: :uniform, else: :masonry
@@ -122,11 +132,16 @@ defmodule Web.GalleryLive.Show do
   end
 
   def handle_event("confirm_delete_photos", _, socket) do
+    scope = socket.assigns.current_scope
+
     socket =
       Enum.reduce(MapSet.to_list(socket.assigns.selected_ids), socket, fn id, acc ->
-        photo = Galleries.get_photo!(id)
-        {:ok, _} = Galleries.delete_photo(photo)
-        stream_delete(acc, :photos, photo)
+        command = Ancestry.Commands.RemovePhotoFromGallery.new!(%{photo_id: id})
+
+        case Ancestry.Bus.dispatch(scope, command) do
+          {:ok, photo} -> stream_delete(acc, :photos, photo)
+          _ -> acc
+        end
       end)
 
     {:noreply,
@@ -261,7 +276,15 @@ defmodule Web.GalleryLive.Show do
     socket =
       case socket.assigns[:pending_tag] do
         %{x: x, y: y, photo_id: photo_id} ->
-          Galleries.tag_person_in_photo(photo_id, person.id, x, y)
+          command =
+            Ancestry.Commands.TagPersonInPhoto.new!(%{
+              photo_id: photo_id,
+              person_id: person.id,
+              x: x,
+              y: y
+            })
+
+          Ancestry.Bus.dispatch(socket.assigns.current_scope, command)
 
           if socket.assigns.selected_photo && socket.assigns.selected_photo.id == photo_id do
             socket
@@ -298,6 +321,25 @@ defmodule Web.GalleryLive.Show do
 
   defp process_uploads(socket) do
     gallery = socket.assigns.gallery
+    uploads = socket.assigns.uploads.photos
+
+    invalid_results =
+      for entry <- uploads.entries,
+          not entry.done?,
+          errs = upload_errors(uploads, entry),
+          errs != [] do
+        %{name: entry.client_name, status: :error, error: format_errors(errs)}
+      end
+
+    form_results =
+      for err <- upload_errors(uploads) do
+        %{name: gettext("Upload"), status: :error, error: upload_error_to_string(err)}
+      end
+
+    socket =
+      Enum.reduce(uploads.entries, socket, fn entry, acc ->
+        if entry.done?, do: acc, else: cancel_upload(acc, :photos, entry.ref)
+      end)
 
     results =
       consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
@@ -315,14 +357,20 @@ defmodule Web.GalleryLive.Show do
           dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
           original_path = Ancestry.Storage.store_original_bytes(contents, dest_key)
 
-          case Galleries.create_photo(%{
-                 gallery_id: gallery.id,
-                 original_path: original_path,
-                 original_filename: entry.client_name,
-                 content_type: entry.client_type,
-                 file_hash: file_hash
-               }) do
+          attrs = %{
+            gallery_id: gallery.id,
+            original_path: original_path,
+            original_filename: entry.client_name,
+            content_type: entry.client_type,
+            file_hash: file_hash
+          }
+
+          case Ancestry.Bus.dispatch(
+                 socket.assigns.current_scope,
+                 Ancestry.Commands.AddPhotoToGallery.new!(attrs)
+               ) do
             {:ok, photo} -> {:ok, {:ok, photo}}
+            {:error, _, _} -> {:ok, {:error, entry.client_name}}
             {:error, _} -> {:ok, {:error, entry.client_name}}
           end
         end
@@ -341,23 +389,30 @@ defmodule Web.GalleryLive.Show do
         {:duplicate, _} -> []
       end)
 
-    upload_results =
+    ok_results =
       Enum.map(uploaded, fn
         {:ok, photo} -> %{name: photo.original_filename, status: :ok}
         {:duplicate, name} -> %{name: name, status: :ok}
-      end) ++
-        Enum.map(errored, fn {:error, name} ->
-          %{name: name, status: :error, error: "Upload failed"}
-        end)
+      end)
+
+    dispatch_error_results =
+      Enum.map(errored, fn {:error, name} ->
+        %{name: name, status: :error, error: gettext("Upload failed")}
+      end)
+
+    upload_results =
+      invalid_results ++ form_results ++ ok_results ++ dispatch_error_results
 
     socket =
       socket
       |> assign(:upload_results, upload_results)
       |> assign(:show_upload_modal, true)
 
-    socket = Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))
-    {:noreply, socket}
+    {:noreply, Enum.reduce(uploaded_photos, socket, &stream_insert(&2, :photos, &1))}
   end
+
+  defp format_errors(errs),
+    do: errs |> Enum.map(&upload_error_to_string/1) |> Enum.join("; ")
 
   defp ext_from_content_type("image/jpeg"), do: ".jpg"
   defp ext_from_content_type("image/jpg"), do: ".jpg"

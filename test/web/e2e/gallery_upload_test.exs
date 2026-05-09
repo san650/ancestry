@@ -2,7 +2,6 @@ defmodule Web.E2E.GalleryUploadTest do
   use Web.E2ECase
 
   alias Ancestry.Families
-  alias Ancestry.Galleries
 
   # Allow extra time for LiveView processes to finish DB calls before the
   # sandbox owner shuts down.
@@ -12,8 +11,7 @@ defmodule Web.E2E.GalleryUploadTest do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
 
-    {:ok, gallery} =
-      Galleries.create_gallery(%{name: "Upload Test Gallery", family_id: family.id})
+    gallery = insert(:gallery, name: "Upload Test Gallery", family: family)
 
     %{gallery: gallery, family: family, org: org}
   end

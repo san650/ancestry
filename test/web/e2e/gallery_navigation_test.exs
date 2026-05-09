@@ -2,14 +2,13 @@ defmodule Web.E2E.GalleryNavigationTest do
   use Web.E2ECase
 
   alias Ancestry.Families
-  alias Ancestry.Galleries
   alias Ancestry.Galleries.Photo
   alias Ancestry.Repo
 
   setup do
     {:ok, org} = Ancestry.Organizations.create_organization(%{name: "Test Org"})
     {:ok, family} = Families.create_family(org, %{name: "Test Family"})
-    {:ok, gallery} = Galleries.create_gallery(%{name: "Test Gallery", family_id: family.id})
+    gallery = insert(:gallery, name: "Test Gallery", family: family)
 
     # Insert a processed photo directly — bypasses Oban job since no real
     # image processing is needed; status: "processed" makes it render as a

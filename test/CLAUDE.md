@@ -23,7 +23,7 @@ Use `setup` blocks to create shared records; return them as map keys so tests re
 
 ```elixir
 setup do
-  {:ok, gallery} = Galleries.create_gallery(%{name: "Test"})
+  gallery = insert(:gallery, name: "Test")
   %{gallery: gallery}
 end
 
@@ -134,10 +134,10 @@ send(view.pid, {:photo_processed, updated_photo})
 Call `perform_job/2` (from `Oban.Testing`) rather than invoking `perform/1` directly, so Oban's telemetry and instrumentation fire correctly. Reserve direct `perform/1` calls for error-path tests where you need to assert on the raw return value:
 
 ```elixir
-assert :ok = perform_job(ProcessPhotoJob, %{photo_id: photo.id})
+assert :ok = perform_job(TransformAndStorePhoto, %{photo_id: photo.id})
 
 # error path — direct call is fine here
-assert {:error, _reason} = ProcessPhotoJob.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
+assert {:error, _reason} = TransformAndStorePhoto.perform(%Oban.Job{args: %{"photo_id" => photo.id}})
 ```
 
 ## Changeset error assertions

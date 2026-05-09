@@ -58,7 +58,7 @@ defmodule Web.Endpoint do
     param_key: "request_logger",
     cookie_key: "request_logger"
 
-  plug Plug.RequestId
+  plug Web.PrefixedRequestIdPlug
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 
   plug Plug.Parsers,

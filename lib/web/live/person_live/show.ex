@@ -474,7 +474,15 @@ defmodule Web.PersonLive.Show do
     socket =
       case socket.assigns[:pending_tag] do
         %{x: x, y: y, photo_id: photo_id} ->
-          Galleries.tag_person_in_photo(photo_id, person.id, x, y)
+          command =
+            Ancestry.Commands.TagPersonInPhoto.new!(%{
+              photo_id: photo_id,
+              person_id: person.id,
+              x: x,
+              y: y
+            })
+
+          Ancestry.Bus.dispatch(socket.assigns.current_scope, command)
 
           if socket.assigns.selected_photo && socket.assigns.selected_photo.id == photo_id do
             socket

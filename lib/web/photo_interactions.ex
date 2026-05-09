@@ -76,20 +76,33 @@ defmodule Web.PhotoInteractions do
   def tag_person(socket, person_id, x, y) do
     photo = socket.assigns.selected_photo
 
-    case Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), x, y) do
+    command =
+      Ancestry.Commands.TagPersonInPhoto.new!(%{
+        photo_id: photo.id,
+        person_id: String.to_integer(person_id),
+        x: x,
+        y: y
+      })
+
+    case Ancestry.Bus.dispatch(socket.assigns.current_scope, command) do
       {:ok, _} ->
         socket
         |> assign(:photo_people, Galleries.list_photo_people(photo.id))
         |> push_photo_people()
 
-      {:error, _} ->
+      _ ->
         socket
     end
   end
 
   def untag_person(socket, photo_id, person_id) do
-    :ok =
-      Galleries.untag_person_from_photo(String.to_integer(photo_id), String.to_integer(person_id))
+    command =
+      Ancestry.Commands.UntagPersonFromPhoto.new!(%{
+        photo_id: String.to_integer(photo_id),
+        person_id: String.to_integer(person_id)
+      })
+
+    Ancestry.Bus.dispatch(socket.assigns.current_scope, command)
 
     socket
     |> assign(:photo_people, Galleries.list_photo_people(socket.assigns.selected_photo.id))
@@ -185,7 +198,15 @@ defmodule Web.PhotoInteractions do
   def link_existing_person(socket, person_id) do
     photo = socket.assigns.selected_photo
 
-    Galleries.tag_person_in_photo(photo.id, String.to_integer(person_id), nil, nil)
+    command =
+      Ancestry.Commands.TagPersonInPhoto.new!(%{
+        photo_id: photo.id,
+        person_id: String.to_integer(person_id),
+        x: nil,
+        y: nil
+      })
+
+    Ancestry.Bus.dispatch(socket.assigns.current_scope, command)
 
     socket
     |> assign(:photo_people, Galleries.list_photo_people(photo.id))

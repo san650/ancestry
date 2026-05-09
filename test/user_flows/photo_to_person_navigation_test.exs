@@ -33,8 +33,19 @@ defmodule Web.UserFlows.PhotoToPersonNavigationTest do
         organization: family.organization
       )
 
-    {:ok, _} = Ancestry.Galleries.tag_person_in_photo(photo.id, alice.id, 0.3, 0.4)
-    {:ok, _} = Ancestry.Galleries.tag_person_in_photo(photo.id, bob.id, 0.6, 0.7)
+    Ancestry.Repo.insert!(%Ancestry.Galleries.PhotoPerson{
+      photo_id: photo.id,
+      person_id: alice.id,
+      x: 0.3,
+      y: 0.4
+    })
+
+    Ancestry.Repo.insert!(%Ancestry.Galleries.PhotoPerson{
+      photo_id: photo.id,
+      person_id: bob.id,
+      x: 0.6,
+      y: 0.7
+    })
 
     %{family: family, gallery: gallery, photo: photo, alice: alice, bob: bob, org: org}
   end

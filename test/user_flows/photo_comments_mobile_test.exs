@@ -45,8 +45,7 @@ defmodule Web.UserFlows.PhotoCommentsMobileTest do
     # need to create the comment after login with the same account_id.
     account = Ancestry.Repo.one!(Ancestry.Identity.Account)
 
-    {:ok, _comment} =
-      Ancestry.Comments.create_photo_comment(photo.id, account.id, %{text: "My comment"})
+    insert(:photo_comment, photo: photo, account: account, text: "My comment")
 
     conn =
       conn
@@ -85,11 +84,8 @@ defmodule Web.UserFlows.PhotoCommentsMobileTest do
     conn = log_in_e2e(conn)
     account = Ancestry.Repo.one!(Ancestry.Identity.Account)
 
-    {:ok, comment_a} =
-      Ancestry.Comments.create_photo_comment(photo.id, account.id, %{text: "First comment"})
-
-    {:ok, comment_b} =
-      Ancestry.Comments.create_photo_comment(photo.id, account.id, %{text: "Second comment"})
+    comment_a = insert(:photo_comment, photo: photo, account: account, text: "First comment")
+    comment_b = insert(:photo_comment, photo: photo, account: account, text: "Second comment")
 
     conn =
       conn

@@ -42,12 +42,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   @impl true
   def handle_event("save_comment", %{"comment" => %{"text" => text}}, socket) do
-    account_id = socket.assigns.current_scope.account.id
+    attrs = %{photo_id: socket.assigns.photo_id, text: text}
 
-    case Comments.create_photo_comment(socket.assigns.photo_id, account_id, %{text: text}) do
-      {:ok, _comment} ->
-        changeset = Comments.change_photo_comment(%PhotoComment{})
-        {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
+    case Ancestry.Commands.AddCommentToPhoto.new(attrs) do
+      {:ok, command} ->
+        socket.assigns.current_scope
+        |> Ancestry.Bus.dispatch(command)
+        |> handle_dispatch_result(socket)
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
@@ -96,22 +97,18 @@ defmodule Web.Comments.PhotoCommentsComponent do
     end
   end
 
-  def handle_event("save_edit", %{"comment" => comment_params}, socket) do
-    comment = Comments.get_photo_comment!(socket.assigns.editing_comment_id)
+  def handle_event("save_edit", %{"comment" => %{"text" => text}}, socket) do
+    attrs = %{photo_comment_id: socket.assigns.editing_comment_id, text: text}
 
-    if comment.account_id == socket.assigns.current_scope.account.id do
-      case Comments.update_photo_comment(comment, comment_params) do
-        {:ok, _comment} ->
-          {:noreply,
-           socket
-           |> assign(:editing_comment_id, nil)
-           |> assign(:edit_form, nil)}
+    case Ancestry.Commands.UpdatePhotoComment.new(attrs) do
+      {:ok, command} ->
+        socket.assigns.current_scope
+        |> Ancestry.Bus.dispatch(command)
+        |> handle_dispatch_result(socket)
+        |> clear_edit_state_on_success()
 
-        {:error, changeset} ->
-          {:noreply, assign(socket, :edit_form, to_form(changeset, as: :comment))}
-      end
-    else
-      {:noreply, socket}
+      {:error, changeset} ->
+        {:noreply, assign(socket, :edit_form, to_form(changeset, as: :comment))}
     end
   end
 
@@ -126,12 +123,22 @@ defmodule Web.Comments.PhotoCommentsComponent do
   end
 
   def handle_event("delete_comment", %{"id" => id}, socket) do
-    comment = Comments.get_photo_comment!(id)
-    account = socket.assigns.current_scope.account
+    command =
+      Ancestry.Commands.RemoveCommentFromPhoto.new!(%{
+        photo_comment_id: String.to_integer(id)
+      })
 
-    if comment.account_id == account.id or account.role == :admin do
-      {:ok, _} = Comments.delete_photo_comment(comment)
-      {:noreply, socket}
+    socket.assigns.current_scope
+    |> Ancestry.Bus.dispatch(command)
+    |> handle_dispatch_result(socket)
+  end
+
+  defp clear_edit_state_on_success({:noreply, socket}) do
+    if socket.assigns[:editing_comment_id] do
+      {:noreply,
+       socket
+       |> assign(:editing_comment_id, nil)
+       |> assign(:edit_form, nil)}
     else
       {:noreply, socket}
     end

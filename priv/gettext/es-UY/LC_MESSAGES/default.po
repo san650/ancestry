@@ -11,17 +11,17 @@ msgstr ""
 "Language: es-UY\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/web/live/comments/photo_comments_component.ex:368
+#: lib/web/live/comments/photo_comments_component.ex:375
 #, elixir-autogen, elixir-format
 msgid "%{count}d ago"
 msgstr "hace %{count}d"
 
-#: lib/web/live/comments/photo_comments_component.ex:367
+#: lib/web/live/comments/photo_comments_component.ex:374
 #, elixir-autogen, elixir-format
 msgid "%{count}h ago"
 msgstr "hace %{count}h"
 
-#: lib/web/live/comments/photo_comments_component.ex:366
+#: lib/web/live/comments/photo_comments_component.ex:373
 #, elixir-autogen, elixir-format
 msgid "%{count}m ago"
 msgstr "hace %{count}m"
@@ -143,7 +143,7 @@ msgstr "Agregar pareja"
 msgid "Add Relationship"
 msgstr "Agregar relación"
 
-#: lib/web/live/comments/photo_comments_component.ex:280
+#: lib/web/live/comments/photo_comments_component.ex:287
 #, elixir-autogen, elixir-format
 msgid "Add a comment..."
 msgstr "Agregar un comentario..."
@@ -224,7 +224,7 @@ msgstr "Se envió un correo a %{email}, accede a él para confirmar tu cuenta."
 msgid "Ancestry"
 msgstr "Ancestry"
 
-#: lib/web/live/birthday_live/index.ex:289
+#: lib/web/live/birthday_live/index.ex:309
 #: lib/web/live/shared/person_form_component.ex:16
 #: lib/web/live/shared/quick_person_modal.ex:360
 #, elixir-autogen, elixir-format
@@ -249,7 +249,7 @@ msgstr "¿Estás seguro/a de que deseas reactivar a %{email}? Podrá iniciar ses
 msgid "Attempting to reconnect"
 msgstr "Intentando reconectar"
 
-#: lib/web/live/birthday_live/index.ex:293
+#: lib/web/live/birthday_live/index.ex:313
 #: lib/web/live/shared/person_form_component.ex:20
 #: lib/web/live/shared/quick_person_modal.ex:364
 #, elixir-autogen, elixir-format
@@ -322,7 +322,7 @@ msgstr "El archivo CSV está vacío o no tiene filas de datos"
 #: lib/web/live/account_management_live/new.ex:214
 #: lib/web/live/account_management_live/show.ex:280
 #: lib/web/live/account_management_live/show.ex:315
-#: lib/web/live/comments/photo_comments_component.ex:198
+#: lib/web/live/comments/photo_comments_component.ex:205
 #: lib/web/live/family_live/index.html.heex:189
 #: lib/web/live/family_live/new.html.heex:107
 #: lib/web/live/family_live/show.html.heex:530
@@ -396,7 +396,7 @@ msgstr "Cerrar"
 msgid "Close menu"
 msgstr "Cerrar menú"
 
-#: lib/web/live/comments/photo_comments_component.ex:147
+#: lib/web/live/comments/photo_comments_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Comments"
 msgstr "Comentarios"
@@ -571,7 +571,7 @@ msgstr "Desactivado por"
 msgid "Death date"
 msgstr "Fecha de fallecimiento"
 
-#: lib/web/live/birthday_live/index.ex:297
+#: lib/web/live/birthday_live/index.ex:317
 #: lib/web/live/shared/person_form_component.ex:24
 #: lib/web/live/shared/quick_person_modal.ex:368
 #, elixir-autogen, elixir-format
@@ -668,7 +668,7 @@ msgstr "Eliminar persona"
 msgid "Delete Photos"
 msgstr "Eliminar fotos"
 
-#: lib/web/live/comments/photo_comments_component.ex:316
+#: lib/web/live/comments/photo_comments_component.ex:323
 #, elixir-autogen, elixir-format
 msgid "Delete comment"
 msgstr "Eliminar comentario"
@@ -683,7 +683,7 @@ msgstr "Eliminar familias"
 msgid "Delete person"
 msgstr "Eliminar persona"
 
-#: lib/web/live/comments/photo_comments_component.ex:314
+#: lib/web/live/comments/photo_comments_component.ex:321
 #, elixir-autogen, elixir-format
 msgid "Delete this comment?"
 msgstr "¿Eliminar este comentario?"
@@ -767,7 +767,7 @@ msgstr "Editar familia"
 msgid "Edit Memory"
 msgstr "Editar recuerdo"
 
-#: lib/web/live/comments/photo_comments_component.ex:304
+#: lib/web/live/comments/photo_comments_component.ex:311
 #, elixir-autogen, elixir-format
 msgid "Edit comment"
 msgstr "Editar comentario"
@@ -890,7 +890,7 @@ msgstr "Nombre de la familia"
 msgid "Father"
 msgstr "Padre"
 
-#: lib/web/live/birthday_live/index.ex:287
+#: lib/web/live/birthday_live/index.ex:307
 #: lib/web/live/shared/person_form_component.ex:14
 #: lib/web/live/shared/quick_person_modal.ex:358
 #, elixir-autogen, elixir-format
@@ -1088,21 +1088,21 @@ msgstr "Tipo de archivo no válido"
 msgid "Invalid relationship data"
 msgstr "Datos de relación no válidos"
 
-#: lib/web/live/birthday_live/index.ex:286
+#: lib/web/live/birthday_live/index.ex:306
 #: lib/web/live/shared/person_form_component.ex:13
 #: lib/web/live/shared/quick_person_modal.ex:357
 #, elixir-autogen, elixir-format
 msgid "Jan"
 msgstr "Ene"
 
-#: lib/web/live/birthday_live/index.ex:292
+#: lib/web/live/birthday_live/index.ex:312
 #: lib/web/live/shared/person_form_component.ex:19
 #: lib/web/live/shared/quick_person_modal.ex:363
 #, elixir-autogen, elixir-format
 msgid "Jul"
 msgstr "Jul"
 
-#: lib/web/live/birthday_live/index.ex:291
+#: lib/web/live/birthday_live/index.ex:311
 #: lib/web/live/shared/person_form_component.ex:18
 #: lib/web/live/shared/quick_person_modal.ex:362
 #, elixir-autogen, elixir-format
@@ -1228,7 +1228,7 @@ msgstr "Masculino"
 msgid "Manage your account email address and password settings"
 msgstr "Administra tu correo electrónico y configuración de contraseña"
 
-#: lib/web/live/birthday_live/index.ex:288
+#: lib/web/live/birthday_live/index.ex:308
 #: lib/web/live/shared/person_form_component.ex:15
 #: lib/web/live/shared/quick_person_modal.ex:359
 #, elixir-autogen, elixir-format
@@ -1251,8 +1251,8 @@ msgstr "Detalles del matrimonio (opcional)"
 msgid "Married"
 msgstr "Casado/a"
 
-#: lib/web/live/birthday_live/index.ex:277
-#: lib/web/live/birthday_live/index.ex:290
+#: lib/web/live/birthday_live/index.ex:297
+#: lib/web/live/birthday_live/index.ex:310
 #: lib/web/live/shared/person_form_component.ex:17
 #: lib/web/live/shared/quick_person_modal.ex:361
 #, elixir-autogen, elixir-format
@@ -1448,14 +1448,14 @@ msgstr "No se encontraron resultados"
 msgid "None"
 msgstr "Ninguno"
 
-#: lib/web/live/birthday_live/index.ex:296
+#: lib/web/live/birthday_live/index.ex:316
 #: lib/web/live/shared/person_form_component.ex:23
 #: lib/web/live/shared/quick_person_modal.ex:367
 #, elixir-autogen, elixir-format
 msgid "Nov"
 msgstr "Nov"
 
-#: lib/web/live/birthday_live/index.ex:295
+#: lib/web/live/birthday_live/index.ex:315
 #: lib/web/live/shared/person_form_component.ex:22
 #: lib/web/live/shared/quick_person_modal.ex:366
 #, elixir-autogen, elixir-format
@@ -1600,7 +1600,7 @@ msgstr "Fotos"
 msgid "Please select two different people"
 msgstr "Selecciona dos personas diferentes"
 
-#: lib/web/live/comments/photo_comments_component.ex:286
+#: lib/web/live/comments/photo_comments_component.ex:293
 #, elixir-autogen, elixir-format
 msgid "Post comment"
 msgstr "Publicar comentario"
@@ -1714,7 +1714,7 @@ msgstr "Rol"
 msgid "Same person selected"
 msgstr "Se seleccionó la misma persona"
 
-#: lib/web/live/comments/photo_comments_component.ex:190
+#: lib/web/live/comments/photo_comments_component.ex:197
 #: lib/web/live/family_live/show.html.heex:523
 #: lib/web/live/organization_live/index.html.heex:213
 #: lib/web/live/person_live/show.html.heex:905
@@ -1817,7 +1817,7 @@ msgstr "Seleccionar todo"
 msgid "Select two people"
 msgstr "Selecciona dos personas"
 
-#: lib/web/live/birthday_live/index.ex:294
+#: lib/web/live/birthday_live/index.ex:314
 #: lib/web/live/shared/person_form_component.ex:21
 #: lib/web/live/shared/quick_person_modal.ex:365
 #, elixir-autogen, elixir-format
@@ -1953,8 +1953,8 @@ msgid "Type a name to search..."
 msgstr "Escribe un nombre para buscar..."
 
 #: lib/web/live/account_management_live/show.ex:228
-#: lib/web/live/comments/photo_comments_component.ex:335
-#: lib/web/live/comments/photo_comments_component.ex:339
+#: lib/web/live/comments/photo_comments_component.ex:342
+#: lib/web/live/comments/photo_comments_component.ex:346
 #, elixir-autogen, elixir-format
 msgid "Unknown"
 msgstr "Desconocido"
@@ -2158,7 +2158,7 @@ msgstr "ej. Los García"
 msgid "from"
 msgstr "de"
 
-#: lib/web/live/comments/photo_comments_component.ex:365
+#: lib/web/live/comments/photo_comments_component.ex:372
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr "justo ahora"
@@ -2185,17 +2185,17 @@ msgstr "persona"
 msgid "~%{percentage}% shared DNA"
 msgstr "~%{percentage}% de ADN compartido"
 
-#: lib/web/live/comments/photo_comments_component.ex:355
+#: lib/web/live/comments/photo_comments_component.ex:362
 #, elixir-autogen, elixir-format
 msgid "%{count}d"
 msgstr "%{count}d"
 
-#: lib/web/live/comments/photo_comments_component.ex:354
+#: lib/web/live/comments/photo_comments_component.ex:361
 #, elixir-autogen, elixir-format
 msgid "%{count}h"
 msgstr "%{count}h"
 
-#: lib/web/live/comments/photo_comments_component.ex:353
+#: lib/web/live/comments/photo_comments_component.ex:360
 #, elixir-autogen, elixir-format
 msgid "%{count}m"
 msgstr "%{count}m"
@@ -2221,7 +2221,7 @@ msgstr "Cerrar info"
 msgid "Download"
 msgstr "Descargar"
 
-#: lib/web/live/comments/photo_comments_component.ex:165
+#: lib/web/live/comments/photo_comments_component.ex:172
 #, elixir-autogen, elixir-format
 msgid "No comments yet. Be the first to add one."
 msgstr "Todavía no hay comentarios. Sé el primero en agregar uno."
@@ -2241,7 +2241,7 @@ msgstr "Info de foto"
 msgid "Remove tag"
 msgstr "Eliminar etiqueta"
 
-#: lib/web/live/comments/photo_comments_component.ex:352
+#: lib/web/live/comments/photo_comments_component.ex:359
 #, elixir-autogen, elixir-format
 msgid "now"
 msgstr "ahora"
@@ -2716,12 +2716,12 @@ msgctxt "other"
 msgid "Sibling-in-law"
 msgstr "Cuñado/a"
 
-#: lib/web/live/birthday_live/index.ex:276
+#: lib/web/live/birthday_live/index.ex:296
 #, elixir-autogen, elixir-format
 msgid "April"
 msgstr "Abril"
 
-#: lib/web/live/birthday_live/index.ex:280
+#: lib/web/live/birthday_live/index.ex:300
 #, elixir-autogen, elixir-format
 msgid "August"
 msgstr "Agosto"
@@ -2733,32 +2733,32 @@ msgstr "Agosto"
 msgid "Birthdays"
 msgstr "Cumpleaños"
 
-#: lib/web/live/birthday_live/index.ex:284
+#: lib/web/live/birthday_live/index.ex:304
 #, elixir-autogen, elixir-format
 msgid "December"
 msgstr "Diciembre"
 
-#: lib/web/live/birthday_live/index.ex:274
+#: lib/web/live/birthday_live/index.ex:294
 #, elixir-autogen, elixir-format
 msgid "February"
 msgstr "Febrero"
 
-#: lib/web/live/birthday_live/index.ex:273
+#: lib/web/live/birthday_live/index.ex:293
 #, elixir-autogen, elixir-format
 msgid "January"
 msgstr "Enero"
 
-#: lib/web/live/birthday_live/index.ex:279
+#: lib/web/live/birthday_live/index.ex:299
 #, elixir-autogen, elixir-format
 msgid "July"
 msgstr "Julio"
 
-#: lib/web/live/birthday_live/index.ex:278
+#: lib/web/live/birthday_live/index.ex:298
 #, elixir-autogen, elixir-format
 msgid "June"
 msgstr "Junio"
 
-#: lib/web/live/birthday_live/index.ex:275
+#: lib/web/live/birthday_live/index.ex:295
 #, elixir-autogen, elixir-format
 msgid "March"
 msgstr "Marzo"
@@ -2768,17 +2768,17 @@ msgstr "Marzo"
 msgid "No birthdays"
 msgstr "Sin cumpleaños"
 
-#: lib/web/live/birthday_live/index.ex:283
+#: lib/web/live/birthday_live/index.ex:303
 #, elixir-autogen, elixir-format
 msgid "November"
 msgstr "Noviembre"
 
-#: lib/web/live/birthday_live/index.ex:282
+#: lib/web/live/birthday_live/index.ex:302
 #, elixir-autogen, elixir-format
 msgid "October"
 msgstr "Octubre"
 
-#: lib/web/live/birthday_live/index.ex:281
+#: lib/web/live/birthday_live/index.ex:301
 #, elixir-autogen, elixir-format
 msgid "September"
 msgstr "Septiembre"
@@ -2788,39 +2788,39 @@ msgstr "Septiembre"
 msgid "TODAY"
 msgstr "HOY"
 
-#: lib/web/live/birthday_live/index.ex:266
+#: lib/web/live/birthday_live/index.ex:286
 #, elixir-autogen, elixir-format
 msgid "Turned %{age}"
 msgstr "Cumplió %{age}"
 
-#: lib/web/live/birthday_live/index.ex:269
+#: lib/web/live/birthday_live/index.ex:289
 #, elixir-autogen, elixir-format
 msgid "Turns %{age}"
 msgstr "Cumple %{age}"
 
-#: lib/web/live/birthday_live/index.ex:263
+#: lib/web/live/birthday_live/index.ex:283
 #, elixir-autogen, elixir-format
 msgid "Turns %{age} today!"
 msgstr "¡Cumple %{age} hoy!"
 
-#: lib/web/live/birthday_live/index.ex:260
+#: lib/web/live/birthday_live/index.ex:280
 #, elixir-autogen, elixir-format
 msgid "Would have turned %{age}"
 msgstr "Habría cumplido %{age}"
 
-#: lib/web/live/birthday_live/index.ex:304
+#: lib/web/live/birthday_live/index.ex:324
 #, elixir-autogen, elixir-format
 msgctxt "female"
 msgid "deceased"
 msgstr "fallecida"
 
-#: lib/web/live/birthday_live/index.ex:303
+#: lib/web/live/birthday_live/index.ex:323
 #, elixir-autogen, elixir-format
 msgctxt "male"
 msgid "deceased"
 msgstr "fallecido"
 
-#: lib/web/live/birthday_live/index.ex:305
+#: lib/web/live/birthday_live/index.ex:325
 #, elixir-autogen, elixir-format
 msgctxt "other"
 msgid "deceased"
@@ -3200,3 +3200,23 @@ msgstr "Eliminar baúl"
 #, elixir-autogen, elixir-format
 msgid "Show all"
 msgstr "Mostrar todos"
+
+#: lib/web/bus_ui.ex:36
+#, elixir-autogen, elixir-format
+msgid "Something went wrong."
+msgstr "Algo salió mal."
+
+#: lib/web/bus_ui.ex:30
+#, elixir-autogen, elixir-format
+msgid "That action conflicted with another change. Please retry."
+msgstr "Esa acción entró en conflicto con otro cambio. Por favor, reintentá."
+
+#: lib/web/bus_ui.ex:19
+#, elixir-autogen, elixir-format
+msgid "You don't have permission to do that."
+msgstr "No tenés permiso para hacer eso."
+
+#: lib/web/bus_ui.ex:22
+#, elixir-autogen, elixir-format
+msgid "That item no longer exists."
+msgstr "Ese elemento ya no existe."

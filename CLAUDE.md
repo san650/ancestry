@@ -84,6 +84,78 @@ lib/
 
 **Important schema/table mismatches:** the `Person` schema maps to the `persons` table (not `people`), and `AccountToken` maps to `accounts_tokens`. Keep this in mind when writing raw SQL.
 
+## Command/Handler Architecture (Bus)
+
+State-mutating operations dispatch through `Ancestry.Bus.dispatch/2`. Each mutation is a plain `Ancestry.Commands.*` struct that points at a `Ancestry.Handlers.*Handler` exposing `handle/1`. The dispatcher wraps the call with an envelope, checks Permit class-level authz, asks the handler to run its transaction, and fires post-commit `:effects` (e.g. PubSub broadcasts, Waffle deletes).
+
+**Spec:** `docs/plans/2026-05-07-command-handler-foundation.md` for the full design.
+
+**Command naming convention:**
+- Container relationships: `Add{Entity}To{Container}` / `Remove{Entity}From{Container}` (e.g. `AddPhotoToGallery`, `RemovePhotoFromGallery`, `AddCommentToPhoto`).
+- Pure entity update: `Update{Entity}` (e.g. `UpdatePhotoComment`).
+- Idiomatic verbs allowed when natural (e.g. `TagPersonInPhoto`, `UntagPersonFromPhoto`).
+
+**Validation:** hybrid. Command-level `new/1` returns `{:ok, %Command{}}` or `{:error, %Ecto.Changeset{}}` validating shape. Entity-level changesets run inside the handler's `Multi`.
+
+**Authorization:** Permit class-level rules in `Ancestry.Permissions` are checked by the dispatcher before the handler runs. Record-level rules (e.g. owner-only edits) live in an early handler step (`:authorized_<thing>`) that returns `{:error, :unauthorized}` or `{:error, :not_found}`. **Never** scatter `account.role == :admin` checks across LiveViews or contexts.
+
+**Handler shape:** every handler exposes `def handle(envelope)`. The body is always `envelope |> to_transaction() |> Repo.transaction()`. The private `to_transaction/1` builds the `Ecto.Multi` using the `Ancestry.Bus.Step` DSL (see "Step DSL" below). Handlers do not have any other public functions.
+
+**Step DSL (`Ancestry.Bus.Step`):** central wrapper for `Ecto.Multi` and Oban that standardizes the reserved steps and provides verb-named helpers. Every handler's `to_transaction/1` body uses the DSL exclusively — never call `Multi.*` or `Oban.*` directly inside a handler.
+
+```
+Step.new(envelope)                              # Multi.new |> Multi.put(:envelope, envelope)
+Step.put(name, value)                           # passthrough to Multi
+Step.insert(name, fun)                          # fun returns changeset or {changeset, opts}
+Step.update(name, fun)                          # passthrough to Multi
+Step.delete(name, fun)                          # passthrough to Multi
+Step.run(name, fun)                             # passthrough to Multi
+Step.delete_all(name, queryable)                # passthrough to Multi
+Step.authorize(name, queryable, action, field)  # load by command.<field> + Authorization.can?
+Step.enqueue(name, fun)                         # passthrough to Oban.insert (atomic with the txn)
+Step.audit()                                    # appends :audit step (writes to audit_log)
+Step.effects(fun)                               # appends :effects step
+Step.no_effects()                               # appends :effects step that returns []
+```
+
+Reserved step names: `:envelope`, `:audit`, `:effects`. Handlers reach the command/scope via `envelope.command` / `envelope.scope` — do not put them on the Multi separately.
+
+**Insert+preload pattern (strict):** when a handler inserts (or updates) a row that needs preloads, **split into two steps**: an `:inserted_<thing>` (or `:updated_<thing>`) step that does only the mutation, then a `:<thing>` step that does only the preload. The bare-noun step holds the final state used by `primary_step/0` and effects.
+
+```
+Step.insert(:inserted_photo, &add_photo_to_gallery/1)
+|> Step.run(:photo, &preload_photo_gallery/2)
+```
+
+**Audit log:** `audit_log` table receives one row per **successful** dispatch via the `:audit` step appended by `Step.audit()`. Denormalized snapshots of account/organization names + emails — no FKs. Failures (validation, authz, exceptions) flow through `:telemetry` events and `Logger` metadata only — they do not write audit rows.
+
+**Side effects:** handlers register post-commit work via `Step.effects(&broadcast_*/2)` (or `Step.no_effects()` for handlers with nothing to fire). The function returns `{:ok, [{:broadcast, topic, msg}, {:waffle_delete, photo}, ...]}`. The dispatcher fires the list after the transaction commits. **Never** call `Phoenix.PubSub.broadcast/3` or any other non-transactional side effect directly from a handler — append it to the effects list.
+
+**Error taxonomy:** dispatcher returns `{:ok, primary}` or one of:
+- `{:error, :unauthorized}`
+- `{:error, :validation, %Ecto.Changeset{}}`
+- `{:error, :not_found}`
+- `{:error, :conflict, term}`
+- `{:error, :handler, term}`
+
+LiveViews route results through a shared `handle_dispatch_result/2` that maps each tag to a flash or form update. New handlers must fit one of these tags.
+
+**Non-transactional side effects (S3, external APIs):** perform them **before** `Bus.dispatch/2` (pre-flight in the LiveView/caller). On DB failure the external work is left in place — orphaned S3 objects are accepted. Cleanup of orphans is a separate lifecycle concern, not the dispatcher's responsibility.
+
+**Workers do NOT dispatch through the Bus.** `TransformAndStorePhoto` and similar Oban workers call `Ancestry.Galleries.update_photo_processed/2` (and equivalent context functions) directly. Reason: workers have no human scope, and the audit log is keyed on `account_id NOT NULL`. Worker-driven state changes will be audited via a separate sink if the need arises.
+
+**External IDs:** prefixed format `{prefix}-{uuid}`. All prefixes registered in `Ancestry.Prefixes`. Currently wired: `cmd-` for command IDs, `req-` for HTTP requests (set by `Web.PrefixedRequestIdPlug`). Add new prefixes to the registry, never inline.
+
+**Mutation context modules:** when a context's mutations are migrated to the Bus, the context drops to **queries only** (e.g. `Ancestry.Comments` after the migration only exposes `list_*`, `get_*!`, `change_*`). Mutations are not duplicated.
+
+**Handler conventions (strict):**
+- **Public surface = `handle/1` only.** Helpers (including `to_transaction/1`) are `defp`.
+- **Never** inline anonymous functions inside `Ecto.Multi` / `Step` operations (see the broader rule in "Patterns to use in the project → Ecto"). Every step references a named private function.
+- **Multi pipelines should read like a story.** Step names = nouns describing the resulting state (`:photo`, `:authorized_comment`, `:inserted_photo`). Function names = action verbs (`add_photo_to_gallery/1`, `authorize_comment_edit/2`, `preload_photo_gallery/2`). **Function names must describe the action**, not the data shape — never suffix `_changeset`, `_attrs`, `_params`. `&create_audit_log/1`, not `&audit_changeset/1`. Avoid generic verbs like `:load` / `:take_loaded` / `:check` — they describe mechanics, not the story.
+- **Split mutation from preload.** When a handler's insert/update needs preloads, use two steps: `:inserted_<thing>` (or `:updated_<thing>`) for the bare mutation, then `:<thing>` for the preload (see the Step DSL section above).
+- **Never** call `Phoenix.PubSub.broadcast/3`, Waffle uploader functions, HTTP clients, or other non-transactional side-effects from inside a Multi step. Append them via `Step.effects/1` — the dispatcher fires them post-commit.
+- **Never** rescue exceptions inside a handler. Let the transaction rollback handle errors. Return `{:error, tag}` from a step for known failure shapes (`:not_found`, `:unauthorized`, `{:conflict, _}`).
+
 ## Authentication
 
 Auth is built on top of `phx.gen.auth`, with `Account` (not `User`) as the principal:
@@ -283,7 +355,9 @@ defp insert_family_member(%{family: family, person: person}) do
 end
 </good-example>
 
-- **Always** extract Multi steps into named private functions. The Multi pipeline should read as a clear sequence of named steps — don't inline anonymous functions.
+- **Always** extract Multi steps into named private functions. **This rule applies to every `Ecto.Multi` operation that accepts a function or changeset-builder argument** — `Multi.run`, `Multi.insert`, `Multi.update`, `Multi.delete`, `Multi.insert_or_update`, `Multi.delete_all`, `Multi.update_all`, `Multi.merge`. The pipeline should read as a clear sequence of named steps. Inline anonymous functions are forbidden, even short ones like `fn %{load: p} -> p end`.
+
+If a step needs data from outside the Multi (e.g. a struct from the surrounding scope), put it on the Multi via `Multi.put/3` first so the named function can pattern-match on `changes`. Never close over outer variables in a Multi step.
 
 Don't do this
 
@@ -292,8 +366,12 @@ Multi.new()
 |> Multi.run(:check, fn repo, _changes ->
     # ... many lines of inlined logic ...
   end)
+|> Multi.insert(:photo, fn _changes ->
+    Photo.changeset(%Photo{}, attrs)   # closes over `attrs` from outer scope
+  end)
+|> Multi.delete(:gallery, fn %{load: g} -> g end)   # short lambda — still forbidden
 |> Multi.run(:process, fn repo, %{check: result} ->
-    # ... more inlined logic ...
+    # ...
   end)
 |> Repo.transaction()
 </bad-example>
@@ -302,14 +380,22 @@ Do this instead
 
 <good-example>
 Multi.new()
-|> Multi.put(:input, input)
+|> Multi.put(:attrs, attrs)
 |> Multi.run(:check, &run_check/2)
+|> Multi.insert(:photo, &photo_changeset/1)
+|> Multi.delete(:gallery, &take_loaded/1)
 |> Multi.run(:process, &run_process/2)
 |> Repo.transaction()
 
-defp run_check(repo, %{input: input}) do
+defp run_check(repo, %{attrs: attrs}) do
   # ...
 end
+
+defp photo_changeset(%{attrs: attrs}) do
+  Photo.changeset(%Photo{}, attrs)
+end
+
+defp take_loaded(%{load: g}), do: g
 
 defp run_process(repo, %{check: result}) do
   # ...

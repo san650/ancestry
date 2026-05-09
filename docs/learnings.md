@@ -61,3 +61,4 @@ grep "stable-livecomponent" docs/learnings.jsonl | jq .
 | pgettext-gendered-adjectives | i18n, gettext, spanish, gender, pgettext, translation | Use pgettext contexts for gendered adjectives in Spanish |
 | hook-mounted-scroll-timing | liveview, js-hooks, scroll, live-navigation, timing | JS hook scrollIntoView fails on live navigation without requestAnimationFrame |
 | phx-change-bare-input | liveview, forms, phx-change, phx-keyup, silent-failure | phx-change on a bare input outside a form does not fire events |
+| upload-progress-gate-on-invalid | liveview, uploads, auto-upload, silent-failure, progress | LiveView upload finalize gate must treat invalid entries as settled |

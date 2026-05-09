@@ -93,9 +93,7 @@ defmodule Web.UserFlows.PhotoCommentsTest do
   } do
     other_account = insert(:account, name: "Other User", role: :editor)
 
-    Ancestry.Comments.create_photo_comment(photo.id, other_account.id, %{
-      text: "Someone else's comment"
-    })
+    insert(:photo_comment, photo: photo, account: other_account, text: "Someone else's comment")
 
     conn =
       conn
@@ -133,9 +131,7 @@ defmodule Web.UserFlows.PhotoCommentsTest do
   } do
     other_account = insert(:account, name: "Regular User", role: :editor)
 
-    Ancestry.Comments.create_photo_comment(photo.id, other_account.id, %{
-      text: "Admin can delete this"
-    })
+    insert(:photo_comment, photo: photo, account: other_account, text: "Admin can delete this")
 
     conn =
       conn

@@ -11,18 +11,8 @@ defmodule Ancestry.Galleries do
 
   def get_gallery!(id), do: Repo.get!(Gallery, id)
 
-  def create_gallery(attrs \\ %{}) do
-    %Gallery{}
-    |> Gallery.changeset(attrs)
-    |> Repo.insert()
-  end
-
   def change_gallery(%Gallery{} = gallery, attrs \\ %{}) do
     Gallery.changeset(gallery, attrs)
-  end
-
-  def delete_gallery(%Gallery{} = gallery) do
-    Repo.delete(gallery)
   end
 
   def list_photos(gallery_id) do
@@ -35,18 +25,6 @@ defmodule Ancestry.Galleries do
   end
 
   def get_photo!(id), do: Repo.get!(Photo, id) |> Repo.preload(:gallery)
-
-  def create_photo(attrs \\ %{}) do
-    with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
-         {:ok, _job} <- Oban.insert(Ancestry.Workers.ProcessPhotoJob.new(%{photo_id: photo.id})) do
-      {:ok, Repo.preload(photo, :gallery)}
-    end
-  end
-
-  def delete_photo(%Photo{} = photo) do
-    if photo.image, do: Ancestry.Uploaders.Photo.delete({photo.image, photo})
-    Repo.delete(photo)
-  end
 
   def update_photo_processed(%Photo{} = photo, filename) do
     photo
@@ -73,25 +51,6 @@ defmodule Ancestry.Galleries do
       from p in Photo,
         where: p.gallery_id == ^gallery_id and p.file_hash == ^file_hash
     )
-  end
-
-  def tag_person_in_photo(photo_id, person_id, x, y) do
-    %PhotoPerson{photo_id: photo_id, person_id: person_id}
-    |> PhotoPerson.changeset(%{x: x, y: y})
-    |> Repo.insert(
-      on_conflict: {:replace, [:x, :y]},
-      conflict_target: [:photo_id, :person_id],
-      returning: true
-    )
-  end
-
-  def untag_person_from_photo(photo_id, person_id) do
-    from(pp in PhotoPerson,
-      where: pp.photo_id == ^photo_id and pp.person_id == ^person_id
-    )
-    |> Repo.delete_all()
-
-    :ok
   end
 
   def list_photo_people(photo_id) do
