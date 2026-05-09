@@ -22,6 +22,8 @@ defmodule Web.AuditLogLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Phoenix.PubSub.subscribe(Ancestry.PubSub, "audit_log")
+
     {:ok,
      socket
      |> assign(:page_title, gettext("Audit log"))
@@ -62,7 +64,6 @@ defmodule Web.AuditLogLive.Index do
     {:noreply, push_patch(socket, to: path)}
   end
 
-  @impl true
   def handle_event("load_more", _, socket) do
     filters = Map.put(socket.assigns.filters, :before, socket.assigns.cursor)
     rows = Audit.list_entries(filters, @limit)
@@ -74,6 +75,23 @@ defmodule Web.AuditLogLive.Index do
      socket
      |> assign(:cursor, cursor_from(rows) || socket.assigns.cursor)
      |> assign(:has_more?, length(rows) == @limit)}
+  end
+
+  @impl true
+  def handle_info({:audit_logged, row}, socket) do
+    if matches_filters?(row, socket.assigns.filters) do
+      {:noreply, stream_insert(socket, :entries, row, at: 0)}
+    else
+      {:noreply, socket}
+    end
+  end
+
+  defp matches_filters?(row, filters) do
+    Enum.all?(filters, fn
+      {:organization_id, id} -> row.organization_id == id
+      {:account_id, id} -> row.account_id == id
+      {:before, _} -> true
+    end)
   end
 
   @impl true
