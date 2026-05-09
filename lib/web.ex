@@ -52,6 +52,8 @@ defmodule Web do
     quote do
       use Phoenix.LiveView
 
+      import Web.BusUI
+
       unquote(html_helpers())
     end
   end
@@ -59,6 +61,8 @@ defmodule Web do
   def live_component do
     quote do
       use Phoenix.LiveComponent
+
+      import Web.BusUI
 
       unquote(html_helpers())
     end

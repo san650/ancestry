@@ -11,17 +11,17 @@ msgstr ""
 "Language: en-US\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/web/live/comments/photo_comments_component.ex:401
+#: lib/web/live/comments/photo_comments_component.ex:375
 #, elixir-autogen, elixir-format
 msgid "%{count}d ago"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:400
+#: lib/web/live/comments/photo_comments_component.ex:374
 #, elixir-autogen, elixir-format
 msgid "%{count}h ago"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:399
+#: lib/web/live/comments/photo_comments_component.ex:373
 #, elixir-autogen, elixir-format
 msgid "%{count}m ago"
 msgstr ""
@@ -143,7 +143,7 @@ msgstr ""
 msgid "Add Relationship"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:313
+#: lib/web/live/comments/photo_comments_component.ex:287
 #, elixir-autogen, elixir-format
 msgid "Add a comment..."
 msgstr ""
@@ -322,7 +322,7 @@ msgstr ""
 #: lib/web/live/account_management_live/new.ex:214
 #: lib/web/live/account_management_live/show.ex:280
 #: lib/web/live/account_management_live/show.ex:315
-#: lib/web/live/comments/photo_comments_component.ex:231
+#: lib/web/live/comments/photo_comments_component.ex:205
 #: lib/web/live/family_live/index.html.heex:189
 #: lib/web/live/family_live/new.html.heex:107
 #: lib/web/live/family_live/show.html.heex:530
@@ -396,7 +396,7 @@ msgstr ""
 msgid "Close menu"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:180
+#: lib/web/live/comments/photo_comments_component.ex:154
 #, elixir-autogen, elixir-format
 msgid "Comments"
 msgstr ""
@@ -668,7 +668,7 @@ msgstr ""
 msgid "Delete Photos"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:349
+#: lib/web/live/comments/photo_comments_component.ex:323
 #, elixir-autogen, elixir-format
 msgid "Delete comment"
 msgstr ""
@@ -683,7 +683,7 @@ msgstr ""
 msgid "Delete person"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:347
+#: lib/web/live/comments/photo_comments_component.ex:321
 #, elixir-autogen, elixir-format
 msgid "Delete this comment?"
 msgstr ""
@@ -767,7 +767,7 @@ msgstr ""
 msgid "Edit Memory"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:337
+#: lib/web/live/comments/photo_comments_component.ex:311
 #, elixir-autogen, elixir-format
 msgid "Edit comment"
 msgstr ""
@@ -1600,7 +1600,7 @@ msgstr ""
 msgid "Please select two different people"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:319
+#: lib/web/live/comments/photo_comments_component.ex:293
 #, elixir-autogen, elixir-format
 msgid "Post comment"
 msgstr ""
@@ -1714,7 +1714,7 @@ msgstr ""
 msgid "Same person selected"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:223
+#: lib/web/live/comments/photo_comments_component.ex:197
 #: lib/web/live/family_live/show.html.heex:523
 #: lib/web/live/organization_live/index.html.heex:213
 #: lib/web/live/person_live/show.html.heex:905
@@ -1953,8 +1953,8 @@ msgid "Type a name to search..."
 msgstr ""
 
 #: lib/web/live/account_management_live/show.ex:228
-#: lib/web/live/comments/photo_comments_component.ex:368
-#: lib/web/live/comments/photo_comments_component.ex:372
+#: lib/web/live/comments/photo_comments_component.ex:342
+#: lib/web/live/comments/photo_comments_component.ex:346
 #, elixir-autogen, elixir-format
 msgid "Unknown"
 msgstr ""
@@ -2158,7 +2158,7 @@ msgstr ""
 msgid "from"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:398
+#: lib/web/live/comments/photo_comments_component.ex:372
 #, elixir-autogen, elixir-format
 msgid "just now"
 msgstr ""
@@ -2185,17 +2185,17 @@ msgstr ""
 msgid "~%{percentage}% shared DNA"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:388
+#: lib/web/live/comments/photo_comments_component.ex:362
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{count}d"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:387
+#: lib/web/live/comments/photo_comments_component.ex:361
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{count}h"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:386
+#: lib/web/live/comments/photo_comments_component.ex:360
 #, elixir-autogen, elixir-format, fuzzy
 msgid "%{count}m"
 msgstr ""
@@ -2221,7 +2221,7 @@ msgstr ""
 msgid "Download"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:198
+#: lib/web/live/comments/photo_comments_component.ex:172
 #, elixir-autogen, elixir-format
 msgid "No comments yet. Be the first to add one."
 msgstr ""
@@ -2241,7 +2241,7 @@ msgstr ""
 msgid "Remove tag"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:385
+#: lib/web/live/comments/photo_comments_component.ex:359
 #, elixir-autogen, elixir-format
 msgid "now"
 msgstr ""
@@ -3204,22 +3204,22 @@ msgstr ""
 msgid "Show all"
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:170
+#: lib/web/bus_ui.ex:36
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Something went wrong."
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:163
+#: lib/web/bus_ui.ex:30
 #, elixir-autogen, elixir-format
 msgid "That action conflicted with another change. Please retry."
 msgstr ""
 
-#: lib/web/live/comments/photo_comments_component.ex:155
-#, elixir-autogen, elixir-format
-msgid "That comment no longer exists."
-msgstr ""
-
-#: lib/web/live/comments/photo_comments_component.ex:151
+#: lib/web/bus_ui.ex:19
 #, elixir-autogen, elixir-format, fuzzy
 msgid "You don't have permission to do that."
+msgstr ""
+
+#: lib/web/bus_ui.ex:22
+#, elixir-autogen, elixir-format
+msgid "That item no longer exists."
 msgstr ""

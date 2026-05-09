@@ -144,38 +144,6 @@ defmodule Web.Comments.PhotoCommentsComponent do
     end
   end
 
-  defp handle_dispatch_result({:ok, _result}, socket) do
-    changeset = Comments.change_photo_comment(%PhotoComment{})
-    {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
-  end
-
-  defp handle_dispatch_result({:error, :validation, changeset}, socket) do
-    {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
-  end
-
-  defp handle_dispatch_result({:error, :unauthorized}, socket) do
-    {:noreply, put_flash(socket, :error, gettext("You don't have permission to do that."))}
-  end
-
-  defp handle_dispatch_result({:error, :not_found}, socket) do
-    {:noreply, put_flash(socket, :error, gettext("That comment no longer exists."))}
-  end
-
-  defp handle_dispatch_result({:error, :conflict, _term}, socket) do
-    {:noreply,
-     put_flash(
-       socket,
-       :error,
-       gettext("That action conflicted with another change. Please retry.")
-     )}
-  end
-
-  defp handle_dispatch_result({:error, :handler, term}, socket) do
-    require Logger
-    Logger.error("command failed", error: inspect(term))
-    {:noreply, put_flash(socket, :error, gettext("Something went wrong."))}
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
