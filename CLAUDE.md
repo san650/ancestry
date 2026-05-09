@@ -104,17 +104,18 @@ State-mutating operations dispatch through `Ancestry.Bus.dispatch/2`. Each mutat
 **Step DSL (`Ancestry.Bus.Step`):** central wrapper for `Ecto.Multi` and Oban that standardizes the reserved steps and provides verb-named helpers. Every handler's `to_transaction/1` body uses the DSL exclusively — never call `Multi.*` or `Oban.*` directly inside a handler.
 
 ```
-Step.new(envelope)                 # Multi.new |> Multi.put(:envelope, envelope)
-Step.put(name, value)              # passthrough to Multi
-Step.insert(name, fun)             # fun returns changeset or {changeset, opts}
-Step.update(name, fun)             # passthrough to Multi
-Step.delete(name, fun)             # passthrough to Multi
-Step.run(name, fun)                # passthrough to Multi
-Step.delete_all(name, queryable)   # passthrough to Multi
-Step.enqueue(name, fun)            # passthrough to Oban.insert (atomic with the txn)
-Step.audit()                       # appends :audit step (writes to audit_log)
-Step.effects(fun)                  # appends :effects step
-Step.no_effects()                  # appends :effects step that returns []
+Step.new(envelope)                              # Multi.new |> Multi.put(:envelope, envelope)
+Step.put(name, value)                           # passthrough to Multi
+Step.insert(name, fun)                          # fun returns changeset or {changeset, opts}
+Step.update(name, fun)                          # passthrough to Multi
+Step.delete(name, fun)                          # passthrough to Multi
+Step.run(name, fun)                             # passthrough to Multi
+Step.delete_all(name, queryable)                # passthrough to Multi
+Step.authorize(name, queryable, action, field)  # load by command.<field> + Authorization.can?
+Step.enqueue(name, fun)                         # passthrough to Oban.insert (atomic with the txn)
+Step.audit()                                    # appends :audit step (writes to audit_log)
+Step.effects(fun)                               # appends :effects step
+Step.no_effects()                               # appends :effects step that returns []
 ```
 
 Reserved step names: `:envelope`, `:audit`, `:effects`. Handlers reach the command/scope via `envelope.command` / `envelope.scope` — do not put them on the Multi separately.

@@ -6,7 +6,6 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
 
   use Ancestry.Bus.Handler
 
-  alias Ancestry.Authorization
   alias Ancestry.Bus.Step
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Repo
@@ -18,25 +17,11 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
 
   defp to_transaction(envelope) do
     Step.new(envelope)
-    |> Step.run(:authorized_comment, &authorize_comment_edit/2)
+    |> Step.authorize(:authorized_comment, PhotoComment, :update, :photo_comment_id)
     |> Step.update(:updated_comment, &update_authorized_comment/1)
     |> Step.run(:comment, &preload_comment_account/2)
     |> Step.audit()
     |> Step.effects(&broadcast_update/2)
-  end
-
-  defp authorize_comment_edit(repo, %{envelope: envelope}) do
-    %{command: command, scope: scope} = envelope
-
-    case repo.get(PhotoComment, command.photo_comment_id) do
-      nil ->
-        {:error, :not_found}
-
-      comment ->
-        if Authorization.can?(scope, :update, comment),
-          do: {:ok, comment},
-          else: {:error, :unauthorized}
-    end
   end
 
   defp update_authorized_comment(%{envelope: envelope, authorized_comment: comment}) do

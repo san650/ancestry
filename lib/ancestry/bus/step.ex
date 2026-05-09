@@ -6,6 +6,7 @@ defmodule Ancestry.Bus.Step do
   """
 
   alias Ancestry.Audit.Log
+  alias Ancestry.Authorization
   alias Ecto.Multi
 
   @doc "Start a new transaction Multi seeded with the envelope."
@@ -33,6 +34,17 @@ defmodule Ancestry.Bus.Step do
   @doc "Atomically enqueue an Oban job alongside the rest of the transaction."
   defdelegate enqueue(multi, name, fun), to: Oban, as: :insert
 
+  @doc """
+  Append a load+authorize step. Reads the id from `envelope.command.<id_field>`,
+  loads `queryable` by primary key, then calls `Authorization.can?(scope, action, record)`.
+
+  Returns the loaded record or `{:error, :not_found}` / `{:error, :unauthorized}`.
+  """
+  def authorize(multi, name, queryable, action, id_field)
+      when is_atom(action) and is_atom(id_field) do
+    Multi.run(multi, name, &run_authorize(&1, &2, queryable, action, id_field))
+  end
+
   @doc "Append the audit step (writes one row to audit_log on commit)."
   def audit(multi), do: Multi.insert(multi, :audit, &create_audit_log/1)
 
@@ -49,6 +61,20 @@ defmodule Ancestry.Bus.Step do
     case fun.(changes) do
       {%Ecto.Changeset{} = changeset, opts} -> repo.insert(changeset, opts)
       %Ecto.Changeset{} = changeset -> repo.insert(changeset)
+    end
+  end
+
+  defp run_authorize(repo, %{envelope: env}, queryable, action, id_field) do
+    id = Map.fetch!(env.command, id_field)
+
+    case repo.get(queryable, id) do
+      nil ->
+        {:error, :not_found}
+
+      record ->
+        if Authorization.can?(env.scope, action, record),
+          do: {:ok, record},
+          else: {:error, :unauthorized}
     end
   end
 end
