@@ -129,4 +129,30 @@ defmodule Web.UserFlows.PhotoUploadTest do
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
   end
+
+  test "all-invalid batch finalises modal with no DB writes",
+       %{conn: conn, org: org, family: family, gallery: gallery} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
+    upload =
+      file_input(view, "#upload-form", :photos, [
+        %{name: "doc.txt", content: "nope", type: "text/plain"}
+      ])
+
+    # Invalid entries never trigger handle_progress — the production JS
+    # fires phx-change "validate" on file selection. Simulate that here:
+    # render_upload triggers :allow_upload preflight (which sets the entry
+    # error), and we then trigger the validate event explicitly to drive
+    # maybe_finalize.
+    render_upload(upload, "doc.txt")
+    render_change(view, "validate", %{})
+
+    html = render(view)
+    assert html =~ "Upload complete"
+    assert html =~ "doc.txt"
+
+    assert Repo.all(Photo) == []
+    assert Repo.all(Log) == []
+  end
 end
