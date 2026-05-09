@@ -96,4 +96,37 @@ defmodule Web.UserFlows.PhotoUploadTest do
     assert [_existing] = Repo.all(Photo)
     assert Repo.all(Log) == []
   end
+
+  test "mixed valid + invalid file types — modal finalises with one error row, valid file persists",
+       %{conn: conn, org: org, family: family, gallery: gallery} do
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
+    upload =
+      file_input(view, "#upload-form", :photos, [
+        %{
+          name: "valid.jpg",
+          content: File.read!("test/fixtures/test_image.jpg"),
+          type: "image/jpeg"
+        },
+        %{
+          name: "invalid.txt",
+          content: "not an image",
+          type: "text/plain"
+        }
+      ])
+
+    render_upload(upload, "valid.jpg")
+
+    html = render(view)
+    assert html =~ "Upload complete"
+    assert html =~ "invalid.txt"
+    assert html =~ "valid.jpg"
+
+    assert [photo_row] = Repo.all(Photo)
+    assert photo_row.original_filename == "valid.jpg"
+
+    assert [row] = Repo.all(Log)
+    assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
+  end
 end
