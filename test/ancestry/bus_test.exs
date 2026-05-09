@@ -169,6 +169,43 @@ defmodule Ancestry.BusTest do
     def permission, do: {:delete, Ancestry.Organizations.Organization}
   end
 
+  defmodule BroadcastingHandler do
+    use Ancestry.Bus.Handler
+
+    @impl true
+    def build_multi(%Ancestry.Bus.Envelope{command: cmd}) do
+      Multi.new()
+      |> Multi.put(:result, cmd)
+      |> Multi.run(:__effects__, fn _, _ ->
+        {:ok, [{:broadcast, "bus-test:#{cmd.label}", {:hello, cmd.label}}]}
+      end)
+    end
+  end
+
+  defmodule BroadcastingCommand do
+    use Ancestry.Bus.Command
+    @enforce_keys [:label]
+    defstruct [:label]
+    @impl true
+    def new(a), do: {:ok, struct!(__MODULE__, a)}
+    @impl true
+    def new!(a), do: struct!(__MODULE__, a)
+    @impl true
+    def handled_by, do: BroadcastingHandler
+    @impl true
+    def primary_step, do: :result
+    @impl true
+    def permission, do: {:read, Ancestry.Identity.Account}
+  end
+
+  test "fires broadcast effects after commit", %{scope: scope} do
+    Phoenix.PubSub.subscribe(Ancestry.PubSub, "bus-test:greeting")
+    cmd = BroadcastingCommand.new!(%{label: "greeting"})
+
+    assert {:ok, _} = Bus.dispatch(scope, cmd)
+    assert_receive {:hello, "greeting"}, 500
+  end
+
   test "returns {:error, :unauthorized} when Permit denies" do
     {:ok, viewer} =
       %Ancestry.Identity.Account{
