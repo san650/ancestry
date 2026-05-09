@@ -42,12 +42,13 @@ defmodule Web.Comments.PhotoCommentsComponent do
 
   @impl true
   def handle_event("save_comment", %{"comment" => %{"text" => text}}, socket) do
-    account_id = socket.assigns.current_scope.account.id
+    attrs = %{photo_id: socket.assigns.photo_id, text: text}
 
-    case Comments.create_photo_comment(socket.assigns.photo_id, account_id, %{text: text}) do
-      {:ok, _comment} ->
-        changeset = Comments.change_photo_comment(%PhotoComment{})
-        {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
+    case Ancestry.Commands.CreatePhotoComment.new(attrs) do
+      {:ok, command} ->
+        socket.assigns.current_scope
+        |> Ancestry.Bus.dispatch(command)
+        |> handle_dispatch_result(socket)
 
       {:error, changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
@@ -135,6 +136,38 @@ defmodule Web.Comments.PhotoCommentsComponent do
     else
       {:noreply, socket}
     end
+  end
+
+  defp handle_dispatch_result({:ok, _result}, socket) do
+    changeset = Comments.change_photo_comment(%PhotoComment{})
+    {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
+  end
+
+  defp handle_dispatch_result({:error, :validation, changeset}, socket) do
+    {:noreply, assign(socket, :form, to_form(changeset, as: :comment))}
+  end
+
+  defp handle_dispatch_result({:error, :unauthorized}, socket) do
+    {:noreply, put_flash(socket, :error, gettext("You don't have permission to do that."))}
+  end
+
+  defp handle_dispatch_result({:error, :not_found}, socket) do
+    {:noreply, put_flash(socket, :error, gettext("That comment no longer exists."))}
+  end
+
+  defp handle_dispatch_result({:error, :conflict, _term}, socket) do
+    {:noreply,
+     put_flash(
+       socket,
+       :error,
+       gettext("That action conflicted with another change. Please retry.")
+     )}
+  end
+
+  defp handle_dispatch_result({:error, :handler, term}, socket) do
+    require Logger
+    Logger.error("command failed", error: inspect(term))
+    {:noreply, put_flash(socket, :error, gettext("Something went wrong."))}
   end
 
   @impl true
