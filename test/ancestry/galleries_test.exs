@@ -39,72 +39,21 @@ defmodule Ancestry.GalleriesTest do
     end
 
     test "list_photos/1 returns photos ordered by inserted_at asc", %{gallery: gallery} do
-      {:ok, p1} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/a.jpg",
-          original_filename: "a.jpg",
-          content_type: "image/jpeg"
-        })
-
-      {:ok, p2} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/b.jpg",
-          original_filename: "b.jpg",
-          content_type: "image/jpeg"
-        })
+      p1 = insert(:photo, gallery: gallery, original_filename: "a.jpg")
+      p2 = insert(:photo, gallery: gallery, original_filename: "b.jpg")
 
       assert Enum.map(Galleries.list_photos(gallery.id), & &1.id) == [p1.id, p2.id]
     end
 
-    test "create_photo/1 creates a pending photo", %{gallery: gallery} do
-      assert {:ok, photo} =
-               Galleries.create_photo(%{
-                 gallery_id: gallery.id,
-                 original_path: "/tmp/test.jpg",
-                 original_filename: "test.jpg",
-                 content_type: "image/jpeg"
-               })
-
-      assert photo.status == "pending"
-      assert photo.gallery_id == gallery.id
-    end
-
-    test "delete_photo/1 deletes the photo", %{gallery: gallery} do
-      {:ok, photo} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg"
-        })
-
-      assert {:ok, _} = Galleries.delete_photo(photo)
-      assert Galleries.list_photos(gallery.id) == []
-    end
-
     test "update_photo_processed/2 sets status to processed", %{gallery: gallery} do
-      {:ok, photo} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg"
-        })
+      photo = insert(:photo, gallery: gallery, status: "pending")
 
       assert {:ok, updated} = Galleries.update_photo_processed(photo, "original.jpg")
       assert updated.status == "processed"
     end
 
     test "update_photo_failed/1 sets status to failed", %{gallery: gallery} do
-      {:ok, photo} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg"
-        })
+      photo = insert(:photo, gallery: gallery, status: "pending")
 
       assert {:ok, updated} = Galleries.update_photo_failed(photo)
       assert updated.status == "failed"
@@ -113,14 +62,7 @@ defmodule Ancestry.GalleriesTest do
     test "photo_exists_in_gallery?/2 returns true when hash exists in gallery", %{
       gallery: gallery
     } do
-      {:ok, _photo} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg",
-          file_hash: "abc123"
-        })
+      insert(:photo, gallery: gallery, file_hash: "abc123")
 
       assert Galleries.photo_exists_in_gallery?(gallery.id, "abc123")
     end
@@ -134,15 +76,7 @@ defmodule Ancestry.GalleriesTest do
       family: family
     } do
       other_gallery = insert(:gallery, name: "Other", family: family)
-
-      {:ok, _photo} =
-        Galleries.create_photo(%{
-          gallery_id: other_gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg",
-          file_hash: "abc123"
-        })
+      insert(:photo, gallery: other_gallery, file_hash: "abc123")
 
       refute Galleries.photo_exists_in_gallery?(gallery.id, "abc123")
     end
@@ -151,14 +85,7 @@ defmodule Ancestry.GalleriesTest do
   describe "photo_people" do
     setup %{family: family, org: org} do
       gallery = insert(:gallery, name: "Test", family: family)
-
-      {:ok, photo} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test.jpg",
-          original_filename: "test.jpg",
-          content_type: "image/jpeg"
-        })
+      photo = insert(:photo, gallery: gallery)
 
       {:ok, person} =
         Ancestry.People.create_person_without_family(org, %{given_name: "Alice", surname: "Smith"})
@@ -256,34 +183,14 @@ defmodule Ancestry.GalleriesTest do
       gallery: gallery,
       person: person
     } do
-      {:ok, photo1} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test1.jpg",
-          original_filename: "test1.jpg",
-          content_type: "image/jpeg"
-        })
+      photo1 =
+        insert(:photo, gallery: gallery, status: "processed", original_filename: "test1.jpg")
 
-      {:ok, photo1} = Galleries.update_photo_processed(photo1, "test1.jpg")
-
-      {:ok, photo2} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test2.jpg",
-          original_filename: "test2.jpg",
-          content_type: "image/jpeg"
-        })
-
-      {:ok, photo2} = Galleries.update_photo_processed(photo2, "test2.jpg")
+      photo2 =
+        insert(:photo, gallery: gallery, status: "processed", original_filename: "test2.jpg")
 
       # Pending photo — should not appear
-      {:ok, photo3} =
-        Galleries.create_photo(%{
-          gallery_id: gallery.id,
-          original_path: "/tmp/test3.jpg",
-          original_filename: "test3.jpg",
-          content_type: "image/jpeg"
-        })
+      photo3 = insert(:photo, gallery: gallery, status: "pending", original_filename: "test3.jpg")
 
       {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
       {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.3)

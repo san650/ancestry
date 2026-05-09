@@ -24,25 +24,10 @@ defmodule Web.UserFlows.PersonPhotosTest do
     gallery = insert(:gallery, name: "Summer 2024", family: family)
     {:ok, person} = People.create_person(family, %{given_name: "Alice", surname: "Smith"})
 
-    {:ok, photo1} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
-        original_path: "/tmp/test1.jpg",
-        original_filename: "beach.jpg",
-        content_type: "image/jpeg"
-      })
+    photo1 = insert(:photo, gallery: gallery, status: "processed", original_filename: "beach.jpg")
 
-    {:ok, photo1} = Galleries.update_photo_processed(photo1, "beach.jpg")
-
-    {:ok, photo2} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
-        original_path: "/tmp/test2.jpg",
-        original_filename: "sunset.jpg",
-        content_type: "image/jpeg"
-      })
-
-    {:ok, photo2} = Galleries.update_photo_processed(photo2, "sunset.jpg")
+    photo2 =
+      insert(:photo, gallery: gallery, status: "processed", original_filename: "sunset.jpg")
 
     {:ok, _} = Galleries.tag_person_in_photo(photo1.id, person.id, 0.5, 0.5)
     {:ok, _} = Galleries.tag_person_in_photo(photo2.id, person.id, 0.3, 0.7)

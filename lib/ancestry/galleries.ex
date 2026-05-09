@@ -26,19 +26,6 @@ defmodule Ancestry.Galleries do
 
   def get_photo!(id), do: Repo.get!(Photo, id) |> Repo.preload(:gallery)
 
-  def create_photo(attrs \\ %{}) do
-    with {:ok, photo} <- %Photo{} |> Photo.changeset(attrs) |> Repo.insert(),
-         {:ok, _job} <-
-           Oban.insert(Ancestry.Workers.TransformAndStorePhoto.new(%{photo_id: photo.id})) do
-      {:ok, Repo.preload(photo, :gallery)}
-    end
-  end
-
-  def delete_photo(%Photo{} = photo) do
-    if photo.image, do: Ancestry.Uploaders.Photo.delete({photo.image, photo})
-    Repo.delete(photo)
-  end
-
   def update_photo_processed(%Photo{} = photo, filename) do
     photo
     |> Ecto.Changeset.change(image: %{file_name: filename, updated_at: nil}, status: "processed")

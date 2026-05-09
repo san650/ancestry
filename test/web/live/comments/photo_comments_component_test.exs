@@ -342,14 +342,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   end
 
   defp photo_fixture(gallery) do
-    {:ok, photo} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
-        original_path: "/tmp/nonexistent.jpg",
-        original_filename: "photo.jpg",
-        content_type: "image/jpeg"
-      })
-
+    photo = Ancestry.Factory.insert(:photo, gallery: gallery, status: "pending")
     {:ok, photo} = Galleries.update_photo_processed(photo, "photo.jpg")
     photo
   end

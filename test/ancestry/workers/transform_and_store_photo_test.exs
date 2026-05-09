@@ -16,13 +16,14 @@ defmodule Ancestry.Workers.TransformAndStorePhotoTest do
     original_path = Path.join(tmp_dir, "photo.jpg")
     File.cp!(Path.join(__DIR__, "../../fixtures/test_image.jpg"), original_path)
 
-    {:ok, photo} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
+    photo =
+      insert(:photo,
+        gallery: gallery,
         original_path: original_path,
         original_filename: "test_image.jpg",
-        content_type: "image/jpeg"
-      })
+        content_type: "image/jpeg",
+        status: "pending"
+      )
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 

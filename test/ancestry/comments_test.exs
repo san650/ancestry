@@ -58,7 +58,7 @@ defmodule Ancestry.CommentsTest do
       photo = insert(:photo)
       comment = insert(:photo_comment, photo: photo, text: "Cascade me")
 
-      {:ok, _} = Ancestry.Galleries.delete_photo(photo)
+      Ancestry.Repo.delete!(photo)
       assert_raise Ecto.NoResultsError, fn -> Comments.get_photo_comment!(comment.id) end
     end
   end

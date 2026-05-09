@@ -74,13 +74,7 @@ defmodule Web.GalleryLive.ShowTest do
     family: family,
     org: org
   } do
-    {:ok, photo} =
-      Galleries.create_photo(%{
-        gallery_id: gallery.id,
-        original_path: "/tmp/x.jpg",
-        original_filename: "x.jpg",
-        content_type: "image/jpeg"
-      })
+    photo = insert(:photo, gallery: gallery, status: "pending", original_filename: "x.jpg")
 
     {:ok, view, _html} =
       live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -96,15 +90,11 @@ defmodule Web.GalleryLive.ShowTest do
     setup %{gallery: gallery} do
       photos =
         for i <- 1..3 do
-          {:ok, photo} =
-            Galleries.create_photo(%{
-              gallery_id: gallery.id,
-              original_path: "/tmp/photo#{i}.jpg",
-              original_filename: "photo#{i}.jpg",
-              content_type: "image/jpeg"
-            })
-
-          photo
+          insert(:photo,
+            gallery: gallery,
+            original_filename: "photo#{i}.jpg",
+            status: "pending"
+          )
         end
 
       %{photos: photos}
