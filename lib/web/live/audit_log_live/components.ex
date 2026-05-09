@@ -65,4 +65,56 @@ defmodule Web.AuditLogLive.Components do
     json = Jason.encode!(payload)
     if String.length(json) > 120, do: String.slice(json, 0, 117) <> "...", else: json
   end
+
+  attr :organizations, :list, required: true
+  attr :accounts, :list, required: true
+  attr :filters, :map, required: true
+  attr :show_organization?, :boolean, default: true
+
+  def filter_bar(assigns) do
+    ~H"""
+    <form
+      id="audit-filter"
+      phx-change="filter"
+      class="flex flex-wrap gap-3 items-end pb-4"
+      {test_id("audit-filter")}
+    >
+      <label :if={@show_organization?} class="flex flex-col text-[11px] font-cm-mono">
+        <span class="font-bold uppercase">{gettext("Organization")}</span>
+        <select
+          name="filters[organization_id]"
+          class="border border-cm-border rounded-cm px-2 py-1"
+          {test_id("audit-filter-org")}
+        >
+          <option value="">{gettext("All organizations")}</option>
+          <option
+            :for={org <- @organizations}
+            value={org.id}
+            selected={"#{@filters[:organization_id]}" == "#{org.id}"}
+          >
+            {org.name}
+          </option>
+        </select>
+      </label>
+
+      <label class="flex flex-col text-[11px] font-cm-mono">
+        <span class="font-bold uppercase">{gettext("Account")}</span>
+        <select
+          name="filters[account_id]"
+          class="border border-cm-border rounded-cm px-2 py-1"
+          {test_id("audit-filter-account")}
+        >
+          <option value="">{gettext("All accounts")}</option>
+          <option
+            :for={acc <- @accounts}
+            value={acc.id}
+            selected={"#{@filters[:account_id]}" == "#{acc.id}"}
+          >
+            {acc.email}
+          </option>
+        </select>
+      </label>
+    </form>
+    """
+  end
 end

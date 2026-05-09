@@ -22,13 +22,48 @@ defmodule Web.AuditLogLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    rows = Audit.list_entries(%{}, @limit)
-
     {:ok,
      socket
      |> assign(:page_title, gettext("Audit log"))
      |> assign(:expanded_id, nil)
-     |> stream(:entries, rows)}
+     |> assign(:filters, %{})
+     |> assign(:organizations, Ancestry.Organizations.list_organizations())
+     |> assign(:accounts, Audit.list_audit_accounts(%{}))
+     |> stream(:entries, [])}
+  end
+
+  @impl true
+  def handle_params(params, _uri, socket) do
+    filters = parse_filters(params)
+    rows = Audit.list_entries(filters, @limit)
+    accounts = Audit.list_audit_accounts(Map.take(filters, [:organization_id]))
+
+    {:noreply,
+     socket
+     |> assign(:filters, filters)
+     |> assign(:accounts, accounts)
+     |> stream(:entries, rows, reset: true)}
+  end
+
+  @impl true
+  def handle_event("filter", %{"filters" => params}, socket) do
+    pairs =
+      params
+      |> Enum.reject(fn {_k, v} -> v in [nil, ""] end)
+
+    path =
+      if pairs == [],
+        do: ~p"/admin/audit-log",
+        else: ~p"/admin/audit-log?#{pairs}"
+
+    {:noreply, push_patch(socket, to: path)}
+  end
+
+  @impl true
+  def handle_event("toggle", %{"id" => id}, socket) do
+    id = String.to_integer(id)
+    next = if socket.assigns.expanded_id == id, do: nil, else: id
+    {:noreply, assign(socket, :expanded_id, next)}
   end
 
   @impl true
@@ -39,16 +74,27 @@ defmodule Web.AuditLogLive.Index do
         <h1 class="font-cm-display text-cm-indigo text-lg uppercase pb-4">
           {gettext("Audit log")}
         </h1>
+        <Components.filter_bar
+          organizations={@organizations}
+          accounts={@accounts}
+          filters={@filters}
+        />
         <Components.audit_table stream={@streams.entries} expanded_id={@expanded_id} />
       </div>
     </Layouts.app>
     """
   end
 
-  @impl true
-  def handle_event("toggle", %{"id" => id}, socket) do
-    id = String.to_integer(id)
-    next = if socket.assigns.expanded_id == id, do: nil, else: id
-    {:noreply, assign(socket, :expanded_id, next)}
+  defp parse_filters(params) do
+    %{}
+    |> maybe_put(:organization_id, parse_int(params["organization_id"]))
+    |> maybe_put(:account_id, parse_int(params["account_id"]))
   end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, val), do: Map.put(map, key, val)
+
+  defp parse_int(nil), do: nil
+  defp parse_int(""), do: nil
+  defp parse_int(s) when is_binary(s), do: String.to_integer(s)
 end

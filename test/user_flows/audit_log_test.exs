@@ -52,4 +52,41 @@ defmodule Web.UserFlows.AuditLogTest do
     |> wait_liveview()
     |> assert_has("[role='alert']", text: "permission")
   end
+
+  test "filter by organization narrows results", %{conn: conn, row_a: a, row_b: b} do
+    insert(:account, email: "ana@example.com")
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> select("Organization", exact: false, option: "Alpha")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-#{a.id}"))
+    |> refute_has(test_id("audit-row-#{b.id}"))
+  end
+
+  test "filter by account narrows results", %{conn: conn, row_a: a, row_b: b} do
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> select("Account", exact: false, option: "ana@example.com")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-#{a.id}"))
+    |> refute_has(test_id("audit-row-#{b.id}"))
+  end
+
+  test "combined filters compose", %{conn: conn, row_a: a, row_b: b} do
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> select("Organization", exact: false, option: "Alpha")
+    |> wait_liveview()
+    |> select("Account", exact: false, option: "ana@example.com")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-#{a.id}"))
+    |> refute_has(test_id("audit-row-#{b.id}"))
+  end
 end
