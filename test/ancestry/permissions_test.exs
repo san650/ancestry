@@ -2,6 +2,7 @@ defmodule Ancestry.PermissionsTest do
   use Ancestry.DataCase, async: true
 
   alias Ancestry.Authorization
+  alias Ancestry.Comments.PhotoComment
   alias Ancestry.Identity.{Account, Scope}
   alias Ancestry.Families.Family
   alias Ancestry.People.Person
@@ -190,6 +191,31 @@ defmodule Ancestry.PermissionsTest do
       refute Authorization.delete?(auth, Person)
       refute Authorization.delete?(auth, Gallery)
       refute Authorization.delete?(auth, Photo)
+    end
+  end
+
+  describe "PhotoComment class-level rules" do
+    defp scope(role) do
+      %Scope{
+        account: %Account{id: 1, role: role, email: "x@y.z"},
+        organization: nil
+      }
+    end
+
+    test "admin can update and delete PhotoComment at class level" do
+      assert Authorization.can?(scope(:admin), :update, PhotoComment)
+      assert Authorization.can?(scope(:admin), :delete, PhotoComment)
+    end
+
+    test "editor can update and delete PhotoComment at class level (record-level enforced in handler)" do
+      assert Authorization.can?(scope(:editor), :update, PhotoComment)
+      assert Authorization.can?(scope(:editor), :delete, PhotoComment)
+    end
+
+    test "viewer can create PhotoComment but not update/delete at class level" do
+      assert Authorization.can?(scope(:viewer), :create, PhotoComment)
+      refute Authorization.can?(scope(:viewer), :update, PhotoComment)
+      refute Authorization.can?(scope(:viewer), :delete, PhotoComment)
     end
   end
 end
