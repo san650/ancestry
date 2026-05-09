@@ -2,7 +2,6 @@ defmodule Web.FamilyLive.ShowTest do
   use Web.ConnCase, async: true
   import Phoenix.LiveViewTest
   alias Ancestry.Families
-  alias Ancestry.Galleries
   alias Ancestry.People
 
   setup :register_and_log_in_account

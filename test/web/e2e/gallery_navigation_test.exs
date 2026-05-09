@@ -2,7 +2,6 @@ defmodule Web.E2E.GalleryNavigationTest do
   use Web.E2ECase
 
   alias Ancestry.Families
-  alias Ancestry.Galleries
   alias Ancestry.Galleries.Photo
   alias Ancestry.Repo
 

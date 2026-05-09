@@ -9,7 +9,6 @@ defmodule Ancestry.Handlers.AddPhotoToGalleryHandlerTest do
   alias Ancestry.Commands.AddPhotoToGallery
   alias Ancestry.Galleries.Photo
   alias Ancestry.Repo
-  alias Ancestry.Workers.TransformAndStorePhoto
 
   setup do
     organization = insert(:organization)
