@@ -2,7 +2,6 @@ defmodule Web.E2E.GalleryUploadTest do
   use Web.E2ECase
 
   alias Ancestry.Families
-  alias Ancestry.Galleries
 
   # Allow extra time for LiveView processes to finish DB calls before the
   # sandbox owner shuts down.

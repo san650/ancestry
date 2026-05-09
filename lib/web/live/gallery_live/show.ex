@@ -315,14 +315,20 @@ defmodule Web.GalleryLive.Show do
           dest_key = Path.join(["uploads", "originals", uuid, "photo#{ext}"])
           original_path = Ancestry.Storage.store_original_bytes(contents, dest_key)
 
-          case Galleries.create_photo(%{
-                 gallery_id: gallery.id,
-                 original_path: original_path,
-                 original_filename: entry.client_name,
-                 content_type: entry.client_type,
-                 file_hash: file_hash
-               }) do
+          attrs = %{
+            gallery_id: gallery.id,
+            original_path: original_path,
+            original_filename: entry.client_name,
+            content_type: entry.client_type,
+            file_hash: file_hash
+          }
+
+          case Ancestry.Bus.dispatch(
+                 socket.assigns.current_scope,
+                 Ancestry.Commands.AddPhotoToGallery.new!(attrs)
+               ) do
             {:ok, photo} -> {:ok, {:ok, photo}}
+            {:error, _, _} -> {:ok, {:error, entry.client_name}}
             {:error, _} -> {:ok, {:error, entry.client_name}}
           end
         end
