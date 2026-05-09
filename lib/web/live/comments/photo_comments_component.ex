@@ -44,7 +44,7 @@ defmodule Web.Comments.PhotoCommentsComponent do
   def handle_event("save_comment", %{"comment" => %{"text" => text}}, socket) do
     attrs = %{photo_id: socket.assigns.photo_id, text: text}
 
-    case Ancestry.Commands.CreatePhotoComment.new(attrs) do
+    case Ancestry.Commands.AddCommentToPhoto.new(attrs) do
       {:ok, command} ->
         socket.assigns.current_scope
         |> Ancestry.Bus.dispatch(command)

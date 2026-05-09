@@ -11,7 +11,7 @@ defmodule Web.UserFlows.PhotoCommentsCreateTest do
   When the user opens the lightbox + comments panel
   And submits the new-comment form with valid text
   Then the comment appears in the list
-  And an audit_log row is written for `Ancestry.Commands.CreatePhotoComment`
+  And an audit_log row is written for `Ancestry.Commands.AddCommentToPhoto`
 
   ### Validation error path
   Given the same setup
@@ -62,7 +62,7 @@ defmodule Web.UserFlows.PhotoCommentsCreateTest do
     assert comment.text == "Hello"
 
     assert [row] = Repo.all(Log)
-    assert row.command_module == "Ancestry.Commands.CreatePhotoComment"
+    assert row.command_module == "Ancestry.Commands.AddCommentToPhoto"
     assert row.payload["text"] == "Hello"
     assert row.payload["photo_id"] == photo.id
   end

@@ -1,12 +1,12 @@
-defmodule Ancestry.Handlers.CreatePhotoCommentHandlerTest do
+defmodule Ancestry.Handlers.AddCommentToPhotoHandlerTest do
   use Ancestry.DataCase, async: false
 
   import Ancestry.Factory
 
   alias Ancestry.Bus.Envelope
-  alias Ancestry.Commands.CreatePhotoComment
+  alias Ancestry.Commands.AddCommentToPhoto
   alias Ancestry.Comments.PhotoComment
-  alias Ancestry.Handlers.CreatePhotoCommentHandler
+  alias Ancestry.Handlers.AddCommentToPhotoHandler
 
   setup do
     organization = insert(:organization)
@@ -21,12 +21,12 @@ defmodule Ancestry.Handlers.CreatePhotoCommentHandlerTest do
 
   test "build_multi/1 inserts the comment, preloads :account, computes broadcast effect",
        %{scope: scope, photo: photo} do
-    cmd = CreatePhotoComment.new!(%{photo_id: photo.id, text: "wow"})
+    cmd = AddCommentToPhoto.new!(%{photo_id: photo.id, text: "wow"})
     env = Envelope.wrap(scope, cmd)
 
     {:ok, changes} =
       env
-      |> CreatePhotoCommentHandler.build_multi()
+      |> AddCommentToPhotoHandler.build_multi()
       |> Ancestry.Repo.transaction()
 
     assert %PhotoComment{text: "wow", account_id: id} = changes.photo_comment
@@ -38,7 +38,7 @@ defmodule Ancestry.Handlers.CreatePhotoCommentHandlerTest do
 
   test "Bus.dispatch wires the create command end-to-end", %{scope: scope, photo: photo} do
     Phoenix.PubSub.subscribe(Ancestry.PubSub, "photo_comments:#{photo.id}")
-    {:ok, cmd} = CreatePhotoComment.new(%{photo_id: photo.id, text: "smoke"})
+    {:ok, cmd} = AddCommentToPhoto.new(%{photo_id: photo.id, text: "smoke"})
 
     assert {:ok, %PhotoComment{text: "smoke"} = c} = Ancestry.Bus.dispatch(scope, cmd)
     assert c.account.id == scope.account.id
@@ -46,7 +46,7 @@ defmodule Ancestry.Handlers.CreatePhotoCommentHandlerTest do
     assert_receive {:comment_created, %PhotoComment{text: "smoke"}}, 500
 
     assert [row] = Ancestry.Repo.all(Ancestry.Audit.Log)
-    assert row.command_module == "Ancestry.Commands.CreatePhotoComment"
+    assert row.command_module == "Ancestry.Commands.AddCommentToPhoto"
     assert row.payload == %{"photo_id" => photo.id, "text" => "smoke"}
   end
 end

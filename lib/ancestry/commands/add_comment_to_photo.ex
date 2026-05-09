@@ -1,4 +1,4 @@
-defmodule Ancestry.Commands.CreatePhotoComment do
+defmodule Ancestry.Commands.AddCommentToPhoto do
   @moduledoc """
   Command to create a comment on a photo. Validated as a hybrid:
   command-level shape via embedded changeset; record-level changeset
@@ -32,7 +32,7 @@ defmodule Ancestry.Commands.CreatePhotoComment do
   def new!(attrs), do: struct!(__MODULE__, attrs)
 
   @impl true
-  def handled_by, do: Ancestry.Handlers.CreatePhotoCommentHandler
+  def handled_by, do: Ancestry.Handlers.AddCommentToPhotoHandler
 
   @impl true
   def primary_step, do: :preloaded

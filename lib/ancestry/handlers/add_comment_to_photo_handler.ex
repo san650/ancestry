@@ -1,6 +1,6 @@
-defmodule Ancestry.Handlers.CreatePhotoCommentHandler do
+defmodule Ancestry.Handlers.AddCommentToPhotoHandler do
   @moduledoc """
-  Handles `Ancestry.Commands.CreatePhotoComment` by inserting a
+  Handles `Ancestry.Commands.AddCommentToPhoto` by inserting a
   `PhotoComment`, preloading its account, and computing the
   `:comment_created` broadcast effect.
   """
