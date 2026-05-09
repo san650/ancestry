@@ -122,11 +122,16 @@ defmodule Web.GalleryLive.Show do
   end
 
   def handle_event("confirm_delete_photos", _, socket) do
+    scope = socket.assigns.current_scope
+
     socket =
       Enum.reduce(MapSet.to_list(socket.assigns.selected_ids), socket, fn id, acc ->
-        photo = Galleries.get_photo!(id)
-        {:ok, _} = Galleries.delete_photo(photo)
-        stream_delete(acc, :photos, photo)
+        command = Ancestry.Commands.RemovePhotoFromGallery.new!(%{photo_id: id})
+
+        case Ancestry.Bus.dispatch(scope, command) do
+          {:ok, photo} -> stream_delete(acc, :photos, photo)
+          _ -> acc
+        end
       end)
 
     {:noreply,
