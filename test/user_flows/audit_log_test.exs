@@ -89,4 +89,27 @@ defmodule Web.UserFlows.AuditLogTest do
     |> assert_has(test_id("audit-row-#{a.id}"))
     |> refute_has(test_id("audit-row-#{b.id}"))
   end
+
+  test "infinite scroll loads older rows", %{conn: conn} do
+    Enum.each(1..60, fn i ->
+      insert(:audit_log,
+        account_email: "user#{i}@example.com",
+        inserted_at: NaiveDateTime.add(~N[2026-05-01 10:00:00], -i, :second)
+      )
+    end)
+
+    last_row =
+      Ancestry.Audit.list_entries(%{}, 100)
+      |> Enum.find(fn r -> r.account_email == "user60@example.com" end)
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-load-more"))
+    |> click(test_id("audit-load-more"))
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-#{last_row.id}"))
+    |> refute_has(test_id("audit-load-more"))
+  end
 end

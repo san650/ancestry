@@ -27,6 +27,8 @@ defmodule Web.AuditLogLive.Index do
      |> assign(:page_title, gettext("Audit log"))
      |> assign(:expanded_id, nil)
      |> assign(:filters, %{})
+     |> assign(:cursor, nil)
+     |> assign(:has_more?, false)
      |> assign(:organizations, Ancestry.Organizations.list_organizations())
      |> assign(:accounts, Audit.list_audit_accounts(%{}))
      |> stream(:entries, [])}
@@ -42,6 +44,8 @@ defmodule Web.AuditLogLive.Index do
      socket
      |> assign(:filters, filters)
      |> assign(:accounts, accounts)
+     |> assign(:cursor, cursor_from(rows))
+     |> assign(:has_more?, length(rows) == @limit)
      |> stream(:entries, rows, reset: true)}
   end
 
@@ -67,6 +71,20 @@ defmodule Web.AuditLogLive.Index do
   end
 
   @impl true
+  def handle_event("load_more", _, socket) do
+    filters = Map.put(socket.assigns.filters, :before, socket.assigns.cursor)
+    rows = Audit.list_entries(filters, @limit)
+
+    socket =
+      Enum.reduce(rows, socket, fn row, s -> stream_insert(s, :entries, row, at: -1) end)
+
+    {:noreply,
+     socket
+     |> assign(:cursor, cursor_from(rows) || socket.assigns.cursor)
+     |> assign(:has_more?, length(rows) == @limit)}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <Layouts.app flash={@flash} current_scope={@current_scope}>
@@ -80,6 +98,7 @@ defmodule Web.AuditLogLive.Index do
           filters={@filters}
         />
         <Components.audit_table stream={@streams.entries} expanded_id={@expanded_id} />
+        <Components.viewport_sentinel has_more?={@has_more?} />
       </div>
     </Layouts.app>
     """
@@ -97,4 +116,7 @@ defmodule Web.AuditLogLive.Index do
   defp parse_int(nil), do: nil
   defp parse_int(""), do: nil
   defp parse_int(s) when is_binary(s), do: String.to_integer(s)
+
+  defp cursor_from([]), do: nil
+  defp cursor_from(rows), do: rows |> List.last() |> then(&{&1.inserted_at, &1.id})
 end

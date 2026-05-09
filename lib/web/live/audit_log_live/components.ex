@@ -117,4 +117,23 @@ defmodule Web.AuditLogLive.Components do
     </form>
     """
   end
+
+  attr :has_more?, :boolean, required: true
+
+  def viewport_sentinel(assigns) do
+    ~H"""
+    <div :if={@has_more?} id="audit-load-more-wrapper" class="py-6 text-center">
+      <button
+        id="audit-load-more"
+        type="button"
+        phx-click="load_more"
+        phx-viewport-bottom="load_more"
+        class="font-cm-mono text-[11px] uppercase tracking-wider text-cm-coral underline"
+        {test_id("audit-load-more")}
+      >
+        {gettext("Load more")}
+      </button>
+    </div>
+    """
+  end
 end
