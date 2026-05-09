@@ -13,8 +13,8 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
     test "shows existing comments for a photo", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
 
-      {:ok, _} = Comments.create_photo_comment(photo.id, account.id, %{text: "Great shot!"})
-      {:ok, _} = Comments.create_photo_comment(photo.id, account.id, %{text: "Love it"})
+      insert(:photo_comment, photo: photo, account: account, text: "Great shot!")
+      insert(:photo_comment, photo: photo, account: account, text: "Love it")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -83,7 +83,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   describe "editing comments" do
     test "edit and save updates the comment", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
+      comment = insert(:photo_comment, photo: photo, account: account, text: "Original")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -113,7 +113,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
     test "cancel edit hides the edit form", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Original"})
+      comment = insert(:photo_comment, photo: photo, account: account, text: "Original")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -138,7 +138,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
   describe "deleting comments" do
     test "clicking delete removes the comment", %{conn: conn, account: account} do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Delete me"})
+      comment = insert(:photo_comment, photo: photo, account: account, text: "Delete me")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -199,11 +199,8 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
-      {:ok, _} =
-        Comments.create_photo_comment(photo1.id, account.id, %{text: "Comment on photo 1"})
-
-      {:ok, _} =
-        Comments.create_photo_comment(photo2.id, account.id, %{text: "Comment on photo 2"})
+      insert(:photo_comment, photo: photo1, account: account, text: "Comment on photo 1")
+      insert(:photo_comment, photo: photo2, account: account, text: "Comment on photo 2")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -226,8 +223,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       {family, gallery, photo1, org} = setup_gallery_with_photo()
       photo2 = photo_fixture(gallery)
 
-      {:ok, _} =
-        Comments.create_photo_comment(photo1.id, account.id, %{text: "Only on photo 1"})
+      insert(:photo_comment, photo: photo1, account: account, text: "Only on photo 1")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -260,8 +256,9 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       view |> element("#toggle-panel-btn") |> render_click()
 
       # Simulate a PubSub broadcast by sending the message directly to the LiveView
-      {:ok, comment} =
-        Comments.create_photo_comment(photo.id, account.id, %{text: "From another user"})
+      comment =
+        insert(:photo_comment, photo: photo, account: account, text: "From another user")
+        |> Ancestry.Repo.preload(:account)
 
       send(view.pid, {:comment_created, comment})
 
@@ -276,7 +273,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       account: account
     } do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Before edit"})
+      comment = insert(:photo_comment, photo: photo, account: account, text: "Before edit")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -286,7 +283,11 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
       assert has_element?(view, "#photo-comments-panel", "Before edit")
 
-      {:ok, updated} = Comments.update_photo_comment(comment, %{text: "After edit"})
+      updated =
+        comment
+        |> Ecto.Changeset.change(%{text: "After edit"})
+        |> Ancestry.Repo.update!()
+        |> Ancestry.Repo.preload(:account)
 
       send(view.pid, {:comment_updated, updated})
       render(view)
@@ -298,7 +299,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
       account: account
     } do
       {family, gallery, photo, org} = setup_gallery_with_photo()
-      {:ok, comment} = Comments.create_photo_comment(photo.id, account.id, %{text: "Will vanish"})
+      comment = insert(:photo_comment, photo: photo, account: account, text: "Will vanish")
 
       {:ok, view, _html} =
         live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
@@ -308,7 +309,7 @@ defmodule Web.Comments.PhotoCommentsComponentTest do
 
       assert has_element?(view, "#photo-comments-panel", "Will vanish")
 
-      {:ok, _} = Comments.delete_photo_comment(comment)
+      Ancestry.Repo.delete!(comment)
 
       send(view.pid, {:comment_deleted, comment})
       render(view)
