@@ -124,4 +124,35 @@ defmodule Web.UserFlows.AuditLogTest do
     |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.command_id)
     |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.correlation_id)
   end
+
+  test "org-scoped page only shows that org's rows", %{
+    conn: conn,
+    org_a: org_a,
+    row_a: a,
+    row_b: b
+  } do
+    conn
+    |> log_in_e2e(role: :admin, organization_ids: [org_a.id])
+    |> visit(~p"/org/#{org_a.id}/audit-log")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-#{a.id}"))
+    |> refute_has(test_id("audit-row-#{b.id}"))
+  end
+
+  test "org-scoped page hides the organization filter", %{conn: conn, org_a: org_a} do
+    conn
+    |> log_in_e2e(role: :admin, organization_ids: [org_a.id])
+    |> visit(~p"/org/#{org_a.id}/audit-log")
+    |> wait_liveview()
+    |> refute_has(test_id("audit-filter-org"))
+    |> assert_has(test_id("audit-filter-account"))
+  end
+
+  test "editor cannot access org-scoped audit log", %{conn: conn, org_a: org_a} do
+    conn
+    |> log_in_e2e(role: :editor, organization_ids: [org_a.id])
+    |> visit(~p"/org/#{org_a.id}/audit-log")
+    |> wait_liveview()
+    |> assert_has("[role='alert']", text: "permission")
+  end
 end

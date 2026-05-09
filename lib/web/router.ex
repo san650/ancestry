@@ -86,6 +86,7 @@ defmodule Web.Router do
         live "/families/:family_id/birthdays", BirthdayLive.Index, :index
         live "/families/:family_id/people", PeopleLive.Index, :index
         live "/people", OrgPeopleLive.Index, :index
+        live "/audit-log", AuditLogLive.OrgIndex, :index
       end
     end
   end
