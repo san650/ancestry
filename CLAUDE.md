@@ -99,9 +99,9 @@ State-mutating operations dispatch through `Ancestry.Bus.dispatch/2`. Each mutat
 
 **Authorization:** Permit class-level rules in `Ancestry.Permissions` are checked by the dispatcher before the handler runs. Record-level rules (e.g. owner-only edits) live in a handler `Multi.run(:authorize, ...)` step that returns `{:error, :unauthorized}`. **Never** scatter `account.role == :admin` checks across LiveViews or contexts.
 
-**Audit log:** `audit_log` table receives one row per **successful** dispatch via an in-transaction `Multi.insert(:__audit__, ...)`. Denormalized snapshots of account/organization names + emails — no FKs. Failures (validation, authz, exceptions) flow through `:telemetry` events and `Logger` metadata only — they do not write audit rows.
+**Audit log:** `audit_log` table receives one row per **successful** dispatch via an in-transaction `Multi.insert(:__audit__, &audit_changeset/1)` step the dispatcher prepends. Denormalized snapshots of account/organization names + emails — no FKs. Failures (validation, authz, exceptions) flow through `:telemetry` events and `Logger` metadata only — they do not write audit rows.
 
-**Side effects:** handlers append a `Multi.run(:__effects__, fn _, _ -> {:ok, [{:broadcast, topic, msg}, ...]} end)` step. The dispatcher fires the list after the transaction commits. **Never** call `Phoenix.PubSub.broadcast/3` directly from a handler — use the effects list.
+**Side effects:** handlers append a `Multi.run(:__effects__, &compute_effects/2)` step whose private `compute_effects/2` returns `{:ok, [{:broadcast, topic, msg}, {:waffle_delete, photo}, ...]}`. The dispatcher fires the list after the transaction commits. **Never** call `Phoenix.PubSub.broadcast/3` or any other non-transactional side effect directly from a handler — append it to the effects list.
 
 **Error taxonomy:** dispatcher returns `{:ok, primary}` or one of:
 - `{:error, :unauthorized}`
@@ -325,7 +325,9 @@ defp insert_family_member(%{family: family, person: person}) do
 end
 </good-example>
 
-- **Always** extract Multi steps into named private functions. The Multi pipeline should read as a clear sequence of named steps — don't inline anonymous functions.
+- **Always** extract Multi steps into named private functions. **This rule applies to every `Ecto.Multi` operation that accepts a function or changeset-builder argument** — `Multi.run`, `Multi.insert`, `Multi.update`, `Multi.delete`, `Multi.insert_or_update`, `Multi.delete_all`, `Multi.update_all`, `Multi.merge`. The pipeline should read as a clear sequence of named steps. Inline anonymous functions are forbidden, even short ones like `fn %{load: p} -> p end`.
+
+If a step needs data from outside the Multi (e.g. a struct from the surrounding scope), put it on the Multi via `Multi.put/3` first so the named function can pattern-match on `changes`. Never close over outer variables in a Multi step.
 
 Don't do this
 
@@ -334,8 +336,12 @@ Multi.new()
 |> Multi.run(:check, fn repo, _changes ->
     # ... many lines of inlined logic ...
   end)
+|> Multi.insert(:photo, fn _changes ->
+    Photo.changeset(%Photo{}, attrs)   # closes over `attrs` from outer scope
+  end)
+|> Multi.delete(:gallery, fn %{load: g} -> g end)   # short lambda — still forbidden
 |> Multi.run(:process, fn repo, %{check: result} ->
-    # ... more inlined logic ...
+    # ...
   end)
 |> Repo.transaction()
 </bad-example>
@@ -344,14 +350,22 @@ Do this instead
 
 <good-example>
 Multi.new()
-|> Multi.put(:input, input)
+|> Multi.put(:attrs, attrs)
 |> Multi.run(:check, &run_check/2)
+|> Multi.insert(:photo, &photo_changeset/1)
+|> Multi.delete(:gallery, &take_loaded/1)
 |> Multi.run(:process, &run_process/2)
 |> Repo.transaction()
 
-defp run_check(repo, %{input: input}) do
+defp run_check(repo, %{attrs: attrs}) do
   # ...
 end
+
+defp photo_changeset(%{attrs: attrs}) do
+  Photo.changeset(%Photo{}, attrs)
+end
+
+defp take_loaded(%{load: g}), do: g
 
 defp run_process(repo, %{check: result}) do
   # ...
