@@ -122,4 +122,18 @@ defmodule Ancestry.Factory do
       person: build(:person)
     }
   end
+
+  def audit_log_factory do
+    %Ancestry.Audit.Log{
+      command_id: sequence(:audit_command_id, &"cmd-#{&1}-#{Ecto.UUID.generate()}"),
+      correlation_id: sequence(:audit_correlation_id, &"req-#{&1}-#{Ecto.UUID.generate()}"),
+      command_module: "Ancestry.Commands.AddCommentToPhoto",
+      account_id: sequence(:audit_account_id, & &1),
+      account_name: "Tester",
+      account_email: sequence(:audit_email, &"audit#{&1}@example.com"),
+      organization_id: nil,
+      organization_name: nil,
+      payload: %{"photo_id" => 1, "text" => "hi"}
+    }
+  end
 end
