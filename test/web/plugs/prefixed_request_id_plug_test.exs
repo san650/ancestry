@@ -1,7 +1,7 @@
 defmodule Web.PrefixedRequestIdPlugTest do
   # Logger.metadata is process-global
   use ExUnit.Case, async: false
-  use Plug.Test
+  import Plug.Test
 
   alias Web.PrefixedRequestIdPlug
 
@@ -32,10 +32,9 @@ defmodule Web.PrefixedRequestIdPlugTest do
   end
 
   test "ignores empty inbound x-request-id" do
-    conn =
-      conn(:get, "/")
-      |> Plug.Conn.put_req_header("x-request-id", "")
-      |> PrefixedRequestIdPlug.call([])
+    conn(:get, "/")
+    |> Plug.Conn.put_req_header("x-request-id", "")
+    |> PrefixedRequestIdPlug.call([])
 
     refute Logger.metadata()[:inbound_request_id]
   end
