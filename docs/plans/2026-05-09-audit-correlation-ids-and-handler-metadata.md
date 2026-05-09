@@ -84,7 +84,7 @@ schema "audit_log" do
 end
 ```
 
-`@required` updates: `correlation_id` → `correlation_ids`. (Empty list is invalid because we always populate at least one — see Envelope semantics below.)
+`@required` updates: `correlation_id` → `correlation_ids`. Note that `Ecto.Changeset.validate_required/2` treats `[]` as present (only `nil` is missing), so the changeset adds an explicit `validate_length(:correlation_ids, min: 1)` as a defensive backstop — `Envelope.wrap/3` already guarantees at least one id (see Envelope semantics below), and this is belt-and-braces.
 
 ### Migration
 
@@ -122,8 +122,13 @@ def down do
 
   execute "UPDATE audit_log SET correlation_id = correlation_ids[1]"
 
+  # Split the final alter into two blocks: tightening NOT NULL must precede
+  # removal of `correlation_ids` to avoid mixing modify+remove in one statement.
   alter table(:audit_log) do
     modify :correlation_id, :string, null: false
+  end
+
+  alter table(:audit_log) do
     remove :correlation_ids
   end
 
@@ -162,7 +167,7 @@ The `:correlation_id` (singular) opt is **removed** — there are very few call 
 
 ### Bus / Logger / telemetry
 
-`Logger.metadata` and telemetry both switch the singular key to plural:
+Both `Bus.dispatch_envelope/1` (currently `lib/ancestry/bus.ex:17`) and `Bus.base_metadata/1` (currently `lib/ancestry/bus.ex:104`) read the renamed envelope field. Both switch from `env.correlation_id` to `env.correlation_ids`. Logger and telemetry both switch the singular key to plural:
 
 ```elixir
 Logger.metadata(
@@ -172,7 +177,7 @@ Logger.metadata(
 )
 ```
 
-Logger handles list-valued metadata natively. `Bus.base_metadata/1` does the same swap.
+Logger handles list-valued metadata natively, but the formatter allowlist needs to know about the new key. `config/config.exs:91` configures `metadata: [:request_id]` for the default formatter — extend it to `metadata: [:request_id, :correlation_ids, :command_id]` so the new metadata appears in dev/prod logs. (`:command_id` was already populated but never surfaced; piggy-backing on this change.)
 
 ### Step DSL
 
@@ -211,6 +216,7 @@ def changeset_from(env, metadata \\ %{}) do
   %__MODULE__{}
   |> cast(attrs_from(env, metadata), @required ++ @optional)
   |> validate_required(@required)
+  |> validate_length(:correlation_ids, min: 1)
 end
 
 defp attrs_from(env, metadata) do
@@ -311,9 +317,18 @@ The handler stores a **reference**, not a snapshot URL. Three reasons:
 
 ### Audit-log UI
 
-`Web.AuditLogLive.Components` and `Web.AuditLogLive.Show` change in three places:
+`Web.AuditLogLive.Components`, `Web.AuditLogLive.Show`, and `Web.AuditLogLive.Shared` all touch the renamed field or the new payload shape. Specific call sites:
 
-1. **Argument display.** Where they read `entry.payload`, they now read `entry.payload["arguments"]`. Same JSON-preview rendering otherwise.
+- `lib/web/live/audit_log_live/components.ex:32` — `payload_preview(row.payload)` — change to `payload_preview(row.payload["arguments"])` so the collapsed-row preview shows command arguments, not the wrapper keys.
+- `lib/web/live/audit_log_live/components.ex:42` — `correlation_id: {row.correlation_id}` — replaced by a chip strip from the new `correlation_ids/1` function component.
+- `lib/web/live/audit_log_live/components.ex:43` — `Jason.encode!(row.payload, pretty: true)` — keep the full payload pretty-printed (it's the expanded "raw" view; showing both `arguments` and `metadata` here is desirable).
+- `lib/web/live/audit_log_live/show.ex:25` — `entry.correlation_id |> Audit.list_correlated_entries()` — switch to `Audit.list_correlated_entries_for(entry.correlation_ids)` (new plural function — see "Detail page: related events" below).
+- `lib/web/live/audit_log_live/show.ex:61-62` — the `<dt>correlation_id</dt><dd>{@entry.correlation_id}</dd>` block — replaced by the chip strip.
+- `lib/web/live/audit_log_live/show.ex:65` — `Jason.encode!(@entry.payload, pretty: true)` — keep as-is (raw view).
+
+The three new UI building blocks:
+
+1. **Argument display.** Wherever the old code rendered `entry.payload` as the *command summary* (i.e. the collapsed preview at `components.ex:32`), it now renders `entry.payload["arguments"]`. The expanded raw views keep the full envelope-shaped payload.
 2. **Correlation-ids strip.** A new `correlation_ids/1` function component renders each id as a small monospace chip. Each chip is a link to the index filtered to that single id (`/admin/audit-log?correlation_id=<id>` — see Filter URL state below). Same component used in the row-expanded view, the detail page header, and the related-events row prefix.
 3. **Metadata cell.** A new `metadata_cell/1` function component branches on `entry.command_module`:
 
@@ -348,7 +363,7 @@ Postgres `&&` (array overlap) uses the GIN index. The existing singular `list_co
 
 ### Filter URL state
 
-The `Web.AuditLogLive.Index` and `OrgIndex` filter form gains a `correlation_id` filter (singular — users filter by one id at a time). Reuses the existing list query path with one new `apply_filter` clause:
+The `Web.AuditLogLive.Index` and `OrgIndex` filter form gains a `correlation_id` filter (singular — users filter by one id at a time). Reuses the existing list query path with one new `apply_filter` clause in `Ancestry.Audit`:
 
 ```elixir
 defp apply_filter(query, :correlation_id, %{correlation_id: id}) when is_binary(id) and id != "",
@@ -356,6 +371,12 @@ defp apply_filter(query, :correlation_id, %{correlation_id: id}) when is_binary(
 ```
 
 The filter form input is hidden by default but a deep-link from a chip populates it.
+
+Three integration points need updating so the new filter actually flows end-to-end:
+
+- `lib/web/live/audit_log_live/index.ex` `parse_filters/1` (~line 110) — add a `Shared.maybe_put(:correlation_id, params["correlation_id"])` call. The `handle_event("filter", ...)` clause in `index.ex` already passes the form params through unfiltered, so no guard change there.
+- `lib/web/live/audit_log_live/org_index.ex:58` — the `Map.take(["account_id"])` guard explicitly drops unknown form keys; extend it to `Map.take(["account_id", "correlation_id"])`. Without this, deep-links from chips on the org-scoped page silently drop the filter.
+- `lib/web/live/audit_log_live/shared.ex` `matches_filters?/2` (~line 14) — add a `{:correlation_id, id} -> id in row.correlation_ids` branch. Without it, the live PubSub `{:audit_logged, row}` handler will insert rows into the stream regardless of the active correlation filter.
 
 ## Tests
 
@@ -410,15 +431,18 @@ audit_log_factory: %Audit.Log{
 ### Modified
 - `lib/ancestry/prefixes.ex` — add `:batch` → `"bch"`.
 - `lib/ancestry/bus/envelope.ex` — field rename, `wrap/3` rewrite.
-- `lib/ancestry/bus.ex` — Logger / telemetry metadata key rename.
+- `lib/ancestry/bus.ex` — `dispatch_envelope/1` (line 17) and `base_metadata/1` (line 104) read `env.correlation_ids` instead of `env.correlation_id`; Logger / telemetry metadata key renamed accordingly.
 - `lib/ancestry/bus/step.ex` — add `audit/2`, reserved `:audit_metadata` step.
 - `lib/ancestry/audit.ex` — `list_correlated_entries/1` query change; new `list_correlated_entries_for/1`; new `apply_filter` clause.
 - `lib/ancestry/audit/log.ex` — schema field, `changeset_from/1,2`, `attrs_from/2`.
 - `lib/ancestry/handlers/add_photo_to_gallery_handler.ex` — switch to `Step.audit/2` with `audit_metadata/1`.
 - `lib/web/live/gallery_live/show.ex` — generate `bch-…` once per `process_uploads/1`, pass `correlation_ids:` to each dispatch.
-- `lib/web/live/audit_log_live/show.ex` — chip strip, metadata cell, related-events panel.
-- `lib/web/live/audit_log_live/components.ex` — `correlation_ids/1` and `metadata_cell/1` function components; argument-display reads `payload["arguments"]`.
-- `lib/web/live/audit_log_live/index.ex`, `org_index.ex` (or wherever filter handling lives) — `correlation_id` filter clause and form field.
+- `lib/web/live/audit_log_live/show.ex` — chip strip (replaces `correlation_id` `<dd>`), metadata cell, related-events panel uses `list_correlated_entries_for/1`.
+- `lib/web/live/audit_log_live/components.ex` — `correlation_ids/1` and `metadata_cell/1` function components; collapsed preview reads `payload["arguments"]`.
+- `lib/web/live/audit_log_live/index.ex` — `parse_filters/1` reads `correlation_id`; form field added.
+- `lib/web/live/audit_log_live/org_index.ex` — same `parse_filters/1` change *and* extend the `Map.take(["account_id"])` allowlist to include `"correlation_id"`.
+- `lib/web/live/audit_log_live/shared.ex` — new `:correlation_id` branch in `matches_filters?/2`.
+- `config/config.exs` — extend Logger formatter `metadata:` allowlist to include `:correlation_ids` (and `:command_id`).
 - `test/support/factory.ex` — `correlation_ids: [...]`, `payload: %{"arguments" => %{}, "metadata" => %{}}`.
 - `test/ancestry/bus/envelope_test.exs` — assertion updates and new merge/dedup cases.
 - `test/ancestry/audit/log_test.exs` — assertion updates.
