@@ -30,10 +30,6 @@ defmodule Web.AuditLogLive.Components do
           </span>
         </button>
 
-        <div {test_id("audit-row-metadata-#{row.id}")}>
-          <.metadata_cell entry={row} />
-        </div>
-
         <div
           id={"audit-row-expanded-#{row.id}"}
           class="hidden px-4 py-3 bg-cm-surface text-[11px] font-cm-mono"
@@ -82,6 +78,11 @@ defmodule Web.AuditLogLive.Components do
       class="flex flex-wrap gap-3 items-end pb-4"
       {test_id("audit-filter")}
     >
+      <input
+        type="hidden"
+        name="filters[correlation_id]"
+        value={@filters[:correlation_id] || ""}
+      />
       <label :if={@show_organization?} class="flex flex-col text-[11px] font-cm-mono">
         <span class="font-bold uppercase">{gettext("Organization")}</span>
         <select
@@ -154,43 +155,5 @@ defmodule Web.AuditLogLive.Components do
       </.link>
     </span>
     """
-  end
-
-  attr :entry, :map, required: true
-
-  def metadata_cell(
-        %{entry: %{command_module: "Ancestry.Commands.AddPhotoToGallery"} = entry} = assigns
-      ) do
-    photo = lookup_photo(entry.payload["metadata"]["photo_id"])
-    assigns = assign(assigns, :photo, photo)
-
-    ~H"""
-    <%= cond do %>
-      <% is_nil(@photo) -> %>
-        <span class="text-xs text-zinc-500">{gettext("Photo deleted")}</span>
-      <% @photo.status == "processed" -> %>
-        <img
-          src={Ancestry.Uploaders.Photo.url({@photo.image, @photo}, :thumbnail)}
-          class="h-12 w-12 object-cover rounded"
-          alt=""
-        />
-      <% true -> %>
-        <span class="text-xs text-zinc-500">{gettext("Processing")}</span>
-    <% end %>
-    """
-  end
-
-  def metadata_cell(assigns), do: ~H""
-
-  # Returns nil-or-Photo with :gallery preloaded — Waffle's storage_dir/2
-  # requires scope.gallery.family_id, so the preload is mandatory before
-  # building a thumbnail URL.
-  defp lookup_photo(nil), do: nil
-
-  defp lookup_photo(photo_id) do
-    case Ancestry.Repo.get(Ancestry.Galleries.Photo, photo_id) do
-      nil -> nil
-      photo -> Ancestry.Repo.preload(photo, :gallery)
-    end
   end
 end

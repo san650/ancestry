@@ -66,11 +66,11 @@ defmodule Ancestry.Audit.LogTest do
 
   test "changeset_from/2 stores handler-supplied metadata under payload.metadata" do
     env = build_envelope()
-    cs = Log.changeset_from(env, %{photo_id: 7})
+    cs = Log.changeset_from(env, %{"photo_id" => 7})
     row = Repo.insert!(cs)
 
     assert row.payload["arguments"] == Serializer.serialize(env.command)
-    assert row.payload["metadata"] == %{photo_id: 7}
+    assert row.payload["metadata"] == %{"photo_id" => 7}
   end
 
   test "changeset_from/2 rejects empty correlation_ids defensively" do

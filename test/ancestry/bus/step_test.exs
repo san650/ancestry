@@ -84,6 +84,7 @@ defmodule Ancestry.Bus.StepTest do
     {:ok, %{audit: row}} = Ancestry.Repo.transaction(multi)
     assert %Log{command_id: cmd_id} = row
     assert cmd_id == env.command_id
+    assert row.payload["metadata"] == %{}
   end
 
   test "audit/2 writes handler-supplied metadata into payload.metadata" do
@@ -96,7 +97,7 @@ defmodule Ancestry.Bus.StepTest do
       |> Step.no_effects()
 
     assert {:ok, %{audit: row}} = Ancestry.Repo.transaction(multi)
-    assert row.payload["metadata"] == %{photo_id: 42}
+    assert row.payload["metadata"] == %{"photo_id" => 42}
   end
 
   defp audit_metadata(%{photo: photo}), do: %{photo_id: photo.id}
@@ -116,12 +117,14 @@ defmodule Ancestry.Bus.StepTest do
       env
       |> Step.new()
       |> Step.put(:thing, %{photo_id: 7})
-      |> Step.effects(fn _repo, %{thing: t} ->
-        {:ok, [{:broadcast, "test", {:hi, t.photo_id}}]}
-      end)
+      |> Step.effects(&broadcast_thing/2)
 
     {:ok, %{effects: effects}} = Ancestry.Repo.transaction(multi)
     assert effects == [{:broadcast, "test", {:hi, 7}}]
+  end
+
+  defp broadcast_thing(_repo, %{thing: t}) do
+    {:ok, [{:broadcast, "test", {:hi, t.photo_id}}]}
   end
 
   test "authorize/5 returns the loaded record when the scope can perform the action" do

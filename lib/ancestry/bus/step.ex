@@ -69,7 +69,10 @@ defmodule Ancestry.Bus.Step do
   defp create_audit_log_with_metadata(%{envelope: env, audit_metadata: meta}),
     do: Log.changeset_from(env, meta)
 
-  defp run_metadata_fun(_repo, changes, fun), do: {:ok, fun.(changes)}
+  defp run_metadata_fun(_repo, changes, fun), do: {:ok, stringify_keys(fun.(changes))}
+
+  defp stringify_keys(map) when is_map(map),
+    do: Map.new(map, fn {k, v} -> {to_string(k), v} end)
 
   defp empty_effects(_repo, _changes), do: {:ok, []}
 
