@@ -88,7 +88,7 @@ config :tailwind,
 # Configure Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
-  metadata: [:request_id]
+  metadata: [:request_id, :correlation_ids, :command_id]
 
 config :phoenix, :filter_parameters, ["password", "secret", "token"]
 
