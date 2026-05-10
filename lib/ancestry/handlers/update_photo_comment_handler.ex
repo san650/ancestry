@@ -24,9 +24,7 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
     |> Step.effects(&broadcast_update/2)
   end
 
-  defp audit_metadata(%{authorized_comment: original, comment: updated}) do
-    %{before: original.text, after: updated.text}
-  end
+  defp audit_metadata(%{authorized_comment: original}), do: %{original_text: original.text}
 
   defp update_authorized_comment(%{envelope: envelope, authorized_comment: comment}) do
     PhotoComment.changeset(comment, %{text: envelope.command.text})
