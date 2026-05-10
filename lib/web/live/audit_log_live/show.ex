@@ -8,7 +8,7 @@ defmodule Web.AuditLogLive.Show do
     skip_preload: [:show]
 
   alias Ancestry.Audit
-  import Web.AuditLogLive.Components, only: [correlation_ids: 1]
+  import Web.AuditLogLive.Components, only: [correlation_ids: 1, metadata_cell: 1]
 
   @impl true
   def handle_unauthorized(_action, socket) do
@@ -61,6 +61,11 @@ defmodule Web.AuditLogLive.Show do
           <dt class="font-bold uppercase">correlation_ids</dt>
           <dd class="col-span-2"><.correlation_ids ids={@entry.correlation_ids} /></dd>
           <dt class="font-bold uppercase">{gettext("Metadata")}</dt>
+          <dd class="col-span-2">
+            <div {test_id("audit-row-metadata-#{@entry.id}")}>
+              <.metadata_cell entry={@entry} />
+            </div>
+          </dd>
           <dt class="font-bold uppercase">{gettext("Payload")}</dt>
           <dd class="col-span-2">
             <pre class="whitespace-pre-wrap break-all">{Jason.encode!(@entry.payload, pretty: true)}</pre>

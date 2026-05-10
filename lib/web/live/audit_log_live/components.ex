@@ -156,4 +156,39 @@ defmodule Web.AuditLogLive.Components do
     </span>
     """
   end
+
+  attr :entry, :map, required: true
+
+  def metadata_cell(
+        %{entry: %{command_module: "Ancestry.Commands.AddPhotoToGallery"} = entry} = assigns
+      ) do
+    photo = lookup_photo(entry.payload["metadata"]["photo_id"])
+    assigns = assign(assigns, :photo, photo)
+
+    ~H"""
+    <%= cond do %>
+      <% is_nil(@photo) -> %>
+        <span class="text-xs text-zinc-500">{gettext("Photo deleted")}</span>
+      <% @photo.status == "processed" -> %>
+        <img
+          src={Ancestry.Uploaders.Photo.url({@photo.image, @photo}, :thumbnail)}
+          class="h-12 w-12 object-cover rounded"
+          alt=""
+        />
+      <% true -> %>
+        <span class="text-xs text-zinc-500">{gettext("Processing")}</span>
+    <% end %>
+    """
+  end
+
+  def metadata_cell(assigns), do: ~H""
+
+  defp lookup_photo(nil), do: nil
+
+  defp lookup_photo(photo_id) do
+    case Ancestry.Repo.get(Ancestry.Galleries.Photo, photo_id) do
+      nil -> nil
+      photo -> Ancestry.Repo.preload(photo, :gallery)
+    end
+  end
 end

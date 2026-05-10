@@ -205,4 +205,19 @@ defmodule Web.UserFlows.AuditLogTest do
     |> refute_has(test_id("nav-audit-log-admin"))
     |> refute_has(test_id("nav-audit-log-org"))
   end
+
+  test "AddPhotoToGallery audit row renders 'Photo deleted' when photo is gone",
+       %{conn: conn} do
+    row =
+      insert(:audit_log,
+        command_module: "Ancestry.Commands.AddPhotoToGallery",
+        payload: %{"arguments" => %{}, "metadata" => %{"photo_id" => 999_999}}
+      )
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log/#{row.id}")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-metadata-#{row.id}"), text: "Photo deleted")
+  end
 end
