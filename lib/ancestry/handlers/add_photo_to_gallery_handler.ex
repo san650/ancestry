@@ -21,7 +21,7 @@ defmodule Ancestry.Handlers.AddPhotoToGalleryHandler do
     |> Step.insert(:inserted_photo, &add_photo_to_gallery/1)
     |> Step.run(:photo, &preload_photo_gallery/2)
     |> Step.enqueue(:transform_job, &transform_and_store_photo/1)
-    |> Step.audit()
+    |> Step.audit(&audit_metadata/1)
     |> Step.no_effects()
   end
 
@@ -37,4 +37,6 @@ defmodule Ancestry.Handlers.AddPhotoToGalleryHandler do
   defp transform_and_store_photo(%{photo: photo}) do
     TransformAndStorePhoto.new(%{photo_id: photo.id})
   end
+
+  defp audit_metadata(%{photo: photo}), do: %{photo_id: photo.id}
 end
