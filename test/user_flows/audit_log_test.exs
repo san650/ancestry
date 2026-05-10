@@ -206,6 +206,21 @@ defmodule Web.UserFlows.AuditLogTest do
     |> refute_has(test_id("nav-audit-log-org"))
   end
 
+  test "correlation_id filter renders as a chip with a clear button", %{conn: conn} do
+    cid = "bch-#{Ecto.UUID.generate()}"
+    row = insert(:audit_log, correlation_ids: [cid])
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log?correlation_id=#{cid}")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-filter-correlation-chip"), text: cid)
+    |> assert_has(test_id("audit-row-#{row.id}"))
+    |> click(test_id("audit-filter-correlation-clear"))
+    |> wait_liveview()
+    |> refute_has(test_id("audit-filter-correlation-chip"))
+  end
+
   test "AddPhotoToGallery audit row renders 'Photo deleted' when photo is gone",
        %{conn: conn} do
     row =
