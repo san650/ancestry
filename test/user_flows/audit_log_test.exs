@@ -216,7 +216,7 @@ defmodule Web.UserFlows.AuditLogTest do
 
     conn
     |> log_in_e2e(role: :admin)
-    |> visit(~p"/admin/audit-log")
+    |> visit(~p"/admin/audit-log/#{row.id}")
     |> wait_liveview()
     |> assert_has(test_id("audit-row-metadata-#{row.id}"), text: "Photo deleted")
   end
