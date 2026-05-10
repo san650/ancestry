@@ -111,5 +111,6 @@ defmodule Web.AuditLogLive.Index do
     %{}
     |> Shared.maybe_put(:organization_id, Shared.parse_int(params["organization_id"]))
     |> Shared.maybe_put(:account_id, Shared.parse_int(params["account_id"]))
+    |> Shared.maybe_put(:correlation_id, params["correlation_id"])
   end
 end

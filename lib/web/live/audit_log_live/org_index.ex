@@ -38,6 +38,7 @@ defmodule Web.AuditLogLive.OrgIndex do
     filters =
       %{organization_id: org_id}
       |> Shared.maybe_put(:account_id, Shared.parse_int(params["account_id"]))
+      |> Shared.maybe_put(:correlation_id, params["correlation_id"])
 
     rows = Audit.list_entries(filters, @limit)
 
@@ -55,7 +56,7 @@ defmodule Web.AuditLogLive.OrgIndex do
 
     pairs =
       params
-      |> Map.take(["account_id"])
+      |> Map.take(["account_id", "correlation_id"])
       |> Enum.reject(fn {_, v} -> v in [nil, ""] end)
 
     path =

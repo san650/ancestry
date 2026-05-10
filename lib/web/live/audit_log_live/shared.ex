@@ -15,6 +15,7 @@ defmodule Web.AuditLogLive.Shared do
     Enum.all?(filters, fn
       {:organization_id, id} -> row.organization_id == id
       {:account_id, id} -> row.account_id == id
+      {:correlation_id, id} -> id in row.correlation_ids
       {:before, _} -> true
     end)
   end
