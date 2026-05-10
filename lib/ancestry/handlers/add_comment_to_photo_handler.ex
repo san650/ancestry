@@ -19,9 +19,11 @@ defmodule Ancestry.Handlers.AddCommentToPhotoHandler do
     Step.new(envelope)
     |> Step.insert(:inserted_comment, &add_comment_to_photo/1)
     |> Step.run(:comment, &preload_comment_account/2)
-    |> Step.audit()
+    |> Step.audit(&audit_metadata/1)
     |> Step.effects(&broadcast_creation/2)
   end
+
+  defp audit_metadata(%{comment: comment}), do: %{text: comment.text}
 
   defp add_comment_to_photo(%{envelope: envelope}) do
     %{command: command, scope: scope} = envelope

@@ -45,6 +45,6 @@ defmodule Ancestry.Handlers.AddCommentToPhotoHandlerTest do
     assert [row] = Ancestry.Repo.all(Ancestry.Audit.Log)
     assert row.command_module == "Ancestry.Commands.AddCommentToPhoto"
     assert row.payload["arguments"] == %{"photo_id" => photo.id, "text" => "smoke"}
-    assert row.payload["metadata"] == %{}
+    assert row.payload["metadata"] == %{"text" => "smoke"}
   end
 end
