@@ -24,8 +24,8 @@ defmodule Ancestry.Handlers.AddGalleryToFamilyHandlerTest do
 
     assert [row] = Ancestry.Repo.all(Ancestry.Audit.Log)
     assert row.command_module == "Ancestry.Commands.AddGalleryToFamily"
-    assert row.payload["name"] == "Trip"
-    assert row.payload["family_id"] == family.id
+    assert row.payload["arguments"]["name"] == "Trip"
+    assert row.payload["arguments"]["family_id"] == family.id
   end
 
   test "Bus.dispatch returns :validation for invalid family_id", %{scope: scope} do

@@ -86,6 +86,28 @@ defmodule Web.Layouts do
                   </.link>
                 </li>
               <% end %>
+              <%= if can?(@current_scope, :index, Ancestry.Audit.Log) do %>
+                <li>
+                  <.link
+                    {test_id("nav-audit-log-admin")}
+                    href={~p"/admin/audit-log"}
+                    class="hover:text-cm-white transition-colors"
+                  >
+                    {gettext("Audit log")}
+                  </.link>
+                </li>
+                <%= if @current_scope.organization do %>
+                  <li>
+                    <.link
+                      {test_id("nav-audit-log-org")}
+                      href={"/org/#{@current_scope.organization.id}/audit-log"}
+                      class="hover:text-cm-white transition-colors"
+                    >
+                      {gettext("Audit log (org)")}
+                    </.link>
+                  </li>
+                <% end %>
+              <% end %>
               <li class="text-cm-white/20">|</li>
               <li class="text-cm-white/70">{@current_scope.account.email}</li>
               <li>

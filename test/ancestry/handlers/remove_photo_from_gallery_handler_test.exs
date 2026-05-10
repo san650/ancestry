@@ -42,7 +42,7 @@ defmodule Ancestry.Handlers.RemovePhotoFromGalleryHandlerTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.RemovePhotoFromGallery"
-    assert row.payload["photo_id"] == photo.id
+    assert row.payload["arguments"]["photo_id"] == photo.id
   end
 
   test "Bus.dispatch returns :not_found for missing photo", %{scope: scope} do

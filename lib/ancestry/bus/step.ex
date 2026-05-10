@@ -48,6 +48,16 @@ defmodule Ancestry.Bus.Step do
   @doc "Append the audit step (writes one row to audit_log on commit)."
   def audit(multi), do: Multi.insert(multi, :audit, &create_audit_log/1)
 
+  @doc """
+  Append the audit step with handler-contributed metadata. `fun` receives the
+  Multi changes map and returns a metadata map written to `payload.metadata`.
+  """
+  def audit(multi, fun) when is_function(fun, 1) do
+    multi
+    |> Multi.run(:audit_metadata, &run_metadata_fun(&1, &2, fun))
+    |> Multi.insert(:audit, &create_audit_log_with_metadata/1)
+  end
+
   @doc "Append an effects step that returns the post-commit effect list."
   def effects(multi, fun), do: Multi.run(multi, :effects, fun)
 
@@ -55,6 +65,15 @@ defmodule Ancestry.Bus.Step do
   def no_effects(multi), do: effects(multi, &empty_effects/2)
 
   defp create_audit_log(%{envelope: envelope}), do: Log.changeset_from(envelope)
+
+  defp create_audit_log_with_metadata(%{envelope: env, audit_metadata: meta}),
+    do: Log.changeset_from(env, meta)
+
+  defp run_metadata_fun(_repo, changes, fun), do: {:ok, stringify_keys(fun.(changes))}
+
+  defp stringify_keys(map) when is_map(map),
+    do: Map.new(map, fn {k, v} -> {to_string(k), v} end)
+
   defp empty_effects(_repo, _changes), do: {:ok, []}
 
   defp run_insert(repo, changes, fun) do

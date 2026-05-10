@@ -111,6 +111,32 @@ defmodule Web.Components.NavDrawer do
               {gettext("Accounts")}
             </.link>
           <% end %>
+          <%= if can?(@current_scope, :index, Ancestry.Audit.Log) do %>
+            <.link
+              {test_id("nav-audit-log-admin")}
+              href="/admin/audit-log"
+              class={[
+                "flex items-center w-full px-4 py-3 text-left rounded-cm min-h-[44px]",
+                "font-cm-mono text-[11px] font-bold uppercase tracking-wider",
+                "transition-colors text-cm-black hover:bg-cm-surface"
+              ]}
+            >
+              {gettext("Audit log")}
+            </.link>
+            <%= if @current_scope.organization do %>
+              <.link
+                {test_id("nav-audit-log-org")}
+                href={"/org/#{@current_scope.organization.id}/audit-log"}
+                class={[
+                  "flex items-center w-full px-4 py-3 text-left rounded-cm min-h-[44px]",
+                  "font-cm-mono text-[11px] font-bold uppercase tracking-wider",
+                  "transition-colors text-cm-black hover:bg-cm-surface"
+                ]}
+              >
+                {gettext("Audit log (org)")}
+              </.link>
+            <% end %>
+          <% end %>
           <.link
             {test_id("nav-logout")}
             href="/accounts/log-out"

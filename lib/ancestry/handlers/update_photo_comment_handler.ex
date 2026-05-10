@@ -20,9 +20,11 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandler do
     |> Step.authorize(:authorized_comment, PhotoComment, :update, :photo_comment_id)
     |> Step.update(:updated_comment, &update_authorized_comment/1)
     |> Step.run(:comment, &preload_comment_account/2)
-    |> Step.audit()
+    |> Step.audit(&audit_metadata/1)
     |> Step.effects(&broadcast_update/2)
   end
+
+  defp audit_metadata(%{authorized_comment: original}), do: %{original_text: original.text}
 
   defp update_authorized_comment(%{envelope: envelope, authorized_comment: comment}) do
     PhotoComment.changeset(comment, %{text: envelope.command.text})

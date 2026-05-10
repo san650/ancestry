@@ -55,6 +55,8 @@ defmodule Web.Router do
       live "/admin/accounts/new", AccountManagementLive.New, :new
       live "/admin/accounts/:id", AccountManagementLive.Show, :show
       live "/admin/accounts/:id/edit", AccountManagementLive.Edit, :edit
+      live "/admin/audit-log", AuditLogLive.Index, :index
+      live "/admin/audit-log/:id", AuditLogLive.Show, :show
     end
 
     scope "/org/:org_id" do
@@ -85,6 +87,7 @@ defmodule Web.Router do
         live "/families/:family_id/birthdays", BirthdayLive.Index, :index
         live "/families/:family_id/people", PeopleLive.Index, :index
         live "/people", OrgPeopleLive.Index, :index
+        live "/audit-log", AuditLogLive.OrgIndex, :index
       end
     end
   end

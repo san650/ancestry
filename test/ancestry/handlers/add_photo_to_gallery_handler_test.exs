@@ -37,7 +37,24 @@ defmodule Ancestry.Handlers.AddPhotoToGalleryHandlerTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
-    assert row.payload["file_hash"] == "abc123"
+    assert row.payload["arguments"]["file_hash"] == "abc123"
+  end
+
+  test "audit row metadata records the inserted photo's id",
+       %{scope: scope, gallery: gallery} do
+    attrs = %{
+      gallery_id: gallery.id,
+      original_path: "/tmp/test_#{System.unique_integer([:positive])}.jpg",
+      original_filename: "test.jpg",
+      content_type: "image/jpeg",
+      file_hash: "abc123"
+    }
+
+    {:ok, cmd} = AddPhotoToGallery.new(attrs)
+    assert {:ok, %Photo{} = photo} = Bus.dispatch(scope, cmd)
+
+    assert [row] = Repo.all(Log)
+    assert row.payload["metadata"] == %{"photo_id" => photo.id}
   end
 
   test "Bus.dispatch returns :validation for non-existent gallery", %{scope: scope} do

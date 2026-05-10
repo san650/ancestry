@@ -54,6 +54,6 @@ defmodule Web.UserFlows.PhotoDeleteTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.RemovePhotoFromGallery"
-    assert row.payload["photo_id"] == photo.id
+    assert row.payload["arguments"]["photo_id"] == photo.id
   end
 end

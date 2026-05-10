@@ -322,6 +322,7 @@ defmodule Web.GalleryLive.Show do
   defp process_uploads(socket) do
     gallery = socket.assigns.gallery
     uploads = socket.assigns.uploads.photos
+    batch_id = Ancestry.Prefixes.generate(:batch)
 
     invalid_results =
       for entry <- uploads.entries,
@@ -367,7 +368,8 @@ defmodule Web.GalleryLive.Show do
 
           case Ancestry.Bus.dispatch(
                  socket.assigns.current_scope,
-                 Ancestry.Commands.AddPhotoToGallery.new!(attrs)
+                 Ancestry.Commands.AddPhotoToGallery.new!(attrs),
+                 correlation_ids: [batch_id]
                ) do
             {:ok, photo} -> {:ok, {:ok, photo}}
             {:error, _, _} -> {:ok, {:error, entry.client_name}}

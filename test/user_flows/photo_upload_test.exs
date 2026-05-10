@@ -25,6 +25,7 @@ defmodule Web.UserFlows.PhotoUploadTest do
   use Web.ConnCase, async: false
   use Oban.Testing, repo: Ancestry.Repo
 
+  import Ecto.Query
   import Phoenix.LiveViewTest
 
   alias Ancestry.Audit.Log
@@ -72,7 +73,7 @@ defmodule Web.UserFlows.PhotoUploadTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
-    assert row.payload["gallery_id"] == gallery.id
+    assert row.payload["arguments"]["gallery_id"] == gallery.id
   end
 
   test "duplicate hash skips dispatch and writes no audit row",
@@ -154,6 +155,77 @@ defmodule Web.UserFlows.PhotoUploadTest do
 
     assert Repo.all(Photo) == []
     assert Repo.all(Log) == []
+  end
+
+  test "batch upload tags every audit row with one shared bch- correlation id",
+       %{conn: conn, org: org, family: family, gallery: gallery, account: account} do
+    # Drive a single-file upload through the LV to confirm the call-site
+    # change wires `correlation_ids: [batch_id]` into the audit row, then
+    # exercise a second AddPhotoToGallery dispatch under the same batch_id
+    # to confirm the audit rows can share a bch- correlation id (mirroring
+    # what process_uploads/1 does inside consume_uploaded_entries).
+    #
+    # The LV test driver does not reliably support driving multiple
+    # auto_upload entries through `render_upload/2` in a single batch
+    # (the first entry's upload channel dies between renders), so the
+    # multi-row batch leg uses a direct Bus.dispatch/3 call.
+    {:ok, view, _html} =
+      live(conn, ~p"/org/#{org.id}/families/#{family.id}/galleries/#{gallery.id}")
+
+    contents = File.read!("test/fixtures/test_image.jpg")
+
+    upload =
+      file_input(view, "#upload-form", :photos, [
+        %{name: "first.jpg", content: contents <> <<1>>, type: "image/jpeg"}
+      ])
+
+    render_upload(upload, "first.jpg")
+
+    [first_row] =
+      Repo.all(
+        from(l in Log,
+          where: l.command_module == "Ancestry.Commands.AddPhotoToGallery"
+        )
+      )
+
+    [batch_id] =
+      Enum.filter(first_row.correlation_ids, &String.starts_with?(&1, "bch-"))
+
+    # Now dispatch a second AddPhotoToGallery in the same batch directly
+    # via the Bus, verifying the audit rows share the bch- id.
+    scope = %{
+      Ancestry.Identity.Scope.for_account(account)
+      | organization: org
+    }
+
+    hash =
+      :crypto.hash(:sha256, contents <> <<2>>) |> Base.encode16(case: :lower)
+
+    {:ok, _photo} =
+      Ancestry.Bus.dispatch(
+        scope,
+        Ancestry.Commands.AddPhotoToGallery.new!(%{
+          gallery_id: gallery.id,
+          original_path: "/tmp/photo_2.jpg",
+          original_filename: "photo_2.jpg",
+          content_type: "image/jpeg",
+          file_hash: hash
+        }),
+        correlation_ids: [batch_id]
+      )
+
+    rows =
+      Repo.all(
+        from(l in Log,
+          where: l.command_module == "Ancestry.Commands.AddPhotoToGallery",
+          order_by: [asc: l.id]
+        )
+      )
+
+    assert length(rows) == 2
+    assert Enum.all?(rows, fn r -> batch_id in r.correlation_ids end)
+
+    _ = family
   end
 
   test "too-many-files surfaces form-level error row",

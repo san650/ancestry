@@ -31,8 +31,12 @@ defmodule Ancestry.Handlers.TagPersonInPhotoHandlerTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.TagPersonInPhoto"
-    assert row.payload["photo_id"] == photo.id
-    assert row.payload["person_id"] == person.id
+    assert row.payload["arguments"]["photo_id"] == photo.id
+    assert row.payload["arguments"]["person_id"] == person.id
+
+    assert row.payload["metadata"] == %{
+             "person_name" => Ancestry.People.Person.display_name(person)
+           }
   end
 
   test "Bus.dispatch upserts coordinates on existing tag",

@@ -60,6 +60,6 @@ defmodule Web.UserFlows.PhotoCommentsDeleteTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.RemoveCommentFromPhoto"
-    assert row.payload["photo_comment_id"] == comment.id
+    assert row.payload["arguments"]["photo_comment_id"] == comment.id
   end
 end

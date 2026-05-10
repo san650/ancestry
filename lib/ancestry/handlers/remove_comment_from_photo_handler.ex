@@ -20,9 +20,11 @@ defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandler do
     |> Step.authorize(:authorized_comment, PhotoComment, :delete, :photo_comment_id)
     |> Step.run(:deleted_comment, &remove_authorized_comment/2)
     |> Step.run(:comment, &preload_comment_account/2)
-    |> Step.audit()
+    |> Step.audit(&audit_metadata/1)
     |> Step.effects(&broadcast_deletion/2)
   end
+
+  defp audit_metadata(%{comment: comment}), do: %{text: comment.text}
 
   defp remove_authorized_comment(repo, %{authorized_comment: comment}) do
     repo.delete(comment)

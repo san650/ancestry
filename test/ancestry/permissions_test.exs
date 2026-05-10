@@ -1,6 +1,7 @@
 defmodule Ancestry.PermissionsTest do
   use Ancestry.DataCase, async: true
 
+  alias Ancestry.Audit.Log, as: AuditLog
   alias Ancestry.Authorization
   alias Ancestry.Comments.PhotoComment
   alias Ancestry.Identity.{Account, Scope}
@@ -191,6 +192,25 @@ defmodule Ancestry.PermissionsTest do
       refute Authorization.delete?(auth, Person)
       refute Authorization.delete?(auth, Gallery)
       refute Authorization.delete?(auth, Photo)
+    end
+  end
+
+  describe "audit log access" do
+    test "admin can index and show audit logs" do
+      auth = Authorization.can(scope_for_role(:admin))
+      assert Authorization.can?(scope_for_role(:admin), :index, AuditLog)
+      assert Authorization.can?(scope_for_role(:admin), :show, AuditLog)
+      assert Authorization.read?(auth, AuditLog)
+    end
+
+    test "editor cannot access audit logs" do
+      refute Authorization.can?(scope_for_role(:editor), :index, AuditLog)
+      refute Authorization.can?(scope_for_role(:editor), :show, AuditLog)
+    end
+
+    test "viewer cannot access audit logs" do
+      refute Authorization.can?(scope_for_role(:viewer), :index, AuditLog)
+      refute Authorization.can?(scope_for_role(:viewer), :show, AuditLog)
     end
   end
 

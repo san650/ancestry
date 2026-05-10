@@ -70,4 +70,14 @@ defmodule Ancestry.Handlers.RemoveCommentFromPhotoHandlerTest do
     assert {:ok, %PhotoComment{}} = Bus.dispatch(scope, cmd)
     assert is_nil(Ancestry.Repo.get(PhotoComment, comment.id))
   end
+
+  test "Bus.dispatch records the deleted comment text in audit metadata",
+       %{owner_scope: scope, comment: comment} do
+    cmd = RemoveCommentFromPhoto.new!(%{photo_comment_id: comment.id})
+    assert {:ok, _} = Bus.dispatch(scope, cmd)
+
+    [row] = Ancestry.Repo.all(Ancestry.Audit.Log)
+    assert row.command_module == "Ancestry.Commands.RemoveCommentFromPhoto"
+    assert row.payload["metadata"] == %{"text" => "kill me"}
+  end
 end

@@ -63,8 +63,8 @@ defmodule Web.UserFlows.PhotoCommentsCreateTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddCommentToPhoto"
-    assert row.payload["text"] == "Hello"
-    assert row.payload["photo_id"] == photo.id
+    assert row.payload["arguments"]["text"] == "Hello"
+    assert row.payload["arguments"]["photo_id"] == photo.id
   end
 
   test "shows validation error on empty submit and writes no audit row", %{

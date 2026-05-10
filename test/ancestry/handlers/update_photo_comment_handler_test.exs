@@ -65,6 +65,16 @@ defmodule Ancestry.Handlers.UpdatePhotoCommentHandlerTest do
     assert_receive {:comment_updated, %PhotoComment{text: "broadcasted"}}, 500
   end
 
+  test "Bus.dispatch records the pre-update text in audit metadata",
+       %{owner_scope: scope, comment: comment} do
+    cmd = UpdatePhotoComment.new!(%{photo_comment_id: comment.id, text: "after"})
+    assert {:ok, _} = Bus.dispatch(scope, cmd)
+
+    [row] = Ancestry.Repo.all(Ancestry.Audit.Log)
+    assert row.command_module == "Ancestry.Commands.UpdatePhotoComment"
+    assert row.payload["metadata"] == %{"original_text" => "before"}
+  end
+
   test "admin can update any comment", %{admin_scope: scope, comment: comment} do
     cmd = UpdatePhotoComment.new!(%{photo_comment_id: comment.id, text: "admin edit"})
     assert {:ok, %PhotoComment{text: "admin edit"}} = Bus.dispatch(scope, cmd)
