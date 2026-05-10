@@ -78,38 +78,6 @@ defmodule Web.AuditLogLive.Components do
       class="flex flex-wrap gap-3 items-end pb-4"
       {test_id("audit-filter")}
     >
-      <input
-        type="hidden"
-        id="audit-filter-correlation-id"
-        name="filters[correlation_id]"
-        value={@filters[:correlation_id] || ""}
-      />
-      <div
-        :if={@filters[:correlation_id]}
-        class="flex flex-col text-[11px] font-cm-mono"
-      >
-        <span class="font-bold uppercase">correlation_id</span>
-        <span
-          class="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 font-mono"
-          {test_id("audit-filter-correlation-chip")}
-        >
-          {@filters[:correlation_id]}
-          <button
-            type="button"
-            aria-label={gettext("Clear filter")}
-            class="ml-1 leading-none text-zinc-500 hover:text-zinc-800"
-            phx-click={
-              Phoenix.LiveView.JS.set_attribute({"value", ""},
-                to: "#audit-filter-correlation-id"
-              )
-              |> Phoenix.LiveView.JS.dispatch("input", to: "#audit-filter-correlation-id")
-            }
-            {test_id("audit-filter-correlation-clear")}
-          >
-            ×
-          </button>
-        </span>
-      </div>
       <label :if={@show_organization?} class="flex flex-col text-[11px] font-cm-mono">
         <span class="font-bold uppercase">{gettext("Organization")}</span>
         <select
@@ -145,6 +113,38 @@ defmodule Web.AuditLogLive.Components do
           </option>
         </select>
       </label>
+
+      <input
+        type="hidden"
+        id="audit-filter-correlation-id"
+        name="filters[correlation_id]"
+        value={@filters[:correlation_id] || ""}
+      />
+      <div
+        :if={@filters[:correlation_id]}
+        class="flex flex-col text-[11px] font-cm-mono"
+      >
+        <span
+          class="inline-flex items-center gap-1 px-2 py-1 rounded bg-zinc-100 font-mono"
+          {test_id("audit-filter-correlation-chip")}
+        >
+          {@filters[:correlation_id]}
+          <button
+            type="button"
+            aria-label={gettext("Clear filter")}
+            class="ml-1 leading-none text-zinc-500 hover:text-zinc-800"
+            phx-click={
+              Phoenix.LiveView.JS.set_attribute({"value", ""},
+                to: "#audit-filter-correlation-id"
+              )
+              |> Phoenix.LiveView.JS.dispatch("input", to: "#audit-filter-correlation-id")
+            }
+            {test_id("audit-filter-correlation-clear")}
+          >
+            ×
+          </button>
+        </span>
+      </div>
     </form>
     """
   end
