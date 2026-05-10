@@ -73,7 +73,7 @@ defmodule Web.UserFlows.PhotoUploadTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddPhotoToGallery"
-    assert row.payload["gallery_id"] == gallery.id
+    assert row.payload["arguments"]["gallery_id"] == gallery.id
   end
 
   test "duplicate hash skips dispatch and writes no audit row",

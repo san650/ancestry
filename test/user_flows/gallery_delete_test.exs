@@ -80,6 +80,6 @@ defmodule Web.UserFlows.GalleryDeleteTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.RemoveGalleryFromFamily"
-    assert row.payload["gallery_id"] == gallery.id
+    assert row.payload["arguments"]["gallery_id"] == gallery.id
   end
 end

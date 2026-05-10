@@ -32,8 +32,8 @@ defmodule Ancestry.Handlers.UntagPersonFromPhotoHandlerTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.UntagPersonFromPhoto"
-    assert row.payload["photo_id"] == photo.id
-    assert row.payload["person_id"] == person.id
+    assert row.payload["arguments"]["photo_id"] == photo.id
+    assert row.payload["arguments"]["person_id"] == person.id
   end
 
   test "Bus.dispatch is a no-op for non-existent tag (still audits)",

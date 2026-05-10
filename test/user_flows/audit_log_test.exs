@@ -122,7 +122,7 @@ defmodule Web.UserFlows.AuditLogTest do
     |> wait_liveview()
     |> assert_has(test_id("audit-row-expanded-#{a.id}"))
     |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.command_id)
-    |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: a.correlation_id)
+    |> assert_has(test_id("audit-row-expanded-#{a.id}"), text: hd(a.correlation_ids))
   end
 
   test "org-scoped page only shows that org's rows", %{
@@ -158,8 +158,8 @@ defmodule Web.UserFlows.AuditLogTest do
 
   test "detail page shows full record and correlated rows", %{conn: conn} do
     cid = "req-#{Ecto.UUID.generate()}"
-    a = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:00])
-    b = insert(:audit_log, correlation_id: cid, inserted_at: ~N[2026-05-09 10:00:01])
+    a = insert(:audit_log, correlation_ids: [cid], inserted_at: ~N[2026-05-09 10:00:00])
+    b = insert(:audit_log, correlation_ids: [cid], inserted_at: ~N[2026-05-09 10:00:01])
 
     conn
     |> log_in_e2e(role: :admin)
@@ -172,7 +172,7 @@ defmodule Web.UserFlows.AuditLogTest do
 
   test "detail page shows 'No related events' when alone", %{conn: conn} do
     cid = "req-solo-#{Ecto.UUID.generate()}"
-    row = insert(:audit_log, correlation_id: cid)
+    row = insert(:audit_log, correlation_ids: [cid])
 
     conn
     |> log_in_e2e(role: :admin)
@@ -204,5 +204,20 @@ defmodule Web.UserFlows.AuditLogTest do
     |> wait_liveview()
     |> refute_has(test_id("nav-audit-log-admin"))
     |> refute_has(test_id("nav-audit-log-org"))
+  end
+
+  test "AddPhotoToGallery audit row renders 'Photo deleted' when photo is gone",
+       %{conn: conn} do
+    row =
+      insert(:audit_log,
+        command_module: "Ancestry.Commands.AddPhotoToGallery",
+        payload: %{"arguments" => %{}, "metadata" => %{"photo_id" => 999_999}}
+      )
+
+    conn
+    |> log_in_e2e(role: :admin)
+    |> visit(~p"/admin/audit-log")
+    |> wait_liveview()
+    |> assert_has(test_id("audit-row-metadata-#{row.id}"), text: "Photo deleted")
   end
 end

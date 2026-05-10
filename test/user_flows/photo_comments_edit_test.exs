@@ -66,7 +66,7 @@ defmodule Web.UserFlows.PhotoCommentsEditTest do
     assert %PhotoComment{text: "after"} = Repo.get!(PhotoComment, comment.id)
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.UpdatePhotoComment"
-    assert row.payload["text"] == "after"
-    assert row.payload["photo_comment_id"] == comment.id
+    assert row.payload["arguments"]["text"] == "after"
+    assert row.payload["arguments"]["photo_comment_id"] == comment.id
   end
 end

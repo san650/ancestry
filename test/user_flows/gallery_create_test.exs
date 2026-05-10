@@ -65,8 +65,8 @@ defmodule Web.UserFlows.GalleryCreateTest do
 
     assert [row] = Repo.all(Log)
     assert row.command_module == "Ancestry.Commands.AddGalleryToFamily"
-    assert row.payload["name"] == "Summer Trip"
-    assert row.payload["family_id"] == family.id
+    assert row.payload["arguments"]["name"] == "Summer Trip"
+    assert row.payload["arguments"]["family_id"] == family.id
   end
 
   test "shows validation error on empty name and writes no audit row",

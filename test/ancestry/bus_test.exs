@@ -173,7 +173,8 @@ defmodule Ancestry.BusTest do
     assert <<"cmd-", _::binary-size(36)>> = row.command_id
     assert row.command_module == "Ancestry.BusTest.NoopCommand"
     assert row.account_id == scope.account.id
-    assert row.payload == %{"label" => "hello"}
+    assert row.payload["arguments"] == %{"label" => "hello"}
+    assert row.payload["metadata"] == %{}
   end
 
   test "classifies :not_found from a Multi step", %{scope: scope} do
@@ -323,7 +324,7 @@ defmodule Ancestry.BusTest do
       assert_receive {:audit_logged, %Log{} = row}, 1_000
       assert row.account_id == scope.account.id
       assert row.command_module == "Ancestry.BusTest.NoopCommand"
-      assert row.payload[:label] == "broadcast-test"
+      assert row.payload["arguments"][:label] == "broadcast-test"
     end
 
     test "broadcasts on org topic when scope has an organization" do
